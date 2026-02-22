@@ -99,7 +99,7 @@
       "description": "EventEditor 하단에 토글 가능한 디버그 콘솔 영역을 추가하고, 로그를 레벨별 색상으로 표시한다.",
       "phase": "phase1-console-debug",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/designer/src/components/EventEditor/EventEditor.tsx를 수정하여 디버그 콘솔 UI를 추가하라.\n\n1. 에디터 레이아웃 변경:\n   - Monaco Editor 영역과 디버그 콘솔 영역을 상하로 분할\n   - 콘솔 영역은 토글 버튼으로 보이기/숨기기 가능 (기본: 숨김)\n   - 콘솔이 보일 때 에디터 70%, 콘솔 30% 비율\n\n2. 디버그 콘솔 컴포넌트 구현:\n   - 로그 목록을 스크롤 가능한 영역에 표시\n   - 각 로그 레벨별 색상: log(#d4d4d4), info(#3794ff), warn(#cca700), error(#f14c4c)\n   - 타임스탬프 표시\n   - Clear 버튼\n   - 자동 스크롤 (최신 로그로)\n\n3. 헤더에 'Run' 버튼 추가:\n   - 클릭 시 현재 에디터 코드를 POST /api/debug/execute로 전송\n   - formState는 빈 객체 또는 기본 mock 데이터 사용\n   - 응답의 logs를 콘솔에 표시\n   - 에러 발생 시 에러 메시지를 콘솔에 빨간색으로 표시\n   - 콘솔이 숨겨져 있으면 자동으로 표시\n\n4. 상태 바 업데이트: 'Ctrl+S: Save | Escape: Close | F5: Run'",
       "dependsOn": [
         "debugger-test-api"
@@ -150,7 +150,7 @@
       "description": "console.log 브릿지, 에러 줄 번호 추출, 디버그 API가 올바르게 동작하는지 테스트한다.",
       "phase": "phase1-console-debug",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Phase 1 디버거 기능에 대한 테스트를 작성하라.\n\n1. packages/server/src/__tests__/SandboxRunner.debug.test.ts 생성:\n   - console.log가 logs 배열에 캡처되는지 확인\n   - console.warn, console.error가 올바른 type으로 캡처되는지 확인\n   - console.log에 객체 전달 시 JSON.stringify되는지 확인\n   - 에러 발생 시 errorLine이 올바르게 추출되는지 확인\n   - 기존 기능(ctx.controls, ctx.showMessage, ctx.http)이 정상 동작하는지 확인\n\n2. packages/server/src/__tests__/debug.api.test.ts 생성:\n   - POST /api/debug/execute가 코드를 실행하고 logs를 반환하는지 확인\n   - 에러 코드 전송 시 error와 errorLine이 반환되는지 확인\n   - production 환경에서 404가 반환되는지 확인\n\npnpm --filter @webform/server test를 실행하여 모든 테스트가 통과하는지 확인하라.",
       "dependsOn": [
         "debugger-console-inject",
