@@ -615,7 +615,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 속성 패널(Properties Panel) 구현 계획을 수립하라. PRD.md 섹션 4.1.4를 분석하여 다음을 설계하라:\n\n## 속성 패널 기능\n1. 선택 컨트롤 속성 표시/편집 (selectionStore 구독)\n2. 선택 없으면 FormProperties 편집\n3. 카테고리: Appearance, Behavior, Layout, Design\n4. 카테고리순/알파벳순 토글\n5. 속성 탭 / 이벤트 탭 전환\n\n## 속성 에디터 타입\n- TextEditor: 문자열 인라인 편집\n- NumberEditor: 숫자 (min/max)\n- ColorPicker: HTML color input\n- FontPicker: family/size/bold/italic\n- DropdownEditor: 열거형 select\n- BooleanToggle: checkbox\n- AnchorEditor: 4방향 시각적 UI\n- CollectionEditor: 배열 아이템 모달\n\n## controlProperties.ts 설계\nPropertyMeta 인터페이스: name, category, editorType, label, defaultValue, options, min, max\n각 ControlType별 PropertyMeta[] 정의\n\n## 이벤트 탭\n이벤트 목록 + 핸들러 이름 입력 + 더블클릭 시 Monaco Editor 열기\n\n계획을 plans/properties-panel-plan.md에 작성하라.",
       "dependsOn": [
         "toolbox-controls-commit"
@@ -634,7 +634,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/properties-panel-plan.md에 따라 속성 패널을 구현하라.\n\n1. packages/designer/src/components/PropertyPanel/controlProperties.ts:\n   - PropertyMeta 인터페이스\n   - CONTROL_PROPERTY_META: Record<ControlType, PropertyMeta[]>\n   - CONTROL_EVENTS_META: Record<ControlType, string[]>\n\n2. 에디터 컴포넌트들:\n   - editors/TextEditor.tsx: 인라인 편집\n   - editors/NumberEditor.tsx: min/max 지원\n   - editors/ColorPicker.tsx: HTML color input\n   - editors/FontPicker.tsx: family/size/bold/italic\n   - editors/DropdownEditor.tsx: select + options\n   - editors/BooleanToggle.tsx: checkbox\n   - editors/AnchorEditor.tsx: 4방향 체크박스 + 시각적 다이어그램\n   - editors/CollectionEditor.tsx: 모달, 아이템 추가/삭제/순서변경\n\n3. packages/designer/src/components/PropertyPanel/PropertyCategory.tsx:\n   - 카테고리 헤더 (접기/펼치기)\n   - PropertyMeta 기반 에디터 선택 렌더링\n\n4. packages/designer/src/components/PropertyPanel/EventsTab.tsx:\n   - 이벤트 목록 + 핸들러 이름 입력\n   - 더블클릭/입력 완료 시 EventEditor 열기\n\n5. packages/designer/src/components/PropertyPanel/PropertyPanel.tsx:\n   - selectedIds 구독, 속성 탭/이벤트 탭 전환\n   - 카테고리순/알파벳순 토글\n   - 속성 변경 시 designerStore.updateControl 호출\n\n6. packages/designer/src/components/EventEditor/EventEditor.tsx:\n   - @monaco-editor/react, TypeScript 모드\n   - FormContext 타입 힌트 (addExtraLib)\n   - Ctrl+S 시 이벤트 핸들러 저장\n\n7. packages/designer/src/App.tsx 업데이트:\n   - PropertyPanel 우측 패널 통합\n   - EventEditor 모달 통합",
       "dependsOn": [
         "properties-panel-plan"
@@ -926,7 +926,7 @@
       "description": null,
       "phase": "phase4-data",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 데이터소스 서비스 구현 계획을 수립하라. PRD.md 섹션 4.1.6(데이터소스 설정)과 5.2(보안)를 분석하여 다음을 계획하라:\n\n## 지원 데이터소스 타입\n1. MongoDB: native driver 또는 mongoose\n2. REST API: axios 기반\n3. Static: 정적 배열\n\n## API 엔드포인트\n- GET /api/datasources: 목록 (config 암호화 정보 제외)\n- POST /api/datasources: 생성 (connectionString AES-256 암호화)\n- PUT /api/datasources/:id: 수정\n- DELETE /api/datasources/:id: 삭제\n- POST /api/datasources/:id/test: 연결 테스트\n- POST /api/datasources/:id/query: 쿼리 실행\n\n## 보안 설계\n- connectionString: AES-256-CBC 암호화 (Node.js crypto, ENCRYPTION_KEY env)\n- 쿼리 입력: sanitizeQueryInput 적용\n- $where, $function, $accumulator 연산자 차단\n- 쿼리 타임아웃 (기본 10초)\n\n## DataSourceService 메서드\ncreateDataSource, getDataSource(복호화), listDataSources(암호화 제외), updateDataSource, deleteDataSource, testConnection, executeQuery\n\n## 어댑터 패턴\n- MongoDBAdapter, RestApiAdapter, StaticAdapter\n\n계획을 plans/datasource-service-plan.md에 작성하라.",
       "dependsOn": [
         "server-foundation-commit",
@@ -946,7 +946,7 @@
       "description": null,
       "phase": "phase4-data",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/datasource-service-plan.md에 따라 데이터소스 서비스를 구현하라.\n\n1. packages/server/src/models/DataSource.ts:\n   - DataSourceDocument 인터페이스 (DataSourceDefinition 확장)\n   - encryptedConfig 필드 (암호화된 config 저장)\n   - Mongoose 스키마\n\n2. packages/server/src/services/EncryptionService.ts:\n   - AES-256-CBC 암호화/복호화 (Node.js crypto)\n   - encrypt(text: string): string (iv:encrypted 형식)\n   - decrypt(encrypted: string): string\n   - ENCRYPTION_KEY 환경 변수 사용 (32바이트)\n\n3. packages/server/src/services/adapters/MongoDBAdapter.ts:\n   - connect(config: DatabaseConfig): MongoClient\n   - executeQuery(client, { collection, filter, sort, projection, limit }): any[]\n   - sanitizeFilter(filter): 위험 연산자 제거\n   - testConnection(config): boolean\n\n4. packages/server/src/services/adapters/RestApiAdapter.ts:\n   - executeQuery(config: RestApiConfig, queryParams): any\n   - 헤더, Bearer/Basic 인증 처리\n   - testConnection(config): boolean\n\n5. packages/server/src/services/adapters/StaticAdapter.ts:\n   - executeQuery(config: StaticConfig, filter?): any[]\n   - testConnection(config): boolean (항상 true)\n\n6. packages/server/src/services/DataSourceService.ts:\n   - createDataSource: config 암호화 후 저장\n   - getDataSource: 조회 + config 복호화\n   - listDataSources: config 제외한 목록\n   - testConnection, executeQuery: 어댑터 위임\n\n7. packages/server/src/routes/datasources.ts (전체 구현):\n   - 모든 CRUD + test + query 엔드포인트\n\n8. packages/server/src/validators/datasourceValidator.ts:\n   - Zod 스키마 (createDatasourceSchema, querySchema)",
       "dependsOn": [
         "datasource-service-plan"
@@ -1108,7 +1108,7 @@
       "description": null,
       "phase": "phase5-project",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트 관리 기능 구현 계획을 수립하라. PRD.md 섹션 4.3(프로젝트 관리)을 분석하여 다음을 설계하라:\n\n## 프로젝트 구조\n- Solution/Project 계층\n- 프로젝트 내: Forms, DataSources, SharedCode, Assets\n\n## API 엔드포인트\n- GET /api/projects: 목록\n- POST /api/projects: 생성\n- GET /api/projects/:id: 상세 (포함 폼 목록)\n- DELETE /api/projects/:id: 삭제\n- GET /api/projects/:id/export: JSON 내보내기\n- POST /api/projects/import: JSON 가져오기\n\n## ProjectExplorer 컴포넌트 (디자이너)\n- 트리뷰: 프로젝트 → Forms/DataSources 폴더 → 항목\n- 폼 더블클릭 → 캔버스 로드\n- 우클릭 컨텍스트 메뉴 (새 폼, 이름 변경, 삭제)\n\n## 폼 저장 워크플로우\n- Ctrl+S: PUT /api/forms/:id\n- Auto-save 30초 간격\n- isDirty 상태로 변경사항 표시 (*)\n\n## apiService.ts\n- loadForm, saveForm, createForm, listForms\n- autoSave 훅\n\n계획을 plans/project-management-plan.md에 작성하라.",
       "dependsOn": [
         "form-crud-api-commit"
