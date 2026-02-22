@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@webform/common": "workspace:*",
+    "acorn": "^8.16.0",
+    "astring": "^1.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.0",
     "express": "^4.21.0",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
+    "@types/estree": "^1.0.8",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/morgan": "^1.9.10",
