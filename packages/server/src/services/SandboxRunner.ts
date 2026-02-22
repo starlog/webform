@@ -41,20 +41,24 @@ export class SandboxRunner {
       const vmContext = await isolate.createContext();
       const jail = vmContext.global;
 
-      await this.blockDangerousGlobals(jail);
+      await this.blockDangerousGlobals(jail, debugMode);
       await this.injectContext(jail, context);
 
       const script = await isolate.compileScript(wrappedCode);
 
       const result = await script.run(vmContext, { timeout, copy: true });
 
-      if (debugMode && result && typeof result === 'object' && 'traces' in result) {
-        const { traces, ...rest } = result as Record<string, unknown>;
-        return {
-          success: true,
-          value: rest,
-          traces: traces as TraceEntry[],
-        };
+      if (debugMode && result && typeof result === 'object') {
+        const resultObj = result as Record<string, unknown>;
+        const traces = resultObj.traces as TraceEntry[] | undefined;
+        const userError = resultObj.__error as string | undefined;
+        const { traces: _t, __error: _e, ...rest } = resultObj;
+
+        if (userError) {
+          return { success: false, error: userError, traces };
+        }
+
+        return { success: true, value: rest, traces };
       }
 
       return { success: true, value: result };
@@ -69,12 +73,15 @@ export class SandboxRunner {
 
   private async blockDangerousGlobals(
     jail: ivm.Reference<Record<string, unknown>>,
+    debugMode?: boolean,
   ): Promise<void> {
     const blocked = [
-      'process', 'require', 'eval', 'Function',
+      'process', 'require', 'Function',
       '__dirname', '__filename', 'module', 'exports',
       'globalThis', 'setTimeout', 'setInterval',
       'setImmediate', 'queueMicrotask',
+      // debugMode에서는 __captureVars가 eval을 사용하므로 차단하지 않음
+      ...(debugMode ? [] : ['eval']),
     ];
 
     for (const name of blocked) {
@@ -178,11 +185,26 @@ export class SandboxRunner {
             return __httpHandler.applySyncPromise(undefined, ['DELETE', String(url)]);
           }
         };
-        var sender = ctx.sender;
+        var sender = ctx.sender;${
+      debugMode
+        ? `
+        var __userError;
+        try {
+          ${code}
+        } catch (__e) {
+          __userError = __e;
+        }
+        var __result = ${returnValue};
+        if (__userError) {
+          __result.__error = __userError.message || String(__userError);
+        }
+        return __result;`
+        : `
         (function() {
           ${code}
         })();
-        return ${returnValue};
+        return ${returnValue};`
+    }
       })(__ctx__)
     `;
   }
