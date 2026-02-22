@@ -267,7 +267,13 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
   const updateControl = useDesignerStore((s) => s.updateControl);
   const controls = useDesignerStore((s) => s.controls);
 
-  const [consoleVisible, setConsoleVisible] = useState(false);
+  // 드래그 이동 상태
+  const [dialogPos, setDialogPos] = useState<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  const [debugPanelHeight, setDebugPanelHeight] = useState(200);
+  const [isDirty, setIsDirty] = useState(false);
   const [logs, setLogs] = useState<DebugLogEntry[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [runStatus, setRunStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -671,13 +677,14 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         _eventCode: updatedCode,
       },
     });
+    setIsDirty(false);
   }, [controlId, control, eventName, handlerName, existingCode, existingHandlers, updateControl]);
 
   const runCode = useCallback(async () => {
     if (!editorRef.current || isRunning) return;
     setIsRunning(true);
     setRunStatus('idle');
-    if (!consoleVisible) setConsoleVisible(true);
+    // 디버그 패널은 항상 표시됨
 
     // 이전 마커/데코레이션 제거
     clearMarkers();
@@ -782,7 +789,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     } finally {
       setIsRunning(false);
     }
-  }, [isRunning, consoleVisible, controls, controlId, clearMarkers, clearDebugDecorations, setErrorMarker, setSuccessDecoration, applyTraceDecorations, updateDebugState, showTracesUpTo]);
+  }, [isRunning, controls, controlId, clearMarkers, clearDebugDecorations, setErrorMarker, setSuccessDecoration, applyTraceDecorations, updateDebugState, showTracesUpTo]);
+
+  const formatCode = useCallback(() => {
+    editorRef.current?.getAction('editor.action.formatDocument')?.run();
+  }, []);
 
   // Monaco command handler에서 최신 함수를 호출하기 위한 refs
   const runCodeRef = useRef<() => void>(() => {});
@@ -808,9 +819,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       noEmit: true,
     });
 
-    // top-level return 등 진단 오류 억제 (TS1108)
+    // top-level return 등 진단 오류 억제
+    // 1108: return outside function, 1345: void truthiness, 1375/1378: await outside async
+    // 2451: duplicate identifier, 2683: implicit this
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      diagnosticCodesToIgnore: [1108, 1375, 1378, 2451],
+      diagnosticCodesToIgnore: [1108, 1345, 1375, 1378, 2451, 2683],
     });
 
     // TypeScript 타입 힌트 추가
@@ -843,6 +856,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       stopDebugRef.current();
     });
 
+    // Shift+Alt+F: Format Document
+    editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
+      editor.getAction('editor.action.formatDocument')?.run();
+    });
+
     // Glyph margin 클릭으로 브레이크포인트 토글
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     editor.onMouseDown((e: any) => {
@@ -852,8 +870,9 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       }
     });
 
-    // 코드 편집 시 디버그 데코레이션 제거 + stepping 상태 초기화
+    // 코드 편집 시 dirty 플래그 + 디버그 데코레이션 제거 + stepping 상태 초기화
     editor.onDidChangeModelContent(() => {
+      setIsDirty(true);
       const ed = editorRef.current;
       if (ed) {
         traceDecorationIdsRef.current = ed.deltaDecorations(traceDecorationIdsRef.current, []);
@@ -890,6 +909,35 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
+  // 헤더 드래그로 창 이동
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    // 버튼 클릭은 드래그 시작하지 않음
+    if ((e.target as HTMLElement).closest('button')) return;
+    e.preventDefault();
+    const el = dialogRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    // 첫 드래그 시 현재 위치를 기준으로 초기화
+    const origX = dialogPos?.x ?? rect.left;
+    const origY = dialogPos?.y ?? rect.top;
+    if (!dialogPos) setDialogPos({ x: origX, y: origY });
+    dragRef.current = { startX: e.clientX, startY: e.clientY, origX, origY };
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      if (!dragRef.current) return;
+      const dx = ev.clientX - dragRef.current.startX;
+      const dy = ev.clientY - dragRef.current.startY;
+      setDialogPos({ x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
+    };
+    const handleMouseUp = () => {
+      dragRef.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [dialogPos]);
 
   // 현재 step 줄 번호 (paused 모드에서 사용)
   const currentStepLine = debugState === 'paused' && allTracesRef.current.length > 0
@@ -989,20 +1037,36 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         .debug-current-line {
           background-color: rgba(255, 204, 0, 0.15);
         }
+        .event-editor-dialog::-webkit-resizable {
+          background-color: #555;
+        }
       `}</style>
       <div
+        ref={dialogRef}
         style={{
           width: '80vw',
           height: '70vh',
+          minWidth: 480,
+          minHeight: 320,
+          maxWidth: '98vw',
+          maxHeight: '98vh',
           backgroundColor: '#1e1e1e',
           border: '1px solid #555',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          resize: 'both',
+          overflow: 'hidden',
+          ...(dialogPos ? {
+            position: 'fixed',
+            left: dialogPos.x,
+            top: dialogPos.y,
+          } : {}),
         }}
       >
-        {/* 헤더 */}
+        {/* 헤더 (드래그로 이동) */}
         <div
+          onMouseDown={handleDragStart}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -1012,10 +1076,13 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
             color: '#ccc',
             fontSize: 13,
             fontFamily: 'Segoe UI, sans-serif',
+            cursor: 'move',
+            userSelect: 'none',
           }}
         >
           <span>
             {handlerName} — {eventName} ({control?.name ?? controlId})
+            {isDirty && <span style={{ color: '#e8ab53', marginLeft: 6 }} title="Unsaved changes">●</span>}
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
             <button
@@ -1040,10 +1107,30 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
             </button>
             <button
               type="button"
-              onClick={() => setConsoleVisible((v) => !v)}
+              onClick={formatCode}
               style={headerBtnStyle}
+              title="Format Document (Shift+Alt+F)"
             >
-              {consoleVisible ? 'Hide Console' : 'Show Console'}
+              Format
+            </button>
+            <button
+              type="button"
+              onClick={() => setDebugPanelHeight((h) => h === 120 ? 200 : 120)}
+              style={headerBtnStyle}
+              title="Toggle debug panel size"
+            >
+              {debugPanelHeight > 120 ? '▼ Panel' : '▲ Panel'}
+            </button>
+            <button
+              type="button"
+              onClick={save}
+              disabled={!isDirty}
+              style={{
+                ...headerBtnStyle,
+                ...(isDirty ? { backgroundColor: '#0e639c', color: '#fff', border: '1px solid #1177bb' } : { opacity: 0.5 }),
+              }}
+            >
+              Save
             </button>
             <button
               type="button"
@@ -1063,7 +1150,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         </div>
 
         {/* Monaco Editor */}
-        <div style={{ flex: consoleVisible ? 7 : 1 }}>
+        <div style={{ flex: 1, minHeight: 100, overflow: 'hidden' }}>
           <Editor
             defaultLanguage="typescript"
             defaultValue={initialCode}
@@ -1082,9 +1169,8 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           />
         </div>
 
-        {/* 디버그 패널 (탭: Console / Variables) */}
-        {consoleVisible && (
-          <div style={{ flex: 3, display: 'flex', flexDirection: 'column', borderTop: '1px solid #555' }}>
+        {/* 디버그 패널 (탭: Console / Variables / Watch) */}
+        <div style={{ flex: 0, flexBasis: debugPanelHeight, minHeight: 120, display: 'flex', flexDirection: 'column', borderTop: '1px solid #555' }}>
             {/* 탭 헤더 */}
             <div style={{
               display: 'flex',
@@ -1161,7 +1247,6 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
               />
             )}
           </div>
-        )}
 
         {/* 디버그 툴바 (paused 상태에서만 표시) */}
         {debugState === 'paused' && (
@@ -1224,11 +1309,14 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           <span>
             {debugState === 'paused'
               ? 'F5: Continue | F10: Step Over | Shift+F5: Stop'
-              : 'Ctrl+S: Save | Escape: Close | F5: Run'}
+              : 'Ctrl+S: Save | Shift+Alt+F: Format | Escape: Close | F5: Run'}
           </span>
-          {debugState === 'paused' && <span>● Paused at breakpoint</span>}
-          {debugState !== 'paused' && runStatus === 'success' && <span>✓ Execution completed</span>}
-          {debugState !== 'paused' && runStatus === 'error' && <span>✗ Execution failed</span>}
+          <span style={{ display: 'flex', gap: 12 }}>
+            {isDirty && <span style={{ color: '#ffd54f' }}>● Modified</span>}
+            {debugState === 'paused' && <span>● Paused at breakpoint</span>}
+            {debugState !== 'paused' && runStatus === 'success' && <span>✓ Execution completed</span>}
+            {debugState !== 'paused' && runStatus === 'error' && <span>✗ Execution failed</span>}
+          </span>
         </div>
       </div>
     </div>
