@@ -267,7 +267,7 @@
       "description": "POST /api/debug/execute에 debugMode 파라미터를 추가하여 traces를 반환할 수 있도록 한다.",
       "phase": "phase2-instrumentation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/server/src/routes/debug.ts를 수정하라.\n\n1. POST /api/debug/execute의 request body에 debugMode?: boolean 추가 (기본값: true)\n2. debugMode=true일 때 SandboxRunner에 { debugMode: true } 옵션 전달\n3. 응답에 traces 배열 포함:\n   {\n     success: boolean,\n     logs: DebugLog[],\n     traces?: TraceEntry[],\n     error?: string,\n     errorLine?: number,\n     executionTime?: number\n   }\n4. 전체 실행 시간(executionTime)도 측정하여 반환\n5. EventEngine.executeEvent()에도 debugMode 옵션 전달 경로 확보 (선택적)",
       "dependsOn": [
         "debugger-sandbox-trace"

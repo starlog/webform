@@ -3,10 +3,15 @@ import type {
   EventRequest,
   EventResponse,
   FormDefinition,
+  TraceEntry,
   UIPatch,
 } from '@webform/common';
 import { SandboxRunner } from './SandboxRunner.js';
 import { snapshotState, diffToPatches, buildControlsContext } from './ControlProxy.js';
+
+export interface ExecuteEventOptions {
+  debugMode?: boolean;
+}
 
 export class EventEngine {
   private sandboxRunner = new SandboxRunner();
@@ -15,6 +20,7 @@ export class EventEngine {
     formId: string,
     payload: EventRequest,
     formDef: FormDefinition,
+    options?: ExecuteEventOptions,
   ): Promise<EventResponse> {
     const handler = formDef.eventHandlers.find(
       (h) => h.controlId === payload.controlId
@@ -40,7 +46,9 @@ export class EventEngine {
       eventArgs: payload.eventArgs,
     };
 
-    const result = await this.sandboxRunner.runCode(handler.handlerCode, ctx);
+    const result = await this.sandboxRunner.runCode(handler.handlerCode, ctx, {
+      debugMode: options?.debugMode,
+    });
 
     if (!result.success) {
       return {
@@ -48,6 +56,7 @@ export class EventEngine {
         patches: [],
         error: result.error,
         errorLine: result.errorLine,
+        traces: result.traces,
       };
     }
 
@@ -57,6 +66,7 @@ export class EventEngine {
       success: true,
       patches,
       logs,
+      traces: result.traces,
     };
   }
 
