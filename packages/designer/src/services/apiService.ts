@@ -210,24 +210,28 @@ function extractEventHandlers(controls: ControlDefinition[]): Array<{
     handlerCode: string;
   }> = [];
 
-  for (const control of controls) {
-    const eventMap = control.properties._eventHandlers as Record<string, string> | undefined;
-    const codeMap = control.properties._eventCode as Record<string, string> | undefined;
-    if (!eventMap || !codeMap) continue;
-
-    for (const [eventName, handlerName] of Object.entries(eventMap)) {
-      const code = codeMap[handlerName];
-      if (code) {
-        handlers.push({
-          controlId: control.id,
-          eventName,
-          handlerType: 'server',
-          handlerCode: code,
-        });
+  function walk(ctrls: ControlDefinition[]) {
+    for (const control of ctrls) {
+      const eventMap = control.properties._eventHandlers as Record<string, string> | undefined;
+      const codeMap = control.properties._eventCode as Record<string, string> | undefined;
+      if (eventMap && codeMap) {
+        for (const [eventName, handlerName] of Object.entries(eventMap)) {
+          const code = codeMap[handlerName];
+          if (code) {
+            handlers.push({
+              controlId: control.id,
+              eventName,
+              handlerType: 'server',
+              handlerCode: code,
+            });
+          }
+        }
       }
+      if (control.children) walk(control.children);
     }
   }
 
+  walk(controls);
   return handlers;
 }
 
@@ -258,6 +262,22 @@ export function useAutoSave() {
     }
   }, [currentFormId, isDirty, controls, formProperties, markClean]);
 
+  // store에서 직접 읽어 클로저 문제 없이 즉시 저장 (EventEditor 등에서 사용)
+  const forceSave = useCallback(async () => {
+    const state = useDesignerStore.getState();
+    if (!state.currentFormId) return;
+    try {
+      await apiService.saveForm(state.currentFormId, {
+        controls: state.controls,
+        properties: state.formProperties,
+        eventHandlers: extractEventHandlers(state.controls),
+      });
+      state.markClean();
+    } catch (error) {
+      console.error('Save failed:', error);
+    }
+  }, []);
+
   // 30초 인터벌 auto-save
   useEffect(() => {
     if (!currentFormId || !isDirty) return;
@@ -266,7 +286,7 @@ export function useAutoSave() {
     return () => clearTimeout(timerRef.current);
   }, [currentFormId, isDirty, save]);
 
-  return { save };
+  return { save, forceSave };
 }
 
 // 타입 재export

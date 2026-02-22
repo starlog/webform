@@ -71,7 +71,6 @@ export class FormService {
     const updateFields: Record<string, unknown> = {
       ...input,
       updatedBy: userId,
-      status: 'draft',
     };
 
     const form = await Form.findOneAndUpdate(
@@ -105,10 +104,6 @@ export class FormService {
 
   async publishForm(id: string, userId: string): Promise<FormDocument> {
     const existing = await this.getForm(id);
-
-    if (existing.status === 'published') {
-      throw new AppError(409, 'Form is already published');
-    }
 
     const form = await Form.findByIdAndUpdate(
       id,

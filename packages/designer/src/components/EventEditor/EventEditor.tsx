@@ -31,6 +31,7 @@ interface EventEditorProps {
   eventName: string;
   handlerName: string;
   onClose: () => void;
+  onSaveToServer?: () => void;
 }
 
 const FORM_CONTEXT_TYPES = `
@@ -117,7 +118,7 @@ ctx.controls.lblStatus.text = "더블클릭 감지됨";
 
     // TextBox
     'TextBox.TextChanged': `${header}// 텍스트가 변경될 때 실행
-const value = sender.text as string;
+const value = sender.text;
 ctx.controls.lblStatus.text = \`입력값: \${value} (\${value.length}자)\`;
 `,
 
@@ -137,7 +138,7 @@ sender.backColor = "#FFFDE7";
 sender.backColor = "#FFFFFF";
 
 // 필수 입력 검증 예시
-const value = sender.text as string;
+const value = sender.text;
 if (!value) {
   ctx.controls.lblStatus.text = "필수 입력 항목입니다.";
   ctx.controls.lblStatus.foreColor = "#d32f2f";
@@ -145,7 +146,7 @@ if (!value) {
 `,
 
     'TextBox.Validating': `${header}// 유효성 검사 (포커스 이동 전)
-const text = sender.text as string;
+const text = sender.text;
 if (text.length < 2) {
   ctx.controls.lblStatus.text = "2자 이상 입력해주세요.";
   ctx.controls.lblStatus.foreColor = "#d32f2f";
@@ -154,7 +155,7 @@ if (text.length < 2) {
 
     // CheckBox
     'CheckBox.CheckedChanged': `${header}// 체크 상태가 변경될 때
-const checked = sender.checked as boolean;
+const checked = sender.checked;
 ctx.controls.lblStatus.text = checked ? "동의함" : "동의 안 함";
 
 // 다른 컨트롤 활성화/비활성화 예시
@@ -162,14 +163,14 @@ ctx.controls.lblStatus.text = checked ? "동의함" : "동의 안 함";
 `,
 
     'CheckBox.Click': `${header}// 체크박스 클릭 시
-const checked = sender.checked as boolean;
+const checked = sender.checked;
 ctx.controls.lblStatus.text = \`체크 상태: \${checked}\`;
 `,
 
     // ComboBox
     'ComboBox.SelectedIndexChanged': `${header}// 선택 항목이 변경될 때
-const index = sender.selectedIndex as number;
-const items = sender.items as string[];
+const index = sender.selectedIndex;
+const items = sender.items;
 if (index >= 0 && items[index]) {
   ctx.controls.lblStatus.text = \`선택: \${items[index]}\`;
 }
@@ -177,7 +178,7 @@ if (index >= 0 && items[index]) {
 
     // NumericUpDown
     'NumericUpDown.ValueChanged': `${header}// 값이 변경될 때
-const value = sender.value as number;
+const value = sender.value;
 ctx.controls.lblStatus.text = \`값: \${value}\`;
 
 // 프로그레스바 연동 예시
@@ -186,14 +187,14 @@ ctx.controls.lblStatus.text = \`값: \${value}\`;
 
     // DateTimePicker
     'DateTimePicker.ValueChanged': `${header}// 날짜가 변경될 때
-const date = sender.value as string;
+const date = sender.value;
 ctx.controls.lblStatus.text = \`선택한 날짜: \${date}\`;
 `,
 
     // ListBox
     'ListBox.SelectedIndexChanged': `${header}// 목록 선택이 변경될 때
-const index = sender.selectedIndex as number;
-const items = sender.items as string[];
+const index = sender.selectedIndex;
+const items = sender.items;
 if (index >= 0) {
   ctx.controls.lblStatus.text = \`선택: \${items[index]}\`;
 }
@@ -214,7 +215,7 @@ if (index >= 0) {
 
     // TabControl
     'TabControl.SelectedIndexChanged': `${header}// 탭 변경 시
-const tabIndex = sender.selectedIndex as number;
+const tabIndex = sender.selectedIndex;
 ctx.controls.lblStatus.text = \`현재 탭: \${tabIndex}\`;
 `,
   };
@@ -257,7 +258,7 @@ function escapeCssContent(text: string): string {
     .replace(/\r/g, '');
 }
 
-export function EventEditor({ controlId, eventName, handlerName, onClose }: EventEditorProps) {
+export function EventEditor({ controlId, eventName, handlerName, onClose, onSaveToServer }: EventEditorProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<MonacoInstance | null>(null);
@@ -678,7 +679,13 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       },
     });
     setIsDirty(false);
-  }, [controlId, control, eventName, handlerName, existingCode, existingHandlers, updateControl]);
+
+    // 서버에 즉시 저장 (auto-save 30초 대기 없이)
+    if (onSaveToServer) {
+      // updateControl이 store를 업데이트한 후 다음 틱에서 save 실행
+      setTimeout(() => onSaveToServer(), 0);
+    }
+  }, [controlId, control, eventName, handlerName, existingCode, existingHandlers, updateControl, onSaveToServer]);
 
   const runCode = useCallback(async () => {
     if (!editorRef.current || isRunning) return;

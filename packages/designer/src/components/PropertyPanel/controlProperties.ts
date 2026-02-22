@@ -194,7 +194,7 @@ export const CONTROL_EVENTS_META: Partial<Record<ControlType, string[]>> = {};
 for (const [controlType, specificEvents] of Object.entries(CONTROL_EVENTS) as [string, readonly string[]][]) {
   CONTROL_EVENTS_META[controlType as ControlType] = [
     ...COMMON_EVENTS,
-    ...specificEvents,
+    ...specificEvents.filter((e) => !(COMMON_EVENTS as readonly string[]).includes(e)),
   ];
 }
 

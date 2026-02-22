@@ -1,4 +1,5 @@
 import ivm from 'isolated-vm';
+import ts from 'typescript';
 import type { TraceEntry } from '@webform/common';
 import { env } from '../config/index.js';
 import { CodeInstrumenter } from './CodeInstrumenter.js';
@@ -27,10 +28,25 @@ export class SandboxRunner {
     const memoryLimit = options?.memoryLimit ?? env.SANDBOX_MEMORY_LIMIT_MB;
     const debugMode = options?.debugMode ?? false;
 
-    let codeToRun = code;
+    // TypeScript → JavaScript 변환 (type annotations 제거)
+    let jsCode: string;
+    try {
+      const transpiled = ts.transpileModule(code, {
+        compilerOptions: {
+          target: ts.ScriptTarget.ES2020,
+          module: ts.ModuleKind.None,
+          removeComments: false,
+        },
+      });
+      jsCode = transpiled.outputText;
+    } catch {
+      jsCode = code; // 트랜스파일 실패 시 원본 사용
+    }
+
+    let codeToRun = jsCode;
     if (debugMode) {
       const instrumenter = new CodeInstrumenter();
-      const { instrumentedCode } = instrumenter.instrument(code);
+      const { instrumentedCode } = instrumenter.instrument(jsCode);
       codeToRun = instrumentedCode;
     }
 

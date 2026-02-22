@@ -18,7 +18,7 @@ interface EventEditorState {
 export function App() {
   const [eventEditor, setEventEditor] = useState<EventEditorState | null>(null);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
-  const { save } = useAutoSave();
+  const { save, forceSave } = useAutoSave();
   const isDirty = useDesignerStore((s) => s.isDirty);
   const formTitle = useDesignerStore((s) => s.formProperties.title);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
@@ -223,6 +223,7 @@ export function App() {
           eventName={eventEditor.eventName}
           handlerName={eventEditor.handlerName}
           onClose={() => setEventEditor(null)}
+          onSaveToServer={forceSave}
         />
       )}
     </DndProvider>
