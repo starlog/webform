@@ -151,7 +151,7 @@ describe('SandboxRunner — 계측 트레이스 (debugMode)', () => {
       expect(result.traces).toBeUndefined();
     });
 
-    it('debugMode=false에서 기존 반환값(controls, messages, logs)이 정상이어야 한다', async () => {
+    it('debugMode=false에서 기존 반환값(operations, logs)이 정상이어야 한다', async () => {
       const code = [
         'ctx.controls.btn1.text = "clicked";',
         'ctx.showMessage("hello", "title", "info");',
@@ -167,12 +167,21 @@ describe('SandboxRunner — 계측 트레이스 (debugMode)', () => {
       expect(result.success).toBe(true);
       expect(result.traces).toBeUndefined();
       const value = result.value as {
-        controls: Record<string, Record<string, unknown>>;
-        messages: { text: string }[];
+        operations: { type: string; target: string; payload: unknown }[];
         logs: { args: string[] }[];
       };
-      expect(value.controls.btn1.text).toBe('clicked');
-      expect(value.messages).toHaveLength(1);
+      // showMessage 전 변경 → showDialog 순서
+      expect(value.operations).toHaveLength(2);
+      expect(value.operations[0]).toEqual({
+        type: 'updateProperty',
+        target: 'btn1',
+        payload: { text: 'clicked' },
+      });
+      expect(value.operations[1]).toEqual({
+        type: 'showDialog',
+        target: '_system',
+        payload: { text: 'hello', title: 'title', dialogType: 'info' },
+      });
       expect(value.logs).toHaveLength(1);
     });
   });
@@ -211,7 +220,7 @@ describe('SandboxRunner — 계측 트레이스 (debugMode)', () => {
   });
 
   describe('debugMode=true와 기존 기능 호환성', () => {
-    it('debugMode=true에서도 controls, messages, logs가 정상 반환되어야 한다', async () => {
+    it('debugMode=true에서도 operations, logs가 정상 반환되어야 한다', async () => {
       const code = [
         'ctx.controls.lbl.text = "updated";',
         'ctx.showMessage("msg", "title", "info");',
@@ -228,13 +237,21 @@ describe('SandboxRunner — 계측 트레이스 (debugMode)', () => {
       expect(result.traces).toBeDefined();
 
       const value = result.value as {
-        controls: Record<string, Record<string, unknown>>;
-        messages: { text: string }[];
+        operations: { type: string; target: string; payload: unknown }[];
         logs: { args: string[] }[];
       };
-      expect(value.controls.lbl.text).toBe('updated');
-      expect(value.messages).toHaveLength(1);
-      expect(value.messages[0].text).toBe('msg');
+      // showMessage 전 변경 → showDialog 순서
+      expect(value.operations).toHaveLength(2);
+      expect(value.operations[0]).toEqual({
+        type: 'updateProperty',
+        target: 'lbl',
+        payload: { text: 'updated' },
+      });
+      expect(value.operations[1]).toEqual({
+        type: 'showDialog',
+        target: '_system',
+        payload: { text: 'msg', title: 'title', dialogType: 'info' },
+      });
       expect(value.logs).toHaveLength(1);
       expect(value.logs[0].args).toEqual(['log message']);
     });
@@ -283,9 +300,15 @@ describe('SandboxRunner — 계측 트레이스 (debugMode)', () => {
 
       expect(result.success).toBe(true);
 
-      const value = result.value as { messages: { text: string }[] };
-      expect(value.messages).toHaveLength(1);
-      expect(value.messages[0].text).toBe('hello');
+      const value = result.value as {
+        operations: { type: string; target: string; payload: unknown }[];
+      };
+      expect(value.operations).toHaveLength(1);
+      expect(value.operations[0]).toEqual({
+        type: 'showDialog',
+        target: '_system',
+        payload: { text: 'hello', title: 'title', dialogType: 'info' },
+      });
     });
   });
 });

@@ -166,19 +166,54 @@ export class SandboxRunner {
       : '';
 
     const returnValue = debugMode
-      ? '{ controls: ctx.controls, messages: __messages, logs: __logs, traces: __traces, navigations: __navigations }'
-      : '{ controls: ctx.controls, messages: __messages, logs: __logs, navigations: __navigations }';
+      ? '{ operations: __operations, logs: __logs, traces: __traces }'
+      : '{ operations: __operations, logs: __logs }';
 
     return `
       (function(ctx) {
-        var __messages = [];
+        ctx.controls = ctx.controls || {};
+        var __operations = [];
         var __logs = [];
-        var __navigations = [];
+        var __lastSnapshot = JSON.parse(JSON.stringify(ctx.controls));
         var __stringify = function(val) {
           if (val === undefined) return 'undefined';
           if (val === null) return 'null';
           if (typeof val === 'string') return val;
           try { return JSON.stringify(val); } catch(e) { return String(val); }
+        };
+        var __deepEqual = function(a, b) {
+          if (a === b) return true;
+          if (a === null || b === null) return false;
+          if (typeof a !== typeof b) return false;
+          if (typeof a === 'object') {
+            return JSON.stringify(a) === JSON.stringify(b);
+          }
+          return false;
+        };
+        var __flushChanges = function() {
+          var controls = ctx.controls;
+          for (var name in controls) {
+            if (!controls.hasOwnProperty(name)) continue;
+            var current = controls[name];
+            var snapshot = __lastSnapshot[name];
+            var changed = {};
+            var hasChanges = false;
+            for (var prop in current) {
+              if (!current.hasOwnProperty(prop)) continue;
+              if (!snapshot || !__deepEqual(snapshot[prop], current[prop])) {
+                changed[prop] = current[prop];
+                hasChanges = true;
+              }
+            }
+            if (hasChanges) {
+              __operations.push({
+                type: 'updateProperty',
+                target: name,
+                payload: changed
+              });
+            }
+          }
+          __lastSnapshot = JSON.parse(JSON.stringify(ctx.controls));
         };
         var console = {
           log: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'log', args: a, timestamp: Date.now() }); },
@@ -187,16 +222,26 @@ export class SandboxRunner {
           info: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'info', args: a, timestamp: Date.now() }); }
         };${traceSetup}
         ctx.showMessage = function(text, title, type) {
-          __messages.push({
-            text: String(text ?? ''),
-            title: String(title ?? ''),
-            dialogType: String(type ?? 'info')
+          __flushChanges();
+          __operations.push({
+            type: 'showDialog',
+            target: '_system',
+            payload: {
+              text: String(text ?? ''),
+              title: String(title ?? ''),
+              dialogType: String(type ?? 'info')
+            }
           });
         };
         ctx.navigate = function(formId, params) {
-          __navigations.push({
-            formId: String(formId ?? ''),
-            params: params || {}
+          __flushChanges();
+          __operations.push({
+            type: 'navigate',
+            target: '_system',
+            payload: {
+              formId: String(formId ?? ''),
+              params: params || {}
+            }
           });
         };
         ctx.http = {
@@ -216,6 +261,15 @@ export class SandboxRunner {
             return __httpHandler.applySyncPromise(undefined, ['DELETE', String(url)]);
           }
         };
+        ctx.getRadioGroupValue = function(groupName) {
+          for (var name in ctx.controls) {
+            var ctrl = ctx.controls[name];
+            if (ctrl.groupName === groupName && ctrl.checked === true) {
+              return ctrl.text;
+            }
+          }
+          return null;
+        };
         var sender = ctx.sender;${
       debugMode
         ? `
@@ -225,6 +279,7 @@ export class SandboxRunner {
         } catch (__e) {
           __userError = __e;
         } finally {
+          __flushChanges();
           var __result = ${returnValue};
           if (__userError) {
             __result.__error = __userError.message || String(__userError);
@@ -235,6 +290,7 @@ export class SandboxRunner {
         (function() {
           ${code}
         })();
+        __flushChanges();
         return ${returnValue};`
     }
       })(__ctx__)

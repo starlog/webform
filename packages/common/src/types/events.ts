@@ -66,4 +66,5 @@ export interface FormContext {
   showDialog(formId: string, params?: Record<string, unknown>): Promise<DialogResult>;
   navigate(formId: string, params?: Record<string, unknown>): void;
   close(dialogResult?: 'OK' | 'Cancel'): void;
+  getRadioGroupValue(groupName: string): string | null;
 }

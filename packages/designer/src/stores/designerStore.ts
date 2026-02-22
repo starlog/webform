@@ -79,7 +79,7 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
     case 'CheckBox':
       return { text: 'CheckBox', checked: false };
     case 'RadioButton':
-      return { text: 'RadioButton', checked: false };
+      return { text: 'RadioButton', checked: false, groupName: 'default' };
     case 'ComboBox':
       return { items: [], selectedIndex: -1 };
     case 'ListBox':

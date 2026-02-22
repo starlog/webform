@@ -7,7 +7,7 @@ import type {
   UIPatch,
 } from '@webform/common';
 import { SandboxRunner } from './SandboxRunner.js';
-import { snapshotState, diffToPatches, buildControlsContext } from './ControlProxy.js';
+import { buildControlsContext } from './ControlProxy.js';
 
 export interface ExecuteEventOptions {
   debugMode?: boolean;
@@ -75,8 +75,6 @@ export class EventEngine {
     const formStateById = JSON.parse(JSON.stringify(payload.formState)) as Record<string, Record<string, unknown>>;
     const formStateByName = convertToNameKeyed(formStateById, idToName);
 
-    const before = snapshotState(formStateByName);
-
     const senderName = idToName.get(payload.controlId) ?? payload.controlId;
     const ctx = {
       formId,
@@ -99,7 +97,7 @@ export class EventEngine {
       };
     }
 
-    const { patches, logs } = this.extractPatches(before, result.value, nameToId);
+    const { patches, logs } = this.extractPatches(result.value, nameToId);
 
     return {
       success: true,
@@ -110,7 +108,6 @@ export class EventEngine {
   }
 
   private extractPatches(
-    before: Record<string, Record<string, unknown>>,
     resultValue: unknown,
     nameToId: Map<string, string>,
   ): { patches: UIPatch[]; logs?: DebugLog[] } {
@@ -120,46 +117,22 @@ export class EventEngine {
     if (
       resultValue
       && typeof resultValue === 'object'
-      && 'controls' in (resultValue as Record<string, unknown>)
+      && 'operations' in (resultValue as Record<string, unknown>)
     ) {
       const rv = resultValue as Record<string, unknown>;
-      const after = rv.controls as Record<string, Record<string, unknown>>;
-      const rawPatches = diffToPatches(before, after);
 
-      // NAME 기반 patch target을 ID로 역변환 (런타임이 ID 키를 사용)
-      for (const patch of rawPatches) {
-        patches.push({
-          ...patch,
-          target: nameToId.get(patch.target) ?? patch.target,
-        });
-      }
-
-      if (Array.isArray(rv.messages)) {
-        for (const msg of rv.messages) {
-          const m = msg as Record<string, unknown>;
-          patches.push({
-            type: 'showDialog',
-            target: '_system',
-            payload: {
-              text: String(m.text ?? ''),
-              title: String(m.title ?? ''),
-              dialogType: String(m.dialogType ?? 'info'),
-            },
-          });
-        }
-      }
-
-      if (Array.isArray(rv.navigations)) {
-        for (const nav of rv.navigations) {
-          const n = nav as Record<string, unknown>;
-          patches.push({
-            type: 'navigate',
-            target: '_system',
-            payload: {
-              formId: String(n.formId ?? ''),
-              params: (n.params as Record<string, unknown>) ?? {},
-            },
-          });
+      if (Array.isArray(rv.operations)) {
+        for (const op of rv.operations) {
+          const o = op as { type: string; target: string; payload: unknown };
+          if (o.type === 'updateProperty') {
+            // NAME 기반 target을 ID로 역변환 (런타임이 ID 키를 사용)
+            patches.push({
+              ...o,
+              target: nameToId.get(o.target) ?? o.target,
+            } as UIPatch);
+          } else {
+            patches.push(o as UIPatch);
+          }
         }
       }
 

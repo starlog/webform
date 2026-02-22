@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { FontDefinition } from '@webform/common';
 
 interface FontPickerProps {
@@ -87,12 +87,27 @@ export function FontPicker({ value, onChange }: FontPickerProps) {
 
 function FontSizeInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [local, setLocal] = useState(String(value));
+  const pendingRef = useRef<{ value: string; onChange: (v: number) => void } | null>(null);
 
   useEffect(() => {
+    if (pendingRef.current) {
+      flushFontSize(pendingRef.current);
+      pendingRef.current = null;
+    }
     setLocal(String(value));
   }, [value]);
 
+  useEffect(() => {
+    return () => {
+      if (pendingRef.current) {
+        flushFontSize(pendingRef.current);
+        pendingRef.current = null;
+      }
+    };
+  }, []);
+
   const commit = () => {
+    pendingRef.current = null;
     let num = parseFloat(local);
     if (isNaN(num) || num < 1) num = 1;
     if (num > 200) num = 200;
@@ -104,7 +119,10 @@ function FontSizeInput({ value, onChange }: { value: number; onChange: (v: numbe
     <input
       type="number"
       value={local}
-      onChange={(e) => setLocal(e.target.value)}
+      onChange={(e) => {
+        setLocal(e.target.value);
+        pendingRef.current = { value: e.target.value, onChange };
+      }}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') commit(); }}
       min={1}
@@ -112,4 +130,11 @@ function FontSizeInput({ value, onChange }: { value: number; onChange: (v: numbe
       style={{ width: 50, fontSize: 12, border: '1px solid #ccc', padding: '1px 2px' }}
     />
   );
+}
+
+function flushFontSize(pending: { value: string; onChange: (v: number) => void }) {
+  let num = parseFloat(pending.value);
+  if (isNaN(num) || num < 1) num = 1;
+  if (num > 200) num = 200;
+  pending.onChange(num);
 }

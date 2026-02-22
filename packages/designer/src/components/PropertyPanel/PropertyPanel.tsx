@@ -263,7 +263,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       {/* 탭 내용 */}
       <div style={{ flex: 1, overflow: 'auto' }}>
         {activeTab === 'properties' && (
-          <div>
+          <div key={selectedControl?.id}>
             {groupedProperties.map(({ category, properties }) => (
               <PropertyCategory
                 key={category}

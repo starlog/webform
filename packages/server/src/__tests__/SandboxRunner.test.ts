@@ -5,12 +5,16 @@ describe('SandboxRunner', () => {
   const runner = new SandboxRunner();
 
   it('핸들러 코드를 실행하고 결과 객체를 반환해야 한다', async () => {
-    const result = await runner.runCode('ctx.controls = { btn1: { text: "OK" } }', {});
+    const result = await runner.runCode('ctx.controls.btn1 = { text: "OK" }', {});
 
     expect(result.success).toBe(true);
-    const value = result.value as { controls: unknown; messages: unknown[]; logs: unknown[] };
-    expect(value.controls).toEqual({ btn1: { text: 'OK' } });
-    expect(value.messages).toEqual([]);
+    const value = result.value as {
+      operations: { type: string; target: string; payload: unknown }[];
+      logs: unknown[];
+    };
+    expect(value.operations).toEqual([
+      { type: 'updateProperty', target: 'btn1', payload: { text: 'OK' } },
+    ]);
     expect(value.logs).toEqual([]);
   });
 
@@ -34,13 +38,13 @@ describe('SandboxRunner', () => {
 
   it('컨텍스트를 전달해야 한다', async () => {
     const result = await runner.runCode(
-      '',
+      'console.log(ctx.controls.btn1.text)',
       { controls: { btn1: { text: 'Hello' } } },
     );
 
     expect(result.success).toBe(true);
-    const value = result.value as { controls: Record<string, unknown> };
-    expect(value.controls).toEqual({ btn1: { text: 'Hello' } });
+    const value = result.value as { logs: { args: string[] }[] };
+    expect(value.logs[0].args[0]).toBe('Hello');
   });
 
   it('console.log가 logs 배열에 캡처되어야 한다', async () => {
@@ -95,19 +99,25 @@ describe('SandboxRunner', () => {
     }
   });
 
-  it('showMessage가 기존과 동일하게 동작해야 한다', async () => {
+  it('showMessage가 operations에 showDialog로 추가되어야 한다', async () => {
     const result = await runner.runCode(
       'ctx.showMessage("hello", "title", "warning")',
       {},
     );
 
     expect(result.success).toBe(true);
-    const value = result.value as { messages: { text: string; title: string; dialogType: string }[] };
-    expect(value.messages).toHaveLength(1);
-    expect(value.messages[0]).toEqual({
-      text: 'hello',
-      title: 'title',
-      dialogType: 'warning',
+    const value = result.value as {
+      operations: { type: string; target: string; payload: unknown }[];
+    };
+    expect(value.operations).toHaveLength(1);
+    expect(value.operations[0]).toEqual({
+      type: 'showDialog',
+      target: '_system',
+      payload: {
+        text: 'hello',
+        title: 'title',
+        dialogType: 'warning',
+      },
     });
   });
 });

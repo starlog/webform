@@ -68,14 +68,27 @@ debugRouter.post('/execute', async (req, res, next) => {
     const rv = result.value as Record<string, unknown> | undefined;
     const logs = Array.isArray(rv?.logs) ? rv.logs : [];
     const traces = result.traces ?? (Array.isArray(rv?.traces) ? rv.traces : undefined);
-    const controlChanges = rv?.controls as Record<string, Record<string, unknown>> | undefined;
-    const messages = Array.isArray(rv?.messages) ? rv.messages : [];
+
+    // operations 배열에서 controlChanges와 messages 추출
+    const operations = Array.isArray(rv?.operations) ? rv.operations as { type: string; target: string; payload: unknown }[] : [];
+    const controlChanges: Record<string, Record<string, unknown>> = {};
+    const messages: unknown[] = [];
+    for (const op of operations) {
+      if (op.type === 'updateProperty') {
+        controlChanges[op.target] = {
+          ...controlChanges[op.target],
+          ...(op.payload as Record<string, unknown>),
+        };
+      } else if (op.type === 'showDialog') {
+        messages.push(op.payload);
+      }
+    }
 
     res.json({
       success: true,
       logs,
       traces,
-      controlChanges,
+      controlChanges: Object.keys(controlChanges).length > 0 ? controlChanges : undefined,
       messages,
       executionTime,
     });

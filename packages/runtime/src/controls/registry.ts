@@ -5,6 +5,7 @@ import { Button } from './Button';
 import { TextBox } from './TextBox';
 import { Label } from './Label';
 import { CheckBox } from './CheckBox';
+import { RadioButton } from './RadioButton';
 import { ComboBox } from './ComboBox';
 import { Panel } from './Panel';
 import { GroupBox } from './GroupBox';
@@ -12,6 +13,7 @@ import { TabControl } from './TabControl';
 import { DataGridView } from './DataGridView';
 import { DateTimePicker } from './DateTimePicker';
 import { ProgressBar } from './ProgressBar';
+import { PictureBox } from './PictureBox';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<any>>> = {
@@ -19,6 +21,7 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   TextBox,
   Label,
   CheckBox,
+  RadioButton,
   ComboBox,
   Panel,
   GroupBox,
@@ -26,4 +29,5 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   DataGridView,
   DateTimePicker,
   ProgressBar,
+  PictureBox,
 };

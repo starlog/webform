@@ -1,6 +1,8 @@
 import { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import { useDesignerStore } from '../../stores/designerStore';
+import type { ControlDefinition } from '@webform/common';
+import { CONTROL_PROPERTY_META, type PropertyMeta } from '../PropertyPanel/controlProperties';
 
 type MonacoInstance = Parameters<OnMount>[1];
 
@@ -34,7 +36,7 @@ interface EventEditorProps {
   onSaveToServer?: () => void;
 }
 
-const FORM_CONTEXT_TYPES = `
+const FORM_CONTEXT_BASE_TYPES = `
 interface ControlProxy {
   [property: string]: any;
 }
@@ -70,28 +72,91 @@ interface HttpClient {
   delete(url: string): HttpResponse;
 }
 
-interface FormContext {
-  formId: string;
-  controls: Record<string, ControlProxy>;
-  dataSources: Record<string, DataSourceProxy>;
-  http: HttpClient;
-  showMessage(text: string, title?: string, type?: 'info' | 'warning' | 'error' | 'success'): void;
-  showDialog(formId: string, params?: Record<string, unknown>): Promise<DialogResult>;
-  navigate(formId: string, params?: Record<string, unknown>): void;
-  close(dialogResult?: 'OK' | 'Cancel'): void;
-}
-
 interface Console {
   log(...args: any[]): void;
   warn(...args: any[]): void;
   error(...args: any[]): void;
   info(...args: any[]): void;
 }
+`;
+
+function metaToTsType(meta: PropertyMeta): string {
+  switch (meta.editorType) {
+    case 'text': return 'string';
+    case 'number': return 'number';
+    case 'boolean': return 'boolean';
+    case 'color': return 'string';
+    case 'font': return '{ family: string; size: number; bold: boolean; italic: boolean }';
+    case 'dropdown':
+      return meta.options?.length
+        ? meta.options.map((o) => `'${o}'`).join(' | ')
+        : 'string';
+    case 'collection': return 'any[]';
+    default: return 'any';
+  }
+}
+
+function buildControlTypeInterface(controlType: string): { name: string; body: string } {
+  const metas = CONTROL_PROPERTY_META[controlType as keyof typeof CONTROL_PROPERTY_META] ?? [];
+  const props: string[] = [];
+
+  for (const meta of metas) {
+    if (meta.name.startsWith('properties.')) {
+      const propName = meta.name.slice('properties.'.length);
+      props.push(`  ${propName}: ${metaToTsType(meta)};`);
+    }
+  }
+  props.push('  visible: boolean;');
+  props.push('  enabled: boolean;');
+  props.push('  [key: string]: any;');
+
+  const ifaceName = `__${controlType}Props`;
+  return { name: ifaceName, body: `interface ${ifaceName} {\n${props.join('\n')}\n}` };
+}
+
+function buildFormContextTypes(controls: ControlDefinition[]): string {
+  const typeInterfaces = new Map<string, string>();
+  const controlEntries: string[] = [];
+
+  function walk(ctrls: ControlDefinition[]) {
+    for (const ctrl of ctrls) {
+      const { name: ifaceName, body } = buildControlTypeInterface(ctrl.type);
+      if (!typeInterfaces.has(ifaceName)) {
+        typeInterfaces.set(ifaceName, body);
+      }
+      controlEntries.push(`  ${ctrl.name}: ${ifaceName};`);
+      if (ctrl.children) walk(ctrl.children);
+    }
+  }
+  walk(controls);
+
+  const dynamicInterfaces = [...typeInterfaces.values()].join('\n\n');
+  const formControlsIface = controlEntries.length
+    ? `interface FormControls {\n${controlEntries.join('\n')}\n  [name: string]: ControlProxy;\n}`
+    : 'interface FormControls { [name: string]: ControlProxy; }';
+
+  return `${FORM_CONTEXT_BASE_TYPES}
+${dynamicInterfaces}
+
+${formControlsIface}
+
+interface FormContext {
+  formId: string;
+  controls: FormControls;
+  dataSources: Record<string, DataSourceProxy>;
+  http: HttpClient;
+  showMessage(text: string, title?: string, type?: 'info' | 'warning' | 'error' | 'success'): void;
+  showDialog(formId: string, params?: Record<string, unknown>): Promise<DialogResult>;
+  navigate(formId: string, params?: Record<string, unknown>): void;
+  close(dialogResult?: 'OK' | 'Cancel'): void;
+  getRadioGroupValue(groupName: string): string | null;
+}
 
 declare const ctx: FormContext;
 declare const sender: ControlProxy;
 declare const console: Console;
 `;
+}
 
 function getSampleCode(controlName: string, controlType: string, eventName: string, handlerName: string): string {
   const header = `// ${handlerName}(ctx: FormContext, sender: ControlProxy)\n// Control: ${controlName} (${controlType})\n// Event: ${eventName}\n\n`;
@@ -292,6 +357,9 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
   const allTracesRef = useRef<TraceEntry[]>([]);
   const allLogsRef = useRef<DebugLogEntry[]>([]);
   const allExecutionTimeRef = useRef<number>(0);
+
+  // Monaco extraLib 동적 갱신용
+  const extraLibDisposableRef = useRef<{ dispose(): void } | null>(null);
 
   // Monaco command handler용 refs (stale closure 방지)
   const debugStateRef = useRef<'idle' | 'running' | 'paused' | 'completed'>('idle');
@@ -833,9 +901,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
       diagnosticCodesToIgnore: [1108, 1345, 1375, 1378, 2451, 2683],
     });
 
-    // TypeScript 타입 힌트 추가
-    monaco.languages.typescript.typescriptDefaults.addExtraLib(
-      FORM_CONTEXT_TYPES,
+    // TypeScript 타입 힌트 추가 (동적 — 컨트롤 변경 시 useEffect에서 갱신)
+    const currentControls = useDesignerStore.getState().controls;
+    extraLibDisposableRef.current?.dispose();
+    extraLibDisposableRef.current = monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      buildFormContextTypes(currentControls),
       'ts:filename/formContext.d.ts',
     );
 
@@ -907,6 +977,22 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
 
     editor.focus();
   }, [save]);
+
+  // 컨트롤 이름/타입 변경 시 Monaco 타입 정의 갱신
+  const controlsSignature = useMemo(
+    () => controls.map((c) => `${c.name}:${c.type}`).join(','),
+    [controls],
+  );
+
+  useEffect(() => {
+    const monaco = monacoRef.current;
+    if (!monaco) return;
+    extraLibDisposableRef.current?.dispose();
+    extraLibDisposableRef.current = monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      buildFormContextTypes(controls),
+      'ts:filename/formContext.d.ts',
+    );
+  }, [controlsSignature]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Escape 키로 닫기
   useEffect(() => {

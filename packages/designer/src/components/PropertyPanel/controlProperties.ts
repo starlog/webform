@@ -86,6 +86,7 @@ const checkBoxProps: PropertyMeta[] = withCommon(
 const radioButtonProps: PropertyMeta[] = withCommon(
   { name: 'properties.text',      label: 'Text',      category: 'Appearance', editorType: 'text' },
   { name: 'properties.checked',   label: 'Checked',   category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.groupName', label: 'GroupName',  category: 'Behavior',   editorType: 'text' },
   { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
   { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
   { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },

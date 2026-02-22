@@ -161,7 +161,8 @@ describe('SandboxRunner — 디버그 기능', () => {
     });
 
     it('구문 에러 시에도 error가 반환되어야 한다', async () => {
-      const code = 'var x = {;';
+      // TypeScript transpileModule이 복구할 수 없는 구문 에러 사용
+      const code = '(((';
       const result = await runner.runCode(code, {});
 
       expect(result.success).toBe(false);
@@ -177,11 +178,18 @@ describe('SandboxRunner — 디버그 기능', () => {
       );
 
       expect(result.success).toBe(true);
-      const value = result.value as { controls: Record<string, Record<string, unknown>> };
-      expect(value.controls.btn1.text).toBe('clicked');
+      const value = result.value as {
+        operations: { type: string; target: string; payload: Record<string, unknown> }[];
+      };
+      expect(value.operations).toHaveLength(1);
+      expect(value.operations[0]).toEqual({
+        type: 'updateProperty',
+        target: 'btn1',
+        payload: { text: 'clicked' },
+      });
     });
 
-    it('ctx.showMessage가 messages 배열에 추가되어야 한다', async () => {
+    it('ctx.showMessage가 operations에 showDialog로 추가되어야 한다', async () => {
       const result = await runner.runCode(
         'ctx.showMessage("hello", "title", "warning")',
         {},
@@ -189,13 +197,17 @@ describe('SandboxRunner — 디버그 기능', () => {
 
       expect(result.success).toBe(true);
       const value = result.value as {
-        messages: { text: string; title: string; dialogType: string }[];
+        operations: { type: string; target: string; payload: unknown }[];
       };
-      expect(value.messages).toHaveLength(1);
-      expect(value.messages[0]).toEqual({
-        text: 'hello',
-        title: 'title',
-        dialogType: 'warning',
+      expect(value.operations).toHaveLength(1);
+      expect(value.operations[0]).toEqual({
+        type: 'showDialog',
+        target: '_system',
+        payload: {
+          text: 'hello',
+          title: 'title',
+          dialogType: 'warning',
+        },
       });
     });
 
@@ -227,17 +239,105 @@ describe('SandboxRunner — 디버그 기능', () => {
 
       expect(result.success).toBe(true);
       const value = result.value as {
-        controls: Record<string, Record<string, unknown>>;
-        messages: { text: string }[];
+        operations: { type: string; target: string; payload: unknown }[];
         logs: { type: string; args: string[] }[];
       };
 
-      expect(value.controls.lbl.text).toBe('updated');
-      expect(value.messages).toHaveLength(1);
-      expect(value.messages[0].text).toBe('done');
+      // showMessage 전 변경 → showDialog 순서로 operations에 기록
+      expect(value.operations).toHaveLength(2);
+      expect(value.operations[0]).toEqual({
+        type: 'updateProperty',
+        target: 'lbl',
+        payload: { text: 'updated' },
+      });
+      expect(value.operations[1]).toEqual({
+        type: 'showDialog',
+        target: '_system',
+        payload: { text: 'done', title: 'Info', dialogType: 'info' },
+      });
       expect(value.logs).toHaveLength(2);
       expect(value.logs[0].args).toEqual(['start']);
       expect(value.logs[1].args).toEqual(['end']);
+    });
+
+    it('showMessage 전후 속성 변경이 순서대로 operations에 기록되어야 한다', async () => {
+      const code = [
+        'ctx.controls.lbl.text = "Step 1";',
+        'ctx.showMessage("Check", "Test", "info");',
+        'ctx.controls.lbl.text = "Step 2";',
+      ].join('\n');
+
+      const result = await runner.runCode(code, {
+        controls: { lbl: { text: 'original' } },
+      });
+
+      expect(result.success).toBe(true);
+      const value = result.value as {
+        operations: { type: string; target: string; payload: unknown }[];
+      };
+
+      expect(value.operations).toHaveLength(3);
+      expect(value.operations[0]).toEqual({
+        type: 'updateProperty',
+        target: 'lbl',
+        payload: { text: 'Step 1' },
+      });
+      expect(value.operations[1]).toEqual({
+        type: 'showDialog',
+        target: '_system',
+        payload: { text: 'Check', title: 'Test', dialogType: 'info' },
+      });
+      expect(value.operations[2]).toEqual({
+        type: 'updateProperty',
+        target: 'lbl',
+        payload: { text: 'Step 2' },
+      });
+    });
+
+    it('다중 다이얼로그에서 속성 변경 순서가 보장되어야 한다', async () => {
+      const code = [
+        'ctx.controls.lbl.text = "A";',
+        'ctx.showMessage("First");',
+        'ctx.controls.lbl.text = "B";',
+        'ctx.showMessage("Second");',
+        'ctx.controls.lbl.text = "C";',
+      ].join('\n');
+
+      const result = await runner.runCode(code, {
+        controls: { lbl: { text: 'original' } },
+      });
+
+      expect(result.success).toBe(true);
+      const value = result.value as {
+        operations: { type: string; target: string; payload: unknown }[];
+      };
+
+      expect(value.operations).toHaveLength(5);
+      expect(value.operations[0]).toEqual({
+        type: 'updateProperty',
+        target: 'lbl',
+        payload: { text: 'A' },
+      });
+      expect(value.operations[1]).toEqual({
+        type: 'showDialog',
+        target: '_system',
+        payload: { text: 'First', title: '', dialogType: 'info' },
+      });
+      expect(value.operations[2]).toEqual({
+        type: 'updateProperty',
+        target: 'lbl',
+        payload: { text: 'B' },
+      });
+      expect(value.operations[3]).toEqual({
+        type: 'showDialog',
+        target: '_system',
+        payload: { text: 'Second', title: '', dialogType: 'info' },
+      });
+      expect(value.operations[4]).toEqual({
+        type: 'updateProperty',
+        target: 'lbl',
+        payload: { text: 'C' },
+      });
     });
   });
 });
