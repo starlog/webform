@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import type { ControlDefinition } from '@webform/common';
+import type { ControlDefinition, FormProperties } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore } from '../../stores/historyStore';
@@ -7,6 +7,19 @@ import { getPropertyMeta, getControlEvents } from './controlProperties';
 import type { PropertyCategory as PropertyCategoryName, PropertyMeta } from './controlProperties';
 import { PropertyCategory } from './PropertyCategory';
 import { EventsTab } from './EventsTab';
+
+// 폼 속성 메타데이터
+const FORM_PROPERTY_METAS: PropertyMeta[] = [
+  { name: 'width',           label: 'Width',           category: 'Layout',     editorType: 'number', min: 200 },
+  { name: 'height',          label: 'Height',          category: 'Layout',     editorType: 'number', min: 150 },
+  { name: 'title',           label: 'Title',           category: 'Appearance', editorType: 'text' },
+  { name: 'backgroundColor', label: 'BackColor',       category: 'Appearance', editorType: 'color' },
+  { name: 'font',            label: 'Font',            category: 'Appearance', editorType: 'font' },
+  { name: 'formBorderStyle', label: 'FormBorderStyle', category: 'Behavior',   editorType: 'dropdown', options: ['None', 'FixedSingle', 'Fixed3D', 'Sizable'] },
+  { name: 'startPosition',   label: 'StartPosition',   category: 'Behavior',   editorType: 'dropdown', options: ['CenterScreen', 'Manual', 'CenterParent'] },
+  { name: 'maximizeBox',     label: 'MaximizeBox',     category: 'Behavior',   editorType: 'boolean' },
+  { name: 'minimizeBox',     label: 'MinimizeBox',     category: 'Behavior',   editorType: 'boolean' },
+];
 
 type TabType = 'properties' | 'events';
 type SortMode = 'category' | 'alphabetical';
@@ -22,6 +35,8 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const selectedIds = useSelectionStore((s) => s.selectedIds);
   const controls = useDesignerStore((s) => s.controls);
   const updateControl = useDesignerStore((s) => s.updateControl);
+  const formProperties = useDesignerStore((s) => s.formProperties);
+  const setFormProperties = useDesignerStore((s) => s.setFormProperties);
   const pushSnapshot = useHistoryStore((s) => s.pushSnapshot);
 
   const selectedControl = useMemo(() => {
@@ -158,11 +173,46 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
   }, [propertyMetas, sortMode]);
 
-  // 선택 없는 경우
+  // --- 폼 속성 getValue / handleValueChange ---
+  const getFormValue = useCallback((name: string): unknown => {
+    return (formProperties as unknown as Record<string, unknown>)[name];
+  }, [formProperties]);
+
+  const handleFormValueChange = useCallback((name: string, value: unknown) => {
+    setFormProperties({ [name]: value } as Partial<FormProperties>);
+  }, [setFormProperties]);
+
+  const formGroupedProperties = useMemo(() => {
+    const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior'];
+    const groups = new Map<string, PropertyMeta[]>();
+    for (const meta of FORM_PROPERTY_METAS) {
+      const list = groups.get(meta.category) ?? [];
+      list.push(meta);
+      groups.set(meta.category, list);
+    }
+    return categoryOrder
+      .filter((cat) => groups.has(cat))
+      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
+  }, []);
+
+  // 선택 없는 경우 → 폼 속성 표시
   if (selectedIds.size === 0) {
     return (
-      <div style={{ padding: 8, fontSize: 12, color: '#666' }}>
-        No control selected.
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ padding: '4px 6px', borderBottom: '1px solid #ccc', fontSize: 12, fontWeight: 600 }}>
+          {formProperties.title} (Form)
+        </div>
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {formGroupedProperties.map(({ category, properties }) => (
+            <PropertyCategory
+              key={category}
+              category={category}
+              properties={properties}
+              getValue={getFormValue}
+              onValueChange={handleFormValueChange}
+            />
+          ))}
+        </div>
       </div>
     );
   }
@@ -185,8 +235,8 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
 
       {/* 탭 바 + 정렬 토글 */}
       <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
-        <TabButton label="Properties" icon="\u2630" active={activeTab === 'properties'} onClick={() => setActiveTab('properties')} />
-        <TabButton label="Events" icon="\u26A1" active={activeTab === 'events'} onClick={() => setActiveTab('events')} />
+        <TabButton label="Properties" icon="☰" active={activeTab === 'properties'} onClick={() => setActiveTab('properties')} />
+        <TabButton label="Events" icon="⚡" active={activeTab === 'events'} onClick={() => setActiveTab('events')} />
         <div style={{ flex: 1 }} />
         {activeTab === 'properties' && (
           <button
@@ -202,7 +252,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
               cursor: 'pointer',
             }}
           >
-            {sortMode === 'category' ? 'A-Z' : '\u2630'}
+            {sortMode === 'category' ? 'A-Z' : '☰'}
           </button>
         )}
       </div>

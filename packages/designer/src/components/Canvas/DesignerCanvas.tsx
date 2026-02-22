@@ -4,10 +4,15 @@ import type { ControlType, ControlDefinition } from '@webform/common';
 import { useDesignerStore, createDefaultControl } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore } from '../../stores/historyStore';
-import { snapPositionToGrid } from '../../utils/snapGrid';
+import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';
 import type { Snapline as SnaplineType } from '../../utils/snapGrid';
 import { CanvasControl, DragItemTypes } from './CanvasControl';
 import { Snapline } from './Snapline';
+
+type FormResizeDirection = 'e' | 's' | 'se';
+
+const FORM_MIN_WIDTH = 200;
+const FORM_MIN_HEIGHT = 150;
 
 function getSelectionBoxStyle(box: { startX: number; startY: number; endX: number; endY: number }): React.CSSProperties {
   const left = Math.min(box.startX, box.endX);
@@ -194,46 +199,124 @@ export function DesignerCanvas() {
     }
   };
 
+  // --- 폼 리사이즈 핸들 ---
+  const handleFormResizeMouseDown = useCallback((direction: FormResizeDirection, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const { formProperties: fp, gridSize: gs } = useDesignerStore.getState();
+    const startWidth = fp.width;
+    const startHeight = fp.height;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+
+      if (direction.includes('e')) newWidth = Math.max(FORM_MIN_WIDTH, startWidth + deltaX);
+      if (direction.includes('s')) newHeight = Math.max(FORM_MIN_HEIGHT, startHeight + deltaY);
+
+      useDesignerStore.getState().setFormProperties({
+        width: snapToGrid(newWidth, gs),
+        height: snapToGrid(newHeight, gs),
+      });
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, []);
+
   return (
-    <div
-      ref={(node) => {
-        dropRef(node);
-        canvasRef.current = node;
-      }}
-      className="designer-canvas"
-      style={{
-        width: formProperties.width,
-        height: formProperties.height,
-        backgroundColor: formProperties.backgroundColor,
-        position: 'relative',
-        backgroundImage: 'radial-gradient(circle, #ccc 1px, transparent 1px)',
-        backgroundSize: `${gridSize}px ${gridSize}px`,
-        outline: 'none',
-        border: isOver ? '2px dashed #0078D7' : '1px solid #999',
-        boxSizing: 'border-box',
-      }}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    >
-      {controls.map((control) => (
-        <CanvasControl
-          key={control.id}
-          control={control}
-          isSelected={selectedIds.has(control.id)}
-          onSnaplineChange={setSnaplines}
-        />
-      ))}
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <div
+        ref={(node) => {
+          dropRef(node);
+          canvasRef.current = node;
+        }}
+        className="designer-canvas"
+        style={{
+          width: formProperties.width,
+          height: formProperties.height,
+          backgroundColor: formProperties.backgroundColor,
+          position: 'relative',
+          backgroundImage: 'radial-gradient(circle, #ccc 1px, transparent 1px)',
+          backgroundSize: `${gridSize}px ${gridSize}px`,
+          outline: 'none',
+          border: isOver ? '2px dashed #0078D7' : '1px solid #999',
+          boxSizing: 'border-box',
+        }}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      >
+        {controls.map((control) => (
+          <CanvasControl
+            key={control.id}
+            control={control}
+            isSelected={selectedIds.has(control.id)}
+            onSnaplineChange={setSnaplines}
+          />
+        ))}
 
-      {snaplines.map((line, i) => (
-        <Snapline key={`${line.type}-${line.position}-${i}`} snapline={line} />
-      ))}
+        {snaplines.map((line, i) => (
+          <Snapline key={`${line.type}-${line.position}-${i}`} snapline={line} />
+        ))}
 
-      {selectionBox && (
-        <div style={getSelectionBoxStyle(selectionBox)} />
-      )}
+        {selectionBox && (
+          <div style={getSelectionBoxStyle(selectionBox)} />
+        )}
+      </div>
+
+      {/* 폼 리사이즈 핸들: 오른쪽(e) */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: -4,
+          width: 8,
+          height: '100%',
+          cursor: 'e-resize',
+          zIndex: 10,
+        }}
+        onMouseDown={(e) => handleFormResizeMouseDown('e', e)}
+      />
+      {/* 폼 리사이즈 핸들: 아래(s) */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: -4,
+          left: 0,
+          width: '100%',
+          height: 8,
+          cursor: 's-resize',
+          zIndex: 10,
+        }}
+        onMouseDown={(e) => handleFormResizeMouseDown('s', e)}
+      />
+      {/* 폼 리사이즈 핸들: 우하단(se) */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: -4,
+          right: -4,
+          width: 12,
+          height: 12,
+          cursor: 'se-resize',
+          zIndex: 11,
+        }}
+        onMouseDown={(e) => handleFormResizeMouseDown('se', e)}
+      />
     </div>
   );
 }

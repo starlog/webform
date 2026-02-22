@@ -55,9 +55,16 @@ pnpm typecheck              # TypeScript 타입 체크
 - **`SandboxRunner`** (`services/SandboxRunner.ts`) — isolated-vm으로 사용자 코드 격리 실행. `ctx` 객체(controls, showMessage, http 등)를 주입
 - **`DataSourceService`** (`services/DataSourceService.ts`) — MongoDB, REST API, Static 데이터소스 쿼리
 
+### Designer 주요 컴포넌트
+
+- **`DesignerCanvas`** (`components/Canvas/DesignerCanvas.tsx`) — 폼 캔버스. 컨트롤 드롭/선택/드래그 선택 박스, 폼 리사이즈 핸들(e/s/se 방향 드래그로 크기 조절, 그리드 스냅, 최소 200x150)
+- **`PropertyPanel`** (`components/PropertyPanel/PropertyPanel.tsx`) — 속성 편집기. 컨트롤 선택 시 컨트롤 속성, 미선택 시 폼 속성(Layout/Appearance/Behavior) 표시. `PropertyCategory` + `PropertyMeta` 패턴 사용
+- **`controlProperties.ts`** (`components/PropertyPanel/controlProperties.ts`) — 컨트롤 타입별 `PropertyMeta[]` 정의. `withCommon()`으로 공통 속성 합성
+- **`ResizeHandle`** (`components/Canvas/ResizeHandle.tsx`) — 컨트롤 리사이즈 핸들 (8방향). mousedown → document mousemove/mouseup 패턴
+
 ### 상태관리 (Zustand)
 
-- **Designer**: `designerStore`(controls, formProperties, isDirty), `selectionStore`, `historyStore`(undo/redo)
+- **Designer**: `designerStore`(controls, formProperties, isDirty, setFormProperties), `selectionStore`, `historyStore`(undo/redo)
 - **Runtime**: `runtimeStore`(currentFormDef, controlStates, dialogQueue)
 
 ### 포트 및 프록시
