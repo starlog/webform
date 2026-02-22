@@ -56,8 +56,16 @@ interface FormContext {
   close(dialogResult?: 'OK' | 'Cancel'): void;
 }
 
+interface Console {
+  log(...args: any[]): void;
+  warn(...args: any[]): void;
+  error(...args: any[]): void;
+  info(...args: any[]): void;
+}
+
 declare const ctx: FormContext;
 declare const sender: ControlProxy;
+declare const console: Console;
 `;
 
 function getSampleCode(controlName: string, controlType: string, eventName: string, handlerName: string): string {
