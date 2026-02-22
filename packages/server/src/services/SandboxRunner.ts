@@ -1,9 +1,12 @@
 import ivm from 'isolated-vm';
+import type { TraceEntry } from '@webform/common';
 import { env } from '../config/index.js';
+import { CodeInstrumenter } from './CodeInstrumenter.js';
 
 export interface SandboxOptions {
   timeout?: number;
   memoryLimit?: number;
+  debugMode?: boolean;
 }
 
 export interface SandboxResult {
@@ -11,6 +14,7 @@ export interface SandboxResult {
   value?: unknown;
   error?: string;
   errorLine?: number;
+  traces?: TraceEntry[];
 }
 
 export class SandboxRunner {
@@ -21,9 +25,17 @@ export class SandboxRunner {
   ): Promise<SandboxResult> {
     const timeout = options?.timeout ?? env.SANDBOX_TIMEOUT_MS;
     const memoryLimit = options?.memoryLimit ?? env.SANDBOX_MEMORY_LIMIT_MB;
+    const debugMode = options?.debugMode ?? false;
+
+    let codeToRun = code;
+    if (debugMode) {
+      const instrumenter = new CodeInstrumenter();
+      const { instrumentedCode } = instrumenter.instrument(code);
+      codeToRun = instrumentedCode;
+    }
 
     const isolate = new ivm.Isolate({ memoryLimit });
-    const wrappedCode = this.wrapHandlerCode(code);
+    const wrappedCode = this.wrapHandlerCode(codeToRun, debugMode);
 
     try {
       const vmContext = await isolate.createContext();
@@ -35,6 +47,15 @@ export class SandboxRunner {
       const script = await isolate.compileScript(wrappedCode);
 
       const result = await script.run(vmContext, { timeout, copy: true });
+
+      if (debugMode && result && typeof result === 'object' && 'traces' in result) {
+        const { traces, ...rest } = result as Record<string, unknown>;
+        return {
+          success: true,
+          value: rest,
+          traces: traces as TraceEntry[],
+        };
+      }
 
       return { success: true, value: result };
     } catch (err) {
@@ -82,7 +103,41 @@ export class SandboxRunner {
     await jail.set('__httpHandler', httpHandler);
   }
 
-  private wrapHandlerCode(code: string): string {
+  private wrapHandlerCode(code: string, debugMode?: boolean): string {
+    const traceSetup = debugMode
+      ? `
+        var __traces = [];
+        function __trace(line, col, vars) {
+          __traces.push({
+            line: line,
+            column: col,
+            timestamp: Date.now(),
+            variables: vars || {}
+          });
+        }
+        function __captureVars(names) {
+          var result = {};
+          for (var i = 0; i < names.length; i++) {
+            var name = names[i];
+            try {
+              var val = eval(name);
+              try {
+                result[name] = JSON.stringify(val);
+              } catch(e) {
+                result[name] = String(val);
+              }
+            } catch(e) {
+              // 변수가 아직 선언되지 않은 경우 무시
+            }
+          }
+          return result;
+        }`
+      : '';
+
+    const returnValue = debugMode
+      ? '{ controls: ctx.controls, messages: __messages, logs: __logs, traces: __traces }'
+      : '{ controls: ctx.controls, messages: __messages, logs: __logs }';
+
     return `
       (function(ctx) {
         var __messages = [];
@@ -98,7 +153,7 @@ export class SandboxRunner {
           warn: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'warn', args: a, timestamp: Date.now() }); },
           error: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'error', args: a, timestamp: Date.now() }); },
           info: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'info', args: a, timestamp: Date.now() }); }
-        };
+        };${traceSetup}
         ctx.showMessage = function(text, title, type) {
           __messages.push({
             text: String(text ?? ''),
@@ -127,7 +182,7 @@ export class SandboxRunner {
         (function() {
           ${code}
         })();
-        return { controls: ctx.controls, messages: __messages, logs: __logs };
+        return ${returnValue};
       })(__ctx__)
     `;
   }

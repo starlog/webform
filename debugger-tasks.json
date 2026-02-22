@@ -249,7 +249,7 @@
       "description": "SandboxRunner에 debugMode 옵션을 추가하고, 활성화 시 CodeInstrumenter로 코드를 계측 후 실행한다.",
       "phase": "phase2-instrumentation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/server/src/services/SandboxRunner.ts를 수정하라.\n\n1. SandboxOptions에 debugMode?: boolean 추가\n\n2. runCode()에서 debugMode가 true일 때:\n   - CodeInstrumenter.instrument()로 코드 계측\n   - wrapHandlerCode()에 __traces 배열과 __trace 함수를 추가 주입\n   - 반환값에 traces 추가: { controls, messages, logs, traces }\n\n3. wrapHandlerCode에 debugMode 파라미터 추가:\n   - debugMode=true: __trace 함수 및 __traces 배열 주입\n   - 계측된 코드 사용\n   - 반환값에 traces 포함\n\n4. SandboxResult에 traces?: TraceEntry[] 추가\n\n5. 기존 기능(debugMode=false)은 변경 없이 유지하라.",
       "dependsOn": [
         "debugger-instrumenter",
