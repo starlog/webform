@@ -704,7 +704,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "속성 패널 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(designer): WinForm 스타일 속성 패널 구현\n\n- 카테고리별 속성 표시/편집 (Appearance, Behavior, Layout, Design)\n- 8종 속성 에디터: 텍스트, 숫자, 색상, 폰트, 드롭다운, 불리언, Anchor, 컬렉션\n- 이벤트 탭 (컨트롤별 이벤트 목록, 핸들러 이름 입력)\n- Monaco Editor 기반 이벤트 코드 편집기 (TypeScript, FormContext 타입 힌트)\n- 카테고리순/알파벳순 정렬 토글",
       "dependsOn": [
         "properties-panel-test"
