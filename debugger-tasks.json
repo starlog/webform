@@ -284,7 +284,7 @@
       "description": "실행 추적 결과를 Monaco 에디터에 인라인 데코레이션으로 표시하여 각 줄의 변수값과 실행 상태를 시각화한다.",
       "phase": "phase2-instrumentation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/designer/src/components/EventEditor/EventEditor.tsx를 수정하여 계측 결과를 시각화하라.\n\n1. 인라인 변수값 표시 (VS Code Debug Inline Values 스타일):\n   - 디버그 실행 후 traces를 받아 각 줄에 인라인 데코레이션 추가\n   - editor.deltaDecorations()으로 각 줄 끝에 변수값 표시\n   - 스타일: 회색 이탤릭 텍스트, 예: `// name = \"홍길동\", age = 30`\n   - IModelDecorationOptions의 afterContentClassName + contentText 사용\n\n2. 실행 흐름 시각화:\n   - 실행된 줄: 좌측 glyph margin에 녹색 점\n   - 실행되지 않은 줄: 회색 배경 (미실행 코드)\n   - 에러 줄: 빨간 배경 + 빨간 glyph\n\n3. 실행 요약 표시:\n   - 디버그 콘솔 상단에 실행 요약: '5/8 lines executed | 234ms | 3 variables tracked'\n   - 각 줄의 실행 시간이 있으면 느린 줄 하이라이트 (100ms 이상)\n\n4. 데코레이션 관리:\n   - 새로운 실행 시 이전 데코레이션 제거\n   - 코드 편집 시 데코레이션 제거\n   - 'Clear Debug' 버튼으로 수동 제거\n\nCSS는 style 태그 또는 인라인으로 주입하라.",
       "dependsOn": [
         "debugger-debug-api-trace"
@@ -318,7 +318,7 @@
       "description": "CodeInstrumenter, 계측 모드 SandboxRunner, 디버그 API의 traces 반환을 테스트한다.",
       "phase": "phase2-instrumentation",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Phase 2 계측 디버거에 대한 테스트를 작성하라.\n\n1. packages/server/src/__tests__/CodeInstrumenter.test.ts 생성:\n   - 기본 변수 선언 코드가 올바르게 계측되는지 확인\n   - if/else 분기문이 계측되는지 확인\n   - for/while 루프가 계측되는지 확인\n   - 파싱 불가능한 코드 입력 시 원본이 그대로 반환되는지 확인\n   - 빈 코드 입력 시 에러 없이 처리되는지 확인\n\n2. packages/server/src/__tests__/SandboxRunner.trace.test.ts 생성:\n   - debugMode=true로 실행 시 traces가 반환되는지 확인\n   - traces에 올바른 줄 번호가 기록되는지 확인\n   - traces에 변수값이 올바르게 캡처되는지 확인\n   - debugMode=false일 때 traces가 없는지 확인 (기존 동작 유지)\n   - 에러 발생 시에도 에러 전까지의 traces가 반환되는지 확인\n\npnpm --filter @webform/server test를 실행하여 모든 테스트가 통과하는지 확인하라.",
       "dependsOn": [
         "debugger-instrumenter",
