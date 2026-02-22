@@ -1,0 +1,33 @@
+{
+  "name": "webform",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:designer": "pnpm --filter @webform/designer dev",
+    "dev:runtime": "pnpm --filter @webform/runtime dev",
+    "dev:server": "pnpm --filter @webform/server dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:watch": "pnpm -r --parallel test:watch",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"packages/*/src/**/*.{ts,tsx}\"",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "eslint": "^9.18.0",
+    "@eslint/js": "^9.18.0",
+    "typescript-eslint": "^8.20.0",
+    "eslint-config-prettier": "^10.0.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "prettier": "^3.4.0",
+    "vitest": "^3.0.0",
+    "globals": "^15.14.0"
+  }
+}
