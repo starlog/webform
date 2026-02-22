@@ -6,6 +6,18 @@ import type {
   FormProperties,
 } from '@webform/common';
 
+export interface FormVersionSnapshot {
+  version: number;
+  snapshot: {
+    name: string;
+    properties: FormProperties;
+    controls: ControlDefinition[];
+    eventHandlers: EventHandlerDefinition[];
+    dataBindings: DataBindingDefinition[];
+  };
+  savedAt: Date;
+}
+
 export interface FormDocument {
   _id: mongoose.Types.ObjectId;
   name: string;
@@ -17,8 +29,10 @@ export interface FormDocument {
   controls: ControlDefinition[];
   eventHandlers: EventHandlerDefinition[];
   dataBindings: DataBindingDefinition[];
+  versions: FormVersionSnapshot[];
   createdBy: string;
   updatedBy: string;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +66,15 @@ const controlDefinitionSchema = new Schema(
   { _id: false },
 );
 
+const formVersionSchema = new Schema(
+  {
+    version: { type: Number, required: true },
+    snapshot: { type: Schema.Types.Mixed, required: true },
+    savedAt: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
 const formSchema = new Schema(
   {
     name: { type: String, required: true },
@@ -80,6 +103,8 @@ const formSchema = new Schema(
     controls: { type: [controlDefinitionSchema], default: [] },
     eventHandlers: { type: [Schema.Types.Mixed], default: [] },
     dataBindings: { type: [Schema.Types.Mixed], default: [] },
+    versions: { type: [formVersionSchema], default: [] },
+    deletedAt: { type: Date, default: null },
     createdBy: { type: String, required: true },
     updatedBy: { type: String, required: true },
   },
@@ -87,5 +112,10 @@ const formSchema = new Schema(
     timestamps: true,
   },
 );
+
+formSchema.index({ projectId: 1, deletedAt: 1 });
+formSchema.index({ status: 1 });
+formSchema.index({ name: 'text' });
+formSchema.index({ createdAt: -1 });
 
 export const Form = mongoose.model<FormDocument>('Form', formSchema);
