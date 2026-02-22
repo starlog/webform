@@ -6,6 +6,7 @@ import { useHistoryStore } from '../../stores/historyStore';
 import { snapPositionToGrid } from '../../utils/snapGrid';
 import type { Snapline } from '../../utils/snapGrid';
 import { ResizeHandle, RESIZE_DIRECTIONS } from './ResizeHandle';
+import { getDesignerComponent } from '../../controls/registry';
 
 export const DragItemTypes = {
   TOOLBOX_CONTROL: 'TOOLBOX_CONTROL',
@@ -18,7 +19,21 @@ interface CanvasControlProps {
   onSnaplineChange: (snaplines: Snapline[]) => void;
 }
 
-function ControlPreview({ type, properties }: { type: ControlType; properties: Record<string, unknown> }) {
+function ControlPreview({
+  type,
+  properties,
+  size,
+}: {
+  type: ControlType;
+  properties: Record<string, unknown>;
+  size: { width: number; height: number };
+}) {
+  const Component = getDesignerComponent(type);
+
+  if (Component) {
+    return <Component properties={properties} size={size} />;
+  }
+
   const text = (properties.text as string) ?? type;
   return (
     <div
@@ -92,12 +107,12 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
         border: isSelected ? '1px solid #0078D7' : '1px solid transparent',
         boxShadow: isSelected ? '0 0 0 1px #0078D7' : 'none',
         cursor: 'move',
-        backgroundColor: '#fff',
+        backgroundColor: 'transparent',
         boxSizing: 'border-box',
       }}
       onClick={handleClick}
     >
-      <ControlPreview type={control.type} properties={control.properties} />
+      <ControlPreview type={control.type} properties={control.properties} size={control.size} />
 
       {isSelected && (
         <>

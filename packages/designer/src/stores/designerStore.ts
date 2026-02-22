@@ -94,6 +94,8 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
       return { borderStyle: 'None' };
     case 'GroupBox':
       return { text: 'GroupBox' };
+    case 'TabControl':
+      return { tabPages: ['TabPage1', 'TabPage2'], selectedIndex: 0 };
     case 'DataGridView':
       return { columns: [] };
     default:
