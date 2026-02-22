@@ -31,10 +31,25 @@ interface DialogResult {
   data: Record<string, unknown>;
 }
 
+interface HttpResponse {
+  status: number;
+  ok: boolean;
+  data: any;
+}
+
+interface HttpClient {
+  get(url: string): HttpResponse;
+  post(url: string, body?: unknown): HttpResponse;
+  put(url: string, body?: unknown): HttpResponse;
+  patch(url: string, body?: unknown): HttpResponse;
+  delete(url: string): HttpResponse;
+}
+
 interface FormContext {
   formId: string;
   controls: Record<string, ControlProxy>;
   dataSources: Record<string, DataSourceProxy>;
+  http: HttpClient;
   showMessage(text: string, title?: string, type?: 'info' | 'warning' | 'error' | 'success'): void;
   showDialog(formName: string, params?: Record<string, unknown>): Promise<DialogResult>;
   navigate(formName: string, params?: Record<string, unknown>): void;

@@ -64,6 +64,20 @@ export class SandboxRunner {
     context: Record<string, unknown>,
   ): Promise<void> {
     await jail.set('__ctx__', new ivm.ExternalCopy(context).copyInto());
+
+    const httpHandler = new ivm.Reference(async (method: string, url: string, body?: string) => {
+      const res = await fetch(url, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : {},
+        body,
+        signal: AbortSignal.timeout(10_000),
+      });
+      const text = await res.text();
+      let data: unknown;
+      try { data = JSON.parse(text); } catch { data = text; }
+      return new ivm.ExternalCopy({ status: res.status, ok: res.ok, data }).copyInto();
+    });
+    await jail.set('__httpHandler', httpHandler);
   }
 
   private wrapHandlerCode(code: string): string {
@@ -76,6 +90,23 @@ export class SandboxRunner {
             title: String(title ?? ''),
             dialogType: String(type ?? 'info')
           });
+        };
+        ctx.http = {
+          get: function(url) {
+            return __httpHandler.applySyncPromise(undefined, ['GET', String(url)]);
+          },
+          post: function(url, body) {
+            return __httpHandler.applySyncPromise(undefined, ['POST', String(url), JSON.stringify(body)]);
+          },
+          put: function(url, body) {
+            return __httpHandler.applySyncPromise(undefined, ['PUT', String(url), JSON.stringify(body)]);
+          },
+          patch: function(url, body) {
+            return __httpHandler.applySyncPromise(undefined, ['PATCH', String(url), JSON.stringify(body)]);
+          },
+          delete: function(url) {
+            return __httpHandler.applySyncPromise(undefined, ['DELETE', String(url)]);
+          }
         };
         var sender = ctx.sender;
         (function() {
