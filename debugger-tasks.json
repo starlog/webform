@@ -301,7 +301,7 @@
       "description": "디버그 콘솔 옆에 변수 감시 패널을 추가하여 각 줄에서의 변수 상태 변화를 트리뷰로 표시한다.",
       "phase": "phase2-instrumentation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "EventEditor.tsx에 변수 감시(Variables) 패널을 추가하라.\n\n1. 디버그 영역을 탭으로 구분:\n   - 'Console' 탭: 기존 디버그 콘솔 (Phase 1)\n   - 'Variables' 탭: 변수 감시 패널 (이번 구현)\n\n2. Variables 패널 구현:\n   - traces에서 변수 데이터를 추출하여 줄 번호별로 그룹화\n   - 좌측: 줄 번호 목록 (클릭하면 해당 줄의 변수 표시)\n   - 우측: 선택된 줄의 변수 이름-값 테이블\n   - 값이 객체인 경우 펼치기/접기 토글\n   - 값 변경 감지: 이전 줄 대비 변경된 변수는 노란 배경으로 하이라이트\n\n3. 줄 클릭 연동:\n   - Variables 패널에서 줄을 클릭하면 Monaco 에디터에서 해당 줄로 커서 이동\n   - editor.revealLineInCenter()로 스크롤\n\n4. 스타일:\n   - VS Code의 Debug Variables 패널과 유사한 다크 테마\n   - 테이블 형식: Name | Value | Type 컬럼",
       "dependsOn": [
         "debugger-inline-values"

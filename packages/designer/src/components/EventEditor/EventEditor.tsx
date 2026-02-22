@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import { useDesignerStore } from '../../stores/designerStore';
 
@@ -271,6 +271,8 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
   const [isRunning, setIsRunning] = useState(false);
   const [runStatus, setRunStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [executionSummary, setExecutionSummary] = useState<ExecutionSummary | null>(null);
+  const [traces, setTraces] = useState<TraceEntry[]>([]);
+  const [debugTab, setDebugTab] = useState<'console' | 'variables'>('console');
 
   const control = controls.find((c) => c.id === controlId);
   const existingHandlers = (control?.properties._eventHandlers ?? {}) as Record<string, string>;
@@ -317,6 +319,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     clearMarkers();
     clearDebugDecorations();
     setRunStatus('idle');
+    setTraces([]);
   }, [clearMarkers, clearDebugDecorations]);
 
   const setErrorMarker = useCallback((line: number, message: string) => {
@@ -539,9 +542,10 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         setRunStatus('success');
 
         // trace 데코레이션 적용
-        const traces: TraceEntry[] = Array.isArray(data.traces) ? data.traces : [];
-        if (traces.length > 0) {
-          applyTraceDecorations(traces, data.executionTime ?? 0);
+        const newTraces: TraceEntry[] = Array.isArray(data.traces) ? data.traces : [];
+        setTraces(newTraces);
+        if (newTraces.length > 0) {
+          applyTraceDecorations(newTraces, data.executionTime ?? 0);
         } else {
           setSuccessDecoration();
         }
@@ -556,9 +560,10 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         setRunStatus('error');
 
         // trace 데코레이션 적용 (에러 전까지 실행된 부분)
-        const traces: TraceEntry[] = Array.isArray(data.traces) ? data.traces : [];
-        if (traces.length > 0) {
-          applyTraceDecorations(traces, data.executionTime ?? 0);
+        const newTraces: TraceEntry[] = Array.isArray(data.traces) ? data.traces : [];
+        setTraces(newTraces);
+        if (newTraces.length > 0) {
+          applyTraceDecorations(newTraces, data.executionTime ?? 0);
         }
 
         // 에러 줄에 마커 및 데코레이션 설정
@@ -631,6 +636,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       }
       setExecutionSummary(null);
       setRunStatus('idle');
+      setTraces([]);
     });
 
     editor.focus();
@@ -794,13 +800,64 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           />
         </div>
 
-        {/* 디버그 콘솔 */}
+        {/* 디버그 패널 (탭: Console / Variables) */}
         {consoleVisible && (
-          <DebugConsole
-            logs={logs}
-            onClear={() => setLogs([])}
-            executionSummary={executionSummary}
-          />
+          <div style={{ flex: 3, display: 'flex', flexDirection: 'column', borderTop: '1px solid #555' }}>
+            {/* 탭 헤더 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#252526',
+              borderBottom: '1px solid #1e1e1e',
+            }}>
+              <DebugTabButton
+                label="Console"
+                active={debugTab === 'console'}
+                onClick={() => setDebugTab('console')}
+              />
+              <DebugTabButton
+                label="Variables"
+                active={debugTab === 'variables'}
+                onClick={() => setDebugTab('variables')}
+                badge={traces.length > 0 ? new Set(traces.map((t) => t.line)).size : undefined}
+              />
+              <div style={{ flex: 1 }} />
+              {debugTab === 'console' && (
+                <button
+                  type="button"
+                  onClick={() => setLogs([])}
+                  style={{
+                    padding: '1px 8px',
+                    border: '1px solid #555',
+                    backgroundColor: '#3c3c3c',
+                    color: '#ccc',
+                    fontSize: 11,
+                    cursor: 'pointer',
+                    fontFamily: 'Segoe UI, sans-serif',
+                    marginRight: 6,
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {debugTab === 'console' ? (
+              <DebugConsole logs={logs} executionSummary={executionSummary} />
+            ) : (
+              <VariablesPanel
+                traces={traces}
+                onLineClick={(line) => {
+                  const editor = editorRef.current;
+                  if (editor) {
+                    editor.setPosition({ lineNumber: line, column: 1 });
+                    editor.revealLineInCenter(line);
+                    editor.focus();
+                  }
+                }}
+              />
+            )}
+          </div>
         )}
 
         {/* 하단 상태 바 */}
@@ -838,13 +895,60 @@ function formatTimestamp(ts: number): string {
     + '.' + String(d.getMilliseconds()).padStart(3, '0');
 }
 
+/** 디버그 탭 버튼 */
+function DebugTabButton({
+  label,
+  active,
+  onClick,
+  badge,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  badge?: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        padding: '4px 14px',
+        border: 'none',
+        borderBottom: active ? '2px solid #007acc' : '2px solid transparent',
+        backgroundColor: 'transparent',
+        color: active ? '#fff' : '#888',
+        fontSize: 11,
+        cursor: 'pointer',
+        fontFamily: 'Segoe UI, sans-serif',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+      }}
+    >
+      {label}
+      {badge != null && badge > 0 && (
+        <span
+          style={{
+            backgroundColor: '#007acc',
+            color: '#fff',
+            borderRadius: 8,
+            padding: '0 5px',
+            fontSize: 10,
+            lineHeight: '16px',
+          }}
+        >
+          {badge}
+        </span>
+      )}
+    </button>
+  );
+}
+
 function DebugConsole({
   logs,
-  onClear,
   executionSummary,
 }: {
   logs: DebugLogEntry[];
-  onClear: () => void;
   executionSummary: ExecutionSummary | null;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -856,45 +960,7 @@ function DebugConsole({
   }, [logs]);
 
   return (
-    <div
-      style={{
-        flex: 3,
-        display: 'flex',
-        flexDirection: 'column',
-        borderTop: '1px solid #555',
-      }}
-    >
-      {/* 콘솔 헤더 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '3px 10px',
-          backgroundColor: '#252526',
-          color: '#ccc',
-          fontSize: 11,
-          fontFamily: 'Segoe UI, sans-serif',
-        }}
-      >
-        <span>Debug Console</span>
-        <button
-          type="button"
-          onClick={onClear}
-          style={{
-            padding: '1px 8px',
-            border: '1px solid #555',
-            backgroundColor: '#3c3c3c',
-            color: '#ccc',
-            fontSize: 11,
-            cursor: 'pointer',
-            fontFamily: 'Segoe UI, sans-serif',
-          }}
-        >
-          Clear
-        </button>
-      </div>
-
+    <>
       {/* 실행 요약 */}
       {executionSummary && (
         <div
@@ -961,7 +1027,424 @@ function DebugConsole({
           ))
         )}
       </div>
+    </>
+  );
+}
+
+/** 줄별 변수 스냅샷 */
+interface LineVariableSnapshot {
+  line: number;
+  variables: Record<string, string>;
+}
+
+/** JSON 파싱 시도하여 객체/배열이면 반환, 아니면 null */
+function tryParseJson(value: string): unknown | null {
+  if ((!value.startsWith('{') && !value.startsWith('[')) || value.length < 2) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+/** 값의 타입 문자열 반환 */
+function getValueType(value: string): string {
+  if (value === 'undefined') return 'undefined';
+  if (value === 'null') return 'null';
+  if (value === 'true' || value === 'false') return 'boolean';
+  if (/^-?\d+(\.\d+)?$/.test(value)) return 'number';
+  if (value.startsWith('"') && value.endsWith('"')) return 'string';
+  if (value.startsWith('{')) return 'object';
+  if (value.startsWith('[')) return 'array';
+  return 'string';
+}
+
+/** 값 표시용 색상 */
+function getValueColor(type: string): string {
+  switch (type) {
+    case 'number': return '#b5cea8';
+    case 'string': return '#ce9178';
+    case 'boolean': return '#569cd6';
+    case 'null':
+    case 'undefined': return '#569cd6';
+    case 'object':
+    case 'array': return '#4ec9b0';
+    default: return '#d4d4d4';
+  }
+}
+
+/** 펼쳐진 객체/배열 속성 행 (재귀 가능) */
+function ExpandedObjectEntries({ value, depth }: { value: unknown; depth: number }) {
+  if (value === null || typeof value !== 'object') return null;
+
+  const entries = Array.isArray(value)
+    ? value.map((v, i) => [String(i), v] as const)
+    : Object.entries(value as Record<string, unknown>);
+
+  return (
+    <>
+      {entries.map(([key, val]) => (
+        <ExpandedPropertyRow key={key} propKey={key} propValue={val} depth={depth} />
+      ))}
+    </>
+  );
+}
+
+/** 펼쳐진 속성 단일 행 */
+function ExpandedPropertyRow({
+  propKey,
+  propValue,
+  depth,
+}: {
+  propKey: string;
+  propValue: unknown;
+  depth: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const isObject = typeof propValue === 'object' && propValue !== null;
+  const strVal = isObject ? JSON.stringify(propValue) : String(propValue);
+  const childType = propValue === null
+    ? 'null'
+    : typeof propValue === 'object'
+      ? (Array.isArray(propValue) ? 'array' : 'object')
+      : typeof propValue;
+
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: `2px 8px 2px ${depth * 16}px`,
+          fontSize: 12,
+          fontFamily: 'Consolas, monospace',
+          borderBottom: '1px solid #252525',
+          minHeight: 20,
+        }}
+      >
+        <span style={{ flex: 2, minWidth: 100, color: '#9cdcfe', display: 'flex', alignItems: 'center', gap: 4 }}>
+          {isObject && (
+            <span
+              onClick={() => setExpanded(!expanded)}
+              style={{ cursor: 'pointer', color: '#888', userSelect: 'none', fontSize: 10 }}
+            >
+              {expanded ? '▼' : '▶'}
+            </span>
+          )}
+          {propKey}
+        </span>
+        <span style={{
+          flex: 3,
+          minWidth: 150,
+          color: getValueColor(childType),
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          {strVal}
+        </span>
+        <span style={{ minWidth: 60, textAlign: 'right', color: '#666', fontSize: 11 }}>
+          {childType}
+        </span>
+      </div>
+      {expanded && isObject && (
+        <ExpandedObjectEntries value={propValue} depth={depth + 1} />
+      )}
+    </>
+  );
+}
+
+/** Variables 패널 */
+function VariablesPanel({
+  traces,
+  onLineClick,
+}: {
+  traces: TraceEntry[];
+  onLineClick: (line: number) => void;
+}) {
+  const [selectedLine, setSelectedLine] = useState<number | null>(null);
+
+  // 줄별 변수 스냅샷 계산
+  const lineSnapshots = useMemo<LineVariableSnapshot[]>(() => {
+    if (traces.length === 0) return [];
+
+    const lineMap = new Map<number, Record<string, string>>();
+    for (const trace of traces) {
+      const prev = lineMap.get(trace.line) ?? {};
+      lineMap.set(trace.line, { ...prev, ...trace.variables });
+    }
+
+    return Array.from(lineMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([line, variables]) => ({ line, variables }));
+  }, [traces]);
+
+  // 이전 줄 대비 변경된 변수 계산
+  const changedVarsMap = useMemo<Map<number, Set<string>>>(() => {
+    const result = new Map<number, Set<string>>();
+    for (let i = 0; i < lineSnapshots.length; i++) {
+      const current = lineSnapshots[i];
+      const prev = i > 0 ? lineSnapshots[i - 1] : null;
+      const changed = new Set<string>();
+
+      for (const [name, value] of Object.entries(current.variables)) {
+        if (!prev || prev.variables[name] !== value) {
+          changed.add(name);
+        }
+      }
+      result.set(current.line, changed);
+    }
+    return result;
+  }, [lineSnapshots]);
+
+  // 선택된 줄 자동 설정
+  useEffect(() => {
+    if (selectedLine === null && lineSnapshots.length > 0) {
+      setSelectedLine(lineSnapshots[0].line);
+    }
+  }, [lineSnapshots, selectedLine]);
+
+  // traces가 변경되면 선택 초기화
+  useEffect(() => {
+    if (lineSnapshots.length > 0) {
+      setSelectedLine(lineSnapshots[0].line);
+    } else {
+      setSelectedLine(null);
+    }
+  }, [traces]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleLineClick = useCallback((line: number) => {
+    setSelectedLine(line);
+    onLineClick(line);
+  }, [onLineClick]);
+
+  const selectedSnapshot = lineSnapshots.find((s) => s.line === selectedLine);
+  const changedVars = selectedLine != null ? changedVarsMap.get(selectedLine) : undefined;
+
+  if (traces.length === 0) {
+    return (
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#1e1e1e',
+        color: '#666',
+        fontStyle: 'italic',
+        fontSize: 12,
+        fontFamily: 'Consolas, monospace',
+      }}>
+        No trace data. Click Run or press F5 to execute with tracing.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      backgroundColor: '#1e1e1e',
+      overflow: 'hidden',
+    }}>
+      {/* 좌측: 줄 번호 목록 */}
+      <div style={{
+        width: 80,
+        borderRight: '1px solid #333',
+        overflow: 'auto',
+        flexShrink: 0,
+      }}>
+        <div style={{
+          padding: '4px 8px',
+          backgroundColor: '#252526',
+          color: '#888',
+          fontSize: 10,
+          fontFamily: 'Segoe UI, sans-serif',
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+          borderBottom: '1px solid #333',
+        }}>
+          Lines
+        </div>
+        {lineSnapshots.map((snapshot) => (
+          <div
+            key={snapshot.line}
+            onClick={() => handleLineClick(snapshot.line)}
+            style={{
+              padding: '3px 8px',
+              cursor: 'pointer',
+              backgroundColor: snapshot.line === selectedLine ? '#094771' : 'transparent',
+              color: snapshot.line === selectedLine ? '#fff' : '#ccc',
+              fontSize: 12,
+              fontFamily: 'Consolas, monospace',
+              borderBottom: '1px solid #2a2a2a',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <span style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              backgroundColor: '#4caf50',
+              flexShrink: 0,
+            }} />
+            <span>Line {snapshot.line}</span>
+            <span style={{ color: '#666', fontSize: 10, marginLeft: 'auto' }}>
+              {Object.keys(snapshot.variables).length}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* 우측: 변수 테이블 */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {/* 테이블 헤더 */}
+        <div style={{
+          display: 'flex',
+          padding: '4px 8px',
+          backgroundColor: '#252526',
+          borderBottom: '1px solid #333',
+          fontSize: 10,
+          fontFamily: 'Segoe UI, sans-serif',
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+          color: '#888',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+        }}>
+          <span style={{ flex: 2, minWidth: 100 }}>Name</span>
+          <span style={{ flex: 3, minWidth: 150 }}>Value</span>
+          <span style={{ minWidth: 60, textAlign: 'right' }}>Type</span>
+        </div>
+
+        {selectedSnapshot ? (
+          Object.entries(selectedSnapshot.variables).map(([name, value]) => {
+            const type = getValueType(value);
+            const isChanged = changedVars?.has(name);
+            const parsedObj = tryParseJson(value);
+
+            return (
+              <VariableRow
+                key={name}
+                name={name}
+                value={value}
+                type={type}
+                isChanged={!!isChanged}
+                parsedObj={parsedObj}
+              />
+            );
+          })
+        ) : (
+          <div style={{
+            padding: '12px 8px',
+            color: '#666',
+            fontSize: 12,
+            fontStyle: 'italic',
+            fontFamily: 'Consolas, monospace',
+          }}>
+            Select a line to view variables.
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+/** 변수 행 컴포넌트 */
+function VariableRow({
+  name,
+  value,
+  type,
+  isChanged,
+  parsedObj,
+}: {
+  name: string;
+  value: string;
+  type: string;
+  isChanged: boolean;
+  parsedObj: unknown | null;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = parsedObj !== null;
+
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '2px 8px',
+          borderBottom: '1px solid #2a2a2a',
+          fontSize: 12,
+          fontFamily: 'Consolas, monospace',
+          backgroundColor: isChanged ? 'rgba(255, 235, 59, 0.12)' : 'transparent',
+          minHeight: 22,
+        }}
+      >
+        {/* Name */}
+        <span style={{
+          flex: 2,
+          minWidth: 100,
+          color: '#9cdcfe',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+        }}>
+          {hasChildren && (
+            <span
+              onClick={() => setExpanded(!expanded)}
+              style={{ cursor: 'pointer', color: '#888', userSelect: 'none', fontSize: 10 }}
+            >
+              {expanded ? '▼' : '▶'}
+            </span>
+          )}
+          {name}
+          {isChanged && (
+            <span style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              backgroundColor: '#ffeb3b',
+              flexShrink: 0,
+            }} />
+          )}
+        </span>
+
+        {/* Value */}
+        <span style={{
+          flex: 3,
+          minWidth: 150,
+          color: getValueColor(type),
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          {value}
+        </span>
+
+        {/* Type */}
+        <span style={{
+          minWidth: 60,
+          textAlign: 'right',
+          color: '#666',
+          fontSize: 11,
+        }}>
+          {type}
+        </span>
+      </div>
+
+      {/* 펼친 객체 내부 */}
+      {expanded && hasChildren && (
+        <div style={{
+          borderBottom: '1px solid #2a2a2a',
+          backgroundColor: '#1a1a2e',
+        }}>
+          <ExpandedObjectEntries value={parsedObj} depth={1} />
+        </div>
+      )}
+    </>
   );
 }
 
