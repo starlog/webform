@@ -216,7 +216,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 백엔드 서버(@webform/server) 기반 구조 계획을 수립하라. PRD.md 섹션 3.1과 기술 스택(Node.js, Express, MongoDB, Redis)을 분석하여 다음을 설계하라:\n\n1. Express 앱 구조 (app.ts, index.ts 분리)\n2. 미들웨어 스택: cors, helmet, express.json, morgan, 요청 ID\n3. MongoDB 연결 관리 (Mongoose, 재시도, 연결 풀)\n4. Redis 연결 (ioredis)\n5. 환경 변수 설계 (PORT, MONGODB_URI, REDIS_URL, JWT_SECRET, ENCRYPTION_KEY)\n6. 라우터 구조 (forms, runtime, datasources, projects)\n7. 전역 에러 핸들러 미들웨어\n8. JWT 인증 미들웨어\n9. WebSocket 서버 설정 (/ws/designer/:formId, /ws/runtime/:formId)\n10. health check 엔드포인트 (GET /health)\n\n계획을 plans/server-foundation-plan.md에 작성하라.",
       "dependsOn": [
         "monorepo-setup-commit",
@@ -236,7 +236,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/server-foundation-plan.md에 따라 서버 기반 구조를 구현하라. @webform/common 타입을 사용하라.\n\n1. packages/server/src/config/index.ts: 환경 변수 로드/검증\n2. packages/server/src/db/mongodb.ts: Mongoose 연결, graceful shutdown\n3. packages/server/src/db/redis.ts: ioredis 클라이언트\n4. packages/server/src/middleware/errorHandler.ts: 전역 에러 핸들러, ValidationError/NotFoundError\n5. packages/server/src/middleware/auth.ts: JWT 검증, req.user 설정, 401 응답\n6. packages/server/src/middleware/requestId.ts: UUID 요청 ID 부여\n7. packages/server/src/routes/forms.ts: 스텁 (GET / → 200 빈 배열)\n8. packages/server/src/routes/runtime.ts: 스텁\n9. packages/server/src/routes/datasources.ts: 스텁\n10. packages/server/src/routes/projects.ts: 스텁\n11. packages/server/src/routes/index.ts: 라우터 통합 (/api/* 경로)\n12. packages/server/src/websocket/index.ts: ws.Server 생성, URL 패턴 라우팅\n13. packages/server/src/app.ts: Express 앱 (미들웨어 + 라우터 + 에러핸들러 + GET /health)\n14. packages/server/src/index.ts: MongoDB 연결 후 서버 시작\n15. packages/server/.env.example: 환경 변수 예시\n16. packages/server/src/models/Form.ts: 기본 Mongoose 스키마",
       "dependsOn": [
         "server-foundation-plan"
@@ -284,7 +284,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "서버 기반 구조를 테스트하라. supertest와 vitest, mongodb-memory-server를 사용하라.\n\n1. packages/server/src/__tests__/setup.ts: mongodb-memory-server 시작/정지 설정\n\n2. packages/server/src/__tests__/app.test.ts:\n   - GET /health → 200, { status: 'ok' }\n   - CORS 헤더 포함 확인\n   - 존재하지 않는 라우트 → 404\n   - 에러 핸들러: 던진 에러가 JSON으로 응답\n\n3. packages/server/src/__tests__/middleware.test.ts:\n   - auth: 유효한 JWT → 통과, 토큰 없음 → 401, 만료 토큰 → 401\n   - requestId: X-Request-Id 헤더 설정 확인\n   - errorHandler: ValidationError → 400, Error → 500\n\n실행: pnpm --filter @webform/server test\n모든 테스트 통과 확인. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "server-foundation-impl"
@@ -307,7 +307,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "서버 기반 구조 구현을 커밋하라.\n\n.env, .env.local 등 민감 파일 제외. .env.example은 포함 가능.\npackages/server 관련 파일과 plans/server-foundation-plan.md를 스테이징하라.\n다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(server): Express 서버 기반 구조 구현\n\n- MongoDB(Mongoose) 및 Redis(ioredis) 연결 관리\n- 미들웨어: cors, helmet, morgan, 요청 ID\n- JWT 인증 미들웨어\n- 전역 에러 핸들러 (ValidationError, NotFoundError)\n- REST API 라우터 구조 (/api/forms, /api/runtime, /api/datasources, /api/projects)\n- WebSocket 서버 기반 설정\n- GET /health 엔드포인트",
       "dependsOn": [
         "server-foundation-test"
@@ -403,7 +403,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 디자인 캔버스 컴포넌트 구현 계획을 수립하라. PRD.md 섹션 4.1.3을 분석하여 다음을 설계하라:\n\n## 구현 기능\n1. 드래그 앤 드롭 (react-dnd): 도구상자 → 캔버스 배치, 캔버스 내 이동\n2. 8방향 리사이즈 핸들 (n, ne, e, se, s, sw, w, nw)\n3. 그리드 스냅 (기본 8px, 설정 가능)\n4. 다중 선택 (Ctrl+클릭, 드래그 선택 박스)\n5. 정렬 가이드라인 (Snaplines): 다른 컨트롤과 정렬 시 가이드\n6. Undo/Redo: Ctrl+Z/Y (최소 50단계)\n7. 복사/붙여넣기: Ctrl+C/V (오프셋 적용)\n8. Delete/Backspace 키로 선택 컨트롤 삭제\n\n## Zustand 스토어\n- designerStore: controls[], formProperties, isDirty, currentFormId\n- selectionStore: selectedIds: Set<string>, clipboard: ControlDefinition[]\n- historyStore: past[], future[] (JSON 스냅샷, 최대 50개)\n\n## 컴포넌트 구조\n- DesignerCanvas: DropTarget, 키보드 이벤트, 그리드 배경\n- CanvasControl: DragSource, 선택 처리, 리사이즈 핸들\n- ResizeHandle: 8방향, 최소 크기 20px\n- Snapline: 수평/수직 가이드라인\n\n계획을 plans/designer-canvas-plan.md에 작성하라.",
       "dependsOn": [
         "common-types-commit"
@@ -422,7 +422,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/designer-canvas-plan.md에 따라 디자인 캔버스를 구현하라.\n\n1. packages/designer/src/stores/designerStore.ts:\n   - controls: ControlDefinition[], formProperties, isDirty, currentFormId\n   - addControl, updateControl, removeControl, moveControl, resizeControl, bringToFront, sendToBack\n   - Zustand + immer\n\n2. packages/designer/src/stores/selectionStore.ts:\n   - selectedIds: Set<string>, clipboard: ControlDefinition[]\n   - select, deselect, toggleSelect, selectMultiple, clearSelection\n   - copySelected, pasteControls (새 UUID + +16px 오프셋)\n\n3. packages/designer/src/stores/historyStore.ts:\n   - past: string[], future: string[] (JSON 스냅샷, 최대 50개)\n   - pushSnapshot, undo, redo, canUndo, canRedo\n\n4. packages/designer/src/utils/snapGrid.ts:\n   - snapToGrid(value, gridSize=8): number\n   - snapPositionToGrid(pos, gridSize?): { x, y }\n   - getSnaplines(movingControl, allControls): Snapline[]\n\n5. packages/designer/src/components/Canvas/DesignerCanvas.tsx:\n   - useDrop (react-dnd): 드롭 시 createDefaultControl + snapToGrid + addControl\n   - 그리드 배경 (CSS)\n   - 키보드: Ctrl+Z, Ctrl+Y, Ctrl+C, Ctrl+V, Delete\n   - 빈 영역 클릭 → clearSelection\n\n6. packages/designer/src/components/Canvas/CanvasControl.tsx:\n   - useDrag: 이동 드래그\n   - 클릭: select, Ctrl+클릭: toggleSelect\n   - 선택 시 파란 테두리 + ResizeHandle 표시\n   - position: absolute\n\n7. packages/designer/src/components/Canvas/ResizeHandle.tsx:\n   - 8방향 핸들, mousedown→mousemove로 리사이즈\n   - 최소 width, height 20px\n\n8. packages/designer/src/components/Canvas/Snapline.tsx\n\n9. packages/designer/src/App.tsx:\n   - DndProvider(HTML5Backend) 래핑\n   - 3패널 레이아웃: Toolbox(200px) + Canvas(flex) + PropertyPanel(250px)\n\n10. packages/designer/src/main.tsx: React 18 createRoot",
       "dependsOn": [
         "designer-canvas-plan"
@@ -460,7 +460,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "디자인 캔버스의 핵심 기능을 테스트하라.\n\n1. packages/designer/src/__tests__/designerStore.test.ts:\n   - addControl: controls 배열에 추가 확인\n   - updateControl: position 변경 확인\n   - removeControl: 배열에서 제거 확인\n   - bringToFront/sendToBack: 배열 순서 변경\n   - isDirty: 수정 후 true\n\n2. packages/designer/src/__tests__/selectionStore.test.ts:\n   - select/deselect/toggleSelect/clearSelection 동작\n   - copySelected + pasteControls: 새 ID, +16px 오프셋\n\n3. packages/designer/src/__tests__/historyStore.test.ts:\n   - pushSnapshot/undo/redo 동작\n   - 50개 초과 시 오래된 것 제거\n   - canUndo, canRedo 상태\n\n4. packages/designer/src/__tests__/snapGrid.test.ts:\n   - snapToGrid(13, 8) === 16\n   - snapToGrid(4, 8) === 0\n   - snapPositionToGrid({ x: 13, y: 5 }) === { x: 16, y: 8 }\n\n실행: pnpm --filter @webform/designer test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "designer-canvas-impl"
@@ -485,7 +485,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "디자인 캔버스 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(designer): react-dnd 기반 드래그앤드롭 디자인 캔버스 구현\n\n- 도구상자 → 캔버스 드래그앤드롭 배치 (react-dnd)\n- 8방향 리사이즈 핸들\n- 8px 그리드 스냅\n- 다중 선택 (Ctrl+클릭, 드래그 선택 박스)\n- 정렬 가이드라인 (Snaplines)\n- Undo/Redo 히스토리 50단계\n- Ctrl+C/V 복사/붙여넣기 (새 UUID + 오프셋)\n- Zustand 3개 스토어 (designer, selection, history)",
       "dependsOn": [
         "designer-canvas-test"
@@ -719,7 +719,7 @@
       "description": null,
       "phase": "phase3-runtime",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm SDUI 런타임 렌더러 구현 계획을 수립하라. PRD.md 섹션 4.2.1~4.2.3을 분석하여 다음을 설계하라:\n\n## 핵심 컴포넌트\n1. SDUIRenderer: FormDefinition → React 컴포넌트 트리\n2. ControlRenderer: 재귀 렌더링 (children 지원)\n3. FormContainer: 폼 크기/색/폰트, WinForm 제목 표시줄 에뮬레이션\n\n## 레이아웃 유틸리티\n- computeLayoutStyle(def): position:absolute, left/top/width/height CSS\n- Anchor 계산 로직\n- Dock 계산 로직\n\n## 런타임 컨트롤 구현체 (packages/runtime/src/controls/)\n- 실제 동작하는 컨트롤 (클릭, 입력 등)\n- runtimeControlRegistry\n\n## 훅 설계\n- useDataBinding(controlId, bindings): 바인딩 값 (초기엔 stub)\n- useEventHandlers(controlId, events): 이벤트 핸들러 맵\n  * client 이벤트: Function 생성자로 로컬 실행\n  * server 이벤트: POST /api/runtime/forms/:id/events + UIPatch 적용\n\n## 폼 상태 관리\n- runtimeStore (Zustand): currentFormDef, controlStates, applyPatch\n\n## 서버 통신\n- apiClient.ts: postEvent, fetchForm\n- wsClient.ts: WebSocket 연결, UIPatch 수신\n- patchApplier.ts: UIPatch → runtimeStore 적용\n\n계획을 plans/sdui-renderer-plan.md에 작성하라.",
       "dependsOn": [
         "common-types-commit"
@@ -738,7 +738,7 @@
       "description": null,
       "phase": "phase3-runtime",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/sdui-renderer-plan.md에 따라 SDUI 런타임 렌더러를 구현하라.\n\n1. packages/runtime/src/stores/runtimeStore.ts:\n   - currentFormDef: FormDefinition | null\n   - controlStates: Record<string, Record<string, any>>\n   - setFormDef, updateControlState, applyPatch(patch: UIPatch): void\n   - Zustand + immer\n\n2. packages/runtime/src/renderer/layoutUtils.ts:\n   - computeLayoutStyle(def: ControlDefinition): React.CSSProperties\n   - computeAnchorStyle(def, parentSize): CSSProperties\n   - computeDockStyle(dock: DockStyle): CSSProperties\n\n3. packages/runtime/src/renderer/FormContainer.tsx:\n   - 폼 width/height/backgroundColor/font 적용\n   - WinForm 제목 표시줄 (title, 최소화/최대화/닫기 버튼 에뮬레이션)\n\n4. packages/runtime/src/renderer/ControlRenderer.tsx:\n   - runtimeControlRegistry에서 컴포넌트 조회\n   - useDataBinding, useEventHandlers 적용\n   - computeLayoutStyle로 CSS 적용\n   - children 재귀 렌더링\n\n5. packages/runtime/src/renderer/SDUIRenderer.tsx:\n   - FormDefinition prop 받아 FormContainer + controls.map(ControlRenderer)\n   - useEffect로 Form.Load 이벤트 발생\n\n6. packages/runtime/src/controls/ (런타임 구현체):\n   - Button.tsx: onClick 이벤트 발생\n   - TextBox.tsx: 입력 상태 관리, onTextChanged\n   - Label.tsx: 텍스트 표시\n   - CheckBox.tsx: 체크 상태\n   - ComboBox.tsx: 선택 상태\n   - Panel.tsx, GroupBox.tsx, TabControl.tsx: 컨테이너\n   - registry.ts: runtimeControlRegistry\n\n7. packages/runtime/src/hooks/useEventHandlers.ts:\n   - client 이벤트: new Function(code)(args)\n   - server 이벤트: apiClient.postEvent → applyPatches\n\n8. packages/runtime/src/hooks/useDataBinding.ts:\n   - runtimeStore.controlStates에서 바인딩 값 반환 (stub)\n\n9. packages/runtime/src/communication/apiClient.ts:\n   - fetchForm(id): GET /api/runtime/forms/:id\n   - postEvent(formId, payload): POST /api/runtime/forms/:id/events\n\n10. packages/runtime/src/communication/wsClient.ts:\n    - WebSocket 연결, UIPatch 메시지 수신 → runtimeStore.applyPatch\n\n11. packages/runtime/src/App.tsx:\n    - URL 파라미터에서 formId 추출, fetchForm → SDUIRenderer\n\n12. packages/runtime/src/main.tsx: React 18 createRoot",
       "dependsOn": [
         "sdui-renderer-plan"
@@ -795,7 +795,7 @@
       "description": null,
       "phase": "phase3-runtime",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "SDUI 런타임 렌더러를 테스트하라.\n\n1. packages/runtime/src/__tests__/runtimeStore.test.ts:\n   - setFormDef: currentFormDef 설정 확인\n   - updateControlState: 특정 컨트롤 속성 업데이트\n   - applyPatch: updateProperty 패치 적용 확인\n   - applyPatch: addControl 패치 처리\n\n2. packages/runtime/src/__tests__/layoutUtils.test.ts:\n   - computeLayoutStyle: position/size → CSS 변환\n   - computeDockStyle('Fill') → { position: 'absolute', top:0, left:0, right:0, bottom:0 }\n\n3. packages/runtime/src/__tests__/SDUIRenderer.test.tsx:\n   - Button + Label FormDefinition 렌더링 후 컴포넌트 존재 확인\n   - 중첩 Panel + 자식 컨트롤 렌더링\n   - FormContainer 크기/색 적용 확인\n\n4. packages/runtime/src/__tests__/useEventHandlers.test.ts:\n   - client 이벤트: apiClient 호출 없이 로컬 실행\n   - server 이벤트: apiClient.postEvent 호출 확인 (mock)\n\n5. packages/runtime/src/__tests__/apiClient.test.ts:\n   - fetchForm: GET 요청 확인\n   - postEvent: POST 요청 형식, UIPatch 응답 처리\n\n실행: pnpm --filter @webform/runtime test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "sdui-renderer-impl"
@@ -822,7 +822,7 @@
       "description": null,
       "phase": "phase3-runtime",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "SDUI 런타임 렌더러 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(runtime): SDUI 런타임 렌더러 구현\n\n- FormDefinition JSON → React 컴포넌트 트리 변환\n- 런타임 컨트롤: Button, TextBox, Label, CheckBox, ComboBox, Panel, GroupBox, TabControl\n- Anchor/Dock 레이아웃 계산 유틸리티\n- Client/Server 이벤트 처리 분기\n- UIPatch 기반 폼 상태 업데이트 (runtimeStore)\n- REST API 이벤트 전송 + WebSocket 실시간 통신",
       "dependsOn": [
         "sdui-renderer-test"
