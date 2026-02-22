@@ -15,10 +15,18 @@ export interface EventRequest {
   formState: Record<string, Record<string, unknown>>;
 }
 
+export interface DebugLog {
+  type: 'log' | 'warn' | 'error' | 'info';
+  args: string[];
+  timestamp: number;
+}
+
 export interface EventResponse {
   success: boolean;
   patches: UIPatch[];
   error?: string;
+  logs?: DebugLog[];
+  errorLine?: number;
 }
 
 export type DesignerWsMessage =
