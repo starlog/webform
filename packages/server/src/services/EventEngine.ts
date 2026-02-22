@@ -149,6 +149,20 @@ export class EventEngine {
         }
       }
 
+      if (Array.isArray(rv.navigations)) {
+        for (const nav of rv.navigations) {
+          const n = nav as Record<string, unknown>;
+          patches.push({
+            type: 'navigate',
+            target: '_system',
+            payload: {
+              formId: String(n.formId ?? ''),
+              params: (n.params as Record<string, unknown>) ?? {},
+            },
+          });
+        }
+      }
+
       if (Array.isArray(rv.logs)) {
         logs = rv.logs as DebugLog[];
       }

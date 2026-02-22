@@ -8,10 +8,16 @@ export interface DialogMessage {
   dialogType: 'info' | 'warning' | 'error' | 'success';
 }
 
+export interface NavigateRequest {
+  formId: string;
+  params: Record<string, unknown>;
+}
+
 export interface RuntimeState {
   currentFormDef: FormDefinition | null;
   controlStates: Record<string, Record<string, unknown>>;
   dialogQueue: DialogMessage[];
+  navigateRequest: NavigateRequest | null;
 
   setFormDef: (def: FormDefinition) => void;
   updateControlState: (controlId: string, property: string, value: unknown) => void;
@@ -19,6 +25,8 @@ export interface RuntimeState {
   applyPatch: (patch: UIPatch) => void;
   applyPatches: (patches: UIPatch[]) => void;
   dismissDialog: () => void;
+  requestNavigate: (formId: string, params?: Record<string, unknown>) => void;
+  clearNavigateRequest: () => void;
 }
 
 function initControlStates(
@@ -70,6 +78,7 @@ export const useRuntimeStore = create<RuntimeState>()(
     currentFormDef: null,
     controlStates: {},
     dialogQueue: [],
+    navigateRequest: null,
 
     setFormDef: (def) =>
       set((state) => {
@@ -133,9 +142,14 @@ export const useRuntimeStore = create<RuntimeState>()(
             });
             break;
           }
-          case 'navigate':
-            console.warn(`Patch type '${patch.type}' not yet implemented`, patch.payload);
+          case 'navigate': {
+            const navPayload = patch.payload as { formId?: string; params?: Record<string, unknown> };
+            state.navigateRequest = {
+              formId: navPayload.formId ?? '',
+              params: navPayload.params ?? {},
+            };
             break;
+          }
         }
       }),
 
@@ -183,9 +197,14 @@ export const useRuntimeStore = create<RuntimeState>()(
               });
               break;
             }
-            case 'navigate':
-              console.warn(`Patch type '${patch.type}' not yet implemented`, patch.payload);
+            case 'navigate': {
+              const navPayload = patch.payload as { formId?: string; params?: Record<string, unknown> };
+              state.navigateRequest = {
+                formId: navPayload.formId ?? '',
+                params: navPayload.params ?? {},
+              };
               break;
+            }
           }
         }
       }),
@@ -193,6 +212,16 @@ export const useRuntimeStore = create<RuntimeState>()(
     dismissDialog: () =>
       set((state) => {
         state.dialogQueue.shift();
+      }),
+
+    requestNavigate: (formId, params) =>
+      set((state) => {
+        state.navigateRequest = { formId, params: params ?? {} };
+      }),
+
+    clearNavigateRequest: () =>
+      set((state) => {
+        state.navigateRequest = null;
       }),
   })),
 );

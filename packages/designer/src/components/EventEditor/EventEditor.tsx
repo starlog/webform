@@ -76,8 +76,8 @@ interface FormContext {
   dataSources: Record<string, DataSourceProxy>;
   http: HttpClient;
   showMessage(text: string, title?: string, type?: 'info' | 'warning' | 'error' | 'success'): void;
-  showDialog(formName: string, params?: Record<string, unknown>): Promise<DialogResult>;
-  navigate(formName: string, params?: Record<string, unknown>): void;
+  showDialog(formId: string, params?: Record<string, unknown>): Promise<DialogResult>;
+  navigate(formId: string, params?: Record<string, unknown>): void;
   close(dialogResult?: 'OK' | 'Cancel'): void;
 }
 

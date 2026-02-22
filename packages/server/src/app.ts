@@ -53,7 +53,7 @@ export function createApp() {
       const token = jwt.sign(
         { sub: 'dev-designer', role: 'admin' },
         env.JWT_SECRET,
-        { expiresIn: env.JWT_EXPIRY },
+        { expiresIn: env.JWT_EXPIRY as jwt.SignOptions['expiresIn'] },
       );
       res.json({ token });
     });

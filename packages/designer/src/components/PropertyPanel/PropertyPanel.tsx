@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import type { ControlDefinition, FormProperties } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
@@ -38,6 +38,8 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const formProperties = useDesignerStore((s) => s.formProperties);
   const setFormProperties = useDesignerStore((s) => s.setFormProperties);
   const pushSnapshot = useHistoryStore((s) => s.pushSnapshot);
+
+  const currentFormId = useDesignerStore((s) => s.currentFormId);
 
   const selectedControl = useMemo(() => {
     if (selectedIds.size !== 1) return null;
@@ -203,6 +205,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
           {formProperties.title} (Form)
         </div>
         <div style={{ flex: 1, overflow: 'auto' }}>
+          {currentFormId && <FormIdRow formId={currentFormId} />}
           {formGroupedProperties.map(({ category, properties }) => (
             <PropertyCategory
               key={category}
@@ -284,6 +287,66 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
           />
         )}
       </div>
+    </div>
+  );
+}
+
+function FormIdRow({ formId }: { formId: string }) {
+  const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(formId).then(() => {
+      setCopied(true);
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setCopied(false), 1500);
+    });
+  }, [formId]);
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: '3px 6px',
+        borderBottom: '1px solid #eee',
+        fontSize: 12,
+      }}
+    >
+      <span style={{ width: '35%', color: '#555', flexShrink: 0 }}>FormId</span>
+      <span
+        style={{
+          flex: 1,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          fontFamily: 'monospace',
+          fontSize: 11,
+          color: '#333',
+        }}
+        title={formId}
+      >
+        {formId}
+      </span>
+      <button
+        type="button"
+        onClick={handleCopy}
+        title="Copy FormId"
+        style={{
+          marginLeft: 4,
+          padding: '1px 6px',
+          border: '1px solid',
+          borderColor: copied ? '#4caf50' : '#ccc',
+          background: copied ? '#4caf50' : '#f5f5f5',
+          color: copied ? '#fff' : '#333',
+          fontSize: 11,
+          cursor: 'pointer',
+          borderRadius: 2,
+          transition: 'all 0.2s',
+        }}
+      >
+        {copied ? '✓' : 'Copy'}
+      </button>
     </div>
   );
 }

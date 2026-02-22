@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { FormService } from '../services/FormService.js';
 import { NotFoundError, AppError } from '../middleware/errorHandler.js';
+import type { CreateFormInput } from '../validators/formValidator.js';
 
 const formService = new FormService();
 
@@ -11,7 +12,7 @@ const baseInput = {
   controls: [],
   eventHandlers: [],
   dataBindings: [],
-};
+} as unknown as CreateFormInput;
 
 const userId = 'user-1';
 

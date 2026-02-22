@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormDefinition } from '@webform/common';
 import { SDUIRenderer } from './renderer/SDUIRenderer';
 import { apiClient } from './communication/apiClient';
@@ -10,9 +10,46 @@ export function App() {
   const [formDefinition, setFormDefinition] = useState<FormDefinition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const currentFormIdRef = useRef<string | null>(null);
 
   const applyPatches = useRuntimeStore((s) => s.applyPatches);
+  const setFormDef = useRuntimeStore((s) => s.setFormDef);
+  const navigateRequest = useRuntimeStore((s) => s.navigateRequest);
+  const clearNavigateRequest = useRuntimeStore((s) => s.clearNavigateRequest);
+  const hasDialogs = useRuntimeStore((s) => s.dialogQueue.length > 0);
 
+  const loadForm = useCallback(
+    async (formId: string) => {
+      setLoading(true);
+      setError(null);
+
+      // 기존 WebSocket 연결 해제
+      wsClient.disconnect();
+
+      try {
+        const def = await apiClient.fetchForm(formId);
+        setFormDefinition(def);
+        setFormDef(def);
+        currentFormIdRef.current = formId;
+
+        // URL 업데이트 (히스토리에 추가)
+        const url = new URL(window.location.href);
+        url.searchParams.set('formId', formId);
+        window.history.pushState({}, '', url.toString());
+
+        // WebSocket 재연결
+        wsClient.connect(formId);
+        setupPatchListener({ applyPatches }, wsClient);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [applyPatches, setFormDef],
+  );
+
+  // 초기 폼 로드
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const formId = params.get('formId');
@@ -23,22 +60,23 @@ export function App() {
       return;
     }
 
-    apiClient
-      .fetchForm(formId)
-      .then((def) => {
-        setFormDefinition(def);
-
-        // WebSocket 연결 및 패치 리스너 설정
-        wsClient.connect(formId);
-        setupPatchListener({ applyPatches }, wsClient);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+    loadForm(formId);
 
     return () => {
       wsClient.disconnect();
     };
-  }, [applyPatches]);
+  }, [loadForm]);
+
+  // navigate 요청 처리 — 다이얼로그가 모두 닫힌 후 실행
+  useEffect(() => {
+    if (!navigateRequest || hasDialogs) return;
+    const { formId } = navigateRequest;
+    clearNavigateRequest();
+
+    if (formId && formId !== currentFormIdRef.current) {
+      loadForm(formId);
+    }
+  }, [navigateRequest, hasDialogs, clearNavigateRequest, loadForm]);
 
   if (loading) {
     return <div style={{ padding: 20, fontFamily: 'Segoe UI, sans-serif' }}>로딩 중...</div>;

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { env } from '../config/index.js';

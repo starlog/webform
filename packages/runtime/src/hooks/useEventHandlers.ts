@@ -36,7 +36,9 @@ function createFormContext(
     controls: controlsProxy,
     dataSources: {},
     showDialog: async () => ({ dialogResult: 'Cancel' as const, data: {} }),
-    navigate: () => { console.warn('navigate not yet implemented'); },
+    navigate: (formId: string, params?: Record<string, unknown>) => {
+      useRuntimeStore.getState().requestNavigate(formId, params);
+    },
     close: () => { console.warn('close not yet implemented'); },
   };
 }

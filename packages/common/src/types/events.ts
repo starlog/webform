@@ -63,7 +63,7 @@ export interface FormContext {
   formId: string;
   controls: Record<string, ControlProxy>;
   dataSources: Record<string, DataSourceProxy>;
-  showDialog(formName: string, params?: Record<string, unknown>): Promise<DialogResult>;
-  navigate(formName: string, params?: Record<string, unknown>): void;
+  showDialog(formId: string, params?: Record<string, unknown>): Promise<DialogResult>;
+  navigate(formId: string, params?: Record<string, unknown>): void;
   close(dialogResult?: 'OK' | 'Cancel'): void;
 }

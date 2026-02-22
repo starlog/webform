@@ -32,7 +32,7 @@ export class CodeInstrumenter {
     // 현재 스코프에서 선언된 변수들을 추적
     const declaredVars: string[] = [];
 
-    this.walkBody(ast.body, variableMap, declaredVars);
+    this.walkBody(ast.body as estree.Statement[], variableMap, declaredVars);
 
     const instrumentedCode = generate(ast);
     return { instrumentedCode, variableMap };

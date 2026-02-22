@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CONTROL_TYPES } from '@webform/common';
+
 import {
   CONTROL_PROPERTY_META,
   CONTROL_EVENTS_META,

@@ -314,7 +314,7 @@ async function seed() {
   const token = jwt.sign(
     { sub: SEED_USER, role: 'admin' },
     env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRY },
+    { expiresIn: env.JWT_EXPIRY as jwt.SignOptions['expiresIn'] },
   );
 
   console.log('\n========================================');

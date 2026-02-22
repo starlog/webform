@@ -1,7 +1,7 @@
 import { Form } from '../models/Form.js';
 import type { FormDocument, FormVersionSnapshot } from '../models/Form.js';
 import type { CreateFormInput, UpdateFormInput, ListFormsQuery } from '../validators/formValidator.js';
-import { NotFoundError, AppError } from '../middleware/errorHandler.js';
+import { NotFoundError } from '../middleware/errorHandler.js';
 
 export class FormService {
   async createForm(input: CreateFormInput, userId: string): Promise<FormDocument> {

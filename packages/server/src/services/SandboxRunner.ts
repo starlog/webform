@@ -166,13 +166,14 @@ export class SandboxRunner {
       : '';
 
     const returnValue = debugMode
-      ? '{ controls: ctx.controls, messages: __messages, logs: __logs, traces: __traces }'
-      : '{ controls: ctx.controls, messages: __messages, logs: __logs }';
+      ? '{ controls: ctx.controls, messages: __messages, logs: __logs, traces: __traces, navigations: __navigations }'
+      : '{ controls: ctx.controls, messages: __messages, logs: __logs, navigations: __navigations }';
 
     return `
       (function(ctx) {
         var __messages = [];
         var __logs = [];
+        var __navigations = [];
         var __stringify = function(val) {
           if (val === undefined) return 'undefined';
           if (val === null) return 'null';
@@ -190,6 +191,12 @@ export class SandboxRunner {
             text: String(text ?? ''),
             title: String(title ?? ''),
             dialogType: String(type ?? 'info')
+          });
+        };
+        ctx.navigate = function(formId, params) {
+          __navigations.push({
+            formId: String(formId ?? ''),
+            params: params || {}
           });
         };
         ctx.http = {
