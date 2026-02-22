@@ -201,7 +201,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "공통 타입 패키지 구현을 커밋하라.\n\npackages/common 관련 파일과 plans/common-types-plan.md를 스테이징하라.\n다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(common): WebForm 공통 타입 및 유틸리티 패키지 구현\n\n- FormDefinition, ControlDefinition 등 SDUI 핵심 타입 정의\n- 25종 ControlType 지원 (Button ~ WebBrowser)\n- UIPatch 프로토콜 타입 (updateProperty, addControl 등)\n- DataSourceDefinition (MongoDB, REST API, Static) 타입\n- NoSQL 인젝션 방지 sanitizeQueryInput 유틸리티\n- 폼 직렬화/역직렬화 유틸리티",
       "dependsOn": [
         "common-types-test"
