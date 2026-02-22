@@ -1184,13 +1184,15 @@
       "description": null,
       "phase": "phase5-project",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "프로젝트 관리 기능 전체를 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat: 프로젝트 관리 기능 구현 (Solution/Project 구조)\n\n- 프로젝트 CRUD API (/api/projects)\n- 프로젝트 내보내기/가져오기 (JSON 포맷, 폼 포함)\n- ProjectExplorer 트리뷰 컴포넌트 (디자이너)\n- 폼 자동 저장 (30초 간격, isDirty 조건)\n- Ctrl+S 수동 저장 단축키\n- isDirty 상태 관리 (변경사항 표시 *)\n- apiService: loadForm, saveForm, createForm, listForms",
       "dependsOn": [
         "project-management-test"
       ],
       "outputFiles": null,
-      "modifiedFiles": [],
+      "modifiedFiles": [
+        "tasks.json"
+      ],
       "subtasks": null
     }
   ],
