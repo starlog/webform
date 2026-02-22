@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { EventHandlerDefinition, EventArgs, ControlProxy, FormContext } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { apiClient } from '../communication/apiClient';
@@ -45,11 +45,12 @@ export function useEventHandlers(
   controlId: string,
   events: EventHandlerDefinition[],
 ): Record<string, (args?: Partial<EventArgs>) => void> {
-  const getControlStates = useRuntimeStore((s) => () => s.controlStates);
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const applyPatches = useRuntimeStore((s) => s.applyPatches);
-  const getFormId = useRuntimeStore((s) => () => s.currentFormDef?.id ?? '');
-  const getFormState = useRuntimeStore((s) => () => s.controlStates);
+
+  const getControlStates = useCallback(() => useRuntimeStore.getState().controlStates, []);
+  const getFormId = useCallback(() => useRuntimeStore.getState().currentFormDef?.id ?? '', []);
+  const getFormState = useCallback(() => useRuntimeStore.getState().controlStates, []);
 
   const relevantEvents = useMemo(
     () => events.filter((e) => e.controlId === controlId),
