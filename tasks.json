@@ -679,7 +679,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "속성 패널 컴포넌트를 테스트하라.\n\n1. packages/designer/src/__tests__/controlProperties.test.ts:\n   - 모든 ControlType에 CONTROL_PROPERTY_META 존재 확인\n   - Button 속성에 'text', 'enabled', 'backColor' 포함\n   - CONTROL_EVENTS_META['TextBox']에 'TextChanged' 포함\n\n2. packages/designer/src/__tests__/PropertyPanel.test.tsx:\n   - 선택 없을 때 폼 속성 표시\n   - Button 선택 시 Button 속성 표시\n   - 카테고리순/알파벳순 토글\n   - 속성 탭/이벤트 탭 전환\n\n3. packages/designer/src/__tests__/editors/NumberEditor.test.tsx:\n   - 숫자 변경 시 onChange 콜백\n   - min/max 제한 확인\n\n4. packages/designer/src/__tests__/editors/AnchorEditor.test.tsx:\n   - 'Top,Left' → Top, Left 체크박스만 체크\n   - Bottom 체크 시 onChange('Top,Left,Bottom') 호출\n\n실행: pnpm --filter @webform/designer test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "properties-panel-impl"
@@ -979,7 +979,7 @@
       "description": null,
       "phase": "phase4-data",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "데이터소스 서비스를 테스트하라.\n\n1. packages/server/src/__tests__/EncryptionService.test.ts:\n   - 암호화 → 복호화 라운드트립 동일값 확인\n   - 다른 키로 복호화 시 에러\n   - 한국어 문자열 암호화 테스트\n\n2. packages/server/src/__tests__/MongoDBAdapter.test.ts:\n   - sanitizeFilter: { $where: '...' } → $where 필드 제거\n   - sanitizeFilter: { name: '홍길동' } → 변경 없이 통과\n   - sanitizeFilter: 중첩 $where 제거\n\n3. packages/server/src/__tests__/DataSourceService.test.ts:\n   - createDataSource: config 암호화 확인 (DB 저장 값이 plaintext가 아님)\n   - getDataSource: 복호화된 config 반환\n   - listDataSources: config 필드 없는 목록 반환\n\n4. packages/server/src/__tests__/datasources.integration.test.ts:\n   - POST /api/datasources: Static 타입 생성 → 201\n   - POST /api/datasources/:id/query: Static 데이터 쿼리 결과\n   - POST /api/datasources/:id/test: { success: true }\n   - PUT /api/datasources/:id: 수정 성공\n   - DELETE /api/datasources/:id: 삭제 성공\n\n실행: pnpm --filter @webform/server test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "datasource-service-impl"
@@ -1127,7 +1127,7 @@
       "description": null,
       "phase": "phase5-project",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/project-management-plan.md에 따라 프로젝트 관리 기능을 구현하라.\n\n1. packages/server/src/models/Project.ts:\n   - ProjectDocument 인터페이스 (name, description, formIds, dataSourceIds, createdAt)\n   - Mongoose 스키마\n\n2. packages/server/src/services/ProjectService.ts:\n   - createProject, getProject, listProjects, deleteProject\n   - exportProject(id): 프로젝트 + 포함된 모든 폼/데이터소스 JSON\n   - importProject(data): JSON에서 프로젝트 복원\n\n3. packages/server/src/routes/projects.ts (전체 구현):\n   - GET/POST /api/projects\n   - GET/DELETE /api/projects/:id\n   - GET /api/projects/:id/export\n   - POST /api/projects/import\n\n4. packages/designer/src/services/apiService.ts:\n   - loadForm(id): GET /api/forms/:id → designerStore.loadForm\n   - saveForm(id, data): PUT /api/forms/:id\n   - createForm(data): POST /api/forms\n   - listForms(projectId?): GET /api/forms\n   - useAutoSave 훅: 30초마다 isDirty시 saveForm\n\n5. packages/designer/src/stores/designerStore.ts 업데이트:\n   - loadForm(formDef): controls, formProperties, currentFormId 설정, isDirty=false\n   - setDirty(): isDirty=true\n\n6. packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx:\n   - 트리뷰: 프로젝트 목록 → Forms/DataSources 노드\n   - 폼 더블클릭 → apiService.loadForm\n   - 우클릭 메뉴: 새 폼, 이름 변경, 삭제\n\n7. packages/designer/src/App.tsx 업데이트:\n   - ProjectExplorer 좌측 패널 상단에 추가 (Toolbox 위)\n   - 상단 메뉴바 (File > New Form, Open, Save, Save All)\n   - window 제목에 isDirty 시 * 표시\n   - useAutoSave 훅 등록",
       "dependsOn": [
         "project-management-plan"
