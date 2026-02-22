@@ -1004,13 +1004,15 @@
       "description": null,
       "phase": "phase4-data",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "데이터소스 서비스 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(server): 데이터소스 서비스 구현 (MongoDB, REST API, Static)\n\n- AES-256-CBC 연결 정보 암호화 저장\n- MongoDB, REST API, Static 어댑터 패턴\n- NoSQL 인젝션 방지 ($where, $function 차단)\n- 연결 테스트 엔드포인트 (/api/datasources/:id/test)\n- 쿼리 실행 API (filter, sort, projection, limit)",
       "dependsOn": [
         "datasource-service-test"
       ],
       "outputFiles": null,
-      "modifiedFiles": [],
+      "modifiedFiles": [
+        "tasks.json"
+      ],
       "subtasks": null
     },
     {
