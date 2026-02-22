@@ -63,6 +63,7 @@ function getDefaultSize(type: ControlType): { width: number; height: number } {
     DateTimePicker: { width: 200, height: 23 },
     TabControl:     { width: 200, height: 100 },
     SplitContainer: { width: 150, height: 100 },
+    SpreadsheetView: { width: 400, height: 300 },
   };
   return sizes[type] ?? { width: 100, height: 23 };
 }
@@ -100,6 +101,19 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
       return { tabPages: ['TabPage1', 'TabPage2'], selectedIndex: 0 };
     case 'DataGridView':
       return { columns: [] };
+    case 'SpreadsheetView':
+      return {
+        columns: [],
+        data: [],
+        readOnly: false,
+        showToolbar: true,
+        showFormulaBar: true,
+        showRowNumbers: true,
+        allowAddRows: true,
+        allowDeleteRows: true,
+        allowSort: true,
+        allowFilter: false,
+      };
     default:
       return {};
   }

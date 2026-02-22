@@ -14,6 +14,7 @@ import { PictureBoxControl } from './PictureBoxControl';
 import { PanelControl } from './PanelControl';
 import { GroupBoxControl } from './GroupBoxControl';
 import { TabControlControl } from './TabControlControl';
+import { SpreadsheetViewControl } from './SpreadsheetViewControl';
 
 export interface DesignerControlProps {
   properties: Record<string, unknown>;
@@ -38,13 +39,14 @@ export const designerControlRegistry: Partial<
   Panel: PanelControl,
   GroupBox: GroupBoxControl,
   TabControl: TabControlControl,
+  SpreadsheetView: SpreadsheetViewControl,
 };
 
 export interface ControlMeta {
   type: ControlType;
   displayName: string;
   icon: string;
-  category: 'basic' | 'container';
+  category: 'basic' | 'container' | 'data';
 }
 
 export const controlMetadata: ControlMeta[] = [
@@ -63,11 +65,15 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'Panel',           displayName: 'Panel',           icon: '\u25A1',  category: 'container' },
   { type: 'GroupBox',        displayName: 'GroupBox',        icon: '\u25A3',  category: 'container' },
   { type: 'TabControl',      displayName: 'TabControl',      icon: '\u229E',  category: 'container' },
+
+  { type: 'DataGridView',    displayName: 'DataGridView',    icon: '\u25A6',  category: 'data' },
+  { type: 'SpreadsheetView', displayName: 'SpreadsheetView', icon: '\u25A8',  category: 'data' },
 ];
 
 export const TOOLBOX_CATEGORIES = [
   { id: 'basic',     name: '\uAE30\uBCF8 \uCEE8\uD2B8\uB864',  collapsed: false },
   { id: 'container', name: '\uCEE8\uD14C\uC774\uB108',      collapsed: false },
+  { id: 'data',      name: '\uB370\uC774\uD130',        collapsed: false },
 ] as const;
 
 export function getDesignerComponent(type: ControlType): ComponentType<DesignerControlProps> | undefined {

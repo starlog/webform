@@ -23,6 +23,7 @@ export function App() {
   const formTitle = useDesignerStore((s) => s.formProperties.title);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
   const [formStatus, setFormStatus] = useState<'draft' | 'published'>('draft');
+  const [explorerRefreshKey, setExplorerRefreshKey] = useState(0);
 
   const handleOpenEventEditor = useCallback((controlId: string, eventName: string, handlerName: string) => {
     setEventEditor({ controlId, eventName, handlerName });
@@ -48,6 +49,7 @@ export function App() {
       await save();
       const { data } = await apiService.publishForm(currentFormId);
       setFormStatus(data.status);
+      setExplorerRefreshKey((k) => k + 1);
       showStatus('Published');
     } catch {
       showStatus('Publish failed');
@@ -180,7 +182,7 @@ export function App() {
           }}
         >
           <div style={{ flex: '0 0 auto', maxHeight: '40%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
-            <ProjectExplorer onFormSelect={handleFormSelect} />
+            <ProjectExplorer onFormSelect={handleFormSelect} refreshKey={explorerRefreshKey} />
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
             <Toolbox />

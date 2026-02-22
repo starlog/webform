@@ -32,6 +32,7 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   TabControl: ['SelectedIndexChanged'],
   TreeView: ['AfterSelect', 'AfterExpand', 'AfterCollapse'],
   ListView: ['SelectedIndexChanged', 'ItemActivate'],
+  SpreadsheetView: ['CellChanged', 'RowAdded', 'RowDeleted', 'SelectionChanged', 'DataLoaded'],
 };
 
 export const FORM_EVENTS = [

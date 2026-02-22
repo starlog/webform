@@ -164,6 +164,20 @@ const dataGridViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.readOnly',  label: 'ReadOnly',  category: 'Behavior',   editorType: 'boolean', defaultValue: false },
 );
 
+const spreadsheetViewProps: PropertyMeta[] = withCommon(
+  { name: 'properties.columns',        label: 'Columns',        category: 'Data',       editorType: 'collection' },
+  { name: 'properties.data',           label: 'Data',           category: 'Data',       editorType: 'collection' },
+  { name: 'properties.readOnly',       label: 'ReadOnly',       category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.showToolbar',    label: 'ShowToolbar',    category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.showFormulaBar', label: 'ShowFormulaBar', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.showRowNumbers', label: 'ShowRowNumbers', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.allowAddRows',   label: 'AllowAddRows',   category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.allowDeleteRows', label: 'AllowDeleteRows', category: 'Behavior', editorType: 'boolean', defaultValue: true },
+  { name: 'properties.allowSort',      label: 'AllowSort',      category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.allowFilter',    label: 'AllowFilter',    category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.backColor',      label: 'BackColor',      category: 'Appearance', editorType: 'color' },
+);
+
 const defaultProps: PropertyMeta[] = withCommon();
 
 // 현재 구현된 14개 + fallback
@@ -183,6 +197,7 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   GroupBox:       groupBoxProps,
   TabControl:     tabControlProps,
   DataGridView:   dataGridViewProps,
+  SpreadsheetView: spreadsheetViewProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {

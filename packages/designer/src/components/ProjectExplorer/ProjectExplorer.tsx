@@ -5,6 +5,7 @@ import { useDesignerStore } from '../../stores/designerStore';
 
 interface ProjectExplorerProps {
   onFormSelect: (formId: string) => void;
+  refreshKey?: number;
 }
 
 interface ProjectWithForms {
@@ -21,7 +22,7 @@ interface ContextMenu {
   projectId: string;
 }
 
-export function ProjectExplorer({ onFormSelect }: ProjectExplorerProps) {
+export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerProps) {
   const [projects, setProjects] = useState<ProjectWithForms[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export function ProjectExplorer({ onFormSelect }: ProjectExplorerProps) {
 
   useEffect(() => {
     loadProjects();
-  }, [loadProjects]);
+  }, [loadProjects, refreshKey]);
 
   // 외부 클릭 시 컨텍스트 메뉴 닫기
   useEffect(() => {

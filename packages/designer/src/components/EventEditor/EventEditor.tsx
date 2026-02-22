@@ -283,6 +283,31 @@ if (index >= 0) {
 const tabIndex = sender.selectedIndex;
 ctx.controls.lblStatus.text = \`현재 탭: \${tabIndex}\`;
 `,
+
+    // SpreadsheetView
+    'SpreadsheetView.CellChanged': `${header}// 셀 값이 변경될 때
+// const data = sender.data;
+// ctx.controls.lblStatus.text = \`셀 값 변경됨\`;
+`,
+
+    'SpreadsheetView.RowAdded': `${header}// 새 행이 추가될 때
+// const data = sender.data;
+// ctx.controls.lblStatus.text = \`행 추가됨 (총 \${data.length}행)\`;
+`,
+
+    'SpreadsheetView.RowDeleted': `${header}// 행이 삭제될 때
+// const data = sender.data;
+// ctx.controls.lblStatus.text = \`행 삭제됨 (총 \${data.length}행)\`;
+`,
+
+    'SpreadsheetView.SelectionChanged': `${header}// 셀 선택이 변경될 때
+// ctx.controls.lblStatus.text = "선택 변경됨";
+`,
+
+    'SpreadsheetView.DataLoaded': `${header}// 데이터가 로드될 때
+// const data = sender.data;
+// ctx.controls.lblStatus.text = \`데이터 로드됨 (\${data.length}행)\`;
+`,
   };
 
   if (samples[key]) return samples[key];

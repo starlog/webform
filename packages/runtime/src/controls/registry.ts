@@ -14,6 +14,7 @@ import { DataGridView } from './DataGridView';
 import { DateTimePicker } from './DateTimePicker';
 import { ProgressBar } from './ProgressBar';
 import { PictureBox } from './PictureBox';
+import { SpreadsheetView } from './SpreadsheetView';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<any>>> = {
@@ -30,4 +31,5 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   DateTimePicker,
   ProgressBar,
   PictureBox,
+  SpreadsheetView,
 };

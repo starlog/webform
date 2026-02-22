@@ -40,6 +40,7 @@ function createFormContext(
       useRuntimeStore.getState().requestNavigate(formId, params);
     },
     close: () => { console.warn('close not yet implemented'); },
+    getRadioGroupValue: () => null,
   };
 }
 
