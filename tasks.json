@@ -1159,7 +1159,7 @@
       "description": null,
       "phase": "phase5-project",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "프로젝트 관리 기능을 테스트하라.\n\n1. packages/server/src/__tests__/ProjectService.test.ts:\n   - createProject: name, formIds 기본값 확인\n   - exportProject: 폼 스냅샷 포함 JSON 반환\n   - importProject: 새 프로젝트 + 폼 복원 확인\n\n2. packages/server/src/__tests__/projects.integration.test.ts:\n   - POST /api/projects: 201, 프로젝트 생성\n   - GET /api/projects: 목록 반환\n   - GET /api/projects/:id/export: JSON 응답, 폼 포함\n   - POST /api/projects/import: 복원 후 새 ID로 생성\n   - DELETE /api/projects/:id: 200\n\n3. packages/designer/src/__tests__/apiService.test.ts:\n   - loadForm: API 호출 + designerStore 업데이트 확인\n   - saveForm: PUT 요청 전송 확인\n   - isDirty가 true일 때만 autoSave 실행 확인\n\n4. packages/designer/src/__tests__/ProjectExplorer.test.tsx:\n   - 프로젝트 목록 렌더링\n   - 폼 더블클릭 이벤트 핸들링\n\n마지막 전체 테스트 실행: pnpm -r test\n모든 패키지의 테스트가 통과해야 한다. 실패한 테스트는 즉시 수정하라.",
       "dependsOn": [
         "project-management-impl"
