@@ -1095,7 +1095,7 @@
       "description": null,
       "phase": "phase4-data",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "데이터 바인딩 엔진 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(runtime): 데이터 바인딩 엔진 및 DataGridView 구현\n\n- oneWay/twoWay/oneTime 바인딩 모드 지원\n- Zustand 기반 데이터소스 상태 관리 (bindingStore)\n- DataGridView: 정렬, 행 선택, 셀 편집\n- BindingEngine: 데이터 로드, 컨트롤 값 동기화\n- 디자이너 DataSourcePanel (소스 추가/테스트/미리보기)",
       "dependsOn": [
         "data-binding-test"
