@@ -174,7 +174,7 @@
       "description": "Phase 1의 모든 변경사항을 커밋한다.",
       "phase": "phase1-console-debug",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Phase 1 디버거 기능의 모든 변경사항을 확인하고 커밋하라.\n\n1. git status로 변경 파일 확인\n2. git diff로 변경 내용 검토\n3. 적절한 한국어 커밋 메시지 작성\n4. git add 및 git commit 실행\n\n커밋하지 말아야 할 파일(node_modules, dist, .env 등)이 포함되지 않도록 확인하라.",
       "dependsOn": [
         "debugger-phase1-test",
