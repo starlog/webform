@@ -322,7 +322,7 @@
       "description": null,
       "phase": "phase2-core-api",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 폼 CRUD API 구현 계획을 수립하라. PRD.md 섹션 6.1과 4.3.3(버전 관리 및 배포)을 분석하여 다음을 계획하라:\n\n## API 엔드포인트\n- GET /api/forms: 목록 (page, limit, search, status 파라미터)\n- POST /api/forms: 새 폼 생성\n- GET /api/forms/:id: 폼 정의 조회\n- PUT /api/forms/:id: 폼 정의 수정\n- DELETE /api/forms/:id: 폼 삭제 (soft delete)\n- GET /api/forms/:id/versions: 버전 히스토리\n- POST /api/forms/:id/publish: draft → published\n\n## MongoDB 스키마\n- FormDocument: FormDefinition 확장\n- status: 'draft' | 'published'\n- versions: { version, snapshot, savedAt }[]\n- projectId, createdBy, deletedAt (soft delete)\n\n## FormService 메서드\n- createForm, getForm, listForms, updateForm(버전 자동 증가), deleteForm(soft), getVersions, publishForm\n\n## 검증\n- Zod 스키마: createFormSchema, updateFormSchema\n- 응답 형식: { data, meta: { total, page, limit } }\n\n계획을 plans/form-crud-api-plan.md에 작성하라.",
       "dependsOn": [
         "common-types-commit",
@@ -342,7 +342,7 @@
       "description": null,
       "phase": "phase2-core-api",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/form-crud-api-plan.md에 따라 폼 CRUD API를 구현하라.\n\n1. packages/server/src/models/Form.ts (업데이트):\n   - FormVersionSnapshot 인터페이스 (version, snapshot, savedAt)\n   - FormDocument 인터페이스 (FormDefinition 확장 + status, versions, projectId, deletedAt)\n   - Mongoose 스키마: id unique 인덱스, status+deletedAt 복합 인덱스\n\n2. packages/server/src/services/FormService.ts:\n   - createForm: 초기 version=1, status='draft'\n   - getForm: deletedAt 없는 폼만 조회\n   - listForms: 페이지네이션\n   - updateForm: 현재 스냅샷 versions 배열에 push, version 증가\n   - deleteForm: soft delete (deletedAt = now)\n   - getVersions: versions 메타 반환 (snapshot 제외)\n   - publishForm: status='published'\n\n3. packages/server/src/validators/formValidator.ts:\n   - createFormSchema, updateFormSchema (Zod)\n   - validateRequest 미들웨어 팩토리\n\n4. packages/server/src/routes/forms.ts (전체 구현):\n   - 모든 엔드포인트, auth 미들웨어, validateRequest 적용\n   - { data, meta } 응답 형식",
       "dependsOn": [
         "form-crud-api-plan"
@@ -367,7 +367,7 @@
       "description": null,
       "phase": "phase2-core-api",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "폼 CRUD API를 테스트하라. mongodb-memory-server로 격리.\n\n1. packages/server/src/__tests__/FormService.test.ts:\n   - createForm: version=1, status='draft' 확인\n   - updateForm: version 증가, versions 배열에 이전 스냅샷 저장\n   - deleteForm: soft delete 후 getForm → NotFoundError\n   - publishForm: status='published' 전환\n   - listForms: 페이지네이션 동작\n\n2. packages/server/src/__tests__/forms.integration.test.ts (supertest):\n   - POST /api/forms: 201, name 없음 → 400\n   - GET /api/forms: 200, data 배열\n   - GET /api/forms/:id: 200 또는 404\n   - PUT /api/forms/:id: 200, version 증가\n   - DELETE /api/forms/:id: 200, 이후 GET → 404\n   - GET /api/forms/:id/versions: 배열 반환\n   - POST /api/forms/:id/publish: status='published'\n\n실행: pnpm --filter @webform/server test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "form-crud-api-impl"
@@ -388,7 +388,7 @@
       "description": null,
       "phase": "phase2-core-api",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "폼 CRUD API 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(server): 폼 CRUD REST API 구현\n\n- GET/POST/PUT/DELETE /api/forms 엔드포인트 완전 구현\n- 폼 버전 히스토리 자동 관리 (수정 시 스냅샷 보존)\n- Draft/Published 퍼블리싱 워크플로우\n- Zod 기반 요청 유효성 검증\n- Mongoose FormDocument 스키마 (soft delete, 버전 배열)\n- FormService 서비스 레이어",
       "dependsOn": [
         "form-crud-api-test"
@@ -500,7 +500,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 도구상자(Toolbox)와 Phase 1 기본 컨트롤 구현 계획을 수립하라. PRD.md 섹션 4.1.2를 분석하여 다음을 설계하라:\n\n## 도구상자\n- 카테고리별 컨트롤 목록 (기본 컨트롤, 컨테이너)\n- useDrag로 드래그 지원 (type='NEW_CONTROL')\n- 아이콘 + 컨트롤명 표시\n\n## Phase 1 디자이너용 컨트롤 (WinForm 스타일 렌더링)\n1. Button: 회색 배경, 3D 테두리\n2. Label: 투명 배경, text 속성\n3. TextBox: 흰색 배경, sunken 테두리, multiline 지원\n4. CheckBox: 체크박스 + 텍스트\n5. RadioButton: 라디오 + 텍스트\n6. ComboBox: 드롭다운 화살표\n7. ListBox: 스크롤 목록\n8. NumericUpDown: 입력 + 화살표 버튼\n9. DateTimePicker: 날짜 입력 + 달력 아이콘\n10. ProgressBar: 진행 바\n11. PictureBox: 이미지 또는 회색 플레이스홀더\n12. Panel: 자식 컨트롤 포함 가능\n13. GroupBox: 상단 텍스트 + 테두리\n14. TabControl: 탭 헤더 + 콘텐츠\n\n## 컨트롤 레지스트리\n- designerControlRegistry: ControlType → 컴포넌트\n- defaultControlProperties: ControlType → 기본 속성\n- defaultControlSizes: ControlType → { width, height }\n- createDefaultControl(type, position): ControlDefinition (UUID id)\n\n계획을 plans/toolbox-controls-plan.md에 작성하라.",
       "dependsOn": [
         "designer-canvas-commit"
@@ -519,7 +519,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/toolbox-controls-plan.md에 따라 도구상자와 기본 컨트롤을 구현하라.\n\n1. packages/designer/src/components/Toolbox/Toolbox.tsx:\n   - TOOLBOX_CATEGORIES 배열 (기본 컨트롤, 컨테이너)\n   - 카테고리별 접기/펼치기\n   - ToolboxItem 목록 렌더링\n\n2. packages/designer/src/components/Toolbox/ToolboxItem.tsx:\n   - useDrag: type='NEW_CONTROL', item={ controlType }\n   - 아이콘(텍스트 약어 또는 Lucide) + 컨트롤명\n   - 드래그 중 opacity 0.5\n\n3. packages/designer/src/controls/ 아래 14개 컨트롤:\n   각 컴포넌트는 ControlDefinition['properties']를 props로 받음.\n   - Button.tsx, Label.tsx, TextBox.tsx (multiline 지원), CheckBox.tsx\n   - RadioButton.tsx, ComboBox.tsx, ListBox.tsx, NumericUpDown.tsx\n   - DateTimePicker.tsx, ProgressBar.tsx, PictureBox.tsx\n   - Panel.tsx (children 슬롯), GroupBox.tsx, TabControl.tsx\n\n4. packages/designer/src/controls/registry.ts:\n   - designerControlRegistry, defaultControlProperties, defaultControlSizes\n   - createDefaultControl(type, position): uuid로 id 생성\n\n5. packages/designer/src/controls/index.ts: 모든 export\n\n6. packages/designer/src/components/Canvas/DesignerCanvas.tsx 업데이트:\n   - drop 핸들러에서 createDefaultControl 호출\n\n7. packages/designer/src/App.tsx 업데이트:\n   - Toolbox 좌측 패널에 통합",
       "dependsOn": [
         "toolbox-controls-plan"
@@ -575,7 +575,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "도구상자와 기본 컨트롤을 테스트하라.\n\n1. packages/designer/src/__tests__/registry.test.ts:\n   - 모든 Phase 1 ControlType에 대해 designerControlRegistry에 컴포넌트 등록 확인\n   - defaultControlProperties에 기본값 존재 확인\n   - defaultControlSizes에 width, height 존재 확인\n   - createDefaultControl('Button', { x: 10, y: 20 }): 고유 id, type='Button' 확인\n   - createDefaultControl 두 번 호출 시 다른 id 생성\n\n2. packages/designer/src/__tests__/controls/Button.test.tsx:\n   - 기본 props로 렌더링 확인\n   - text='저장' 전달 시 표시\n\n3. packages/designer/src/__tests__/controls/TextBox.test.tsx:\n   - 기본 단일행 렌더링\n   - multiline=true 시 textarea 렌더링\n\n4. packages/designer/src/__tests__/Toolbox.test.tsx:\n   - 'Button', 'Label', 'TextBox' 등 컨트롤명 표시 확인\n   - 카테고리 헤더 표시 확인\n\n실행: pnpm --filter @webform/designer test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "toolbox-controls-impl"
@@ -600,7 +600,7 @@
       "description": null,
       "phase": "phase2-core-designer",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "도구상자 및 기본 컨트롤 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(designer): 도구상자 및 Phase 1 기본 컨트롤 14종 구현\n\n- Toolbox: 카테고리별 컨트롤 목록, 드래그 지원\n- 기본 컨트롤: Button, Label, TextBox, CheckBox, RadioButton, ComboBox, ListBox, NumericUpDown, DateTimePicker, ProgressBar, PictureBox\n- 컨테이너: Panel, GroupBox, TabControl\n- WinForm 스타일 렌더링 (회색 배경, 3D/sunken 테두리)\n- 컨트롤 레지스트리 + createDefaultControl (UUID 기반)",
       "dependsOn": [
         "toolbox-controls-test"
@@ -837,7 +837,7 @@
       "description": null,
       "phase": "phase3-runtime",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 서버 사이드 이벤트 엔진 구현 계획을 수립하라. PRD.md 섹션 4.1.5와 5.2(보안)를 분석하여 다음을 설계하라:\n\n## 핵심 요구사항\n1. 이벤트 핸들러 TypeScript/JS 코드를 샌드박스 내 실행\n2. isolated-vm 사용: 타임아웃 5초, 메모리 128MB\n3. FormContext 객체 제공 (controls, dataSources, showDialog, navigate)\n4. 컨트롤 속성 변경 추적 → UIPatch 배열 생성\n\n## FormContext API\n```typescript\ninterface FormContext {\n  controls: Record<string, ControlProxy>; // 속성 get/set Proxy\n  dataSources: Record<string, DataSourceProxy>;\n  showDialog(formId: string, params: any): Promise<DialogResult>;\n  navigate(formId: string, params: any): void;\n}\n```\n\n## 이벤트 실행 흐름\n1. POST /api/runtime/forms/:id/events 수신\n2. EventEngine: 핸들러 코드 + FormContext 샌드박스 실행\n3. ControlProxy로 변경사항 추적\n4. 변경사항 → UIPatch[] 변환 후 응답\n\n## 보안\n- 허용 모듈 화이트리스트\n- process, require, eval 접근 차단\n- sanitizeQueryInput 적용\n\n## API\n- POST /api/runtime/forms/:id/events\n- POST /api/runtime/forms/:id/data\n- GET /api/runtime/forms/:id (published 폼만)\n\n## WebSocket\n- runtimeEvents.ts: WS 이벤트 → EventEngine → UIPatch 전송\n- designerSync.ts: 디자이너 실시간 동기화\n\n계획을 plans/event-engine-plan.md에 작성하라.",
       "dependsOn": [
         "server-foundation-commit",
@@ -857,7 +857,7 @@
       "description": null,
       "phase": "phase3-runtime",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/event-engine-plan.md에 따라 서버 이벤트 엔진을 구현하라.\n\n1. packages/server/src/services/SandboxRunner.ts:\n   - isolated-vm 사용\n   - runCode(code: string, context: Record<string, any>, options?: { timeout?: number; memoryLimit?: number }): Promise<any>\n   - 기본값: timeout 5000ms, memoryLimit 128MB\n   - process, require, eval, __dirname 등 차단\n\n2. packages/server/src/services/ControlProxy.ts:\n   - createControlProxy(controlId, initialState, patchCollector): ControlProxy\n   - set 트랩: 변경 시 patchCollector에 { type:'updateProperty', target:controlId, payload:{[prop]:value} } 추가\n   - get 트랩: 현재 상태 반환\n\n3. packages/server/src/services/EventEngine.ts:\n   - executeEvent(formId: string, payload: EventRequest, formDef: FormDefinition): Promise<UIPatch[]>\n   - FormContext 객체 생성 (controls Proxy 맵, dataSources)\n   - SandboxRunner.runCode 호출\n   - 실행 결과 UIPatch[] 반환\n   - 에러 시 { patches: [], error: message } 반환\n\n4. packages/server/src/routes/runtime.ts (전체 구현):\n   - GET /api/runtime/forms/:id: published 폼만 반환\n   - POST /api/runtime/forms/:id/events: EventEngine.executeEvent\n   - POST /api/runtime/forms/:id/data: DataSourceService.executeQuery (stub)\n\n5. packages/server/src/websocket/runtimeEvents.ts:\n   - WebSocket 메시지 파싱 → EventEngine 실행\n   - UIPatch 결과를 해당 WebSocket 클라이언트에 전송\n\n6. packages/server/src/websocket/designerSync.ts:\n   - 디자이너 동기화: 폼 정의 변경 브로드캐스트\n   - 연결된 디자이너 클라이언트 관리",
       "dependsOn": [
         "event-engine-plan"
@@ -886,7 +886,7 @@
       "description": null,
       "phase": "phase3-runtime",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "서버 이벤트 엔진을 테스트하라.\n\n1. packages/server/src/__tests__/SandboxRunner.test.ts:\n   - 단순 연산 실행: runCode('return 1 + 1', {}) === 2\n   - 타임아웃 동작: 무한 루프 → TimeoutError (timeout: 100ms)\n   - 위험 코드 차단: process.exit() 접근 → 에러\n   - 컨텍스트 전달: runCode('return ctx.value', { ctx: { value: 42 } }) === 42\n\n2. packages/server/src/__tests__/ControlProxy.test.ts:\n   - 속성 set 시 UIPatch 기록 확인\n   - 여러 속성 set 시 복수 UIPatch 생성\n   - get 시 현재 값 반환 확인\n\n3. packages/server/src/__tests__/EventEngine.test.ts:\n   - 핸들러: ctx.controls.lblStatus.text = '클릭됨'\n   - 반환값: [{ type:'updateProperty', target:'lblStatus', payload:{ text:'클릭됨' } }]\n   - 여러 컨트롤 동시 업데이트\n   - 에러 코드 실행 시 error 필드 있는 응답\n\n4. packages/server/src/__tests__/runtime.integration.test.ts:\n   - POST /api/runtime/forms/:id/events: UIPatch 배열 응답\n   - GET /api/runtime/forms/:id: published 폼만, draft 폼 → 404\n\n실행: pnpm --filter @webform/server test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "event-engine-impl"
@@ -911,7 +911,7 @@
       "description": null,
       "phase": "phase3-runtime",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "서버 이벤트 엔진 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(server): 샌드박스 기반 서버 이벤트 엔진 구현\n\n- isolated-vm 샌드박스 내 이벤트 핸들러 코드 실행\n- 타임아웃(5s), 메모리(128MB) 리소스 제한\n- ControlProxy: 속성 변경 추적 → UIPatch 자동 생성\n- FormContext (controls, dataSources) 제공\n- POST /api/runtime/forms/:id/events 엔드포인트\n- WebSocket 실시간 이벤트 처리 (runtimeEvents, designerSync)",
       "dependsOn": [
         "event-engine-test"
