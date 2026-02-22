@@ -1,6 +1,12 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import { useDesignerStore } from '../../stores/designerStore';
+
+interface DebugLogEntry {
+  type: 'log' | 'warn' | 'error' | 'info';
+  args: string[];
+  timestamp: number;
+}
 
 interface EventEditorProps {
   controlId: string;
@@ -230,6 +236,10 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
   const updateControl = useDesignerStore((s) => s.updateControl);
   const controls = useDesignerStore((s) => s.controls);
 
+  const [consoleVisible, setConsoleVisible] = useState(false);
+  const [logs, setLogs] = useState<DebugLogEntry[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+
   const control = controls.find((c) => c.id === controlId);
   const existingHandlers = (control?.properties._eventHandlers ?? {}) as Record<string, string>;
   const existingCode = (control?.properties._eventCode ?? {}) as Record<string, string>;
@@ -252,6 +262,46 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       },
     });
   }, [controlId, control, eventName, handlerName, existingCode, existingHandlers, updateControl]);
+
+  const runCode = useCallback(async () => {
+    if (!editorRef.current || isRunning) return;
+    setIsRunning(true);
+    if (!consoleVisible) setConsoleVisible(true);
+
+    const code = editorRef.current.getValue();
+    try {
+      const res = await fetch('/api/debug/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, formState: {} }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const newLogs: DebugLogEntry[] = Array.isArray(data.logs) ? data.logs : [];
+        setLogs((prev) => [...prev, ...newLogs]);
+      } else {
+        const errorLog: DebugLogEntry = {
+          type: 'error',
+          args: [data.error ?? 'Unknown error'],
+          timestamp: Date.now(),
+        };
+        const newLogs: DebugLogEntry[] = Array.isArray(data.logs) ? [...data.logs, errorLog] : [errorLog];
+        setLogs((prev) => [...prev, ...newLogs]);
+      }
+    } catch (err) {
+      setLogs((prev) => [
+        ...prev,
+        {
+          type: 'error',
+          args: [err instanceof Error ? err.message : 'Network error'],
+          timestamp: Date.now(),
+        },
+      ]);
+    } finally {
+      setIsRunning(false);
+    }
+  }, [isRunning, consoleVisible]);
 
   const handleMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
@@ -280,8 +330,13 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       save();
     });
 
+    // F5로 실행
+    editor.addCommand(monaco.KeyCode.F5, () => {
+      runCode();
+    });
+
     editor.focus();
-  }, [save]);
+  }, [save, runCode]);
 
   // Escape 키로 닫기
   useEffect(() => {
@@ -334,6 +389,26 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               type="button"
+              onClick={runCode}
+              disabled={isRunning}
+              style={{
+                ...headerBtnStyle,
+                backgroundColor: '#0e639c',
+                color: '#fff',
+                border: '1px solid #1177bb',
+              }}
+            >
+              {isRunning ? 'Running...' : '▶ Run'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConsoleVisible((v) => !v)}
+              style={headerBtnStyle}
+            >
+              {consoleVisible ? 'Hide Console' : 'Show Console'}
+            </button>
+            <button
+              type="button"
               onClick={() => { save(); onClose(); }}
               style={headerBtnStyle}
             >
@@ -350,7 +425,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         </div>
 
         {/* Monaco Editor */}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: consoleVisible ? 7 : 1 }}>
           <Editor
             defaultLanguage="typescript"
             defaultValue={initialCode}
@@ -368,6 +443,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           />
         </div>
 
+        {/* 디버그 콘솔 */}
+        {consoleVisible && (
+          <DebugConsole logs={logs} onClear={() => setLogs([])} />
+        )}
+
         {/* 하단 상태 바 */}
         <div
           style={{
@@ -378,8 +458,116 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
             fontFamily: 'Segoe UI, sans-serif',
           }}
         >
-          Ctrl+S: Save | Escape: Close
+          Ctrl+S: Save | Escape: Close | F5: Run
         </div>
+      </div>
+    </div>
+  );
+}
+
+const LOG_COLORS: Record<string, string> = {
+  log: '#d4d4d4',
+  info: '#3794ff',
+  warn: '#cca700',
+  error: '#f14c4c',
+};
+
+function formatTimestamp(ts: number): string {
+  const d = new Date(ts);
+  return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    + '.' + String(d.getMilliseconds()).padStart(3, '0');
+}
+
+function DebugConsole({ logs, onClear }: { logs: DebugLogEntry[]; onClear: () => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [logs]);
+
+  return (
+    <div
+      style={{
+        flex: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        borderTop: '1px solid #555',
+      }}
+    >
+      {/* 콘솔 헤더 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '3px 10px',
+          backgroundColor: '#252526',
+          color: '#ccc',
+          fontSize: 11,
+          fontFamily: 'Segoe UI, sans-serif',
+        }}
+      >
+        <span>Debug Console</span>
+        <button
+          type="button"
+          onClick={onClear}
+          style={{
+            padding: '1px 8px',
+            border: '1px solid #555',
+            backgroundColor: '#3c3c3c',
+            color: '#ccc',
+            fontSize: 11,
+            cursor: 'pointer',
+            fontFamily: 'Segoe UI, sans-serif',
+          }}
+        >
+          Clear
+        </button>
+      </div>
+
+      {/* 로그 목록 */}
+      <div
+        ref={scrollRef}
+        style={{
+          flex: 1,
+          overflow: 'auto',
+          padding: '4px 10px',
+          backgroundColor: '#1e1e1e',
+          fontFamily: 'Consolas, monospace',
+          fontSize: 12,
+          lineHeight: '18px',
+        }}
+      >
+        {logs.length === 0 ? (
+          <div style={{ color: '#666', fontStyle: 'italic' }}>
+            No output. Click Run or press F5 to execute.
+          </div>
+        ) : (
+          logs.map((entry, i) => (
+            <div
+              key={i}
+              style={{
+                color: LOG_COLORS[entry.type] ?? '#d4d4d4',
+                display: 'flex',
+                gap: 8,
+                borderBottom: '1px solid #2a2a2a',
+                padding: '1px 0',
+              }}
+            >
+              <span style={{ color: '#666', flexShrink: 0 }}>
+                {formatTimestamp(entry.timestamp)}
+              </span>
+              <span style={{ color: '#666', flexShrink: 0, minWidth: 36 }}>
+                [{entry.type}]
+              </span>
+              <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                {entry.args.join(' ')}
+              </span>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
