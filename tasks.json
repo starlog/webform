@@ -113,7 +113,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "모노레포 셋업 작업을 커밋하라.\n\n.env, .env.local 등 민감한 파일은 제외하고 관련 파일을 스테이징하라.\n다음 한국어 커밋 메시지로 커밋하라:\n\nfeat: pnpm workspace 기반 모노레포 초기 셋업\n\n- packages/common, designer, runtime, server 4개 패키지 구조 생성\n- TypeScript 5+ strict 모드 공통 설정 (tsconfig.base.json)\n- Vite 빌드 설정 (designer: 3000포트, runtime: 3001포트)\n- ESLint + Prettier 코드 품질 도구 설정\n- Vitest 테스트 환경 설정 (각 패키지별)\n- pnpm workspace 의존성 연결",
       "dependsOn": [
         "monorepo-setup-test"
