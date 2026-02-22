@@ -25,7 +25,7 @@
       "description": "SandboxRunner.wrapHandlerCode()에 console.log/warn/error/info를 주입하여 사용자 코드의 로그 출력을 캡처한다.",
       "phase": "phase1-console-debug",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/server/src/services/SandboxRunner.ts를 수정하여 console 객체를 샌드박스에 주입하라.\n\nwrapHandlerCode() 메서드를 수정:\n1. __logs 배열을 선언하라\n2. console 객체를 생성하라 (log, warn, error, info 메서드)\n   - 각 메서드는 인자를 문자열로 변환하여 __logs에 { type, args: string[], timestamp: Date.now() } 형태로 push\n   - 객체 인자는 JSON.stringify로 변환 (순환 참조 대비 try/catch)\n3. 반환값을 { controls: ctx.controls, messages: __messages, logs: __logs }로 변경\n\n에러 처리 개선:\n4. catch 블록에서 에러 메시지와 함께 줄 번호 정보를 추출하라\n   - isolated-vm 에러의 stack trace에서 사용자 코드 줄 번호 계산\n   - wrapHandlerCode가 추가하는 wrapper 줄 수를 감안한 오프셋 보정\n   - SandboxResult 타입에 errorLine?: number 필드 추가\n\n기존 테스트가 깨지지 않도록 하위 호환성을 유지하라.",
       "dependsOn": [
         "debugger-phase1-plan"
@@ -42,7 +42,7 @@
       "description": "EventResponse에 logs 필드와 errorLine 필드를 추가하고, DebugLog 인터페이스를 정의한다.",
       "phase": "phase1-console-debug",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/common/src/types/protocol.ts를 수정하여 디버그 관련 타입을 추가하라.\n\n1. DebugLog 인터페이스를 정의하라:\n   interface DebugLog {\n     type: 'log' | 'warn' | 'error' | 'info';\n     args: string[];\n     timestamp: number;\n   }\n\n2. EventResponse에 디버그 필드를 추가하라:\n   - logs?: DebugLog[]\n   - errorLine?: number\n\n3. DebugLog를 index.ts에서 export하라.\n\npackages/common/src/types/events.ts의 FormContext 인터페이스는 변경하지 않아도 된다 (console은 FormContext가 아닌 전역 객체).",
       "dependsOn": [
         "debugger-phase1-plan"
@@ -133,7 +133,7 @@
       "description": "Monaco IntelliSense에서 console.log 등의 자동완성이 동작하도록 타입 정의를 추가한다.",
       "phase": "phase1-console-debug",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/designer/src/components/EventEditor/EventEditor.tsx의 FORM_CONTEXT_TYPES 문자열에 console 인터페이스를 추가하라.\n\n추가할 타입 정의:\n\ninterface Console {\n  log(...args: any[]): void;\n  warn(...args: any[]): void;\n  error(...args: any[]): void;\n  info(...args: any[]): void;\n}\n\ndeclare const console: Console;\n\n이렇게 하면 사용자가 console.log()를 입력할 때 자동완성과 타입 힌트가 제공된다.",
       "dependsOn": [
         "debugger-phase1-plan"
