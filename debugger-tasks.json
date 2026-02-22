@@ -1,0 +1,357 @@
+{
+  "projectName": "WebForm Debugger",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "debugger-phase1-plan",
+      "title": "Phase 1: console.log 브릿지 및 에러 마커 - 계획",
+      "description": "SandboxRunner에 console.log/warn/error를 주입하고, 에러 발생 시 줄 번호를 추출하여 Monaco에 표시하는 디버그 콘솔 기능의 구현 계획을 수립한다.",
+      "phase": "phase1-console-debug",
+      "category": "plan",
+      "done": true,
+      "prompt": "WebForm 프로젝트에 스크립트 디버거 Phase 1을 구현하기 위한 계획을 수립하라.\n\n현재 아키텍처를 파악하라:\n- packages/server/src/services/SandboxRunner.ts: isolated-vm 기반 샌드박스 실행\n- packages/server/src/services/EventEngine.ts: 이벤트 처리 및 패치 생성\n- packages/common/src/types/protocol.ts: EventResponse, UIPatch 등 프로토콜 타입\n- packages/designer/src/components/EventEditor/EventEditor.tsx: Monaco Editor 통합\n- packages/runtime/src/hooks/useEventHandlers.ts: 런타임 이벤트 핸들링\n\n계획할 내용:\n1. SandboxRunner.wrapHandlerCode()에 console 객체 주입 (log, warn, error, info)\n   - __logs 배열에 { type, args, timestamp } 형태로 수집\n   - 반환값에 logs 배열 추가: { controls, messages, logs }\n2. EventResponse 타입에 logs 필드 추가 (protocol.ts)\n   - DebugLog 인터페이스 정의: { type, args, timestamp }\n3. EventEngine.extractPatches()에서 logs를 EventResponse에 포함\n4. 에러 발생 시 stack trace에서 줄 번호 추출 로직\n   - SandboxRunner의 에러 메시지 개선 (줄 번호, 컬럼 포함)\n5. EventEditor.tsx에 디버그 콘솔 패널 UI 계획\n   - 에디터 하단에 토글 가능한 콘솔 영역\n   - 로그 레벨별 색상 표시 (log: 흰색, warn: 노란색, error: 빨간색)\n   - 에러 줄에 Monaco decoration (빨간 밑줄, glyph margin 마커)\n6. 테스트 실행 버튼 추가 계획\n   - EventEditor에 'Run' 버튼으로 코드 테스트 실행\n   - 서버에 테스트 실행 API 엔드포인트 추가\n\n계획을 plans/debugger-phase1-plan.md에 작성하라.",
+      "dependsOn": null,
+      "outputFiles": [
+        "plans/debugger-phase1-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/debugger-phase1-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-console-inject",
+      "title": "Phase 1: SandboxRunner에 console 객체 주입",
+      "description": "SandboxRunner.wrapHandlerCode()에 console.log/warn/error/info를 주입하여 사용자 코드의 로그 출력을 캡처한다.",
+      "phase": "phase1-console-debug",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/server/src/services/SandboxRunner.ts를 수정하여 console 객체를 샌드박스에 주입하라.\n\nwrapHandlerCode() 메서드를 수정:\n1. __logs 배열을 선언하라\n2. console 객체를 생성하라 (log, warn, error, info 메서드)\n   - 각 메서드는 인자를 문자열로 변환하여 __logs에 { type, args: string[], timestamp: Date.now() } 형태로 push\n   - 객체 인자는 JSON.stringify로 변환 (순환 참조 대비 try/catch)\n3. 반환값을 { controls: ctx.controls, messages: __messages, logs: __logs }로 변경\n\n에러 처리 개선:\n4. catch 블록에서 에러 메시지와 함께 줄 번호 정보를 추출하라\n   - isolated-vm 에러의 stack trace에서 사용자 코드 줄 번호 계산\n   - wrapHandlerCode가 추가하는 wrapper 줄 수를 감안한 오프셋 보정\n   - SandboxResult 타입에 errorLine?: number 필드 추가\n\n기존 테스트가 깨지지 않도록 하위 호환성을 유지하라.",
+      "dependsOn": [
+        "debugger-phase1-plan"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/server/src/services/SandboxRunner.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-protocol-extend",
+      "title": "Phase 1: 프로토콜 타입에 디버그 정보 추가",
+      "description": "EventResponse에 logs 필드와 errorLine 필드를 추가하고, DebugLog 인터페이스를 정의한다.",
+      "phase": "phase1-console-debug",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/common/src/types/protocol.ts를 수정하여 디버그 관련 타입을 추가하라.\n\n1. DebugLog 인터페이스를 정의하라:\n   interface DebugLog {\n     type: 'log' | 'warn' | 'error' | 'info';\n     args: string[];\n     timestamp: number;\n   }\n\n2. EventResponse에 디버그 필드를 추가하라:\n   - logs?: DebugLog[]\n   - errorLine?: number\n\n3. DebugLog를 index.ts에서 export하라.\n\npackages/common/src/types/events.ts의 FormContext 인터페이스는 변경하지 않아도 된다 (console은 FormContext가 아닌 전역 객체).",
+      "dependsOn": [
+        "debugger-phase1-plan"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/common/src/types/protocol.ts",
+        "packages/common/src/index.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-engine-logs",
+      "title": "Phase 1: EventEngine에서 로그 및 에러 줄 번호 전달",
+      "description": "EventEngine.extractPatches()에서 logs 배열과 errorLine을 EventResponse에 포함시킨다.",
+      "phase": "phase1-console-debug",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/server/src/services/EventEngine.ts를 수정하라.\n\n1. executeEvent() 메서드에서 SandboxResult의 logs를 EventResponse에 포함시켜라:\n   - result.value에서 logs 배열을 추출\n   - EventResponse에 logs 필드로 전달\n\n2. 에러 발생 시 errorLine을 EventResponse에 포함시켜라:\n   - SandboxResult.errorLine이 있으면 EventResponse.errorLine으로 전달\n\n3. extractPatches()에서 logs를 별도로 처리하라:\n   - logs는 UIPatch가 아닌 EventResponse의 직접 필드로 전달\n\n기존 패치 생성 로직(controls diff, messages → showDialog)은 변경하지 마라.",
+      "dependsOn": [
+        "debugger-console-inject",
+        "debugger-protocol-extend"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/server/src/services/EventEngine.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-test-api",
+      "title": "Phase 1: 디버그 실행 API 엔드포인트 추가",
+      "description": "Designer에서 코드를 테스트 실행할 수 있는 POST /api/debug/execute 엔드포인트를 추가한다.",
+      "phase": "phase1-console-debug",
+      "category": "implementation",
+      "done": false,
+      "prompt": "Designer에서 이벤트 코드를 저장 없이 바로 테스트 실행할 수 있는 API를 구현하라.\n\n1. packages/server/src/routes/debug.ts 생성:\n   - POST /api/debug/execute\n   - Request body: { code: string, formState: Record<string, Record<string, unknown>>, controlId?: string }\n   - SandboxRunner.runCode()로 코드 실행\n   - Response: { success, logs, error?, errorLine?, controlChanges? }\n   - 이 엔드포인트는 development 환경에서만 동작 (NODE_ENV === 'production'이면 404 반환)\n\n2. packages/server/src/routes/index.ts에 debug 라우터 등록\n\n3. 보안 고려사항:\n   - 타임아웃: 기본 5초 (env.SANDBOX_TIMEOUT_MS 사용)\n   - 메모리 제한: 기본 128MB (env.SANDBOX_MEMORY_LIMIT_MB 사용)\n   - production 환경에서 비활성화",
+      "dependsOn": [
+        "debugger-console-inject",
+        "debugger-protocol-extend"
+      ],
+      "outputFiles": [
+        "packages/server/src/routes/debug.ts"
+      ],
+      "modifiedFiles": [
+        "packages/server/src/routes/debug.ts",
+        "packages/server/src/routes/index.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-editor-console-ui",
+      "title": "Phase 1: EventEditor에 디버그 콘솔 패널 추가",
+      "description": "EventEditor 하단에 토글 가능한 디버그 콘솔 영역을 추가하고, 로그를 레벨별 색상으로 표시한다.",
+      "phase": "phase1-console-debug",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/designer/src/components/EventEditor/EventEditor.tsx를 수정하여 디버그 콘솔 UI를 추가하라.\n\n1. 에디터 레이아웃 변경:\n   - Monaco Editor 영역과 디버그 콘솔 영역을 상하로 분할\n   - 콘솔 영역은 토글 버튼으로 보이기/숨기기 가능 (기본: 숨김)\n   - 콘솔이 보일 때 에디터 70%, 콘솔 30% 비율\n\n2. 디버그 콘솔 컴포넌트 구현:\n   - 로그 목록을 스크롤 가능한 영역에 표시\n   - 각 로그 레벨별 색상: log(#d4d4d4), info(#3794ff), warn(#cca700), error(#f14c4c)\n   - 타임스탬프 표시\n   - Clear 버튼\n   - 자동 스크롤 (최신 로그로)\n\n3. 헤더에 'Run' 버튼 추가:\n   - 클릭 시 현재 에디터 코드를 POST /api/debug/execute로 전송\n   - formState는 빈 객체 또는 기본 mock 데이터 사용\n   - 응답의 logs를 콘솔에 표시\n   - 에러 발생 시 에러 메시지를 콘솔에 빨간색으로 표시\n   - 콘솔이 숨겨져 있으면 자동으로 표시\n\n4. 상태 바 업데이트: 'Ctrl+S: Save | Escape: Close | F5: Run'",
+      "dependsOn": [
+        "debugger-test-api"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/designer/src/components/EventEditor/EventEditor.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-error-markers",
+      "title": "Phase 1: Monaco 에러 마커 및 데코레이션 표시",
+      "description": "에러 발생 시 해당 줄에 빨간 밑줄과 glyph margin 마커를 표시한다.",
+      "phase": "phase1-console-debug",
+      "category": "implementation",
+      "done": false,
+      "prompt": "EventEditor.tsx를 수정하여 디버그 실행 결과의 에러를 Monaco 에디터에 시각적으로 표시하라.\n\n1. 에러 마커 표시:\n   - 디버그 실행 후 에러가 발생하면 monaco.editor.setModelMarkers()로 에러 줄에 마커 설정\n   - MarkerSeverity.Error로 빨간 물결 밑줄 표시\n   - 에러 메시지를 마커의 message로 설정\n   - 새로운 실행 시 이전 마커 제거\n\n2. 실행 성공 줄 하이라이트 (선택적):\n   - 성공적으로 실행 완료 시 녹색 상태 표시\n\n3. glyphMargin 활성화:\n   - Editor options에 glyphMargin: true 추가\n   - 에러 줄에 빨간 원 아이콘 표시 (CSS className으로 decoration)\n\n4. F5 키보드 단축키:\n   - editor.addCommand로 F5 → Run 실행 바인딩\n   - 상태 바에 F5 단축키 안내 추가\n\nCSS 스타일은 인라인 또는 <style> 태그로 추가하라 (별도 CSS 파일 불필요).",
+      "dependsOn": [
+        "debugger-editor-console-ui"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/designer/src/components/EventEditor/EventEditor.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-editor-types",
+      "title": "Phase 1: FORM_CONTEXT_TYPES에 console 타입 추가",
+      "description": "Monaco IntelliSense에서 console.log 등의 자동완성이 동작하도록 타입 정의를 추가한다.",
+      "phase": "phase1-console-debug",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/designer/src/components/EventEditor/EventEditor.tsx의 FORM_CONTEXT_TYPES 문자열에 console 인터페이스를 추가하라.\n\n추가할 타입 정의:\n\ninterface Console {\n  log(...args: any[]): void;\n  warn(...args: any[]): void;\n  error(...args: any[]): void;\n  info(...args: any[]): void;\n}\n\ndeclare const console: Console;\n\n이렇게 하면 사용자가 console.log()를 입력할 때 자동완성과 타입 힌트가 제공된다.",
+      "dependsOn": [
+        "debugger-phase1-plan"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/designer/src/components/EventEditor/EventEditor.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-phase1-test",
+      "title": "Phase 1: 디버거 기능 테스트",
+      "description": "console.log 브릿지, 에러 줄 번호 추출, 디버그 API가 올바르게 동작하는지 테스트한다.",
+      "phase": "phase1-console-debug",
+      "category": "testing",
+      "done": false,
+      "prompt": "Phase 1 디버거 기능에 대한 테스트를 작성하라.\n\n1. packages/server/src/__tests__/SandboxRunner.debug.test.ts 생성:\n   - console.log가 logs 배열에 캡처되는지 확인\n   - console.warn, console.error가 올바른 type으로 캡처되는지 확인\n   - console.log에 객체 전달 시 JSON.stringify되는지 확인\n   - 에러 발생 시 errorLine이 올바르게 추출되는지 확인\n   - 기존 기능(ctx.controls, ctx.showMessage, ctx.http)이 정상 동작하는지 확인\n\n2. packages/server/src/__tests__/debug.api.test.ts 생성:\n   - POST /api/debug/execute가 코드를 실행하고 logs를 반환하는지 확인\n   - 에러 코드 전송 시 error와 errorLine이 반환되는지 확인\n   - production 환경에서 404가 반환되는지 확인\n\npnpm --filter @webform/server test를 실행하여 모든 테스트가 통과하는지 확인하라.",
+      "dependsOn": [
+        "debugger-console-inject",
+        "debugger-protocol-extend",
+        "debugger-engine-logs",
+        "debugger-test-api"
+      ],
+      "outputFiles": [
+        "packages/server/src/__tests__/SandboxRunner.debug.test.ts",
+        "packages/server/src/__tests__/debug.api.test.ts"
+      ],
+      "modifiedFiles": [
+        "packages/server/src/__tests__/SandboxRunner.debug.test.ts",
+        "packages/server/src/__tests__/debug.api.test.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-phase1-commit",
+      "title": "Phase 1: 커밋",
+      "description": "Phase 1의 모든 변경사항을 커밋한다.",
+      "phase": "phase1-console-debug",
+      "category": "commit",
+      "done": false,
+      "prompt": "Phase 1 디버거 기능의 모든 변경사항을 확인하고 커밋하라.\n\n1. git status로 변경 파일 확인\n2. git diff로 변경 내용 검토\n3. 적절한 한국어 커밋 메시지 작성\n4. git add 및 git commit 실행\n\n커밋하지 말아야 할 파일(node_modules, dist, .env 등)이 포함되지 않도록 확인하라.",
+      "dependsOn": [
+        "debugger-phase1-test",
+        "debugger-editor-console-ui",
+        "debugger-error-markers",
+        "debugger-editor-types"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-phase2-plan",
+      "title": "Phase 2: 코드 계측 및 실행 추적 - 계획",
+      "description": "AST 파싱으로 사용자 코드를 계측하여 각 문(statement)의 실행 여부, 변수 값, 실행 시간을 자동 추적하는 기능의 구현 계획을 수립한다.",
+      "phase": "phase2-instrumentation",
+      "category": "plan",
+      "done": false,
+      "prompt": "Phase 2 코드 계측 디버거의 구현 계획을 수립하라.\n\n계획할 내용:\n1. AST 파서 선정: acorn (경량, ESM 지원)을 사용\n   - acorn으로 사용자 코드를 파싱하여 AST 생성\n   - 각 Statement 노드 앞에 __trace() 호출을 삽입\n   - astring으로 수정된 AST를 코드로 변환\n\n2. __trace() 함수 설계:\n   - __trace(line, column, variables) 형태\n   - variables: 현재 스코프에서 접근 가능한 변수들의 값 스냅샷\n   - 실행 시간 자동 기록\n\n3. 계측 서비스 설계 (CodeInstrumenter 클래스):\n   - instrument(code: string): string 메서드\n   - 각 Statement 앞에 __trace 호출 삽입\n   - VariableDeclaration 이후에 해당 변수값 캡처\n   - 에러 안전 처리 (파싱 실패 시 원본 코드 그대로 반환)\n\n4. TraceResult 타입 설계:\n   interface TraceEntry {\n     line: number;\n     column: number;\n     timestamp: number;\n     variables: Record<string, string>;\n     duration?: number;\n   }\n\n5. SandboxRunner 통합:\n   - debugMode 옵션 추가\n   - debugMode=true일 때 코드 계측 후 실행\n   - 반환값에 traces: TraceEntry[] 추가\n\n6. Monaco Editor 시각화:\n   - 실행된 줄에 인라인 데코레이션으로 변수값 표시\n   - 실행되지 않은 줄은 회색 처리\n   - 각 줄의 실행 시간 표시\n\n계획을 plans/debugger-phase2-plan.md에 작성하라.",
+      "dependsOn": [
+        "debugger-phase1-commit"
+      ],
+      "outputFiles": [
+        "plans/debugger-phase2-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/debugger-phase2-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-instrumenter",
+      "title": "Phase 2: CodeInstrumenter 서비스 구현",
+      "description": "acorn으로 사용자 코드를 AST 파싱하고, 각 statement에 __trace() 호출을 삽입하는 CodeInstrumenter 클래스를 구현한다.",
+      "phase": "phase2-instrumentation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/server/src/services/CodeInstrumenter.ts를 생성하라.\n\n1. 의존성 설치:\n   - pnpm --filter @webform/server add acorn astring\n   - pnpm --filter @webform/server add -D @types/estree\n\n2. CodeInstrumenter 클래스 구현:\n   - instrument(code: string): { instrumentedCode: string, variableMap: Map<number, string[]> }\n   - acorn.parse()로 AST 생성 (ecmaVersion: 2020, sourceType: 'script')\n   - AST를 순회(walk)하며 각 Statement 앞에 __trace() 호출 삽입\n   - VariableDeclaration의 경우 선언된 변수명을 수집\n   - 각 줄에서 캡처할 변수 목록을 variableMap에 기록\n   - astring.generate()로 수정된 AST를 코드 문자열로 변환\n\n3. __trace 래퍼 코드 생성:\n   - generateTraceWrapper(): string\n   - __traces 배열, __trace 함수, __captureVars 헬퍼 정의\n   - __captureVars는 변수명 배열을 받아 { name: stringifiedValue } 맵 반환\n   - 순환 참조 대비 JSON.stringify try/catch\n\n4. 에러 처리:\n   - 파싱 실패 시 원본 코드를 그대로 반환 (계측 없이 실행)\n   - 로그 메시지로 파싱 실패 사유 기록",
+      "dependsOn": [
+        "debugger-phase2-plan"
+      ],
+      "outputFiles": [
+        "packages/server/src/services/CodeInstrumenter.ts"
+      ],
+      "modifiedFiles": [
+        "packages/server/src/services/CodeInstrumenter.ts",
+        "packages/server/package.json"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-trace-protocol",
+      "title": "Phase 2: 프로토콜에 TraceEntry 타입 추가",
+      "description": "TraceEntry 인터페이스를 정의하고 EventResponse에 traces 필드를 추가한다.",
+      "phase": "phase2-instrumentation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/common/src/types/protocol.ts를 수정하라.\n\n1. TraceEntry 인터페이스 추가:\n   interface TraceEntry {\n     line: number;\n     column: number;\n     timestamp: number;\n     variables: Record<string, string>;\n     duration?: number;\n   }\n\n2. EventResponse에 traces 필드 추가:\n   traces?: TraceEntry[]\n\n3. TraceEntry를 export에 추가하라.\n\n4. POST /api/debug/execute 응답에도 traces를 포함할 수 있도록 타입을 확장하라.",
+      "dependsOn": [
+        "debugger-phase2-plan"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/common/src/types/protocol.ts",
+        "packages/common/src/index.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-sandbox-trace",
+      "title": "Phase 2: SandboxRunner에 계측 모드 통합",
+      "description": "SandboxRunner에 debugMode 옵션을 추가하고, 활성화 시 CodeInstrumenter로 코드를 계측 후 실행한다.",
+      "phase": "phase2-instrumentation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/server/src/services/SandboxRunner.ts를 수정하라.\n\n1. SandboxOptions에 debugMode?: boolean 추가\n\n2. runCode()에서 debugMode가 true일 때:\n   - CodeInstrumenter.instrument()로 코드 계측\n   - wrapHandlerCode()에 __traces 배열과 __trace 함수를 추가 주입\n   - 반환값에 traces 추가: { controls, messages, logs, traces }\n\n3. wrapHandlerCode에 debugMode 파라미터 추가:\n   - debugMode=true: __trace 함수 및 __traces 배열 주입\n   - 계측된 코드 사용\n   - 반환값에 traces 포함\n\n4. SandboxResult에 traces?: TraceEntry[] 추가\n\n5. 기존 기능(debugMode=false)은 변경 없이 유지하라.",
+      "dependsOn": [
+        "debugger-instrumenter",
+        "debugger-trace-protocol"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/server/src/services/SandboxRunner.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-debug-api-trace",
+      "title": "Phase 2: 디버그 API에 계측 모드 추가",
+      "description": "POST /api/debug/execute에 debugMode 파라미터를 추가하여 traces를 반환할 수 있도록 한다.",
+      "phase": "phase2-instrumentation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/server/src/routes/debug.ts를 수정하라.\n\n1. POST /api/debug/execute의 request body에 debugMode?: boolean 추가 (기본값: true)\n2. debugMode=true일 때 SandboxRunner에 { debugMode: true } 옵션 전달\n3. 응답에 traces 배열 포함:\n   {\n     success: boolean,\n     logs: DebugLog[],\n     traces?: TraceEntry[],\n     error?: string,\n     errorLine?: number,\n     executionTime?: number\n   }\n4. 전체 실행 시간(executionTime)도 측정하여 반환\n5. EventEngine.executeEvent()에도 debugMode 옵션 전달 경로 확보 (선택적)",
+      "dependsOn": [
+        "debugger-sandbox-trace"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/server/src/routes/debug.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-inline-values",
+      "title": "Phase 2: Monaco Editor 인라인 변수값 표시",
+      "description": "실행 추적 결과를 Monaco 에디터에 인라인 데코레이션으로 표시하여 각 줄의 변수값과 실행 상태를 시각화한다.",
+      "phase": "phase2-instrumentation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "packages/designer/src/components/EventEditor/EventEditor.tsx를 수정하여 계측 결과를 시각화하라.\n\n1. 인라인 변수값 표시 (VS Code Debug Inline Values 스타일):\n   - 디버그 실행 후 traces를 받아 각 줄에 인라인 데코레이션 추가\n   - editor.deltaDecorations()으로 각 줄 끝에 변수값 표시\n   - 스타일: 회색 이탤릭 텍스트, 예: `// name = \"홍길동\", age = 30`\n   - IModelDecorationOptions의 afterContentClassName + contentText 사용\n\n2. 실행 흐름 시각화:\n   - 실행된 줄: 좌측 glyph margin에 녹색 점\n   - 실행되지 않은 줄: 회색 배경 (미실행 코드)\n   - 에러 줄: 빨간 배경 + 빨간 glyph\n\n3. 실행 요약 표시:\n   - 디버그 콘솔 상단에 실행 요약: '5/8 lines executed | 234ms | 3 variables tracked'\n   - 각 줄의 실행 시간이 있으면 느린 줄 하이라이트 (100ms 이상)\n\n4. 데코레이션 관리:\n   - 새로운 실행 시 이전 데코레이션 제거\n   - 코드 편집 시 데코레이션 제거\n   - 'Clear Debug' 버튼으로 수동 제거\n\nCSS는 style 태그 또는 인라인으로 주입하라.",
+      "dependsOn": [
+        "debugger-debug-api-trace"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/designer/src/components/EventEditor/EventEditor.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-variable-panel",
+      "title": "Phase 2: 변수 감시 패널 구현",
+      "description": "디버그 콘솔 옆에 변수 감시 패널을 추가하여 각 줄에서의 변수 상태 변화를 트리뷰로 표시한다.",
+      "phase": "phase2-instrumentation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "EventEditor.tsx에 변수 감시(Variables) 패널을 추가하라.\n\n1. 디버그 영역을 탭으로 구분:\n   - 'Console' 탭: 기존 디버그 콘솔 (Phase 1)\n   - 'Variables' 탭: 변수 감시 패널 (이번 구현)\n\n2. Variables 패널 구현:\n   - traces에서 변수 데이터를 추출하여 줄 번호별로 그룹화\n   - 좌측: 줄 번호 목록 (클릭하면 해당 줄의 변수 표시)\n   - 우측: 선택된 줄의 변수 이름-값 테이블\n   - 값이 객체인 경우 펼치기/접기 토글\n   - 값 변경 감지: 이전 줄 대비 변경된 변수는 노란 배경으로 하이라이트\n\n3. 줄 클릭 연동:\n   - Variables 패널에서 줄을 클릭하면 Monaco 에디터에서 해당 줄로 커서 이동\n   - editor.revealLineInCenter()로 스크롤\n\n4. 스타일:\n   - VS Code의 Debug Variables 패널과 유사한 다크 테마\n   - 테이블 형식: Name | Value | Type 컬럼",
+      "dependsOn": [
+        "debugger-inline-values"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/designer/src/components/EventEditor/EventEditor.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-phase2-test",
+      "title": "Phase 2: 계측 디버거 테스트",
+      "description": "CodeInstrumenter, 계측 모드 SandboxRunner, 디버그 API의 traces 반환을 테스트한다.",
+      "phase": "phase2-instrumentation",
+      "category": "testing",
+      "done": false,
+      "prompt": "Phase 2 계측 디버거에 대한 테스트를 작성하라.\n\n1. packages/server/src/__tests__/CodeInstrumenter.test.ts 생성:\n   - 기본 변수 선언 코드가 올바르게 계측되는지 확인\n   - if/else 분기문이 계측되는지 확인\n   - for/while 루프가 계측되는지 확인\n   - 파싱 불가능한 코드 입력 시 원본이 그대로 반환되는지 확인\n   - 빈 코드 입력 시 에러 없이 처리되는지 확인\n\n2. packages/server/src/__tests__/SandboxRunner.trace.test.ts 생성:\n   - debugMode=true로 실행 시 traces가 반환되는지 확인\n   - traces에 올바른 줄 번호가 기록되는지 확인\n   - traces에 변수값이 올바르게 캡처되는지 확인\n   - debugMode=false일 때 traces가 없는지 확인 (기존 동작 유지)\n   - 에러 발생 시에도 에러 전까지의 traces가 반환되는지 확인\n\npnpm --filter @webform/server test를 실행하여 모든 테스트가 통과하는지 확인하라.",
+      "dependsOn": [
+        "debugger-instrumenter",
+        "debugger-sandbox-trace",
+        "debugger-debug-api-trace"
+      ],
+      "outputFiles": [
+        "packages/server/src/__tests__/CodeInstrumenter.test.ts",
+        "packages/server/src/__tests__/SandboxRunner.trace.test.ts"
+      ],
+      "modifiedFiles": [
+        "packages/server/src/__tests__/CodeInstrumenter.test.ts",
+        "packages/server/src/__tests__/SandboxRunner.trace.test.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "debugger-phase2-commit",
+      "title": "Phase 2: 커밋",
+      "description": "Phase 2의 모든 변경사항을 커밋한다.",
+      "phase": "phase2-instrumentation",
+      "category": "commit",
+      "done": false,
+      "prompt": "Phase 2 계측 디버거의 모든 변경사항을 확인하고 커밋하라.\n\n1. git status로 변경 파일 확인\n2. git diff로 변경 내용 검토\n3. 적절한 한국어 커밋 메시지 작성\n4. git add 및 git commit 실행\n\n커밋하지 말아야 할 파일(node_modules, dist, .env 등)이 포함되지 않도록 확인하라.",
+      "dependsOn": [
+        "debugger-phase2-test",
+        "debugger-inline-values",
+        "debugger-variable-panel"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [],
+      "subtasks": null
+    }
+  ],
+  "workflow": null
+}
