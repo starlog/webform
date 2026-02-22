@@ -35,6 +35,7 @@ export type {
 // types/protocol
 export type {
   DebugLog,
+  TraceEntry,
   UIPatch,
   EventRequest,
   EventResponse,

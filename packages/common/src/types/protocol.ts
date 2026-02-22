@@ -21,12 +21,21 @@ export interface DebugLog {
   timestamp: number;
 }
 
+export interface TraceEntry {
+  line: number;
+  column: number;
+  timestamp: number;
+  variables: Record<string, string>;
+  duration?: number;
+}
+
 export interface EventResponse {
   success: boolean;
   patches: UIPatch[];
   error?: string;
   logs?: DebugLog[];
   errorLine?: number;
+  traces?: TraceEntry[];
 }
 
 export type DesignerWsMessage =
