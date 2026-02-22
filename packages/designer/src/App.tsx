@@ -1,6 +1,7 @@
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DesignerCanvas } from './components/Canvas';
+import { Toolbox } from './components/Toolbox';
 
 export function App() {
   return (
@@ -13,18 +14,17 @@ export function App() {
           fontFamily: 'Segoe UI, sans-serif',
         }}
       >
-        {/* 도구상자 — 후속 태스크(toolbox-controls)에서 구현 */}
+        {/* 도구상자 */}
         <div
           className="toolbox-panel"
           style={{
             width: 200,
             borderRight: '1px solid #ccc',
             backgroundColor: '#f5f5f5',
-            padding: 8,
             overflow: 'auto',
           }}
         >
-          Toolbox
+          <Toolbox />
         </div>
 
         {/* 캔버스 영역 */}
