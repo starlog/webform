@@ -22,6 +22,21 @@ class ApiClient {
     if (!res.ok) throw new Error(`Event request failed: ${res.status}`);
     return res.json();
   }
+
+  async queryDataSource(
+    formId: string,
+    dataSourceId: string,
+    query?: Record<string, unknown>,
+  ): Promise<unknown[]> {
+    const res = await fetch(`${this.baseUrl}/runtime/forms/${formId}/data`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dataSourceId, query }),
+    });
+    if (!res.ok) throw new Error(`Data query failed: ${res.status}`);
+    const json = await res.json();
+    return json.data;
+  }
 }
 
 export const apiClient = new ApiClient();

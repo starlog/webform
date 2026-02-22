@@ -1,9 +1,93 @@
+import { useRef, useMemo } from 'react';
 import type { DataBindingDefinition } from '@webform/common';
+import { useBindingStore } from '../bindings/bindingStore';
+import { parseDataSourceRef, BindingEngine } from '../bindings/BindingEngine';
 
 export function useDataBinding(
-  _controlId: string,
-  _bindings: DataBindingDefinition[],
+  controlId: string,
+  bindings: DataBindingDefinition[],
 ): Record<string, unknown> {
-  // 현재는 빈 객체 반환 (DataSource 서비스 구현 후 활성화)
-  return {};
+  // 1. 이 컨트롤에 해당하는 바인딩만 필터링
+  const myBindings = useMemo(
+    () => bindings.filter((b) => b.controlId === controlId),
+    [controlId, bindings],
+  );
+
+  // 2. bindingStore 구독
+  const dataSourceData = useBindingStore((s) => s.dataSourceData);
+  const selectedRows = useBindingStore((s) => s.selectedRows);
+
+  // 3. oneTime 바인딩용 ref
+  const oneTimeRef = useRef<Record<string, unknown>>({});
+  const initializedRef = useRef(false);
+
+  if (myBindings.length === 0) return {};
+
+  // 4. 각 바인딩에 대해 값 계산
+  const result: Record<string, unknown> = {};
+
+  for (const binding of myBindings) {
+    const { controlProperty, dataSourceId, dataField, bindingMode } = binding;
+
+    // oneTime: 이미 초기화되었으면 캐시된 값 사용
+    if (bindingMode === 'oneTime' && initializedRef.current) {
+      result[controlProperty] = oneTimeRef.current[controlProperty];
+      continue;
+    }
+
+    // 값 계산
+    const ref = parseDataSourceRef(dataSourceId);
+    let value: unknown;
+
+    if (ref.type === 'selectedRow') {
+      const rowIdx = selectedRows[ref.controlId] ?? -1;
+      // selectedRow 바인딩의 실제 데이터소스는 해당 그리드의 dataSource 바인딩에서 조회
+      const gridBinding = bindings.find(
+        (b) => b.controlId === ref.controlId && b.controlProperty === 'dataSource',
+      );
+      if (gridBinding && rowIdx >= 0) {
+        const gridRef = parseDataSourceRef(gridBinding.dataSourceId);
+        if (gridRef.type === 'dataSource') {
+          const rows = dataSourceData[gridRef.dataSourceId] ?? [];
+          const row = rows[rowIdx] as Record<string, unknown> | undefined;
+          value = row?.[dataField];
+        }
+      }
+    } else {
+      // 일반 데이터소스 참조
+      const data = dataSourceData[ref.dataSourceId];
+      if (data) {
+        if (controlProperty === 'dataSource') {
+          // DataGridView용: 전체 데이터 배열
+          value = data;
+        } else {
+          // 단일 값: 첫 번째 행의 특정 필드
+          const firstRow = data[0] as Record<string, unknown> | undefined;
+          value = firstRow?.[dataField];
+        }
+      }
+    }
+
+    result[controlProperty] = value;
+
+    // twoWay: onChange 콜백 추가
+    if (bindingMode === 'twoWay') {
+      const onChangeKey = `on${controlProperty.charAt(0).toUpperCase() + controlProperty.slice(1)}Change`;
+      result[onChangeKey] = (newValue: unknown) => {
+        BindingEngine.handleTwoWayUpdate(controlId, controlProperty, newValue, bindings);
+      };
+    }
+
+    // oneTime: 첫 로드 시 캐시
+    if (bindingMode === 'oneTime' && value !== undefined) {
+      oneTimeRef.current[controlProperty] = value;
+    }
+  }
+
+  // oneTime 초기화 플래그
+  if (!initializedRef.current && Object.keys(result).length > 0) {
+    initializedRef.current = true;
+  }
+
+  return result;
 }
