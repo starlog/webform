@@ -1,4 +1,5 @@
 import type {
+  DebugLog,
   EventRequest,
   EventResponse,
   FormDefinition,
@@ -46,22 +47,25 @@ export class EventEngine {
         success: false,
         patches: [],
         error: result.error,
+        errorLine: result.errorLine,
       };
     }
 
-    const patches = this.extractPatches(before, result.value);
+    const { patches, logs } = this.extractPatches(before, result.value);
 
     return {
       success: true,
       patches,
+      logs,
     };
   }
 
   private extractPatches(
     before: Record<string, Record<string, unknown>>,
     resultValue: unknown,
-  ): UIPatch[] {
+  ): { patches: UIPatch[]; logs?: DebugLog[] } {
     const patches: UIPatch[] = [];
+    let logs: DebugLog[] | undefined;
 
     if (
       resultValue
@@ -86,8 +90,12 @@ export class EventEngine {
           });
         }
       }
+
+      if (Array.isArray(rv.logs)) {
+        logs = rv.logs as DebugLog[];
+      }
     }
 
-    return patches;
+    return { patches, logs };
   }
 }
