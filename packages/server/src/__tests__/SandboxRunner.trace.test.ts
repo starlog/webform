@@ -239,4 +239,53 @@ describe('SandboxRunner — 계측 트레이스 (debugMode)', () => {
       expect(value.logs[0].args).toEqual(['log message']);
     });
   });
+
+  describe('const/let 변수 캡처', () => {
+    it('const 변수가 캡처되어야 한다', async () => {
+      const code = 'const x = 42;\nconst y = "hello";';
+      const result = await runner.runCode(code, {}, { debugMode: true });
+
+      expect(result.success).toBe(true);
+      expect(result.traces).toBeDefined();
+
+      const lastTrace = result.traces![result.traces!.length - 1];
+      expect(lastTrace.variables['x']).toBe('42');
+      expect(lastTrace.variables['y']).toBe('"hello"');
+    });
+
+    it('let 변수가 캡처되어야 한다', async () => {
+      const code = 'let x = 1;\nx = 2;\nx = 3;\nlet y = x;';
+      const result = await runner.runCode(code, {}, { debugMode: true });
+
+      expect(result.success).toBe(true);
+      expect(result.traces).toBeDefined();
+
+      const lastTrace = result.traces![result.traces!.length - 1];
+      expect(lastTrace.variables['x']).toBe('3');
+    });
+  });
+
+  describe('return 문 처리', () => {
+    it('return 후에도 logs가 반환되어야 한다', async () => {
+      const code = 'console.log("before return");\nreturn;';
+      const result = await runner.runCode(code, {}, { debugMode: true });
+
+      expect(result.success).toBe(true);
+
+      const value = result.value as { logs: { args: string[] }[] };
+      expect(value.logs).toHaveLength(1);
+      expect(value.logs[0].args).toEqual(['before return']);
+    });
+
+    it('return 후에도 showMessage 결과가 반환되어야 한다', async () => {
+      const code = 'ctx.showMessage("hello", "title", "info");\nreturn;';
+      const result = await runner.runCode(code, {}, { debugMode: true });
+
+      expect(result.success).toBe(true);
+
+      const value = result.value as { messages: { text: string }[] };
+      expect(value.messages).toHaveLength(1);
+      expect(value.messages[0].text).toBe('hello');
+    });
+  });
 });

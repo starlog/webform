@@ -21,6 +21,7 @@ export class CodeInstrumenter {
         ecmaVersion: 2020,
         sourceType: 'script',
         locations: true,
+        allowReturnOutsideFunction: true,
       }) as unknown as estree.Program;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -51,16 +52,15 @@ function __trace(line, col, vars) {
     variables: vars || {}
   });
 }
-function __captureVars(names) {
+function __captureVars(names, evalFn) {
   var result = {};
   for (var i = 0; i < names.length; i++) {
-    var name = names[i];
     try {
-      var val = eval(name);
+      var val = evalFn(names[i]);
       try {
-        result[name] = JSON.stringify(val);
+        result[names[i]] = JSON.stringify(val);
       } catch(e) {
-        result[name] = String(val);
+        result[names[i]] = String(val);
       }
     } catch(e) {
       // 변수가 아직 선언되지 않은 경우 무시
@@ -207,13 +207,35 @@ function __captureVars(names) {
   }
 
   /**
-   * __trace(line, col, __captureVars([...varNames])) 호출 AST 노드를 생성한다.
+   * __trace(line, col, __captureVars([...varNames], function(__x) { return eval(__x); }))
+   * 호출 AST 노드를 생성한다.
+   * eval 래퍼를 호출 지점에서 정의하여 const/let 변수도 캡처 가능하게 한다.
    */
   private createTraceCall(
     line: number,
     col: number,
     varNames: string[],
   ): estree.ExpressionStatement {
+    // function(__x) { return eval(__x); } — 호출 지점 스코프의 eval 래퍼
+    const evalWrapper: estree.FunctionExpression = {
+      type: 'FunctionExpression',
+      params: [{ type: 'Identifier', name: '__x' }],
+      body: {
+        type: 'BlockStatement',
+        body: [
+          {
+            type: 'ReturnStatement',
+            argument: {
+              type: 'CallExpression',
+              callee: { type: 'Identifier', name: 'eval' },
+              arguments: [{ type: 'Identifier', name: '__x' }],
+              optional: false,
+            },
+          },
+        ],
+      },
+    };
+
     const varsArg: estree.Expression =
       varNames.length > 0
         ? {
@@ -229,6 +251,7 @@ function __captureVars(names) {
                   }),
                 ),
               },
+              evalWrapper,
             ],
             optional: false,
           }

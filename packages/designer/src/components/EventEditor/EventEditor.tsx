@@ -16,6 +16,7 @@ interface TraceEntry {
   timestamp: number;
   variables: Record<string, string>;
   duration?: number;
+  ctxControls?: Record<string, string>;
 }
 
 interface ExecutionSummary {
@@ -272,7 +273,23 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
   const [runStatus, setRunStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [executionSummary, setExecutionSummary] = useState<ExecutionSummary | null>(null);
   const [traces, setTraces] = useState<TraceEntry[]>([]);
-  const [debugTab, setDebugTab] = useState<'console' | 'variables'>('console');
+  const [debugTab, setDebugTab] = useState<'console' | 'variables' | 'watch'>('console');
+  const [watchExpressions, setWatchExpressions] = useState<string[]>([]);
+
+  // Breakpoint & Step-Through 디버거 상태
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_breakpoints, setBreakpoints] = useState<Set<number>>(new Set());
+  const [debugState, setDebugState] = useState<'idle' | 'running' | 'paused' | 'completed'>('idle');
+  const [stepIndex, setStepIndex] = useState<number>(0);
+  const breakpointDecorationIdsRef = useRef<string[]>([]);
+  const allTracesRef = useRef<TraceEntry[]>([]);
+  const allLogsRef = useRef<DebugLogEntry[]>([]);
+  const allExecutionTimeRef = useRef<number>(0);
+
+  // Monaco command handler용 refs (stale closure 방지)
+  const debugStateRef = useRef<'idle' | 'running' | 'paused' | 'completed'>('idle');
+  const stepIndexRef = useRef<number>(0);
+  const breakpointsRef = useRef<Set<number>>(new Set());
 
   const control = controls.find((c) => c.id === controlId);
   const existingHandlers = (control?.properties._eventHandlers ?? {}) as Record<string, string>;
@@ -314,13 +331,60 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     setExecutionSummary(null);
   }, []);
 
+  // state와 ref를 함께 업데이트하는 헬퍼
+  const updateDebugState = useCallback((state: 'idle' | 'running' | 'paused' | 'completed') => {
+    debugStateRef.current = state;
+    setDebugState(state);
+  }, []);
+
+  const updateStepIndex = useCallback((idx: number) => {
+    stepIndexRef.current = idx;
+    setStepIndex(idx);
+  }, []);
+
   /** 모든 디버그 시각화 초기화 (Clear Debug 버튼용) */
   const clearAllDebug = useCallback(() => {
     clearMarkers();
     clearDebugDecorations();
     setRunStatus('idle');
     setTraces([]);
-  }, [clearMarkers, clearDebugDecorations]);
+    updateDebugState('idle');
+    updateStepIndex(0);
+    allTracesRef.current = [];
+    allLogsRef.current = [];
+  }, [clearMarkers, clearDebugDecorations, updateDebugState, updateStepIndex]);
+
+  /** 브레이크포인트 데코레이션 적용 (trace 데코레이션과 독립) */
+  const applyBreakpointDecorations = useCallback((bps: Set<number>) => {
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!editor || !monaco) return;
+
+    const decorations = Array.from(bps).map((line) => ({
+      range: new monaco.Range(line, 1, line, 1),
+      options: {
+        isWholeLine: false,
+        glyphMarginClassName: 'debug-breakpoint-glyph',
+      },
+    }));
+
+    breakpointDecorationIdsRef.current = editor.deltaDecorations(
+      breakpointDecorationIdsRef.current,
+      decorations,
+    );
+  }, []);
+
+  /** 브레이크포인트 토글 */
+  const toggleBreakpoint = useCallback((line: number) => {
+    setBreakpoints((prev) => {
+      const next = new Set(prev);
+      if (next.has(line)) next.delete(line);
+      else next.add(line);
+      breakpointsRef.current = next;
+      applyBreakpointDecorations(next);
+      return next;
+    });
+  }, [applyBreakpointDecorations]);
 
   const setErrorMarker = useCallback((line: number, message: string) => {
     const editor = editorRef.current;
@@ -381,20 +445,30 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     ]);
   }, []);
 
-  /** trace 데이터를 기반으로 인라인 변수값, 실행 흐름, 느린 줄 데코레이션 적용 */
-  const applyTraceDecorations = useCallback((traces: TraceEntry[], executionTime: number) => {
+  /** trace 데이터를 기반으로 인라인 변수값, 실행 흐름, 느린 줄 데코레이션 적용
+   * @param upToIndex - 이 인덱스까지의 trace만 반영 (stepping 모드용)
+   * @param currentStepLine - 현재 step 줄 번호 (노란 화살표 표시용)
+   */
+  const applyTraceDecorations = useCallback((
+    traces: TraceEntry[],
+    executionTime: number,
+    upToIndex?: number,
+    currentStepLine?: number,
+  ) => {
     const editor = editorRef.current;
     const monaco = monacoRef.current;
     if (!editor || !monaco || traces.length === 0) return;
     const model = editor.getModel();
     if (!model) return;
 
+    const visibleTraces = upToIndex != null ? traces.slice(0, upToIndex + 1) : traces;
+
     // 줄별 변수 집계 (마지막 trace가 우선)
     const lineVars = new Map<number, Record<string, string>>();
     const lineDuration = new Map<number, number>();
     const allVarNames = new Set<string>();
 
-    for (const trace of traces) {
+    for (const trace of visibleTraces) {
       const prev = lineVars.get(trace.line) ?? {};
       lineVars.set(trace.line, { ...prev, ...trace.variables });
       if (trace.duration != null) {
@@ -430,14 +504,26 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       if (!lineContent) continue; // 빈 줄 건너뛰기
 
       if (executedLineNums.has(line)) {
-        // 실행된 줄: 녹색 glyph
-        decorations.push({
-          range: new monaco.Range(line, 1, line, 1),
-          options: {
-            isWholeLine: false,
-            glyphMarginClassName: 'debug-executed-glyph',
-          },
-        });
+        if (currentStepLine != null && line === currentStepLine) {
+          // 현재 step 줄: 노란 화살표 glyph + 노란 배경
+          decorations.push({
+            range: new monaco.Range(line, 1, line, 1),
+            options: {
+              isWholeLine: true,
+              className: 'debug-current-line',
+              glyphMarginClassName: 'debug-current-line-glyph',
+            },
+          });
+        } else {
+          // 실행된 줄: 녹색 glyph
+          decorations.push({
+            range: new monaco.Range(line, 1, line, 1),
+            options: {
+              isWholeLine: false,
+              glyphMarginClassName: 'debug-executed-glyph',
+            },
+          });
+        }
 
         // 인라인 변수값 표시
         const vars = lineVars.get(line)!;
@@ -463,19 +549,21 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           });
         }
 
-        // 느린 줄 하이라이트 (100ms 초과)
-        const dur = lineDuration.get(line);
-        if (dur && dur > 100) {
-          decorations.push({
-            range: new monaco.Range(line, 1, line, 1),
-            options: {
-              isWholeLine: true,
-              className: 'debug-slow-line',
-            },
-          });
+        // 느린 줄 하이라이트 (100ms 초과) - 현재 step 줄이 아닌 경우에만
+        if (currentStepLine == null || line !== currentStepLine) {
+          const dur = lineDuration.get(line);
+          if (dur && dur > 100) {
+            decorations.push({
+              range: new monaco.Range(line, 1, line, 1),
+              options: {
+                isWholeLine: true,
+                className: 'debug-slow-line',
+              },
+            });
+          }
         }
-      } else if (!lineContent.startsWith('//')) {
-        // 실행되지 않은 코드 줄: 회색 배경
+      } else if (!lineContent.startsWith('//') && currentStepLine == null) {
+        // 실행되지 않은 코드 줄: 회색 배경 (stepping 모드가 아닐 때만)
         decorations.push({
           range: new monaco.Range(line, 1, line, 1),
           options: {
@@ -500,6 +588,74 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       decorations,
     );
   }, []);
+
+  /** trace를 특정 인덱스까지 표시하고 paused 상태로 유지 */
+  const showTracesUpTo = useCallback((idx: number) => {
+    const allTraces = allTracesRef.current;
+    if (allTraces.length === 0) return;
+
+    const clampedIdx = Math.min(idx, allTraces.length - 1);
+    updateStepIndex(clampedIdx);
+
+    const currentLine = allTraces[clampedIdx].line;
+    const visibleTraces = allTraces.slice(0, clampedIdx + 1);
+
+    applyTraceDecorations(allTraces, allExecutionTimeRef.current, clampedIdx, currentLine);
+    setTraces(visibleTraces);
+
+    // 현재 step timestamp 이전 logs만 표시
+    const currentTimestamp = allTraces[clampedIdx].timestamp;
+    const filteredLogs = allLogsRef.current.filter((log) => log.timestamp <= currentTimestamp);
+    setLogs(filteredLogs);
+  }, [applyTraceDecorations, updateStepIndex]);
+
+  /** 디버깅 완료: 전체 결과 표시 */
+  const finishDebug = useCallback(() => {
+    updateDebugState('completed');
+    const allTraces = allTracesRef.current;
+    applyTraceDecorations(allTraces, allExecutionTimeRef.current);
+    setTraces(allTraces);
+    setLogs(allLogsRef.current);
+  }, [updateDebugState, applyTraceDecorations]);
+
+  /** Step Over (F10): 다음 trace로 이동 */
+  const stepOver = useCallback(() => {
+    if (debugStateRef.current !== 'paused') return;
+    const allTraces = allTracesRef.current;
+    const currentIdx = stepIndexRef.current;
+
+    if (currentIdx + 1 >= allTraces.length) {
+      finishDebug();
+      return;
+    }
+
+    showTracesUpTo(currentIdx + 1);
+  }, [finishDebug, showTracesUpTo]);
+
+  /** Continue (F5 in paused): 다음 브레이크포인트까지 진행 */
+  const continueDebug = useCallback(() => {
+    if (debugStateRef.current !== 'paused') return;
+    const allTraces = allTracesRef.current;
+    const bps = breakpointsRef.current;
+    const currentIdx = stepIndexRef.current;
+
+    // 다음 브레이크포인트 찾기
+    for (let i = currentIdx + 1; i < allTraces.length; i++) {
+      if (bps.has(allTraces[i].line)) {
+        showTracesUpTo(i);
+        return;
+      }
+    }
+
+    // 브레이크포인트 없으면 끝까지 실행
+    finishDebug();
+  }, [finishDebug, showTracesUpTo]);
+
+  /** Stop Debugging (Shift+F5): 디버깅 종료, 전체 결과 표시 */
+  const stopDebug = useCallback(() => {
+    if (debugStateRef.current !== 'paused') return;
+    finishDebug();
+  }, [finishDebug]);
 
   const save = useCallback(() => {
     if (!editorRef.current || !control) return;
@@ -528,25 +684,64 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     clearDebugDecorations();
 
     const code = editorRef.current.getValue();
+
+    // 디자이너의 컨트롤 정의에서 formState 구성
+    const formState: Record<string, Record<string, unknown>> = {};
+    for (const ctrl of controls) {
+      formState[ctrl.name] = { ...ctrl.properties };
+    }
+
     try {
       const res = await fetch('/api/debug/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, formState: {}, debugMode: true }),
+        body: JSON.stringify({ code, formState, controlId: controlId, debugMode: true }),
       });
       const data = await res.json();
 
       if (data.success) {
         const newLogs: DebugLogEntry[] = Array.isArray(data.logs) ? data.logs : [];
-        setLogs((prev) => [...prev, ...newLogs]);
+
+        // showMessage() 호출 결과를 콘솔 로그로 표시
+        const messageLogs: DebugLogEntry[] = Array.isArray(data.messages)
+          ? data.messages.map((msg: { text?: string; title?: string; dialogType?: string }) => ({
+              type: 'info' as const,
+              args: [`[showMessage] ${msg.title ? `${msg.title}: ` : ''}${msg.text ?? ''} (${msg.dialogType ?? 'info'})`],
+              timestamp: Date.now(),
+            }))
+          : [];
+
+        const allNewLogs = [...newLogs, ...messageLogs];
+        allLogsRef.current = allNewLogs;
         setRunStatus('success');
 
         // trace 데코레이션 적용
         const newTraces: TraceEntry[] = Array.isArray(data.traces) ? data.traces : [];
-        setTraces(newTraces);
+        allTracesRef.current = newTraces;
+        allExecutionTimeRef.current = data.executionTime ?? 0;
+
         if (newTraces.length > 0) {
-          applyTraceDecorations(newTraces, data.executionTime ?? 0);
+          // 브레이크포인트 체크
+          const bps = breakpointsRef.current;
+          let firstBpIndex = -1;
+          if (bps.size > 0) {
+            firstBpIndex = newTraces.findIndex((t) => bps.has(t.line));
+          }
+
+          if (firstBpIndex >= 0) {
+            // 브레이크포인트 hit → paused 모드
+            updateDebugState('paused');
+            showTracesUpTo(firstBpIndex);
+          } else {
+            // 브레이크포인트 없거나 hit 없음 → 전체 표시
+            updateDebugState('completed');
+            setTraces(newTraces);
+            setLogs((prev) => [...prev, ...allNewLogs]);
+            applyTraceDecorations(newTraces, data.executionTime ?? 0);
+          }
         } else {
+          updateDebugState('completed');
+          setLogs((prev) => [...prev, ...allNewLogs]);
           setSuccessDecoration();
         }
       } else {
@@ -558,9 +753,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         const newLogs: DebugLogEntry[] = Array.isArray(data.logs) ? [...data.logs, errorLog] : [errorLog];
         setLogs((prev) => [...prev, ...newLogs]);
         setRunStatus('error');
+        updateDebugState('completed');
 
         // trace 데코레이션 적용 (에러 전까지 실행된 부분)
         const newTraces: TraceEntry[] = Array.isArray(data.traces) ? data.traces : [];
+        allTracesRef.current = newTraces;
         setTraces(newTraces);
         if (newTraces.length > 0) {
           applyTraceDecorations(newTraces, data.executionTime ?? 0);
@@ -581,10 +778,23 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         },
       ]);
       setRunStatus('error');
+      updateDebugState('idle');
     } finally {
       setIsRunning(false);
     }
-  }, [isRunning, consoleVisible, clearMarkers, clearDebugDecorations, setErrorMarker, setSuccessDecoration, applyTraceDecorations]);
+  }, [isRunning, consoleVisible, controls, controlId, clearMarkers, clearDebugDecorations, setErrorMarker, setSuccessDecoration, applyTraceDecorations, updateDebugState, showTracesUpTo]);
+
+  // Monaco command handler에서 최신 함수를 호출하기 위한 refs
+  const runCodeRef = useRef<() => void>(() => {});
+  const continueDebugRef = useRef<() => void>(() => {});
+  const stepOverRef = useRef<() => void>(() => {});
+  const stopDebugRef = useRef<() => void>(() => {});
+  const toggleBreakpointRef = useRef<(line: number) => void>(() => {});
+  runCodeRef.current = runCode;
+  continueDebugRef.current = continueDebug;
+  stepOverRef.current = stepOver;
+  stopDebugRef.current = stopDebug;
+  toggleBreakpointRef.current = toggleBreakpoint;
 
   const handleMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
@@ -600,7 +810,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
 
     // top-level return 등 진단 오류 억제 (TS1108)
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      diagnosticCodesToIgnore: [1108, 1375, 1378],
+      diagnosticCodesToIgnore: [1108, 1375, 1378, 2451],
     });
 
     // TypeScript 타입 힌트 추가
@@ -614,12 +824,35 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       save();
     });
 
-    // F5로 실행
+    // F5: paused 상태면 Continue, 아니면 Run
     editor.addCommand(monaco.KeyCode.F5, () => {
-      runCode();
+      if (debugStateRef.current === 'paused') {
+        continueDebugRef.current();
+      } else {
+        runCodeRef.current();
+      }
     });
 
-    // 코드 편집 시 디버그 데코레이션 제거
+    // F10: Step Over
+    editor.addCommand(monaco.KeyCode.F10, () => {
+      stepOverRef.current();
+    });
+
+    // Shift+F5: Stop Debugging
+    editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.F5, () => {
+      stopDebugRef.current();
+    });
+
+    // Glyph margin 클릭으로 브레이크포인트 토글
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    editor.onMouseDown((e: any) => {
+      if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+        const line = e.target.position?.lineNumber;
+        if (line) toggleBreakpointRef.current(line);
+      }
+    });
+
+    // 코드 편집 시 디버그 데코레이션 제거 + stepping 상태 초기화
     editor.onDidChangeModelContent(() => {
       const ed = editorRef.current;
       if (ed) {
@@ -637,10 +870,17 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       setExecutionSummary(null);
       setRunStatus('idle');
       setTraces([]);
+      // stepping 상태 초기화 (브레이크포인트는 유지)
+      debugStateRef.current = 'idle';
+      setDebugState('idle');
+      stepIndexRef.current = 0;
+      setStepIndex(0);
+      allTracesRef.current = [];
+      allLogsRef.current = [];
     });
 
     editor.focus();
-  }, [save, runCode]);
+  }, [save]);
 
   // Escape 키로 닫기
   useEffect(() => {
@@ -651,7 +891,28 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  // 현재 step 줄 번호 (paused 모드에서 사용)
+  const currentStepLine = debugState === 'paused' && allTracesRef.current.length > 0
+    ? allTracesRef.current[stepIndex]?.line
+    : undefined;
+
+  // Watch 패널용: 현재 보이는 traces의 모든 변수를 누적 병합한 최종 스냅샷
+  const currentVariables = useMemo(() => {
+    const result: Record<string, string> = {};
+    for (const t of traces) {
+      Object.assign(result, t.variables);
+    }
+    return result;
+  }, [traces]);
+
+  // Watch 패널용: 현재 시점의 ctx.controls 상태 (마지막 trace의 스냅샷)
+  const currentCtxControls = useMemo(() => {
+    if (traces.length === 0) return {};
+    return traces[traces.length - 1].ctxControls ?? {};
+  }, [traces]);
+
   const statusBarColor =
+    debugState === 'paused' ? '#b8860b' :
     runStatus === 'success' ? '#2e7d32' : runStatus === 'error' ? '#c62828' : '#007acc';
 
   return (
@@ -706,6 +967,27 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           font-style: italic;
           padding-left: 16px;
           font-size: 12px;
+        }
+        .debug-breakpoint-glyph {
+          background: #e51400;
+          border-radius: 50%;
+          width: 10px !important;
+          height: 10px !important;
+          margin-left: 3px;
+          margin-top: 5px;
+          cursor: pointer;
+        }
+        .debug-current-line-glyph {
+          border-left: 6px solid #ffcc00;
+          border-top: 4px solid transparent;
+          border-bottom: 4px solid transparent;
+          width: 0 !important;
+          height: 0 !important;
+          margin-left: 5px;
+          margin-top: 4px;
+        }
+        .debug-current-line {
+          background-color: rgba(255, 204, 0, 0.15);
         }
       `}</style>
       <div
@@ -821,6 +1103,12 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
                 onClick={() => setDebugTab('variables')}
                 badge={traces.length > 0 ? new Set(traces.map((t) => t.line)).size : undefined}
               />
+              <DebugTabButton
+                label="Watch"
+                active={debugTab === 'watch'}
+                onClick={() => setDebugTab('watch')}
+                badge={watchExpressions.length > 0 ? watchExpressions.length : undefined}
+              />
               <div style={{ flex: 1 }} />
               {debugTab === 'console' && (
                 <button
@@ -842,9 +1130,8 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
               )}
             </div>
 
-            {debugTab === 'console' ? (
-              <DebugConsole logs={logs} executionSummary={executionSummary} />
-            ) : (
+            {debugTab === 'console' && <DebugConsole logs={logs} executionSummary={executionSummary} />}
+            {debugTab === 'variables' && (
               <VariablesPanel
                 traces={traces}
                 onLineClick={(line) => {
@@ -855,8 +1142,69 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
                     editor.focus();
                   }
                 }}
+                selectedLineOverride={currentStepLine}
               />
             )}
+            {debugTab === 'watch' && (
+              <WatchPanel
+                watchExpressions={watchExpressions}
+                onAddExpression={(expr) => {
+                  if (expr.trim() && !watchExpressions.includes(expr.trim())) {
+                    setWatchExpressions((prev) => [...prev, expr.trim()]);
+                  }
+                }}
+                onRemoveExpression={(index) => {
+                  setWatchExpressions((prev) => prev.filter((_, i) => i !== index));
+                }}
+                variables={currentVariables}
+                ctxControls={currentCtxControls}
+              />
+            )}
+          </div>
+        )}
+
+        {/* 디버그 툴바 (paused 상태에서만 표시) */}
+        {debugState === 'paused' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 10px',
+              backgroundColor: '#3c3c3c',
+              borderTop: '1px solid #555',
+              fontFamily: 'Segoe UI, sans-serif',
+              fontSize: 12,
+            }}
+          >
+            <button
+              type="button"
+              onClick={continueDebug}
+              style={{ ...debugToolbarBtnStyle, backgroundColor: '#0e639c', border: '1px solid #1177bb' }}
+              title="Continue (F5)"
+            >
+              ▶ Continue
+            </button>
+            <button
+              type="button"
+              onClick={stepOver}
+              style={debugToolbarBtnStyle}
+              title="Step Over (F10)"
+            >
+              ⏭ Step Over
+            </button>
+            <button
+              type="button"
+              onClick={stopDebug}
+              style={{ ...debugToolbarBtnStyle, backgroundColor: '#6c1919', border: '1px solid #8b2222' }}
+              title="Stop (Shift+F5)"
+            >
+              ⏹ Stop
+            </button>
+            <span style={{ color: '#888', marginLeft: 8, fontSize: 11 }}>
+              Step {stepIndex + 1}/{allTracesRef.current.length}
+              {currentStepLine != null && ` | Line ${currentStepLine}`}
+            </span>
           </div>
         )}
 
@@ -873,9 +1221,14 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
             transition: 'background-color 0.3s',
           }}
         >
-          <span>Ctrl+S: Save | Escape: Close | F5: Run</span>
-          {runStatus === 'success' && <span>✓ Execution completed</span>}
-          {runStatus === 'error' && <span>✗ Execution failed</span>}
+          <span>
+            {debugState === 'paused'
+              ? 'F5: Continue | F10: Step Over | Shift+F5: Stop'
+              : 'Ctrl+S: Save | Escape: Close | F5: Run'}
+          </span>
+          {debugState === 'paused' && <span>● Paused at breakpoint</span>}
+          {debugState !== 'paused' && runStatus === 'success' && <span>✓ Execution completed</span>}
+          {debugState !== 'paused' && runStatus === 'error' && <span>✗ Execution failed</span>}
         </div>
       </div>
     </div>
@@ -1031,6 +1384,276 @@ function DebugConsole({
   );
 }
 
+/** 객체 내부 경로를 탐색하여 값을 반환 */
+function navigatePath(
+  root: unknown,
+  pathParts: string[],
+): { value: string; resolved: boolean } {
+  let current: unknown = root;
+  for (const part of pathParts) {
+    if (current === null || current === undefined || typeof current !== 'object') {
+      return { value: '<not available>', resolved: false };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    current = (current as any)[part];
+  }
+  if (current === undefined) return { value: '<not available>', resolved: false };
+  try {
+    return { value: JSON.stringify(current), resolved: true };
+  } catch {
+    return { value: String(current), resolved: true };
+  }
+}
+
+/** 표현식을 변수 스냅샷 + ctx.controls에서 조회 */
+function resolveExpression(
+  expr: string,
+  variables: Record<string, string>,
+  ctxControls?: Record<string, string>,
+): { value: string; resolved: boolean } {
+  const parts = expr.split(/\.|\[|\]/).filter(Boolean);
+  if (parts.length === 0) return { value: '<not available>', resolved: false };
+
+  const rootName = parts[0];
+
+  // ctx.* 표현식: ctxControls 데이터에서 해석
+  if (rootName === 'ctx' && ctxControls) {
+    const controls: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(ctxControls)) {
+      controls[k] = tryParseJson(v) ?? v;
+    }
+    return navigatePath({ controls }, parts.slice(1));
+  }
+
+  // 로컬 변수 해석
+  const rawValue = variables[rootName];
+  if (rawValue === undefined) return { value: '<not available>', resolved: false };
+  if (parts.length === 1) return { value: rawValue, resolved: true };
+
+  const parsed = tryParseJson(rawValue);
+  if (parsed === null) return { value: '<not available>', resolved: false };
+  return navigatePath(parsed, parts.slice(1));
+}
+
+/** Watch 패널 */
+function WatchPanel({
+  watchExpressions,
+  onAddExpression,
+  onRemoveExpression,
+  variables,
+  ctxControls,
+}: {
+  watchExpressions: string[];
+  onAddExpression: (expr: string) => void;
+  onRemoveExpression: (index: number) => void;
+  variables: Record<string, string>;
+  ctxControls: Record<string, string>;
+}) {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
+      onAddExpression(inputValue);
+      setInputValue('');
+    }
+  };
+
+  return (
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: '#1e1e1e',
+      overflow: 'hidden',
+    }}>
+      {/* 입력 필드 */}
+      <div style={{
+        padding: '4px 8px',
+        borderBottom: '1px solid #333',
+        backgroundColor: '#252526',
+      }}>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Add expression (e.g. user.name, items[0])"
+          style={{
+            width: '100%',
+            padding: '3px 6px',
+            backgroundColor: '#3c3c3c',
+            border: '1px solid #555',
+            color: '#d4d4d4',
+            fontSize: 12,
+            fontFamily: 'Consolas, monospace',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      {/* 테이블 헤더 */}
+      <div style={{
+        display: 'flex',
+        padding: '4px 8px',
+        backgroundColor: '#252526',
+        borderBottom: '1px solid #333',
+        fontSize: 10,
+        fontFamily: 'Segoe UI, sans-serif',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        color: '#888',
+      }}>
+        <span style={{ width: 22, flexShrink: 0 }} />
+        <span style={{ flex: 2, minWidth: 100 }}>Name</span>
+        <span style={{ flex: 3, minWidth: 150 }}>Value</span>
+        <span style={{ minWidth: 60, textAlign: 'right' }}>Type</span>
+      </div>
+
+      {/* 표현식 목록 */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {watchExpressions.length === 0 ? (
+          <div style={{
+            padding: '24px 8px',
+            color: '#666',
+            fontStyle: 'italic',
+            fontSize: 12,
+            fontFamily: 'Consolas, monospace',
+            textAlign: 'center',
+          }}>
+            Add expressions to watch. Type a variable name or path (e.g. user.name)
+          </div>
+        ) : (
+          watchExpressions.map((expr, index) => {
+            const { value, resolved } = resolveExpression(expr, variables, ctxControls);
+            const type = resolved ? getValueType(value) : '\u2014';
+            const parsedObj = resolved ? tryParseJson(value) : null;
+
+            return (
+              <WatchExpressionRow
+                key={`${expr}-${index}`}
+                expr={expr}
+                value={value}
+                type={type}
+                resolved={resolved}
+                parsedObj={parsedObj}
+                onRemove={() => onRemoveExpression(index)}
+              />
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Watch 표현식 행 */
+function WatchExpressionRow({
+  expr,
+  value,
+  type,
+  resolved,
+  parsedObj,
+  onRemove,
+}: {
+  expr: string;
+  value: string;
+  type: string;
+  resolved: boolean;
+  parsedObj: unknown | null;
+  onRemove: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = parsedObj !== null;
+
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '2px 8px',
+          borderBottom: '1px solid #2a2a2a',
+          fontSize: 12,
+          fontFamily: 'Consolas, monospace',
+          minHeight: 22,
+        }}
+      >
+        {/* 삭제 버튼 */}
+        <span
+          onClick={onRemove}
+          style={{
+            width: 18,
+            flexShrink: 0,
+            cursor: 'pointer',
+            color: '#888',
+            fontSize: 11,
+            textAlign: 'center',
+            lineHeight: '22px',
+          }}
+          title="Remove expression"
+        >
+          ✕
+        </span>
+
+        {/* Name */}
+        <span style={{
+          flex: 2,
+          minWidth: 100,
+          color: '#9cdcfe',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          paddingLeft: 4,
+        }}>
+          {hasChildren && (
+            <span
+              onClick={() => setExpanded(!expanded)}
+              style={{ cursor: 'pointer', color: '#888', userSelect: 'none', fontSize: 10 }}
+            >
+              {expanded ? '▼' : '▶'}
+            </span>
+          )}
+          {expr}
+        </span>
+
+        {/* Value */}
+        <span style={{
+          flex: 3,
+          minWidth: 150,
+          color: resolved ? getValueColor(type) : '#666',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          fontStyle: resolved ? 'normal' : 'italic',
+        }}>
+          {value}
+        </span>
+
+        {/* Type */}
+        <span style={{
+          minWidth: 60,
+          textAlign: 'right',
+          color: '#666',
+          fontSize: 11,
+        }}>
+          {type}
+        </span>
+      </div>
+
+      {/* 펼친 객체 내부 */}
+      {expanded && hasChildren && (
+        <div style={{
+          borderBottom: '1px solid #2a2a2a',
+          backgroundColor: '#1a1a2e',
+        }}>
+          <ExpandedObjectEntries value={parsedObj} depth={1} />
+        </div>
+      )}
+    </>
+  );
+}
+
 /** 줄별 변수 스냅샷 */
 interface LineVariableSnapshot {
   line: number;
@@ -1158,9 +1781,11 @@ function ExpandedPropertyRow({
 function VariablesPanel({
   traces,
   onLineClick,
+  selectedLineOverride,
 }: {
   traces: TraceEntry[];
   onLineClick: (line: number) => void;
+  selectedLineOverride?: number;
 }) {
   const [selectedLine, setSelectedLine] = useState<number | null>(null);
 
@@ -1197,12 +1822,20 @@ function VariablesPanel({
     return result;
   }, [lineSnapshots]);
 
+  // selectedLineOverride가 있으면 자동 선택
+  useEffect(() => {
+    if (selectedLineOverride != null) {
+      setSelectedLine(selectedLineOverride);
+    }
+  }, [selectedLineOverride]);
+
   // 선택된 줄 자동 설정
   useEffect(() => {
+    if (selectedLineOverride != null) return; // override가 있으면 건너뛰기
     if (selectedLine === null && lineSnapshots.length > 0) {
       setSelectedLine(lineSnapshots[0].line);
     }
-  }, [lineSnapshots, selectedLine]);
+  }, [lineSnapshots, selectedLine, selectedLineOverride]);
 
   // traces가 변경되면 선택 초기화
   useEffect(() => {
@@ -1453,6 +2086,16 @@ const headerBtnStyle: React.CSSProperties = {
   border: '1px solid #555',
   backgroundColor: '#3c3c3c',
   color: '#ccc',
+  fontSize: 12,
+  cursor: 'pointer',
+  fontFamily: 'Segoe UI, sans-serif',
+};
+
+const debugToolbarBtnStyle: React.CSSProperties = {
+  padding: '3px 10px',
+  border: '1px solid #555',
+  backgroundColor: '#3c3c3c',
+  color: '#fff',
   fontSize: 12,
   cursor: 'pointer',
   fontFamily: 'Segoe UI, sans-serif',

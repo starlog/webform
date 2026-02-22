@@ -27,6 +27,7 @@ export interface TraceEntry {
   timestamp: number;
   variables: Record<string, string>;
   duration?: number;
+  ctxControls?: Record<string, string>;
 }
 
 export interface EventResponse {

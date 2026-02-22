@@ -69,12 +69,14 @@ debugRouter.post('/execute', async (req, res, next) => {
     const logs = Array.isArray(rv?.logs) ? rv.logs : [];
     const traces = result.traces ?? (Array.isArray(rv?.traces) ? rv.traces : undefined);
     const controlChanges = rv?.controls as Record<string, Record<string, unknown>> | undefined;
+    const messages = Array.isArray(rv?.messages) ? rv.messages : [];
 
     res.json({
       success: true,
       logs,
       traces,
       controlChanges,
+      messages,
       executionTime,
     });
   } catch (err) {

@@ -115,23 +115,31 @@ export class SandboxRunner {
       ? `
         var __traces = [];
         function __trace(line, col, vars) {
+          var __cc = {};
+          try {
+            var __ks = Object.keys(ctx.controls);
+            for (var __i = 0; __i < __ks.length; __i++) {
+              try { __cc[__ks[__i]] = JSON.stringify(ctx.controls[__ks[__i]]); }
+              catch(__e2) { __cc[__ks[__i]] = String(ctx.controls[__ks[__i]]); }
+            }
+          } catch(__e3) {}
           __traces.push({
             line: line,
             column: col,
             timestamp: Date.now(),
-            variables: vars || {}
+            variables: vars || {},
+            ctxControls: __cc
           });
         }
-        function __captureVars(names) {
+        function __captureVars(names, evalFn) {
           var result = {};
           for (var i = 0; i < names.length; i++) {
-            var name = names[i];
             try {
-              var val = eval(name);
+              var val = evalFn(names[i]);
               try {
-                result[name] = JSON.stringify(val);
+                result[names[i]] = JSON.stringify(val);
               } catch(e) {
-                result[name] = String(val);
+                result[names[i]] = String(val);
               }
             } catch(e) {
               // 변수가 아직 선언되지 않은 경우 무시
@@ -193,12 +201,13 @@ export class SandboxRunner {
           ${code}
         } catch (__e) {
           __userError = __e;
-        }
-        var __result = ${returnValue};
-        if (__userError) {
-          __result.__error = __userError.message || String(__userError);
-        }
-        return __result;`
+        } finally {
+          var __result = ${returnValue};
+          if (__userError) {
+            __result.__error = __userError.message || String(__userError);
+          }
+          return __result;
+        }`
         : `
         (function() {
           ${code}
