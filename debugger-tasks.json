@@ -211,7 +211,7 @@
       "description": "acorn으로 사용자 코드를 AST 파싱하고, 각 statement에 __trace() 호출을 삽입하는 CodeInstrumenter 클래스를 구현한다.",
       "phase": "phase2-instrumentation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/server/src/services/CodeInstrumenter.ts를 생성하라.\n\n1. 의존성 설치:\n   - pnpm --filter @webform/server add acorn astring\n   - pnpm --filter @webform/server add -D @types/estree\n\n2. CodeInstrumenter 클래스 구현:\n   - instrument(code: string): { instrumentedCode: string, variableMap: Map<number, string[]> }\n   - acorn.parse()로 AST 생성 (ecmaVersion: 2020, sourceType: 'script')\n   - AST를 순회(walk)하며 각 Statement 앞에 __trace() 호출 삽입\n   - VariableDeclaration의 경우 선언된 변수명을 수집\n   - 각 줄에서 캡처할 변수 목록을 variableMap에 기록\n   - astring.generate()로 수정된 AST를 코드 문자열로 변환\n\n3. __trace 래퍼 코드 생성:\n   - generateTraceWrapper(): string\n   - __traces 배열, __trace 함수, __captureVars 헬퍼 정의\n   - __captureVars는 변수명 배열을 받아 { name: stringifiedValue } 맵 반환\n   - 순환 참조 대비 JSON.stringify try/catch\n\n4. 에러 처리:\n   - 파싱 실패 시 원본 코드를 그대로 반환 (계측 없이 실행)\n   - 로그 메시지로 파싱 실패 사유 기록",
       "dependsOn": [
         "debugger-phase2-plan"
@@ -231,7 +231,7 @@
       "description": "TraceEntry 인터페이스를 정의하고 EventResponse에 traces 필드를 추가한다.",
       "phase": "phase2-instrumentation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/common/src/types/protocol.ts를 수정하라.\n\n1. TraceEntry 인터페이스 추가:\n   interface TraceEntry {\n     line: number;\n     column: number;\n     timestamp: number;\n     variables: Record<string, string>;\n     duration?: number;\n   }\n\n2. EventResponse에 traces 필드 추가:\n   traces?: TraceEntry[]\n\n3. TraceEntry를 export에 추가하라.\n\n4. POST /api/debug/execute 응답에도 traces를 포함할 수 있도록 타입을 확장하라.",
       "dependsOn": [
         "debugger-phase2-plan"
