@@ -60,7 +60,7 @@
       "description": "EventEngine.extractPatches()에서 logs 배열과 errorLine을 EventResponse에 포함시킨다.",
       "phase": "phase1-console-debug",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "packages/server/src/services/EventEngine.ts를 수정하라.\n\n1. executeEvent() 메서드에서 SandboxResult의 logs를 EventResponse에 포함시켜라:\n   - result.value에서 logs 배열을 추출\n   - EventResponse에 logs 필드로 전달\n\n2. 에러 발생 시 errorLine을 EventResponse에 포함시켜라:\n   - SandboxResult.errorLine이 있으면 EventResponse.errorLine으로 전달\n\n3. extractPatches()에서 logs를 별도로 처리하라:\n   - logs는 UIPatch가 아닌 EventResponse의 직접 필드로 전달\n\n기존 패치 생성 로직(controls diff, messages → showDialog)은 변경하지 마라.",
       "dependsOn": [
         "debugger-console-inject",
@@ -78,7 +78,7 @@
       "description": "Designer에서 코드를 테스트 실행할 수 있는 POST /api/debug/execute 엔드포인트를 추가한다.",
       "phase": "phase1-console-debug",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "Designer에서 이벤트 코드를 저장 없이 바로 테스트 실행할 수 있는 API를 구현하라.\n\n1. packages/server/src/routes/debug.ts 생성:\n   - POST /api/debug/execute\n   - Request body: { code: string, formState: Record<string, Record<string, unknown>>, controlId?: string }\n   - SandboxRunner.runCode()로 코드 실행\n   - Response: { success, logs, error?, errorLine?, controlChanges? }\n   - 이 엔드포인트는 development 환경에서만 동작 (NODE_ENV === 'production'이면 404 반환)\n\n2. packages/server/src/routes/index.ts에 debug 라우터 등록\n\n3. 보안 고려사항:\n   - 타임아웃: 기본 5초 (env.SANDBOX_TIMEOUT_MS 사용)\n   - 메모리 제한: 기본 128MB (env.SANDBOX_MEMORY_LIMIT_MB 사용)\n   - production 환경에서 비활성화",
       "dependsOn": [
         "debugger-console-inject",
