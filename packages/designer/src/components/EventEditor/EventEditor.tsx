@@ -10,6 +10,21 @@ interface DebugLogEntry {
   timestamp: number;
 }
 
+interface TraceEntry {
+  line: number;
+  column: number;
+  timestamp: number;
+  variables: Record<string, string>;
+  duration?: number;
+}
+
+interface ExecutionSummary {
+  executedLines: number;
+  totalLines: number;
+  executionTime: number;
+  trackedVars: number;
+}
+
 interface EventEditorProps {
   controlId: string;
   eventName: string;
@@ -232,11 +247,22 @@ ctx.controls.lblStatus.text = "${controlName} 더블클릭됨";
 `;
 }
 
+/** CSS content 속성에 사용할 문자열 이스케이프 */
+function escapeCssContent(text: string): string {
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, '\\27 ')
+    .replace(/\n/g, ' ')
+    .replace(/\r/g, '');
+}
+
 export function EventEditor({ controlId, eventName, handlerName, onClose }: EventEditorProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<MonacoInstance | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
+  const traceDecorationIdsRef = useRef<string[]>([]);
+  const debugStyleRef = useRef<HTMLStyleElement | null>(null);
   const updateControl = useDesignerStore((s) => s.updateControl);
   const controls = useDesignerStore((s) => s.controls);
 
@@ -244,6 +270,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
   const [logs, setLogs] = useState<DebugLogEntry[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [runStatus, setRunStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [executionSummary, setExecutionSummary] = useState<ExecutionSummary | null>(null);
 
   const control = controls.find((c) => c.id === controlId);
   const existingHandlers = (control?.properties._eventHandlers ?? {}) as Record<string, string>;
@@ -251,6 +278,16 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
 
   const initialCode = existingCode[handlerName] ??
     getSampleCode(control?.name ?? controlId, control?.type ?? 'Button', eventName, handlerName);
+
+  // 동적 CSS 스타일 엘리먼트 정리
+  useEffect(() => {
+    return () => {
+      if (debugStyleRef.current) {
+        debugStyleRef.current.remove();
+        debugStyleRef.current = null;
+      }
+    };
+  }, []);
 
   const clearMarkers = useCallback(() => {
     const editor = editorRef.current;
@@ -262,6 +299,25 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     }
     decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, []);
   }, []);
+
+  /** trace 데코레이션 + 동적 CSS + 실행 요약 초기화 */
+  const clearDebugDecorations = useCallback(() => {
+    const editor = editorRef.current;
+    if (editor) {
+      traceDecorationIdsRef.current = editor.deltaDecorations(traceDecorationIdsRef.current, []);
+    }
+    if (debugStyleRef.current) {
+      debugStyleRef.current.textContent = '';
+    }
+    setExecutionSummary(null);
+  }, []);
+
+  /** 모든 디버그 시각화 초기화 (Clear Debug 버튼용) */
+  const clearAllDebug = useCallback(() => {
+    clearMarkers();
+    clearDebugDecorations();
+    setRunStatus('idle');
+  }, [clearMarkers, clearDebugDecorations]);
 
   const setErrorMarker = useCallback((line: number, message: string) => {
     const editor = editorRef.current;
@@ -322,6 +378,126 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     ]);
   }, []);
 
+  /** trace 데이터를 기반으로 인라인 변수값, 실행 흐름, 느린 줄 데코레이션 적용 */
+  const applyTraceDecorations = useCallback((traces: TraceEntry[], executionTime: number) => {
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!editor || !monaco || traces.length === 0) return;
+    const model = editor.getModel();
+    if (!model) return;
+
+    // 줄별 변수 집계 (마지막 trace가 우선)
+    const lineVars = new Map<number, Record<string, string>>();
+    const lineDuration = new Map<number, number>();
+    const allVarNames = new Set<string>();
+
+    for (const trace of traces) {
+      const prev = lineVars.get(trace.line) ?? {};
+      lineVars.set(trace.line, { ...prev, ...trace.variables });
+      if (trace.duration != null) {
+        lineDuration.set(trace.line, Math.max(lineDuration.get(trace.line) ?? 0, trace.duration));
+      }
+      for (const v of Object.keys(trace.variables)) allVarNames.add(v);
+    }
+
+    const totalLines = model.getLineCount();
+    const executedLineNums = new Set(lineVars.keys());
+
+    // 코드 줄 수 계산 (빈 줄, 순수 주석 줄 제외)
+    let codeLineCount = 0;
+    for (let i = 1; i <= totalLines; i++) {
+      const content = model.getLineContent(i).trim();
+      if (content && !content.startsWith('//')) codeLineCount++;
+    }
+
+    setExecutionSummary({
+      executedLines: executedLineNums.size,
+      totalLines: codeLineCount,
+      executionTime,
+      trackedVars: allVarNames.size,
+    });
+
+    // 데코레이션 및 CSS 규칙 구성
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const decorations: Array<{ range: any; options: any }> = [];
+    const cssRules: string[] = [];
+
+    for (let line = 1; line <= totalLines; line++) {
+      const lineContent = model.getLineContent(line).trim();
+      if (!lineContent) continue; // 빈 줄 건너뛰기
+
+      if (executedLineNums.has(line)) {
+        // 실행된 줄: 녹색 glyph
+        decorations.push({
+          range: new monaco.Range(line, 1, line, 1),
+          options: {
+            isWholeLine: false,
+            glyphMarginClassName: 'debug-executed-glyph',
+          },
+        });
+
+        // 인라인 변수값 표시
+        const vars = lineVars.get(line)!;
+        const entries = Object.entries(vars);
+        if (entries.length > 0) {
+          const text = entries.map(([k, v]) => `${k} = ${v}`).join(', ');
+          const escaped = escapeCssContent(text);
+          const className = `debug-inline-val-L${line}`;
+          cssRules.push(
+            `.monaco-editor .${className}::after { content: '  ${escaped}'; }`,
+          );
+
+          decorations.push({
+            range: new monaco.Range(
+              line,
+              model.getLineMaxColumn(line),
+              line,
+              model.getLineMaxColumn(line),
+            ),
+            options: {
+              afterContentClassName: className,
+            },
+          });
+        }
+
+        // 느린 줄 하이라이트 (100ms 초과)
+        const dur = lineDuration.get(line);
+        if (dur && dur > 100) {
+          decorations.push({
+            range: new monaco.Range(line, 1, line, 1),
+            options: {
+              isWholeLine: true,
+              className: 'debug-slow-line',
+            },
+          });
+        }
+      } else if (!lineContent.startsWith('//')) {
+        // 실행되지 않은 코드 줄: 회색 배경
+        decorations.push({
+          range: new monaco.Range(line, 1, line, 1),
+          options: {
+            isWholeLine: true,
+            className: 'debug-unexecuted-line',
+          },
+        });
+      }
+    }
+
+    // 동적 CSS 주입
+    if (!debugStyleRef.current) {
+      debugStyleRef.current = document.createElement('style');
+      debugStyleRef.current.setAttribute('data-debug-inline', 'true');
+      document.head.appendChild(debugStyleRef.current);
+    }
+    debugStyleRef.current.textContent = cssRules.join('\n');
+
+    // 데코레이션 적용
+    traceDecorationIdsRef.current = editor.deltaDecorations(
+      traceDecorationIdsRef.current,
+      decorations,
+    );
+  }, []);
+
   const save = useCallback(() => {
     if (!editorRef.current || !control) return;
     const code = editorRef.current.getValue();
@@ -346,13 +522,14 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
 
     // 이전 마커/데코레이션 제거
     clearMarkers();
+    clearDebugDecorations();
 
     const code = editorRef.current.getValue();
     try {
       const res = await fetch('/api/debug/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, formState: {} }),
+        body: JSON.stringify({ code, formState: {}, debugMode: true }),
       });
       const data = await res.json();
 
@@ -360,7 +537,14 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         const newLogs: DebugLogEntry[] = Array.isArray(data.logs) ? data.logs : [];
         setLogs((prev) => [...prev, ...newLogs]);
         setRunStatus('success');
-        setSuccessDecoration();
+
+        // trace 데코레이션 적용
+        const traces: TraceEntry[] = Array.isArray(data.traces) ? data.traces : [];
+        if (traces.length > 0) {
+          applyTraceDecorations(traces, data.executionTime ?? 0);
+        } else {
+          setSuccessDecoration();
+        }
       } else {
         const errorLog: DebugLogEntry = {
           type: 'error',
@@ -370,6 +554,12 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         const newLogs: DebugLogEntry[] = Array.isArray(data.logs) ? [...data.logs, errorLog] : [errorLog];
         setLogs((prev) => [...prev, ...newLogs]);
         setRunStatus('error');
+
+        // trace 데코레이션 적용 (에러 전까지 실행된 부분)
+        const traces: TraceEntry[] = Array.isArray(data.traces) ? data.traces : [];
+        if (traces.length > 0) {
+          applyTraceDecorations(traces, data.executionTime ?? 0);
+        }
 
         // 에러 줄에 마커 및 데코레이션 설정
         if (typeof data.errorLine === 'number' && data.errorLine > 0) {
@@ -389,7 +579,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     } finally {
       setIsRunning(false);
     }
-  }, [isRunning, consoleVisible, clearMarkers, setErrorMarker, setSuccessDecoration]);
+  }, [isRunning, consoleVisible, clearMarkers, clearDebugDecorations, setErrorMarker, setSuccessDecoration, applyTraceDecorations]);
 
   const handleMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
@@ -422,6 +612,25 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     // F5로 실행
     editor.addCommand(monaco.KeyCode.F5, () => {
       runCode();
+    });
+
+    // 코드 편집 시 디버그 데코레이션 제거
+    editor.onDidChangeModelContent(() => {
+      const ed = editorRef.current;
+      if (ed) {
+        traceDecorationIdsRef.current = ed.deltaDecorations(traceDecorationIdsRef.current, []);
+        decorationIdsRef.current = ed.deltaDecorations(decorationIdsRef.current, []);
+      }
+      if (debugStyleRef.current) {
+        debugStyleRef.current.textContent = '';
+      }
+      const m = monacoRef.current;
+      if (m) {
+        const model = ed?.getModel();
+        if (model) m.editor.setModelMarkers(model, 'debugger', []);
+      }
+      setExecutionSummary(null);
+      setRunStatus('idle');
     });
 
     editor.focus();
@@ -472,6 +681,26 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           height: 8px !important;
           margin-top: 6px;
         }
+        .debug-executed-glyph {
+          background-color: #4caf50;
+          border-radius: 50%;
+          margin-left: 4px;
+          width: 6px !important;
+          height: 6px !important;
+          margin-top: 7px;
+        }
+        .debug-unexecuted-line {
+          background-color: rgba(128, 128, 128, 0.1);
+        }
+        .debug-slow-line {
+          background-color: rgba(255, 193, 7, 0.15);
+        }
+        .monaco-editor [class*="debug-inline-val-L"]::after {
+          color: rgba(136, 136, 136, 0.8);
+          font-style: italic;
+          padding-left: 16px;
+          font-size: 12px;
+        }
       `}</style>
       <div
         style={{
@@ -513,6 +742,13 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
               }}
             >
               {isRunning ? 'Running...' : '▶ Run'}
+            </button>
+            <button
+              type="button"
+              onClick={clearAllDebug}
+              style={headerBtnStyle}
+            >
+              Clear Debug
             </button>
             <button
               type="button"
@@ -560,7 +796,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
 
         {/* 디버그 콘솔 */}
         {consoleVisible && (
-          <DebugConsole logs={logs} onClear={() => setLogs([])} />
+          <DebugConsole
+            logs={logs}
+            onClear={() => setLogs([])}
+            executionSummary={executionSummary}
+          />
         )}
 
         {/* 하단 상태 바 */}
@@ -598,7 +838,15 @@ function formatTimestamp(ts: number): string {
     + '.' + String(d.getMilliseconds()).padStart(3, '0');
 }
 
-function DebugConsole({ logs, onClear }: { logs: DebugLogEntry[]; onClear: () => void }) {
+function DebugConsole({
+  logs,
+  onClear,
+  executionSummary,
+}: {
+  logs: DebugLogEntry[];
+  onClear: () => void;
+  executionSummary: ExecutionSummary | null;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -646,6 +894,30 @@ function DebugConsole({ logs, onClear }: { logs: DebugLogEntry[]; onClear: () =>
           Clear
         </button>
       </div>
+
+      {/* 실행 요약 */}
+      {executionSummary && (
+        <div
+          style={{
+            padding: '4px 10px',
+            backgroundColor: '#1a3a1a',
+            color: '#8cc88c',
+            fontSize: 11,
+            fontFamily: 'Consolas, monospace',
+            borderBottom: '1px solid #333',
+            display: 'flex',
+            gap: 16,
+          }}
+        >
+          <span>
+            {executionSummary.executedLines}/{executionSummary.totalLines} lines executed
+          </span>
+          <span>|</span>
+          <span>{executionSummary.executionTime}ms</span>
+          <span>|</span>
+          <span>{executionSummary.trackedVars} variables tracked</span>
+        </div>
+      )}
 
       {/* 로그 목록 */}
       <div
