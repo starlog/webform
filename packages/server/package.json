@@ -23,6 +23,7 @@
     "ioredis": "^5.4.0",
     "isolated-vm": "^5.0.0",
     "jsonwebtoken": "^9.0.0",
+    "mongodb": "^7.1.0",
     "mongoose": "^8.9.0",
     "morgan": "^1.10.0",
     "ws": "^8.18.0",
