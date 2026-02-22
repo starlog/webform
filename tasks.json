@@ -128,7 +128,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 공통 타입 패키지(@webform/common) 구현 계획을 수립하라. PRD.md의 섹션 3.3(폼 정의 스키마)과 섹션 4.2.2(UIPatch 프로토콜)를 분석하여 다음 타입들의 완전한 구조를 설계하라:\n\n1. FormDefinition, FormProperties 타입\n2. ControlDefinition 타입 (id, type, name, properties, position, size, children, anchor, dock, tabIndex, visible, enabled)\n3. ControlType 유니언 타입: PRD 4.1.2의 모든 컨트롤 25종\n4. AnchorStyle, DockStyle 타입\n5. EventHandlerDefinition 타입\n6. DataSourceDefinition, DataBindingDefinition 타입\n7. UIPatch 인터페이스 (updateProperty, addControl, removeControl, showDialog, navigate)\n8. WebSocket 메시지 타입\n9. FormContext 인터페이스 (서버 이벤트 핸들러용)\n10. validation.ts: validateFormDefinition, sanitizeQueryInput (NoSQL 인젝션 방지)\n11. serialization.ts: serialize/deserialize FormDefinition\n\n계획을 plans/common-types-plan.md에 상세히 작성하라.",
       "dependsOn": [
         "monorepo-setup-commit"
@@ -147,7 +147,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/common-types-plan.md에 따라 @webform/common 패키지를 완전히 구현하라.\n\n1. packages/common/src/types/form.ts:\n   - FontDefinition 인터페이스\n   - FormProperties 인터페이스 (title, width, height, backgroundColor, font, startPosition, formBorderStyle, maximizeBox, minimizeBox)\n   - ControlType 유니언: 'Button'|'Label'|'TextBox'|'CheckBox'|'RadioButton'|'ComboBox'|'ListBox'|'NumericUpDown'|'DateTimePicker'|'ProgressBar'|'PictureBox'|'Panel'|'GroupBox'|'TabControl'|'SplitContainer'|'DataGridView'|'BindingNavigator'|'Chart'|'TreeView'|'ListView'|'MenuStrip'|'ToolStrip'|'StatusStrip'|'RichTextBox'|'WebBrowser'\n   - AnchorStyle, DockStyle 타입\n   - ControlDefinition, FormDefinition 인터페이스\n\n2. packages/common/src/types/events.ts:\n   - EventHandlerDefinition 인터페이스\n   - COMMON_EVENTS 상수 배열\n   - CONTROL_EVENTS: 컨트롤별 추가 이벤트 맵\n   - FormContext, EventArgs 인터페이스\n\n3. packages/common/src/types/datasource.ts:\n   - DataSourceDefinition (type: 'database'|'restApi'|'static')\n   - DatabaseConfig, RestApiConfig, StaticConfig, AuthConfig\n   - DataBindingDefinition (bindingMode: 'oneWay'|'twoWay'|'oneTime')\n\n4. packages/common/src/types/protocol.ts:\n   - UIPatch 인터페이스\n   - EventRequest, EventResponse 인터페이스\n   - WebSocket 메시지 타입 유니언\n\n5. packages/common/src/utils/validation.ts:\n   - validateFormDefinition, validateControlDefinition\n   - sanitizeQueryInput: $where, $function, $accumulator 등 위험 연산자 제거\n\n6. packages/common/src/utils/serialization.ts:\n   - serializeFormDefinition, deserializeFormDefinition\n\n7. packages/common/src/index.ts: 모든 타입/유틸 re-export",
       "dependsOn": [
         "common-types-plan"
@@ -178,7 +178,7 @@
       "description": null,
       "phase": "phase1-foundation",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "packages/common 패키지의 타입과 유틸리티를 테스트하라.\n\n1. packages/common/src/__tests__/validation.test.ts:\n   - validateFormDefinition: 올바른 FormDefinition → true, 필수 필드 누락 → false\n   - sanitizeQueryInput: { $where: '...' } → $where 제거 확인\n   - sanitizeQueryInput: { name: '홍길동' } → 변경 없이 통과\n   - sanitizeQueryInput: 중첩된 $where 제거 확인\n   - { $regex: /test/ } → 허용 확인\n\n2. packages/common/src/__tests__/serialization.test.ts:\n   - FormDefinition 직렬화 → 역직렬화 라운드트립\n   - 중첩 children 포함 FormDefinition 테스트\n   - 잘못된 JSON 역직렬화 시 에러\n\n3. packages/common/src/__tests__/events.test.ts:\n   - COMMON_EVENTS에 'Click', 'MouseEnter' 포함 확인\n   - CONTROL_EVENTS['TextBox']에 'TextChanged' 포함 확인\n\n실행: pnpm --filter @webform/common test && pnpm --filter @webform/common tsc --noEmit\n모든 테스트 통과 확인. 실패 시 즉시 수정하라.",
       "dependsOn": [
         "common-types-impl"
