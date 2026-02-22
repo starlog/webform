@@ -1,5 +1,6 @@
 import type { WebSocket } from 'ws';
 import type { IncomingMessage } from 'node:http';
+import type { DesignerWsMessage } from '@webform/common';
 
 const rooms = new Map<string, Set<WebSocket>>();
 
@@ -13,13 +14,31 @@ export function handleDesignerConnection(ws: WebSocket, req: IncomingMessage): v
   rooms.get(formId)!.add(ws);
 
   ws.on('message', (data) => {
-    const clients = rooms.get(formId);
-    if (!clients) return;
+    try {
+      const message = JSON.parse(data.toString()) as DesignerWsMessage;
 
-    for (const client of clients) {
-      if (client !== ws && client.readyState === ws.OPEN) {
-        client.send(data);
+      if (!message.type || !message.payload) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          payload: { code: 'INVALID_MESSAGE', message: 'Missing type or payload' },
+        }));
+        return;
       }
+
+      const clients = rooms.get(formId);
+      if (!clients) return;
+
+      const serialized = JSON.stringify(message);
+      for (const client of clients) {
+        if (client !== ws && client.readyState === ws.OPEN) {
+          client.send(serialized);
+        }
+      }
+    } catch {
+      ws.send(JSON.stringify({
+        type: 'error',
+        payload: { code: 'INVALID_MESSAGE', message: 'Invalid JSON' },
+      }));
     }
   });
 
@@ -29,4 +48,16 @@ export function handleDesignerConnection(ws: WebSocket, req: IncomingMessage): v
       rooms.delete(formId);
     }
   });
+}
+
+export function broadcastToDesigners(formId: string, message: DesignerWsMessage): void {
+  const clients = rooms.get(formId);
+  if (!clients) return;
+
+  const serialized = JSON.stringify(message);
+  for (const client of clients) {
+    if (client.readyState === 1 /* OPEN */) {
+      client.send(serialized);
+    }
+  }
 }
