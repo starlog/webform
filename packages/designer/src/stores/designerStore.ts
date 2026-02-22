@@ -26,6 +26,7 @@ interface DesignerState {
   formProperties: FormProperties;
   isDirty: boolean;
   currentFormId: string | null;
+  currentProjectId: string | null;
   gridSize: number;
 
   addControl: (control: ControlDefinition) => void;
@@ -40,6 +41,7 @@ interface DesignerState {
   setGridSize: (size: number) => void;
   loadForm: (formId: string, controls: ControlDefinition[], properties: FormProperties) => void;
   markClean: () => void;
+  setCurrentProject: (projectId: string | null) => void;
 }
 
 // 컨트롤 타입별 기본 크기
@@ -140,6 +142,7 @@ export const useDesignerStore = create<DesignerState>()(
     formProperties: DEFAULT_FORM_PROPERTIES,
     isDirty: false,
     currentFormId: null,
+    currentProjectId: null,
     gridSize: 8,
 
     addControl: (control) => set((state) => {
@@ -219,6 +222,10 @@ export const useDesignerStore = create<DesignerState>()(
 
     markClean: () => set((state) => {
       state.isDirty = false;
+    }),
+
+    setCurrentProject: (projectId) => set((state) => {
+      state.currentProjectId = projectId;
     }),
   })),
 );
