@@ -64,13 +64,12 @@ export function useEventHandlers(
       const propName = eventNameToProp(evt.eventName);
 
       if (evt.handlerType === 'client') {
-        result[propName] = (args?: Partial<EventArgs>) => {
+        result[propName] = () => {
           const ctx = createFormContext(controlId, getFormId, getControlStates, updateControlState);
           const sender = createControlProxy(controlId, getControlStates, updateControlState);
           const eventArgs: EventArgs = {
             type: evt.eventName,
             timestamp: Date.now(),
-            ...args,
           };
           try {
             const fn = new Function('sender', 'e', 'ctx', evt.handlerCode);
@@ -81,12 +80,11 @@ export function useEventHandlers(
         };
       } else {
         // server event
-        result[propName] = async (args?: Partial<EventArgs>) => {
+        result[propName] = async () => {
           const formId = getFormId();
           const eventArgs: EventArgs = {
             type: evt.eventName,
             timestamp: Date.now(),
-            ...args,
           };
           try {
             const response = await apiClient.postEvent(formId, {

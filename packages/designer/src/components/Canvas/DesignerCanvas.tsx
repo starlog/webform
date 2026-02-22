@@ -4,7 +4,7 @@ import type { ControlType, ControlDefinition } from '@webform/common';
 import { useDesignerStore, createDefaultControl } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore } from '../../stores/historyStore';
-import { snapPositionToGrid, getSnaplines } from '../../utils/snapGrid';
+import { snapPositionToGrid } from '../../utils/snapGrid';
 import type { Snapline as SnaplineType } from '../../utils/snapGrid';
 import { CanvasControl, DragItemTypes } from './CanvasControl';
 import { Snapline } from './Snapline';
@@ -46,49 +46,25 @@ export function DesignerCanvas() {
 
   const canvasRef = useRef<HTMLDivElement | null>(null);
 
-  // --- Drop target: 도구상자에서 새 컨트롤 드롭 + 기존 컨트롤 이동 ---
+  // --- Drop target: 도구상자에서 새 컨트롤 드롭 ---
   const [{ isOver }, dropRef] = useDrop(() => ({
-    accept: [DragItemTypes.TOOLBOX_CONTROL, DragItemTypes.CANVAS_CONTROL],
-    hover: (item: { type?: ControlType; id?: string; originalPosition?: { x: number; y: number } }, monitor) => {
-      // 캔버스 내 이동 시 스냅라인 계산
-      if (item.id && item.originalPosition) {
-        const delta = monitor.getDifferenceFromInitialOffset();
-        if (!delta) return;
-        const newPos = {
-          x: item.originalPosition.x + delta.x,
-          y: item.originalPosition.y + delta.y,
-        };
-        const currentControls = useDesignerStore.getState().controls;
-        const movingControl = currentControls.find((c) => c.id === item.id);
-        if (movingControl) {
-          const others = currentControls.filter((c) => c.id !== item.id);
-          const lines = getSnaplines(
-            { position: newPos, size: movingControl.size },
-            others,
-          );
-          setSnaplines(lines);
-        }
-      }
-    },
-    drop: (item: { type?: ControlType; id?: string; originalPosition?: { x: number; y: number } }, monitor) => {
-      // 도구상자에서 새 컨트롤 드롭
-      if (item.type && !item.id) {
-        const offset = monitor.getClientOffset();
-        if (!offset || !canvasRef.current) return;
+    accept: [DragItemTypes.TOOLBOX_CONTROL],
+    drop: (item: { type: ControlType }, monitor) => {
+      const offset = monitor.getClientOffset();
+      if (!offset || !canvasRef.current) return;
 
-        const canvasRect = canvasRef.current.getBoundingClientRect();
-        const position = snapPositionToGrid({
-          x: offset.x - canvasRect.left,
-          y: offset.y - canvasRect.top,
-        }, gridSize);
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      const position = snapPositionToGrid({
+        x: offset.x - canvasRect.left,
+        y: offset.y - canvasRect.top,
+      }, gridSize);
 
-        // 변경 전 스냅샷 저장
-        const snapshot = JSON.stringify(useDesignerStore.getState().controls);
-        useHistoryStore.getState().pushSnapshot(snapshot);
+      // 변경 전 스냅샷 저장
+      const snapshot = JSON.stringify(useDesignerStore.getState().controls);
+      useHistoryStore.getState().pushSnapshot(snapshot);
 
-        const control = createDefaultControl(item.type, position);
-        addControl(control);
-      }
+      const control = createDefaultControl(item.type, position);
+      addControl(control);
 
       setSnaplines([]);
     },

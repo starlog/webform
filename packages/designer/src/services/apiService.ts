@@ -87,10 +87,23 @@ interface ExportProjectData {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const API_BASE = ((import.meta as any).env?.VITE_API_URL as string | undefined) ?? '/api';
 
+let authToken: string | null = null;
+
+async function ensureAuth(): Promise<void> {
+  if (authToken) return;
+  const res = await fetch('/auth/dev-token', { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to obtain dev token');
+  const { token } = await res.json();
+  authToken = token;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  await ensureAuth();
+
   const res = await fetch(`${API_BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...options?.headers,
     },
     ...options,
@@ -125,6 +138,11 @@ export const apiService = {
       method: 'PUT',
       body: JSON.stringify(form),
     });
+  },
+
+  // 폼 퍼블리시
+  async publishForm(id: string): Promise<{ data: FormDocument }> {
+    return request(`/forms/${id}/publish`, { method: 'POST' });
   },
 
   // 폼 생성
@@ -177,6 +195,42 @@ export const apiService = {
   },
 };
 
+// --- 컨트롤에서 eventHandlers 배열 추출 ---
+
+function extractEventHandlers(controls: ControlDefinition[]): Array<{
+  controlId: string;
+  eventName: string;
+  handlerType: 'server';
+  handlerCode: string;
+}> {
+  const handlers: Array<{
+    controlId: string;
+    eventName: string;
+    handlerType: 'server';
+    handlerCode: string;
+  }> = [];
+
+  for (const control of controls) {
+    const eventMap = control.properties._eventHandlers as Record<string, string> | undefined;
+    const codeMap = control.properties._eventCode as Record<string, string> | undefined;
+    if (!eventMap || !codeMap) continue;
+
+    for (const [eventName, handlerName] of Object.entries(eventMap)) {
+      const code = codeMap[handlerName];
+      if (code) {
+        handlers.push({
+          controlId: control.id,
+          eventName,
+          handlerType: 'server',
+          handlerCode: code,
+        });
+      }
+    }
+  }
+
+  return handlers;
+}
+
 // --- Auto-save 훅 ---
 
 const AUTO_SAVE_INTERVAL = 30_000; // 30초
@@ -196,6 +250,7 @@ export function useAutoSave() {
       await apiService.saveForm(currentFormId, {
         controls,
         properties: formProperties,
+        eventHandlers: extractEventHandlers(controls),
       });
       markClean();
     } catch (error) {

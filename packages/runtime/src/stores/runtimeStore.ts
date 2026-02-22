@@ -2,15 +2,23 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { FormDefinition, ControlDefinition, UIPatch } from '@webform/common';
 
+export interface DialogMessage {
+  text: string;
+  title: string;
+  dialogType: 'info' | 'warning' | 'error' | 'success';
+}
+
 export interface RuntimeState {
   currentFormDef: FormDefinition | null;
   controlStates: Record<string, Record<string, unknown>>;
+  dialogQueue: DialogMessage[];
 
   setFormDef: (def: FormDefinition) => void;
   updateControlState: (controlId: string, property: string, value: unknown) => void;
   getControlState: (controlId: string) => Record<string, unknown>;
   applyPatch: (patch: UIPatch) => void;
   applyPatches: (patches: UIPatch[]) => void;
+  dismissDialog: () => void;
 }
 
 function initControlStates(
@@ -61,6 +69,7 @@ export const useRuntimeStore = create<RuntimeState>()(
   immer((set, get) => ({
     currentFormDef: null,
     controlStates: {},
+    dialogQueue: [],
 
     setFormDef: (def) =>
       set((state) => {
@@ -115,7 +124,15 @@ export const useRuntimeStore = create<RuntimeState>()(
             }
             break;
           }
-          case 'showDialog':
+          case 'showDialog': {
+            const payload = patch.payload as { text?: string; title?: string; dialogType?: string };
+            state.dialogQueue.push({
+              text: payload.text ?? '',
+              title: payload.title ?? '',
+              dialogType: (payload.dialogType as DialogMessage['dialogType']) ?? 'info',
+            });
+            break;
+          }
           case 'navigate':
             console.warn(`Patch type '${patch.type}' not yet implemented`, patch.payload);
             break;
@@ -157,12 +174,25 @@ export const useRuntimeStore = create<RuntimeState>()(
               }
               break;
             }
-            case 'showDialog':
+            case 'showDialog': {
+              const payload = patch.payload as { text?: string; title?: string; dialogType?: string };
+              state.dialogQueue.push({
+                text: payload.text ?? '',
+                title: payload.title ?? '',
+                dialogType: (payload.dialogType as DialogMessage['dialogType']) ?? 'info',
+              });
+              break;
+            }
             case 'navigate':
               console.warn(`Patch type '${patch.type}' not yet implemented`, patch.payload);
               break;
           }
         }
+      }),
+
+    dismissDialog: () =>
+      set((state) => {
+        state.dialogQueue.shift();
       }),
   })),
 );

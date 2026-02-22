@@ -61,16 +61,33 @@ export class EventEngine {
     before: Record<string, Record<string, unknown>>,
     resultValue: unknown,
   ): UIPatch[] {
+    const patches: UIPatch[] = [];
+
     if (
       resultValue
       && typeof resultValue === 'object'
       && 'controls' in (resultValue as Record<string, unknown>)
     ) {
-      const after = (resultValue as Record<string, unknown>)
-        .controls as Record<string, Record<string, unknown>>;
-      return diffToPatches(before, after);
+      const rv = resultValue as Record<string, unknown>;
+      const after = rv.controls as Record<string, Record<string, unknown>>;
+      patches.push(...diffToPatches(before, after));
+
+      if (Array.isArray(rv.messages)) {
+        for (const msg of rv.messages) {
+          const m = msg as Record<string, unknown>;
+          patches.push({
+            type: 'showDialog',
+            target: '_system',
+            payload: {
+              text: String(m.text ?? ''),
+              title: String(m.title ?? ''),
+              dialogType: String(m.dialogType ?? 'info'),
+            },
+          });
+        }
+      }
     }
 
-    return [];
+    return patches;
   }
 }

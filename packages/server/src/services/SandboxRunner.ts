@@ -69,8 +69,19 @@ export class SandboxRunner {
   private wrapHandlerCode(code: string): string {
     return `
       (function(ctx) {
-        ${code}
-        return { controls: ctx.controls };
+        var __messages = [];
+        ctx.showMessage = function(text, title, type) {
+          __messages.push({
+            text: String(text ?? ''),
+            title: String(title ?? ''),
+            dialogType: String(type ?? 'info')
+          });
+        };
+        var sender = ctx.sender;
+        (function() {
+          ${code}
+        })();
+        return { controls: ctx.controls, messages: __messages };
       })(__ctx__)
     `;
   }

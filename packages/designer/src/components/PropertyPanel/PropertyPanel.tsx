@@ -105,6 +105,32 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     updateControl(selectedControl.id, { properties: props });
   }, [selectedControl, updateControl]);
 
+  // 이벤트 핸들러 삭제
+  const handleDeleteHandler = useCallback((eventName: string) => {
+    if (!selectedControl) return;
+
+    const allControls = useDesignerStore.getState().controls;
+    pushSnapshot(JSON.stringify(allControls));
+
+    const currentHandlers = (selectedControl.properties._eventHandlers ?? {}) as Record<string, string>;
+    const currentCode = (selectedControl.properties._eventCode ?? {}) as Record<string, string>;
+    const handlerName = currentHandlers[eventName];
+
+    const updatedHandlers = { ...currentHandlers };
+    delete updatedHandlers[eventName];
+
+    const updatedCode = { ...currentCode };
+    if (handlerName) delete updatedCode[handlerName];
+
+    updateControl(selectedControl.id, {
+      properties: {
+        ...selectedControl.properties,
+        _eventHandlers: updatedHandlers,
+        _eventCode: updatedCode,
+      },
+    });
+  }, [selectedControl, updateControl, pushSnapshot]);
+
   // 이벤트 에디터 열기
   const handleOpenEditor = useCallback((eventName: string, handlerName: string) => {
     if (!selectedControl || !onOpenEventEditor) return;
@@ -204,6 +230,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
             eventHandlers={eventHandlers}
             onHandlerNameChange={handleEventHandlerChange}
             onOpenEditor={handleOpenEditor}
+            onDeleteHandler={handleDeleteHandler}
           />
         )}
       </div>

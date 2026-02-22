@@ -17,26 +17,58 @@ interface EventEditorState {
 
 export function App() {
   const [eventEditor, setEventEditor] = useState<EventEditorState | null>(null);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const { save } = useAutoSave();
   const isDirty = useDesignerStore((s) => s.isDirty);
   const formTitle = useDesignerStore((s) => s.formProperties.title);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
+  const [formStatus, setFormStatus] = useState<'draft' | 'published'>('draft');
 
   const handleOpenEventEditor = useCallback((controlId: string, eventName: string, handlerName: string) => {
     setEventEditor({ controlId, eventName, handlerName });
   }, []);
+
+  const showStatus = (msg: string) => {
+    setSaveStatus(msg);
+    setTimeout(() => setSaveStatus(null), 3000);
+  };
+
+  const handleSave = useCallback(async () => {
+    try {
+      await save();
+      showStatus('Saved');
+    } catch {
+      showStatus('Save failed');
+    }
+  }, [save]);
+
+  const handlePublish = useCallback(async () => {
+    if (!currentFormId) return;
+    try {
+      await save();
+      const { data } = await apiService.publishForm(currentFormId);
+      setFormStatus(data.status);
+      showStatus('Published');
+    } catch {
+      showStatus('Publish failed');
+    }
+  }, [currentFormId, save]);
+
+  const runtimeUrl = currentFormId
+    ? `${window.location.origin.replace(':3000', ':3001')}/?formId=${currentFormId}`
+    : null;
 
   // Ctrl+S 키보드 단축키
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        save();
+        handleSave();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [save]);
+  }, [handleSave]);
 
   const handleFormSelect = async (formId: string) => {
     try {
@@ -46,6 +78,7 @@ export function App() {
         data.controls,
         data.properties,
       );
+      setFormStatus(data.status);
     } catch (error) {
       console.error('Failed to load form:', error);
     }
@@ -59,7 +92,8 @@ export function App() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          height: 28,
+          gap: 8,
+          height: 32,
           padding: '0 12px',
           backgroundColor: '#f0f0f0',
           borderBottom: '1px solid #ccc',
@@ -70,13 +104,66 @@ export function App() {
         <span style={{ fontWeight: 600 }}>
           {currentFormId ? `${formTitle}${isDirty ? ' *' : ''}` : 'WebForm Designer'}
         </span>
+
+        {currentFormId && (
+          <>
+            <span style={{ color: '#aaa' }}>|</span>
+
+            <button type="button" onClick={handleSave} disabled={!isDirty} style={menuBtnStyle}>
+              Save
+            </button>
+            <button type="button" onClick={handlePublish} style={menuBtnStyle}>
+              Publish
+            </button>
+
+            <span style={{ color: '#aaa' }}>|</span>
+
+            <span style={{
+              fontSize: 11,
+              color: formStatus === 'published' ? '#2e7d32' : '#888',
+              fontWeight: 500,
+            }}>
+              {formStatus === 'published' ? 'Published' : 'Draft'}
+            </span>
+
+            {formStatus === 'published' && runtimeUrl && (
+              <>
+                <span style={{ color: '#aaa' }}>|</span>
+                <a
+                  href={runtimeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 11, color: '#0078d4', textDecoration: 'none' }}
+                  title={runtimeUrl}
+                >
+                  Open Runtime
+                </a>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard.writeText(runtimeUrl); showStatus('URL copied'); }}
+                  style={{ ...menuBtnStyle, fontSize: 11, padding: '1px 4px' }}
+                  title="Copy runtime URL"
+                >
+                  Copy URL
+                </button>
+              </>
+            )}
+
+            {saveStatus && (
+              <>
+                <span style={{ color: '#aaa' }}>|</span>
+                <span style={{ fontSize: 11, color: '#2e7d32', fontWeight: 500 }}>{saveStatus}</span>
+              </>
+            )}
+          </>
+        )}
       </div>
 
       <div
         className="designer-layout"
         style={{
           display: 'flex',
-          height: 'calc(100vh - 28px)',
+          height: 'calc(100vh - 32px)',
           fontFamily: 'Segoe UI, sans-serif',
         }}
       >
@@ -141,3 +228,13 @@ export function App() {
     </DndProvider>
   );
 }
+
+const menuBtnStyle: React.CSSProperties = {
+  padding: '2px 8px',
+  border: '1px solid #bbb',
+  borderRadius: 2,
+  backgroundColor: '#fff',
+  fontSize: 12,
+  cursor: 'pointer',
+  fontFamily: 'Segoe UI, sans-serif',
+};

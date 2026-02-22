@@ -7,6 +7,7 @@ interface EventsTabProps {
   eventHandlers: Record<string, string>;
   onHandlerNameChange: (eventName: string, handlerName: string) => void;
   onOpenEditor: (eventName: string, handlerName: string) => void;
+  onDeleteHandler: (eventName: string) => void;
 }
 
 export function EventsTab({
@@ -16,6 +17,7 @@ export function EventsTab({
   eventHandlers,
   onHandlerNameChange,
   onOpenEditor,
+  onDeleteHandler,
 }: EventsTabProps) {
   return (
     <div>
@@ -27,6 +29,7 @@ export function EventsTab({
           handlerName={eventHandlers[eventName] ?? ''}
           onHandlerNameChange={(name) => onHandlerNameChange(eventName, name)}
           onOpenEditor={(name) => onOpenEditor(eventName, name)}
+          onDelete={() => onDeleteHandler(eventName)}
         />
       ))}
       {events.length === 0 && (
@@ -44,9 +47,10 @@ interface EventRowProps {
   handlerName: string;
   onHandlerNameChange: (name: string) => void;
   onOpenEditor: (name: string) => void;
+  onDelete: () => void;
 }
 
-function EventRow({ eventName, controlName, handlerName, onHandlerNameChange, onOpenEditor }: EventRowProps) {
+function EventRow({ eventName, controlName, handlerName, onHandlerNameChange, onOpenEditor, onDelete }: EventRowProps) {
   const [local, setLocal] = useState(handlerName);
 
   useEffect(() => {
@@ -124,6 +128,30 @@ function EventRow({ eventName, controlName, handlerName, onHandlerNameChange, on
           }}
         />
       </div>
+      {handlerName && (
+        <button
+          type="button"
+          title="이벤트 핸들러 삭제"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+            setLocal('');
+          }}
+          style={{
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            color: '#999',
+            fontSize: 14,
+            padding: '0 4px',
+            lineHeight: 1,
+          }}
+          onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#d32f2f'; }}
+          onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#999'; }}
+        >
+          ×
+        </button>
+      )}
     </div>
   );
 }

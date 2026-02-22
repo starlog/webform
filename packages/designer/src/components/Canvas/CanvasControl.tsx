@@ -1,16 +1,15 @@
-import { useDrag } from 'react-dnd';
+import { useRef } from 'react';
 import type { ControlDefinition, ControlType } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore } from '../../stores/historyStore';
-import { snapPositionToGrid } from '../../utils/snapGrid';
+import { snapPositionToGrid, getSnaplines } from '../../utils/snapGrid';
 import type { Snapline } from '../../utils/snapGrid';
 import { ResizeHandle, RESIZE_DIRECTIONS } from './ResizeHandle';
 import { getDesignerComponent } from '../../controls/registry';
 
 export const DragItemTypes = {
   TOOLBOX_CONTROL: 'TOOLBOX_CONTROL',
-  CANVAS_CONTROL: 'CANVAS_CONTROL',
 } as const;
 
 interface CanvasControlProps {
@@ -56,46 +55,87 @@ function ControlPreview({
 }
 
 export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasControlProps) {
-  const gridSize = useDesignerStore((s) => s.gridSize);
   const select = useSelectionStore((s) => s.select);
   const toggleSelect = useSelectionStore((s) => s.toggleSelect);
+  const isDragging = useRef(false);
 
-  const [{ isDragging }, dragRef] = useDrag(() => ({
-    type: DragItemTypes.CANVAS_CONTROL,
-    item: () => {
-      // 변경 전 스냅샷 저장
-      const snapshot = JSON.stringify(useDesignerStore.getState().controls);
-      useHistoryStore.getState().pushSnapshot(snapshot);
-      return { id: control.id, originalPosition: { ...control.position } };
-    },
-    end: (item, monitor) => {
-      const delta = monitor.getDifferenceFromInitialOffset();
-      if (delta && item) {
-        const newPos = snapPositionToGrid({
-          x: item.originalPosition.x + delta.x,
-          y: item.originalPosition.y + delta.y,
-        }, gridSize);
-        useDesignerStore.getState().moveControl(control.id, newPos);
-      }
-      onSnaplineChange([]);
-    },
-    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
-  }), [control.id, control.position, gridSize]);
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // 리사이즈 핸들 클릭은 무시
+    if ((e.target as HTMLElement).closest('.resize-handle')) return;
 
-  // 드래그 중 스냅라인 계산은 hover에서 처리 (DesignerCanvas의 useDrop hover에서)
-
-  const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (e.ctrlKey || e.metaKey) {
-      toggleSelect(control.id);
-    } else {
-      select(control.id);
-    }
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let moved = false;
+
+    const { controls, gridSize, moveControl } = useDesignerStore.getState();
+    const ctrl = controls.find((c) => c.id === control.id);
+    if (!ctrl) return;
+
+    const startPos = { ...ctrl.position };
+
+    // 변경 전 스냅샷 저장
+    const snapshot = JSON.stringify(controls);
+    useHistoryStore.getState().pushSnapshot(snapshot);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      if (!moved && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
+        moved = true;
+        isDragging.current = true;
+      }
+
+      if (moved) {
+        const newPos = snapPositionToGrid(
+          { x: startPos.x + deltaX, y: startPos.y + deltaY },
+          gridSize,
+        );
+        moveControl(control.id, newPos);
+
+        // 스냅라인 계산
+        const currentControls = useDesignerStore.getState().controls;
+        const movingCtrl = currentControls.find((c) => c.id === control.id);
+        if (movingCtrl) {
+          const others = currentControls.filter((c) => c.id !== control.id);
+          const lines = getSnaplines(
+            { position: newPos, size: movingCtrl.size },
+            others,
+          );
+          onSnaplineChange(lines);
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      onSnaplineChange([]);
+
+      if (!moved) {
+        // 이동하지 않았으면 선택 처리
+        if (e.ctrlKey || e.metaKey) {
+          toggleSelect(control.id);
+        } else {
+          select(control.id);
+        }
+      }
+
+      // isDragging 플래그 해제 (다음 틱에서)
+      requestAnimationFrame(() => {
+        isDragging.current = false;
+      });
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   return (
     <div
-      ref={dragRef as unknown as React.Ref<HTMLDivElement>}
       className={`canvas-control ${isSelected ? 'selected' : ''}`}
       style={{
         position: 'absolute',
@@ -103,14 +143,13 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
         top: control.position.y,
         width: control.size.width,
         height: control.size.height,
-        opacity: isDragging ? 0.5 : 1,
         border: isSelected ? '1px solid #0078D7' : '1px solid transparent',
         boxShadow: isSelected ? '0 0 0 1px #0078D7' : 'none',
         cursor: 'move',
         backgroundColor: 'transparent',
         boxSizing: 'border-box',
       }}
-      onClick={handleClick}
+      onMouseDown={handleMouseDown}
     >
       <ControlPreview type={control.type} properties={control.properties} size={control.size} />
 

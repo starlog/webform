@@ -5,6 +5,8 @@ import { useDataBinding } from '../hooks/useDataBinding';
 import { useEventHandlers } from '../hooks/useEventHandlers';
 import { computeLayoutStyle } from './layoutUtils';
 
+const EMPTY_STATE: Record<string, unknown> = {};
+
 interface ControlRendererProps {
   definition: ControlDefinition;
   bindings: DataBindingDefinition[];
@@ -18,7 +20,7 @@ export function ControlRenderer({ definition, bindings, events }: ControlRendere
     return null;
   }
 
-  const controlState = useRuntimeStore((s) => s.controlStates[definition.id] ?? {});
+  const controlState = useRuntimeStore((s) => s.controlStates[definition.id] ?? EMPTY_STATE);
   const boundProps = useDataBinding(definition.id, bindings);
   const eventHandlers = useEventHandlers(definition.id, events);
   const layoutStyle = computeLayoutStyle(definition);

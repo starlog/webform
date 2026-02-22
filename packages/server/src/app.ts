@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { requestId } from './middleware/requestId.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -45,6 +46,18 @@ export function createApp() {
       },
     });
   });
+
+  // --- 개발용 토큰 발급 (인증 불필요) ---
+  if (env.NODE_ENV === 'development') {
+    app.post('/auth/dev-token', (_req, res) => {
+      const token = jwt.sign(
+        { sub: 'dev-designer', role: 'admin' },
+        env.JWT_SECRET,
+        { expiresIn: env.JWT_EXPIRY },
+      );
+      res.json({ token });
+    });
+  }
 
   // --- API 라우트 ---
   app.use('/api', apiRouter);

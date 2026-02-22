@@ -163,7 +163,7 @@ importers:
         specifier: ^8.9.0
         version: 8.23.0
       morgan:
-        specifier: ^1.10.0
+        specifier: ^1.10.1
         version: 1.10.1
       ws:
         specifier: ^8.18.0
@@ -182,7 +182,7 @@ importers:
         specifier: ^9.0.0
         version: 9.0.10
       '@types/morgan':
-        specifier: ^1.9.9
+        specifier: ^1.9.10
         version: 1.9.10
       '@types/supertest':
         specifier: ^6.0.3
