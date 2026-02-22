@@ -116,7 +116,7 @@
       "description": "에러 발생 시 해당 줄에 빨간 밑줄과 glyph margin 마커를 표시한다.",
       "phase": "phase1-console-debug",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "EventEditor.tsx를 수정하여 디버그 실행 결과의 에러를 Monaco 에디터에 시각적으로 표시하라.\n\n1. 에러 마커 표시:\n   - 디버그 실행 후 에러가 발생하면 monaco.editor.setModelMarkers()로 에러 줄에 마커 설정\n   - MarkerSeverity.Error로 빨간 물결 밑줄 표시\n   - 에러 메시지를 마커의 message로 설정\n   - 새로운 실행 시 이전 마커 제거\n\n2. 실행 성공 줄 하이라이트 (선택적):\n   - 성공적으로 실행 완료 시 녹색 상태 표시\n\n3. glyphMargin 활성화:\n   - Editor options에 glyphMargin: true 추가\n   - 에러 줄에 빨간 원 아이콘 표시 (CSS className으로 decoration)\n\n4. F5 키보드 단축키:\n   - editor.addCommand로 F5 → Run 실행 바인딩\n   - 상태 바에 F5 단축키 안내 추가\n\nCSS 스타일은 인라인 또는 <style> 태그로 추가하라 (별도 CSS 파일 불필요).",
       "dependsOn": [
         "debugger-editor-console-ui"

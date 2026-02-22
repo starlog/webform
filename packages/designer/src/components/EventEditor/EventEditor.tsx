@@ -2,6 +2,8 @@ import { useRef, useCallback, useEffect, useState } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import { useDesignerStore } from '../../stores/designerStore';
 
+type MonacoInstance = Parameters<OnMount>[1];
+
 interface DebugLogEntry {
   type: 'log' | 'warn' | 'error' | 'info';
   args: string[];
@@ -233,12 +235,15 @@ ctx.controls.lblStatus.text = "${controlName} 더블클릭됨";
 export function EventEditor({ controlId, eventName, handlerName, onClose }: EventEditorProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<MonacoInstance | null>(null);
+  const decorationIdsRef = useRef<string[]>([]);
   const updateControl = useDesignerStore((s) => s.updateControl);
   const controls = useDesignerStore((s) => s.controls);
 
   const [consoleVisible, setConsoleVisible] = useState(false);
   const [logs, setLogs] = useState<DebugLogEntry[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [runStatus, setRunStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const control = controls.find((c) => c.id === controlId);
   const existingHandlers = (control?.properties._eventHandlers ?? {}) as Record<string, string>;
@@ -246,6 +251,76 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
 
   const initialCode = existingCode[handlerName] ??
     getSampleCode(control?.name ?? controlId, control?.type ?? 'Button', eventName, handlerName);
+
+  const clearMarkers = useCallback(() => {
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!editor || !monaco) return;
+    const model = editor.getModel();
+    if (model) {
+      monaco.editor.setModelMarkers(model, 'debugger', []);
+    }
+    decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, []);
+  }, []);
+
+  const setErrorMarker = useCallback((line: number, message: string) => {
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!editor || !monaco) return;
+    const model = editor.getModel();
+    if (!model) return;
+
+    // 에러 마커 (빨간 물결 밑줄)
+    monaco.editor.setModelMarkers(model, 'debugger', [
+      {
+        severity: monaco.MarkerSeverity.Error,
+        message,
+        startLineNumber: line,
+        startColumn: 1,
+        endLineNumber: line,
+        endColumn: model.getLineMaxColumn(line),
+      },
+    ]);
+
+    // glyph margin 데코레이션 (빨간 원) + 줄 배경
+    decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, [
+      {
+        range: new monaco.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: true,
+          className: 'debug-error-line',
+          glyphMarginClassName: 'debug-error-glyph',
+          glyphMarginHoverMessage: { value: message },
+          overviewRuler: {
+            color: '#f14c4c',
+            position: monaco.editor.OverviewRulerLane.Full,
+          },
+        },
+      },
+    ]);
+  }, []);
+
+  const setSuccessDecoration = useCallback(() => {
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!editor || !monaco) return;
+    const model = editor.getModel();
+    if (!model) return;
+
+    monaco.editor.setModelMarkers(model, 'debugger', []);
+    // 마지막 줄에 성공 glyph 표시
+    const lastLine = model.getLineCount();
+    decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, [
+      {
+        range: new monaco.Range(lastLine, 1, lastLine, 1),
+        options: {
+          isWholeLine: false,
+          glyphMarginClassName: 'debug-success-glyph',
+          glyphMarginHoverMessage: { value: 'Execution completed successfully' },
+        },
+      },
+    ]);
+  }, []);
 
   const save = useCallback(() => {
     if (!editorRef.current || !control) return;
@@ -266,7 +341,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
   const runCode = useCallback(async () => {
     if (!editorRef.current || isRunning) return;
     setIsRunning(true);
+    setRunStatus('idle');
     if (!consoleVisible) setConsoleVisible(true);
+
+    // 이전 마커/데코레이션 제거
+    clearMarkers();
 
     const code = editorRef.current.getValue();
     try {
@@ -280,6 +359,8 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
       if (data.success) {
         const newLogs: DebugLogEntry[] = Array.isArray(data.logs) ? data.logs : [];
         setLogs((prev) => [...prev, ...newLogs]);
+        setRunStatus('success');
+        setSuccessDecoration();
       } else {
         const errorLog: DebugLogEntry = {
           type: 'error',
@@ -288,6 +369,12 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         };
         const newLogs: DebugLogEntry[] = Array.isArray(data.logs) ? [...data.logs, errorLog] : [errorLog];
         setLogs((prev) => [...prev, ...newLogs]);
+        setRunStatus('error');
+
+        // 에러 줄에 마커 및 데코레이션 설정
+        if (typeof data.errorLine === 'number' && data.errorLine > 0) {
+          setErrorMarker(data.errorLine, data.error ?? 'Runtime error');
+        }
       }
     } catch (err) {
       setLogs((prev) => [
@@ -298,13 +385,15 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
           timestamp: Date.now(),
         },
       ]);
+      setRunStatus('error');
     } finally {
       setIsRunning(false);
     }
-  }, [isRunning, consoleVisible]);
+  }, [isRunning, consoleVisible, clearMarkers, setErrorMarker, setSuccessDecoration]);
 
   const handleMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
 
     // TypeScript 컴파일러 옵션 설정
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
@@ -347,6 +436,9 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  const statusBarColor =
+    runStatus === 'success' ? '#2e7d32' : runStatus === 'error' ? '#c62828' : '#007acc';
+
   return (
     <div
       style={{
@@ -359,6 +451,28 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         zIndex: 10000,
       }}
     >
+      {/* Monaco 데코레이션용 CSS */}
+      <style>{`
+        .debug-error-glyph {
+          background-color: #f14c4c;
+          border-radius: 50%;
+          margin-left: 4px;
+          width: 8px !important;
+          height: 8px !important;
+          margin-top: 6px;
+        }
+        .debug-error-line {
+          background-color: rgba(241, 76, 76, 0.15);
+        }
+        .debug-success-glyph {
+          background-color: #4caf50;
+          border-radius: 50%;
+          margin-left: 4px;
+          width: 8px !important;
+          height: 8px !important;
+          margin-top: 6px;
+        }
+      `}</style>
       <div
         style={{
           width: '80vw',
@@ -439,6 +553,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
               wordWrap: 'on',
               automaticLayout: true,
               tabSize: 2,
+              glyphMargin: true,
             }}
           />
         </div>
@@ -452,13 +567,18 @@ export function EventEditor({ controlId, eventName, handlerName, onClose }: Even
         <div
           style={{
             padding: '4px 10px',
-            backgroundColor: '#007acc',
+            backgroundColor: statusBarColor,
             color: '#fff',
             fontSize: 11,
             fontFamily: 'Segoe UI, sans-serif',
+            display: 'flex',
+            justifyContent: 'space-between',
+            transition: 'background-color 0.3s',
           }}
         >
-          Ctrl+S: Save | Escape: Close | F5: Run
+          <span>Ctrl+S: Save | Escape: Close | F5: Run</span>
+          {runStatus === 'success' && <span>✓ Execution completed</span>}
+          {runStatus === 'error' && <span>✗ Execution failed</span>}
         </div>
       </div>
     </div>
