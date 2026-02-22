@@ -33,7 +33,7 @@ export class SandboxRunner {
       const wrappedCode = this.wrapHandlerCode(code);
       const script = await isolate.compileScript(wrappedCode);
 
-      const result = await script.run(vmContext, { timeout });
+      const result = await script.run(vmContext, { timeout, copy: true });
 
       return { success: true, value: result };
     } catch (err) {
