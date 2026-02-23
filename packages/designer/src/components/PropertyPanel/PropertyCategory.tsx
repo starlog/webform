@@ -10,6 +10,7 @@ import { BooleanToggle } from './editors/BooleanToggle';
 import { AnchorEditor } from './editors/AnchorEditor';
 import { CollectionEditor } from './editors/CollectionEditor';
 import { MongoColumnsEditor } from './editors/MongoColumnsEditor';
+import { MongoConnectionStringEditor } from './editors/MongoConnectionStringEditor';
 
 interface PropertyCategoryProps {
   category: string;
@@ -109,6 +110,8 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
       return <CollectionEditor value={value as string[] ?? []} onChange={onChange} />;
     case 'mongoColumns':
       return <MongoColumnsEditor value={value as string ?? ''} onChange={onChange} />;
+    case 'mongoConnectionString':
+      return <MongoConnectionStringEditor value={value as string ?? ''} onChange={onChange} />;
     default:
       return <TextEditor value={String(value ?? '')} onChange={onChange} />;
   }

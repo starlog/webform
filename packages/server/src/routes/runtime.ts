@@ -132,6 +132,29 @@ runtimeRouter.post('/forms/:id/data', async (req, res, next) => {
 });
 
 /**
+ * POST /api/runtime/mongodb/test-connection
+ * MongoDB 연결 테스트
+ */
+runtimeRouter.post('/mongodb/test-connection', async (req, res, next) => {
+  try {
+    const { connectionString, database } = req.body as {
+      connectionString?: string;
+      database?: string;
+    };
+
+    if (!connectionString || !database) {
+      throw new AppError(400, 'connectionString and database are required');
+    }
+
+    const adapter = new MongoDBAdapter(connectionString, database);
+    const result = await adapter.testConnection();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * POST /api/runtime/mongodb/query
  * MongoDBView 컨트롤용 문서 조회
  */

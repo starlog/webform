@@ -10,7 +10,8 @@ export type EditorType =
   | 'boolean'
   | 'anchor'
   | 'collection'
-  | 'mongoColumns';
+  | 'mongoColumns'
+  | 'mongoConnectionString';
 
 export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data';
 
@@ -191,7 +192,7 @@ const jsonEditorProps: PropertyMeta[] = withCommon(
 
 const mongoDBViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.title',            label: 'Title',            category: 'Appearance', editorType: 'text' },
-  { name: 'properties.connectionString', label: 'ConnectionString', category: 'Data',       editorType: 'text' },
+  { name: 'properties.connectionString', label: 'ConnectionString', category: 'Data',       editorType: 'mongoConnectionString' },
   { name: 'properties.database',         label: 'Database',         category: 'Data',       editorType: 'text' },
   { name: 'properties.collection',       label: 'Collection',       category: 'Data',       editorType: 'text' },
   { name: 'properties.columns',          label: 'Columns',          category: 'Data',       editorType: 'mongoColumns' },
