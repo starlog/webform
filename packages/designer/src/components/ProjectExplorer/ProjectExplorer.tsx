@@ -34,6 +34,8 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
   const [renamingValue, setRenamingValue] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
+  const editMode = useDesignerStore((s) => s.editMode);
+  const currentShellId = useDesignerStore((s) => s.currentShellId);
 
   // 프로젝트 폰트 설정 다이얼로그 (일괄 적용)
   const [fontDialog, setFontDialog] = useState<{ projectId: string; projectName: string } | null>(null);
@@ -297,6 +299,13 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
     input.click();
   };
 
+  const handleShellSelect = (_projectId: string) => {
+    const store = useDesignerStore.getState();
+    store.setEditMode('shell');
+    // Shell 로드는 다음 태스크(designer-shell-api)에서 API 연동 시 구현
+    // 현재는 editMode 전환만 수행
+  };
+
   const getContextMenuItems = () => {
     if (!contextMenu) return [];
     switch (contextMenu.targetType) {
@@ -448,6 +457,28 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
 
               {isProjectExpanded && (
                 <>
+                  {/* Shell 노드 */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '2px 8px 2px 24px',
+                      cursor: 'pointer',
+                      backgroundColor:
+                        editMode === 'shell' && currentShellId
+                          ? '#b3d9ff'
+                          : selectedNode === `shell-${project._id}`
+                            ? '#cce5ff'
+                            : 'transparent',
+                      userSelect: 'none',
+                    }}
+                    onClick={() => setSelectedNode(`shell-${project._id}`)}
+                    onDoubleClick={() => handleShellSelect(project._id)}
+                  >
+                    <span style={{ marginRight: 4 }}>🖥️</span>
+                    <span>Application Shell</span>
+                  </div>
+
                   {/* Forms 폴더 */}
                   <div
                     style={{

@@ -1,7 +1,33 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { ControlDefinition, ControlType, FontDefinition, FormProperties } from '@webform/common';
+import type {
+  ControlDefinition,
+  ControlType,
+  FontDefinition,
+  FormProperties,
+  ShellProperties,
+  ApplicationShellDefinition,
+} from '@webform/common';
 import { flattenControls } from '@webform/common';
+
+const DEFAULT_SHELL_PROPERTIES: ShellProperties = {
+  title: 'Application',
+  width: 1200,
+  height: 800,
+  backgroundColor: '#F0F0F0',
+  font: {
+    family: 'Segoe UI',
+    size: 9,
+    bold: false,
+    italic: false,
+    underline: false,
+    strikethrough: false,
+  },
+  showTitleBar: true,
+  formBorderStyle: 'Sizable',
+  maximizeBox: true,
+  minimizeBox: true,
+};
 
 const DEFAULT_FORM_PROPERTIES: FormProperties = {
   title: 'Form1',
@@ -33,6 +59,12 @@ interface DesignerState {
   formEventHandlers: Record<string, string>; // eventName → handlerName
   formEventCode: Record<string, string>;     // handlerName → code
 
+  // Shell 상태
+  editMode: 'form' | 'shell';
+  shellControls: ControlDefinition[];
+  shellProperties: ShellProperties;
+  currentShellId: string | null;
+
   addControl: (control: ControlDefinition) => void;
   updateControl: (id: string, changes: Partial<ControlDefinition>) => void;
   removeControl: (id: string) => void;
@@ -51,6 +83,15 @@ interface DesignerState {
   markClean: () => void;
   setCurrentProject: (projectId: string | null) => void;
   setProjectDefaultFont: (font: FontDefinition | null) => void;
+
+  // Shell 메서드
+  setEditMode: (mode: 'form' | 'shell') => void;
+  loadShell: (shellDef: ApplicationShellDefinition) => void;
+  addShellControl: (control: ControlDefinition) => void;
+  updateShellControl: (id: string, changes: Partial<ControlDefinition>) => void;
+  removeShellControl: (id: string) => void;
+  setShellProperties: (props: Partial<ShellProperties>) => void;
+  getShellDefinition: () => ApplicationShellDefinition;
 }
 
 // 컨트롤 타입별 기본 크기
@@ -251,7 +292,7 @@ export function createDefaultControl(
 export { getDefaultSize };
 
 export const useDesignerStore = create<DesignerState>()(
-  immer((set) => ({
+  immer((set, get) => ({
     controls: [] as ControlDefinition[],
     formProperties: DEFAULT_FORM_PROPERTIES,
     isDirty: false,
@@ -261,6 +302,12 @@ export const useDesignerStore = create<DesignerState>()(
     gridSize: 8,
     formEventHandlers: {} as Record<string, string>,
     formEventCode: {} as Record<string, string>,
+
+    // Shell 초기 상태
+    editMode: 'form' as const,
+    shellControls: [] as ControlDefinition[],
+    shellProperties: DEFAULT_SHELL_PROPERTIES,
+    currentShellId: null as string | null,
 
     addControl: (control) => set((state) => {
       state.controls.push(control);
@@ -405,5 +452,54 @@ export const useDesignerStore = create<DesignerState>()(
     setProjectDefaultFont: (font) => set((state) => {
       state.projectDefaultFont = font;
     }),
+
+    // Shell 메서드
+    setEditMode: (mode) => set((state) => {
+      state.editMode = mode;
+    }),
+
+    loadShell: (shellDef) => set((state) => {
+      state.currentShellId = shellDef.id;
+      state.shellControls = shellDef.controls as ControlDefinition[];
+      state.shellProperties = shellDef.properties;
+      state.editMode = 'shell';
+      state.isDirty = false;
+    }),
+
+    addShellControl: (control) => set((state) => {
+      state.shellControls.push(control);
+      state.isDirty = true;
+    }),
+
+    updateShellControl: (id, changes) => set((state) => {
+      const index = state.shellControls.findIndex((c) => c.id === id);
+      if (index !== -1) {
+        Object.assign(state.shellControls[index], changes);
+        state.isDirty = true;
+      }
+    }),
+
+    removeShellControl: (id) => set((state) => {
+      state.shellControls = state.shellControls.filter((c) => c.id !== id);
+      state.isDirty = true;
+    }),
+
+    setShellProperties: (props) => set((state) => {
+      Object.assign(state.shellProperties, props);
+      state.isDirty = true;
+    }),
+
+    getShellDefinition: (): ApplicationShellDefinition => {
+      const state = get();
+      return {
+        id: state.currentShellId ?? '',
+        projectId: state.currentProjectId ?? '',
+        name: state.shellProperties.title,
+        version: 1,
+        properties: state.shellProperties,
+        controls: state.shellControls,
+        eventHandlers: [],
+      };
+    },
   })),
 );
