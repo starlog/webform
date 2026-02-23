@@ -1,0 +1,63 @@
+{
+  "projectName": "WebForm",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "fix-event-restore-plan",
+      "title": "이벤트 핸들러 복원 로직 버그 수정 - 계획",
+      "description": "store.loadForm()이 여러 곳에서 호출되지만 이벤트 핸들러 복원 코드가 App.tsx의 handleFormSelect에만 존재하여, 폼 이름 변경/프로젝트 폰트 변경/Undo/Redo 시 이벤트 핸들러가 소실되는 버그를 수정한다.",
+      "phase": "bugfix",
+      "category": "plan",
+      "done": true,
+      "prompt": "이벤트 핸들러 복원 로직 버그를 수정하기 위한 계획을 수립하라.\n\n## 현재 문제\n\n`store.loadForm()`이 여러 곳에서 호출되지만, 이벤트 핸들러를 컨트롤의 `properties._eventHandlers`와 `properties._eventCode`에 복원하는 로직이 `App.tsx`의 `handleFormSelect` 함수에만 존재한다.\n\n이벤트 핸들러 복원 없이 `loadForm()`을 호출하는 위치:\n1. `ProjectExplorer.tsx:139-141` — 폼 이름 변경 시\n2. `ProjectExplorer.tsx:214-215` — 프로젝트 기본 폰트 변경 시\n3. `DesignerCanvas.tsx:165-168` — Undo 시\n4. `DesignerCanvas.tsx:177-180` — Redo 시\n\n이로 인해 위 동작 수행 후 auto-save가 발동되면 빈 eventHandlers 배열이 서버에 저장되어 이벤트 핸들러가 영구 소실된다.\n\n## 수정 방향\n\n다음 두 가지 접근법을 비교 분석하라:\n\n### 접근법 A: restoreEventHandlers 유틸 함수 추출\n- App.tsx의 handleFormSelect에서 이벤트 핸들러 복원 로직(라인 97-151)을 별도 함수로 추출\n- loadForm()을 호출하는 모든 곳에서 이 함수를 함께 호출\n- 장점: 기존 구조 변경 최소화\n- 단점: loadForm() 호출 시 복원 함수도 반드시 호출해야 한다는 규약이 생김\n\n### 접근법 B: loadForm()에 eventHandlers 통합\n- `designerStore.loadForm()` 시그니처에 `eventHandlers` 파라미터 추가\n- loadForm 내부에서 flattenControls 후 바로 _eventHandlers/_eventCode를 컨트롤에 주입\n- loadForm()을 호출하는 모든 곳에서 eventHandlers 데이터를 함께 전달\n- 장점: loadForm()이 항상 완전한 상태를 생성, 규약 위반 불가\n- 단점: Undo/Redo에서는 컨트롤 자체에 이미 _eventHandlers가 포함되어 있어야 함\n\n각 접근법의 장단점, 영향 범위, 수정 파일 목록을 plans/fix-event-connection-plan.md에 작성하라.",
+      "dependsOn": null,
+      "outputFiles": [
+        "plans/fix-event-connection-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/fix-event-connection-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "fix-event-restore-impl",
+      "title": "이벤트 핸들러 복원 로직 버그 수정 - 구현",
+      "description": "이벤트 핸들러가 loadForm() 호출 시 유실되지 않도록 수정한다.",
+      "phase": "bugfix",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/fix-event-connection-plan.md의 계획에 따라 이벤트 핸들러 복원 버그를 수정하라.\n\n## 수정 대상 파일\n\n### 1. packages/designer/src/stores/designerStore.ts\n\n`loadForm()` 메서드의 시그니처를 확장하여 `eventHandlers` 파라미터(optional)를 받도록 수정:\n\n```typescript\nloadForm: (formId: string, controls: ControlDefinition[], properties: FormProperties, eventHandlers?: EventHandlerDefinition[]) => void;\n```\n\n구현:\n- `flattenControls(controls)`로 컨트롤 평탄화 후\n- `eventHandlers`가 전달된 경우, 각 핸들러의 `controlId`로 해당 컨트롤을 찾아 `properties._eventHandlers`와 `properties._eventCode`를 주입\n- 폼 레벨 이벤트(`controlId === formId`)는 `formEventHandlers`/`formEventCode`에 설정\n- `isDirty = false` 유지 (복원은 변경이 아님)\n\n### 2. packages/designer/src/App.tsx\n\n`handleFormSelect` 함수에서:\n- 기존 이벤트 핸들러 복원 코드(라인 97-151)를 제거\n- `store.loadForm(formId, data.controls, data.properties, data.eventHandlers)` 호출로 대체\n- `markClean()` 호출도 불필요해지므로 제거\n\n### 3. packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx\n\n폼 이름 변경 시 (약 라인 139-141):\n```typescript\nconst { data } = await apiService.loadForm(formId);\nconst state = useDesignerStore.getState();\nstate.loadForm(formId, data.controls, data.properties, data.eventHandlers);\n```\n\n프로젝트 기본 폰트 변경 시 (약 라인 214-215):\n```typescript\nconst { data } = await apiService.loadForm(state.currentFormId);\nstate.loadForm(state.currentFormId, data.controls, data.properties, data.eventHandlers);\n```\n\n### 4. packages/designer/src/components/Canvas/DesignerCanvas.tsx\n\nUndo/Redo 시 (약 라인 162-180):\n- Undo/Redo 스냅샷에 이벤트 핸들러 정보가 이미 컨트롤의 properties._eventHandlers에 포함되어 있으므로,\n  loadForm()에 eventHandlers를 전달하지 않아도 됨 (flattenControls가 기존 _eventHandlers를 보존)\n- 단, `loadForm()`이 `formEventHandlers`와 `formEventCode`를 리셋하는 문제가 있으므로,\n  폼 레벨 이벤트도 보존하도록 처리 필요\n- 방법: Undo/Redo 스냅샷에 폼 레벨 이벤트도 포함하거나, loadForm()에서 eventHandlers가 전달되지 않으면 기존 formEventHandlers/formEventCode를 유지하도록 수정\n\n## 중요 사항\n- `flattenControls()`는 기존 `ctrl.properties`를 spread하므로, 이미 `_eventHandlers`가 있는 컨트롤(Undo/Redo 스냅샷)은 자동 보존됨\n- `loadForm()`에서 `eventHandlers` 파라미터가 undefined이면 `formEventHandlers`/`formEventCode`를 리셋하지 않도록 조건 추가\n- 수정 후 `pnpm typecheck`로 타입 오류 없는지 확인",
+      "dependsOn": [
+        "fix-event-restore-plan"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/designer/src/stores/designerStore.ts",
+        "packages/designer/src/App.tsx",
+        "packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx",
+        "packages/designer/src/components/Canvas/DesignerCanvas.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "fix-event-restore-test",
+      "title": "이벤트 핸들러 복원 로직 버그 수정 - 테스트",
+      "description": "이벤트 핸들러가 모든 loadForm() 호출 경로에서 보존되는지 검증한다.",
+      "phase": "bugfix",
+      "category": "testing",
+      "done": false,
+      "prompt": "이벤트 핸들러 복원 버그 수정이 올바르게 작동하는지 테스트를 작성하고 검증하라.\n\n## 테스트 파일\n\n`packages/designer/src/__tests__/eventHandlerRestore.test.ts` 파일을 생성하라.\n\n### 테스트 케이스\n\n1. **loadForm with eventHandlers: 이벤트 핸들러가 컨트롤에 복원됨**\n   - flattenControls 가능한 중첩 컨트롤 구조와 eventHandlers 배열을 전달하여 loadForm() 호출\n   - 해당 컨트롤의 `properties._eventHandlers`와 `properties._eventCode`가 올바르게 설정되었는지 확인\n\n2. **loadForm with eventHandlers: 폼 레벨 이벤트가 복원됨**\n   - `controlId === formId`인 이벤트 핸들러를 포함한 eventHandlers 배열 전달\n   - `formEventHandlers`와 `formEventCode`가 올바르게 설정되었는지 확인\n\n3. **loadForm without eventHandlers: 기존 formEventHandlers 유지**\n   - 먼저 eventHandlers가 있는 loadForm() 호출\n   - 그 후 eventHandlers 없이 loadForm() 호출 (Undo/Redo 시나리오)\n   - 컨트롤의 `_eventHandlers`가 스냅샷에 포함되어 보존되는지 확인\n   - `formEventHandlers`/`formEventCode`가 리셋되지 않는지 확인\n\n4. **loadForm: 중첩 컨트롤(TabControl > Panel > Button)의 이벤트 핸들러 복원**\n   - generate-sample.sh의 '2. 컨테이너/레이아웃 데모' 폼과 동일한 중첩 구조 사용\n   - btnSaveProfile의 Click 이벤트가 복원되는지 확인\n\n5. **save/load cycle: 이벤트 핸들러가 저장 후 재로드 시 유지됨**\n   - loadForm()으로 이벤트 핸들러 복원\n   - extractEventHandlers()로 eventHandlers 배열 추출\n   - 추출된 배열로 다시 loadForm() 호출\n   - 이벤트 핸들러가 동일하게 복원되는지 확인\n\n## 검증\n\n```bash\ncd packages/designer\nnpx vitest run src/__tests__/eventHandlerRestore.test.ts\n```\n\n모든 테스트가 통과해야 한다. 실패 시 구현을 수정하라.\n\n추가로 기존 테스트도 통과하는지 확인:\n```bash\npnpm test\n```",
+      "dependsOn": [
+        "fix-event-restore-impl"
+      ],
+      "outputFiles": [
+        "packages/designer/src/__tests__/eventHandlerRestore.test.ts"
+      ],
+      "modifiedFiles": [
+        "packages/designer/src/__tests__/eventHandlerRestore.test.ts"
+      ],
+      "subtasks": null
+    }
+  ],
+  "workflow": null
+}
