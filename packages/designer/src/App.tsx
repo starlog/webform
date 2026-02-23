@@ -75,11 +75,29 @@ export function App() {
   const handleFormSelect = async (formId: string) => {
     try {
       const { data } = await apiService.loadForm(formId);
-      useDesignerStore.getState().loadForm(
+      const store = useDesignerStore.getState();
+      store.loadForm(
         formId,
         data.controls,
         data.properties,
       );
+
+      // 폼 레벨 이벤트 핸들러 복원
+      const formHandlers: Record<string, string> = {};
+      const formCode: Record<string, string> = {};
+      if (Array.isArray(data.eventHandlers)) {
+        for (const eh of data.eventHandlers as Array<{ controlId: string; eventName: string; handlerCode: string }>) {
+          if (eh.controlId === formId) {
+            const handlerName = `Form_${eh.eventName}`;
+            formHandlers[eh.eventName] = handlerName;
+            formCode[handlerName] = eh.handlerCode;
+          }
+        }
+      }
+      if (Object.keys(formHandlers).length > 0) {
+        store.loadFormEvents(formHandlers, formCode);
+      }
+
       setFormStatus(data.status);
     } catch (error) {
       console.error('Failed to load form:', error);

@@ -232,6 +232,25 @@ function extractEventHandlers(controls: ControlDefinition[]): Array<{
   }
 
   walk(controls);
+
+  // 폼 레벨 이벤트 핸들러 추가
+  const state = useDesignerStore.getState();
+  const formId = state.currentFormId;
+  if (formId) {
+    const { formEventHandlers, formEventCode } = state;
+    for (const [eventName, handlerName] of Object.entries(formEventHandlers)) {
+      const code = formEventCode[handlerName];
+      if (code) {
+        handlers.push({
+          controlId: formId,
+          eventName,
+          handlerType: 'server',
+          handlerCode: code,
+        });
+      }
+    }
+  }
+
   return handlers;
 }
 

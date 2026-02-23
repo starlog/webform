@@ -308,6 +308,20 @@ ctx.controls.lblStatus.text = \`현재 탭: \${tabIndex}\`;
 // const data = sender.data;
 // ctx.controls.lblStatus.text = \`데이터 로드됨 (\${data.length}행)\`;
 `,
+
+    // Form events
+    'Form.OnLoading': `${header}// 폼이 로드될 때 실행 — 컨트롤 초기화에 적합
+// ctx.controls.lblTitle.text = "환영합니다!";
+// ctx.controls.comboBox1.items = ["옵션1", "옵션2", "옵션3"];
+// ctx.controls.comboBox1.selectedIndex = 0;
+`,
+
+    'Form.BeforeLeaving': `${header}// 폼을 떠나기 전 실행 — 저장, 정리에 적합
+// const unsaved = ctx.controls.txtContent.text;
+// if (unsaved) {
+//   ctx.showMessage("저장되지 않은 변경사항이 있습니다.", "경고", "warning");
+// }
+`,
   };
 
   if (samples[key]) return samples[key];
@@ -391,12 +405,28 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
   const stepIndexRef = useRef<number>(0);
   const breakpointsRef = useRef<Set<number>>(new Set());
 
-  const control = controls.find((c) => c.id === controlId);
-  const existingHandlers = (control?.properties._eventHandlers ?? {}) as Record<string, string>;
-  const existingCode = (control?.properties._eventCode ?? {}) as Record<string, string>;
+  const isFormEvent = controlId === '__form__';
+  const control = isFormEvent ? null : controls.find((c) => c.id === controlId);
+
+  const formEventHandlers = useDesignerStore((s) => s.formEventHandlers);
+  const formEventCode = useDesignerStore((s) => s.formEventCode);
+  const setFormEventHandler = useDesignerStore((s) => s.setFormEventHandler);
+  const setFormEventCode = useDesignerStore((s) => s.setFormEventCode);
+
+  const existingHandlers = isFormEvent
+    ? formEventHandlers
+    : (control?.properties._eventHandlers ?? {}) as Record<string, string>;
+  const existingCode = isFormEvent
+    ? formEventCode
+    : (control?.properties._eventCode ?? {}) as Record<string, string>;
 
   const initialCode = existingCode[handlerName] ??
-    getSampleCode(control?.name ?? controlId, control?.type ?? 'Button', eventName, handlerName);
+    getSampleCode(
+      isFormEvent ? 'Form' : (control?.name ?? controlId),
+      isFormEvent ? 'Form' : (control?.type ?? 'Button'),
+      eventName,
+      handlerName,
+    );
 
   // 동적 CSS 스타일 엘리먼트 정리
   useEffect(() => {
@@ -758,27 +788,33 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
   }, [finishDebug]);
 
   const save = useCallback(() => {
-    if (!editorRef.current || !control) return;
+    if (!editorRef.current) return;
     const code = editorRef.current.getValue();
 
-    const updatedCode = { ...existingCode, [handlerName]: code };
-    const updatedHandlers = { ...existingHandlers, [eventName]: handlerName };
+    if (isFormEvent) {
+      setFormEventHandler(eventName, handlerName);
+      setFormEventCode(handlerName, code);
+    } else {
+      if (!control) return;
+      const updatedCode = { ...existingCode, [handlerName]: code };
+      const updatedHandlers = { ...existingHandlers, [eventName]: handlerName };
 
-    updateControl(controlId, {
-      properties: {
-        ...control.properties,
-        _eventHandlers: updatedHandlers,
-        _eventCode: updatedCode,
-      },
-    });
+      updateControl(controlId, {
+        properties: {
+          ...control.properties,
+          _eventHandlers: updatedHandlers,
+          _eventCode: updatedCode,
+        },
+      });
+    }
     setIsDirty(false);
 
     // 서버에 즉시 저장 (auto-save 30초 대기 없이)
     if (onSaveToServer) {
-      // updateControl이 store를 업데이트한 후 다음 틱에서 save 실행
+      // store를 업데이트한 후 다음 틱에서 save 실행
       setTimeout(() => onSaveToServer(), 0);
     }
-  }, [controlId, control, eventName, handlerName, existingCode, existingHandlers, updateControl, onSaveToServer]);
+  }, [controlId, control, isFormEvent, eventName, handlerName, existingCode, existingHandlers, updateControl, setFormEventHandler, setFormEventCode, onSaveToServer]);
 
   const runCode = useCallback(async () => {
     if (!editorRef.current || isRunning) return;

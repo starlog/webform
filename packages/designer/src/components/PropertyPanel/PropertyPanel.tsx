@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import type { ControlDefinition, FormProperties } from '@webform/common';
+import { FORM_EVENTS } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore } from '../../stores/historyStore';
@@ -197,6 +198,26 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
   }, []);
 
+  // 폼 이벤트 관련 store
+  const formEventHandlers = useDesignerStore((s) => s.formEventHandlers);
+  const setFormEventHandler = useDesignerStore((s) => s.setFormEventHandler);
+  const deleteFormEventHandler = useDesignerStore((s) => s.deleteFormEventHandler);
+
+  const formEvents = useMemo(() => [...FORM_EVENTS], []);
+
+  const handleFormEventHandlerChange = useCallback((eventName: string, handlerName: string) => {
+    setFormEventHandler(eventName, handlerName);
+  }, [setFormEventHandler]);
+
+  const handleFormDeleteHandler = useCallback((eventName: string) => {
+    deleteFormEventHandler(eventName);
+  }, [deleteFormEventHandler]);
+
+  const handleFormOpenEditor = useCallback((eventName: string, handlerName: string) => {
+    if (!onOpenEventEditor || !currentFormId) return;
+    onOpenEventEditor('__form__', eventName, handlerName);
+  }, [onOpenEventEditor, currentFormId]);
+
   // 선택 없는 경우 → 폼 속성 표시
   if (selectedIds.size === 0) {
     return (
@@ -204,17 +225,39 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
         <div style={{ padding: '4px 6px', borderBottom: '1px solid #ccc', fontSize: 12, fontWeight: 600 }}>
           {formProperties.title} (Form)
         </div>
+
+        {/* 탭 바 */}
+        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
+          <TabButton label="Properties" icon="☰" active={activeTab === 'properties'} onClick={() => setActiveTab('properties')} />
+          <TabButton label="Events" icon="⚡" active={activeTab === 'events'} onClick={() => setActiveTab('events')} />
+        </div>
+
         <div style={{ flex: 1, overflow: 'auto' }}>
-          {currentFormId && <FormIdRow formId={currentFormId} />}
-          {formGroupedProperties.map(({ category, properties }) => (
-            <PropertyCategory
-              key={category}
-              category={category}
-              properties={properties}
-              getValue={getFormValue}
-              onValueChange={handleFormValueChange}
+          {activeTab === 'properties' && (
+            <>
+              {currentFormId && <FormIdRow formId={currentFormId} />}
+              {formGroupedProperties.map(({ category, properties }) => (
+                <PropertyCategory
+                  key={category}
+                  category={category}
+                  properties={properties}
+                  getValue={getFormValue}
+                  onValueChange={handleFormValueChange}
+                />
+              ))}
+            </>
+          )}
+          {activeTab === 'events' && (
+            <EventsTab
+              controlId="__form__"
+              controlName="Form"
+              events={formEvents}
+              eventHandlers={formEventHandlers}
+              onHandlerNameChange={handleFormEventHandlerChange}
+              onOpenEditor={handleFormOpenEditor}
+              onDeleteHandler={handleFormDeleteHandler}
             />
-          ))}
+          )}
         </div>
       </div>
     );

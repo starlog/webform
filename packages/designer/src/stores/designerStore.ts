@@ -28,6 +28,8 @@ interface DesignerState {
   currentFormId: string | null;
   currentProjectId: string | null;
   gridSize: number;
+  formEventHandlers: Record<string, string>; // eventName → handlerName
+  formEventCode: Record<string, string>;     // handlerName → code
 
   addControl: (control: ControlDefinition) => void;
   updateControl: (id: string, changes: Partial<ControlDefinition>) => void;
@@ -40,6 +42,10 @@ interface DesignerState {
   setFormProperties: (props: Partial<FormProperties>) => void;
   setGridSize: (size: number) => void;
   loadForm: (formId: string, controls: ControlDefinition[], properties: FormProperties) => void;
+  loadFormEvents: (eventHandlers: Record<string, string>, eventCode: Record<string, string>) => void;
+  setFormEventHandler: (eventName: string, handlerName: string) => void;
+  setFormEventCode: (handlerName: string, code: string) => void;
+  deleteFormEventHandler: (eventName: string) => void;
   markClean: () => void;
   setCurrentProject: (projectId: string | null) => void;
 }
@@ -161,6 +167,8 @@ export const useDesignerStore = create<DesignerState>()(
     currentFormId: null,
     currentProjectId: null,
     gridSize: 8,
+    formEventHandlers: {} as Record<string, string>,
+    formEventCode: {} as Record<string, string>,
 
     addControl: (control) => set((state) => {
       state.controls.push(control);
@@ -234,7 +242,35 @@ export const useDesignerStore = create<DesignerState>()(
       state.currentFormId = formId;
       state.controls = controls;
       state.formProperties = properties;
+      state.formEventHandlers = {};
+      state.formEventCode = {};
       state.isDirty = false;
+    }),
+
+    loadFormEvents: (eventHandlers, eventCode) => set((state) => {
+      state.formEventHandlers = eventHandlers;
+      state.formEventCode = eventCode;
+    }),
+
+    setFormEventHandler: (eventName, handlerName) => set((state) => {
+      if (handlerName) {
+        state.formEventHandlers[eventName] = handlerName;
+      } else {
+        delete state.formEventHandlers[eventName];
+      }
+      state.isDirty = true;
+    }),
+
+    setFormEventCode: (handlerName, code) => set((state) => {
+      state.formEventCode[handlerName] = code;
+      state.isDirty = true;
+    }),
+
+    deleteFormEventHandler: (eventName) => set((state) => {
+      const handlerName = state.formEventHandlers[eventName];
+      delete state.formEventHandlers[eventName];
+      if (handlerName) delete state.formEventCode[handlerName];
+      state.isDirty = true;
     }),
 
     markClean: () => set((state) => {

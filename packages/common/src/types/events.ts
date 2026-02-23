@@ -38,6 +38,7 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
 
 export const FORM_EVENTS = [
   'Load', 'Shown', 'FormClosing', 'FormClosed', 'Resize',
+  'OnLoading', 'BeforeLeaving',
 ] as const;
 
 export interface ControlProxy {

@@ -11,6 +11,7 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const currentFormIdRef = useRef<string | null>(null);
+  const formDefRef = useRef<FormDefinition | null>(null);
 
   const applyPatches = useRuntimeStore((s) => s.applyPatches);
   const setFormDef = useRuntimeStore((s) => s.setFormDef);
@@ -18,8 +19,35 @@ export function App() {
   const clearNavigateRequest = useRuntimeStore((s) => s.clearNavigateRequest);
   const hasDialogs = useRuntimeStore((s) => s.dialogQueue.length > 0);
 
+  // BeforeLeaving 이벤트 발생 (fire-and-forget)
+  const fireBeforeLeaving = useCallback(() => {
+    const def = formDefRef.current;
+    if (!def) return;
+    const handlers = def.eventHandlers.filter(
+      (e) => e.controlId === def.id && e.eventName === 'BeforeLeaving',
+    );
+    if (handlers.length === 0) return;
+    const formState = useRuntimeStore.getState().controlStates;
+    for (const handler of handlers) {
+      if (handler.handlerType === 'server') {
+        apiClient
+          .postEvent(def.id, {
+            formId: def.id,
+            controlId: def.id,
+            eventName: 'BeforeLeaving',
+            eventArgs: { type: 'BeforeLeaving', timestamp: Date.now() },
+            formState,
+          })
+          .catch((err) => console.error('Form.BeforeLeaving handler error:', err));
+      }
+    }
+  }, []);
+
   const loadForm = useCallback(
     async (formId: string) => {
+      // 이전 폼의 BeforeLeaving 이벤트 실행
+      fireBeforeLeaving();
+
       setLoading(true);
       setError(null);
 
@@ -30,6 +58,7 @@ export function App() {
         const def = await apiClient.fetchForm(formId);
         setFormDefinition(def);
         setFormDef(def);
+        formDefRef.current = def;
         currentFormIdRef.current = formId;
 
         // URL 업데이트 (히스토리에 추가)
@@ -46,7 +75,7 @@ export function App() {
         setLoading(false);
       }
     },
-    [applyPatches, setFormDef],
+    [applyPatches, setFormDef, fireBeforeLeaving],
   );
 
   // 초기 폼 로드
@@ -66,6 +95,15 @@ export function App() {
       wsClient.disconnect();
     };
   }, [loadForm]);
+
+  // 브라우저 닫기/새로고침 시 BeforeLeaving 이벤트 실행
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      fireBeforeLeaving();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [fireBeforeLeaving]);
 
   // navigate 요청 처리 — 다이얼로그가 모두 닫힌 후 실행
   useEffect(() => {
