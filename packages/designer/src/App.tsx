@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DesignerCanvas } from './components/Canvas';
+import { ShellCanvas } from './components/Canvas/ShellCanvas';
 import { Toolbox } from './components/Toolbox';
 import { PropertyPanel } from './components/PropertyPanel';
 import { EventEditor } from './components/EventEditor/EventEditor';
@@ -224,20 +225,7 @@ export function App() {
             backgroundColor: '#E0E0E0',
           }}
         >
-          {editMode === 'shell' ? (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              color: '#888',
-              fontSize: 14,
-            }}>
-              Shell 편집 모드 (구현 예정)
-            </div>
-          ) : (
-            <DesignerCanvas />
-          )}
+          {editMode === 'shell' ? <ShellCanvas /> : <DesignerCanvas />}
         </div>
 
         {/* 속성 패널 */}
