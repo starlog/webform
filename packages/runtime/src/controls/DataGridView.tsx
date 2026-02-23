@@ -23,6 +23,7 @@ interface DataGridViewProps {
   id: string;
   name: string;
   dataSource?: unknown[];
+  rows?: unknown[];
   columns?: ColumnDefinition[];
   onDataSourceChange?: (data: unknown[]) => void;
   onCellClick?: (row: number, col: string) => void;
@@ -108,6 +109,7 @@ const styles = {
 export function DataGridView({
   id,
   dataSource,
+  rows: rowsProp,
   columns,
   onDataSourceChange,
   onCellClick,
@@ -139,7 +141,7 @@ export function DataGridView({
     };
   }, [font]);
 
-  const rows = useMemo(() => (dataSource ?? []) as Record<string, unknown>[], [dataSource]);
+  const rows = useMemo(() => (dataSource ?? rowsProp ?? []) as Record<string, unknown>[], [dataSource, rowsProp]);
 
   // 컬럼 자동 생성: columns prop이 없으면 데이터의 키에서 추출
   const resolvedColumns = useMemo<ColumnDefinition[]>(() => {
