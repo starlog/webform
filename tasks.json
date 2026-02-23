@@ -327,7 +327,7 @@
       "description": "runtimeStore에 shellDef, shellControlStates, appState, formHistory 추가 계획",
       "phase": "phase3-runtime",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm runtime 패키지의 runtimeStore를 Application Shell MDI 시스템을 위해 확장하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/runtime/src/stores/runtimeStore.ts — 전체 내용 파악\n- packages/runtime/src/communication/apiClient.ts — API 호출 패턴 파악\n- packages/runtime/src/communication/wsClient.ts — WebSocket 클라이언트 파악 (있다면)\n- packages/runtime/src/App.tsx — 앱 초기화 및 폼 로딩 방식 파악\n- packages/common/src/types/shell.ts — 방금 구현한 Shell 타입 확인\n\n## 구현해야 할 내용\n\n### packages/runtime/src/stores/runtimeStore.ts 확장\n기존 RuntimeState에 추가:\n```typescript\n// Shell 관련 상태\nshellDef: ApplicationShellDefinition | null;\nshellControlStates: Record<string, Record<string, unknown>>;\nappState: Record<string, unknown>;\nformHistory: Array<{ formId: string; params?: Record<string, unknown> }>;\nnavigateParams: Record<string, unknown>; // 현재 폼에 전달된 파라미터\n\n// Shell 관련 메서드\nsetShellDef(def: ApplicationShellDefinition | null): void;\nupdateShellControlState(controlId: string, property: string, value: unknown): void;\ngetShellControlState(controlId: string): Record<string, unknown>;\napplyShellPatches(patches: UIPatch[]): void;\nsetAppState(key: string, value: unknown): void;\npushFormHistory(formId: string, params?: Record<string, unknown>): void;\npopFormHistory(): { formId: string; params?: Record<string, unknown> } | null;\n```\n\n### packages/runtime/src/communication/apiClient.ts 확장\n- fetchApp(projectId: string, formId?: string): Promise<AppLoadResponse>\n- fetchShell(projectId: string): Promise<ApplicationShellDefinition | null>\n- postShellEvent(projectId: string, event: ShellEventRequest): Promise<EventResponse>\n\n### packages/runtime/src/communication/wsClient.ts 확장 (또는 신규)\n- per-project WebSocket: /ws/runtime/app/:projectId 연결\n- scope 필드 기반 메시지 라우팅 (shell/form)\n\n## 계획 작성\nplans/runtime-shell-store-plan.md 파일 작성:\n1. 현재 runtimeStore 상태 전체 목록\n2. 현재 apiClient 메서드 목록\n3. 확장할 상태/메서드의 정확한 코드 초안\n4. applyShellPatches 로직 설계 (updateShell/updateAppState/navigate/closeApp 처리)\n5. wsClient scope 기반 라우팅 설계",
       "dependsOn": [
         "server-runtime-api-commit",
@@ -790,7 +790,7 @@
       "description": "아이템 컬렉션 에디터 구현 커밋",
       "phase": "phase5-item-editors",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Designer 아이템 컬렉션 에디터 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/designer/src/components/Editors/MenuItemEditor.tsx\n   - packages/designer/src/components/Editors/ToolStripItemEditor.tsx\n   - packages/designer/src/components/Editors/StatusStripItemEditor.tsx\n   - packages/designer/src/components/PropertyPanel/controlProperties.ts\n   - packages/designer/src/components/PropertyPanel/PropertyPanel.tsx\n   - 관련 테스트 파일들\n   - plans/designer-item-editors-plan.md\n3. 커밋 메시지 (한국어): 'feat(designer): MenuStrip/ToolStrip/StatusStrip 아이템 컬렉션 에디터 구현\\n\\n- MenuItemEditor 트리뷰 기반 계층 메뉴 편집기 추가\\n- ToolStripItemEditor 플랫 리스트 기반 툴바 아이템 편집기 추가\\n- StatusStripItemEditor 상태바 아이템 편집기 추가\\n- PropertyPanel에서 해당 컨트롤 타입별 전용 에디터 연결'\n4. 커밋 확인",
       "dependsOn": [
         "designer-item-editors-test"
