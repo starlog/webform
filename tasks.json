@@ -153,7 +153,7 @@
       "description": "서버 Shell 백엔드 구현 커밋",
       "phase": "phase2-server-backend",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "WebForm server 패키지 Shell 백엔드 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/server/src/models/Shell.ts\n   - packages/server/src/services/ShellService.ts\n   - packages/server/src/routes/shells.ts\n   - packages/server/src/routes/index.ts\n   - packages/server/src/routes/projects.ts\n   - packages/server/src/__tests__/shells.test.ts\n   - plans/server-shell-backend-plan.md\n3. 커밋 메시지 (한국어): 'feat(server): Application Shell CRUD 백엔드 구현\\n\\n- Shell Mongoose 모델 및 스키마 추가\\n- ShellService CRUD 서비스 구현\\n- /api/projects/:projectId/shell CRUD 라우트 추가\\n- Shell 퍼블리시 엔드포인트 추가\\n- Project 스키마에 shellId 필드 추가'\n4. `git status`로 커밋 확인",
       "dependsOn": [
         "server-shell-backend-test"
@@ -542,7 +542,7 @@
       "description": "Designer Shell 핵심 기능 커밋",
       "phase": "phase4-designer",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Designer Shell 핵심 기능 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/designer/src/stores/designerStore.ts\n   - packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx\n   - packages/designer/src/App.tsx\n   - packages/designer/src/__tests__/designerStore-shell.test.ts\n   - plans/designer-shell-core-plan.md\n3. 커밋 메시지 (한국어): 'feat(designer): Shell 편집 모드 핵심 기능 추가\\n\\n- designerStore에 editMode/shellControls/shellProperties 상태 추가\\n- Shell 편집 관련 메서드 구현 (loadShell, addShellControl, setShellProperties 등)\\n- ProjectExplorer에 Application Shell 노드 추가\\n- App.tsx editMode 기반 편집 모드 분기 추가'\n4. 커밋 확인",
       "dependsOn": [
         "designer-shell-core-test"
