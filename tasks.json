@@ -46,7 +46,7 @@
       "description": "추가된 Shell 타입의 타입 체크 및 export 검증",
       "phase": "phase1-foundation",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm common 패키지의 Shell 타입 구현을 검증하세요.\n\n## 검증 방법\n1. packages/common 디렉토리에서 TypeScript 타입 체크 실행:\n   `cd /home/felix/src/webform && pnpm --filter @webform/common typecheck`\n   실패 시 오류를 수정하세요.\n\n2. packages/common/src/index.ts가 shell.ts의 모든 필요한 타입을 export하는지 확인\n\n3. 필요시 간단한 테스트 파일 생성:\n   packages/common/src/__tests__/shell.test.ts\n   - ApplicationShellDefinition 객체 생성 가능한지 타입 레벨 검증\n   - SHELL_EVENTS 배열의 타입 검증\n   - UIPatch에 'updateShell', 'updateAppState', 'closeApp'이 포함되는지 검증\n\n4. 테스트 실행: `pnpm --filter @webform/common test`\n\n## 모든 체크 통과 확인 후 결과 보고",
       "dependsOn": [
         "common-types-impl"
