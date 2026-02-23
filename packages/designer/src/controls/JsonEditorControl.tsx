@@ -24,6 +24,7 @@ function PreviewRow({ label, value, indent, isObject }: PreviewRowProps) {
 
 export function JsonEditorControl({ properties, size }: DesignerControlProps) {
   const backColor = (properties.backColor as string) || '#ffffff';
+  const font = properties.font as { family?: string; size?: number } | undefined;
 
   return (
     <div
@@ -35,8 +36,8 @@ export function JsonEditorControl({ properties, size }: DesignerControlProps) {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        fontFamily: 'Consolas, monospace',
-        fontSize: 11,
+        fontFamily: font?.family || 'Consolas, monospace',
+        fontSize: font?.size ? `${font.size}pt` : 11,
       }}
     >
       <div style={styles.header}>

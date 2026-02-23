@@ -179,6 +179,7 @@ const spreadsheetViewProps: PropertyMeta[] = withCommon(
 );
 
 const jsonEditorProps: PropertyMeta[] = withCommon(
+  { name: 'properties.font',        label: 'Font',        category: 'Appearance', editorType: 'font' },
   { name: 'properties.readOnly',    label: 'ReadOnly',    category: 'Behavior',   editorType: 'boolean', defaultValue: false },
   { name: 'properties.expandDepth', label: 'ExpandDepth', category: 'Behavior',   editorType: 'number',  min: 0, max: 10, defaultValue: 1 },
   { name: 'properties.backColor',   label: 'BackColor',   category: 'Appearance', editorType: 'color' },

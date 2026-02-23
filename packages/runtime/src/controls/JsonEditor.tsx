@@ -2,6 +2,15 @@ import { useState, useCallback, useMemo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 
+interface FontDef {
+  family?: string;
+  size?: number;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+}
+
 interface JsonEditorProps {
   id: string;
   name: string;
@@ -9,6 +18,7 @@ interface JsonEditorProps {
   readOnly?: boolean;
   expandDepth?: number;
   backColor?: string;
+  font?: FontDef;
   style?: CSSProperties;
   enabled?: boolean;
   onValueChanged?: () => void;
@@ -141,12 +151,28 @@ export function JsonEditor({
   readOnly = false,
   expandDepth = 1,
   backColor,
+  font,
   style,
   enabled = true,
   onValueChanged,
 }: JsonEditorProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const parsed = useMemo(() => parseValue(rawValue), [rawValue]);
+
+  const fontStyle = useMemo<CSSProperties>(() => {
+    if (!font) return {};
+    const textDecoration = [
+      font.underline ? 'underline' : '',
+      font.strikethrough ? 'line-through' : '',
+    ].filter(Boolean).join(' ');
+    return {
+      fontFamily: font.family || undefined,
+      fontSize: font.size ? `${font.size}pt` : undefined,
+      fontWeight: font.bold ? 'bold' : undefined,
+      fontStyle: font.italic ? 'italic' : undefined,
+      textDecoration: textDecoration || undefined,
+    };
+  }, [font]);
 
   const handleChange = useCallback(
     (path: string[], newLeafValue: unknown) => {
@@ -185,6 +211,7 @@ export function JsonEditor({
       style={{
         ...baseStyle,
         backgroundColor: backColor || '#ffffff',
+        ...fontStyle,
         ...style,
       }}
     >
@@ -257,8 +284,8 @@ const styles: Record<string, CSSProperties> = {
     border: '1px solid #ccc',
     borderRadius: 2,
     padding: '1px 4px',
-    fontSize: 12,
-    fontFamily: 'Consolas, monospace',
+    fontSize: 'inherit',
+    fontFamily: 'inherit',
     minWidth: 60,
     flex: 1,
     maxWidth: 200,
