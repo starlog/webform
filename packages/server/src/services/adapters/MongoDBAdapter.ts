@@ -29,11 +29,12 @@ export class MongoDBAdapter implements DataSourceAdapter {
   }
 
   async executeQuery(query: Record<string, unknown>): Promise<unknown[]> {
-    const { collection, filter = {}, projection, limit = 100 } = query as {
+    const { collection, filter = {}, projection, limit = 100, skip = 0 } = query as {
       collection?: string;
       filter?: Record<string, unknown>;
       projection?: Record<string, unknown>;
       limit?: number;
+      skip?: number;
     };
 
     if (!collection || typeof collection !== 'string') {
@@ -55,9 +56,81 @@ export class MongoDBAdapter implements DataSourceAdapter {
           projection,
           maxTimeMS: QUERY_TIMEOUT_MS,
         })
+        .skip(skip)
         .limit(Math.min(limit, 1000));
 
       return await cursor.toArray();
+    } finally {
+      await client.close();
+    }
+  }
+
+  async countDocuments(
+    collection: string,
+    filter: Record<string, unknown> = {},
+  ): Promise<number> {
+    const sanitizedFilter = sanitizeQueryInput(filter);
+    const client = new MongoClient(this.connectionString, {
+      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
+    });
+    try {
+      await client.connect();
+      const db = client.db(this.database);
+      return await db.collection(collection).countDocuments(sanitizedFilter, {
+        maxTimeMS: QUERY_TIMEOUT_MS,
+      });
+    } finally {
+      await client.close();
+    }
+  }
+
+  async insertOne(
+    collection: string,
+    document: Record<string, unknown>,
+  ): Promise<{ insertedId: string }> {
+    const client = new MongoClient(this.connectionString, {
+      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
+    });
+    try {
+      await client.connect();
+      const db = client.db(this.database);
+      const result = await db.collection(collection).insertOne(document);
+      return { insertedId: result.insertedId.toString() };
+    } finally {
+      await client.close();
+    }
+  }
+
+  async updateOne(
+    collection: string,
+    filter: Record<string, unknown>,
+    update: Record<string, unknown>,
+  ): Promise<{ modifiedCount: number }> {
+    const client = new MongoClient(this.connectionString, {
+      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
+    });
+    try {
+      await client.connect();
+      const db = client.db(this.database);
+      const result = await db.collection(collection).updateOne(filter, { $set: update });
+      return { modifiedCount: result.modifiedCount };
+    } finally {
+      await client.close();
+    }
+  }
+
+  async deleteOne(
+    collection: string,
+    filter: Record<string, unknown>,
+  ): Promise<{ deletedCount: number }> {
+    const client = new MongoClient(this.connectionString, {
+      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
+    });
+    try {
+      await client.connect();
+      const db = client.db(this.database);
+      const result = await db.collection(collection).deleteOne(filter);
+      return { deletedCount: result.deletedCount };
     } finally {
       await client.close();
     }

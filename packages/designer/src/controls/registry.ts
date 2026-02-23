@@ -16,6 +16,7 @@ import { GroupBoxControl } from './GroupBoxControl';
 import { TabControlControl } from './TabControlControl';
 import { SpreadsheetViewControl } from './SpreadsheetViewControl';
 import { JsonEditorControl } from './JsonEditorControl';
+import { MongoDBViewControl } from './MongoDBViewControl';
 
 export interface DesignerControlProps {
   properties: Record<string, unknown>;
@@ -42,6 +43,7 @@ export const designerControlRegistry: Partial<
   TabControl: TabControlControl,
   SpreadsheetView: SpreadsheetViewControl,
   JsonEditor: JsonEditorControl,
+  MongoDBView: MongoDBViewControl,
 };
 
 export interface ControlMeta {
@@ -71,6 +73,7 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'DataGridView',    displayName: 'DataGridView',    icon: '\u25A6',  category: 'data' },
   { type: 'SpreadsheetView', displayName: 'SpreadsheetView', icon: '\u25A8',  category: 'data' },
   { type: 'JsonEditor',     displayName: 'JsonEditor',     icon: '{}', category: 'data' },
+  { type: 'MongoDBView',   displayName: 'MongoDBView',   icon: '\u25A7', category: 'data' },
 ];
 
 export const TOOLBOX_CATEGORIES = [

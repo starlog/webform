@@ -68,7 +68,9 @@ export class SandboxRunner {
         const resultObj = result as Record<string, unknown>;
         const traces = resultObj.traces as TraceEntry[] | undefined;
         const userError = resultObj.__error as string | undefined;
-        const { traces: _t, __error: _e, ...rest } = resultObj;
+        const rest = Object.fromEntries(
+          Object.entries(resultObj).filter(([k]) => k !== 'traces' && k !== '__error'),
+        );
 
         if (userError) {
           return { success: false, error: userError, traces };

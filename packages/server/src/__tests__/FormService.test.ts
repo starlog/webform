@@ -196,7 +196,7 @@ describe('FormService', () => {
       expect(versions[0].version).toBe(2);
       expect(versions[1].version).toBe(1);
       // snapshot은 제외되어야 한다
-      expect((versions[0] as any).snapshot).toBeUndefined();
+      expect((versions[0] as unknown as Record<string, unknown>).snapshot).toBeUndefined();
     });
   });
 });

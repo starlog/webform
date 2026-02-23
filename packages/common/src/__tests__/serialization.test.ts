@@ -67,8 +67,8 @@ describe('FormDefinition 직렬화/역직렬화', () => {
     const json = serializeFormDefinition(form);
     const restored = deserializeFormDefinition(json);
     expect(restored).toEqual(form);
-    expect((restored.controls[0] as any).children).toHaveLength(1);
-    expect((restored.controls[0] as any).children[0].id).toBe('child-1');
+    expect((restored.controls[0] as unknown as { children: unknown[] }).children).toHaveLength(1);
+    expect((restored.controls[0] as unknown as { children: { id: string }[] }).children[0].id).toBe('child-1');
   });
 
   it('잘못된 JSON 문자열 → 에러를 던진다', () => {

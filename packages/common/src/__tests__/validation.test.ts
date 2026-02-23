@@ -56,7 +56,8 @@ describe('validateFormDefinition', () => {
 
   it('필수 필드(id) 누락 → valid: false', () => {
     const form = makeValidFormDefinition();
-    const { id: _, ...noId } = form;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id: _id, ...noId } = form;
     const result = validateFormDefinition(noId);
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
@@ -64,14 +65,16 @@ describe('validateFormDefinition', () => {
 
   it('필수 필드(name) 누락 → valid: false', () => {
     const form = makeValidFormDefinition();
-    const { name: _, ...noName } = form;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { name: _name, ...noName } = form;
     const result = validateFormDefinition(noName);
     expect(result.valid).toBe(false);
   });
 
   it('필수 필드(controls) 누락 → valid: false', () => {
     const form = makeValidFormDefinition();
-    const { controls: _, ...noControls } = form;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { controls: _controls, ...noControls } = form;
     const result = validateFormDefinition(noControls);
     expect(result.valid).toBe(false);
   });

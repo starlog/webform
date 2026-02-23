@@ -413,12 +413,18 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
   const setFormEventHandler = useDesignerStore((s) => s.setFormEventHandler);
   const setFormEventCode = useDesignerStore((s) => s.setFormEventCode);
 
-  const existingHandlers = isFormEvent
-    ? formEventHandlers
-    : (control?.properties._eventHandlers ?? {}) as Record<string, string>;
-  const existingCode = isFormEvent
-    ? formEventCode
-    : (control?.properties._eventCode ?? {}) as Record<string, string>;
+  const existingHandlers = useMemo(
+    () => isFormEvent
+      ? formEventHandlers
+      : (control?.properties._eventHandlers ?? {}) as Record<string, string>,
+    [isFormEvent, formEventHandlers, control?.properties._eventHandlers],
+  );
+  const existingCode = useMemo(
+    () => isFormEvent
+      ? formEventCode
+      : (control?.properties._eventCode ?? {}) as Record<string, string>,
+    [isFormEvent, formEventCode, control?.properties._eventCode],
+  );
 
   const initialCode = existingCode[handlerName] ??
     getSampleCode(

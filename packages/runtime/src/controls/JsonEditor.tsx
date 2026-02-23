@@ -18,6 +18,7 @@ interface JsonEditorProps {
   readOnly?: boolean;
   expandDepth?: number;
   backColor?: string;
+  foreColor?: string;
   font?: FontDef;
   style?: CSSProperties;
   enabled?: boolean;
@@ -222,6 +223,7 @@ export function JsonEditor({
   readOnly = false,
   expandDepth = 1,
   backColor,
+  foreColor,
   font,
   style,
   enabled = true,
@@ -311,6 +313,7 @@ export function JsonEditor({
         ...baseStyle,
         backgroundColor: backColor || '#ffffff',
         ...fontStyle,
+        ...(foreColor ? { color: foreColor } : {}),
         ...style,
       }}
     >

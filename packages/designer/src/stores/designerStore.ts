@@ -71,6 +71,7 @@ function getDefaultSize(type: ControlType): { width: number; height: number } {
     SplitContainer: { width: 150, height: 100 },
     SpreadsheetView: { width: 400, height: 300 },
     JsonEditor:      { width: 300, height: 250 },
+    MongoDBView:     { width: 450, height: 350 },
   };
   return sizes[type] ?? { width: 100, height: 23 };
 }
@@ -123,6 +124,16 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
       };
     case 'JsonEditor':
       return { value: {}, readOnly: false, expandDepth: 1 };
+    case 'MongoDBView':
+      return {
+        connectionString: '',
+        database: '',
+        collection: '',
+        filter: '{}',
+        pageSize: 50,
+        readOnly: false,
+        showToolbar: true,
+      };
     default:
       return {};
   }

@@ -30,6 +30,7 @@ const anchorStyleSchema = z.object({
   right: z.boolean().default(false),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const controlDefinitionSchema: z.ZodType<any> = z.lazy(() =>
   z.object({
     id: z.string().min(1),
@@ -99,7 +100,7 @@ export function validateRequest(schema: z.ZodSchema, source: 'body' | 'query' = 
     if (source === 'body') {
       req.body = parsed;
     } else {
-      (req as any).validatedQuery = parsed;
+      (req as unknown as Record<string, unknown>).validatedQuery = parsed;
     }
     next();
   };

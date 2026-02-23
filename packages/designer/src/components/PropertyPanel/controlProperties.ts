@@ -9,7 +9,8 @@ export type EditorType =
   | 'dropdown'
   | 'boolean'
   | 'anchor'
-  | 'collection';
+  | 'collection'
+  | 'mongoColumns';
 
 export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data';
 
@@ -161,6 +162,8 @@ const tabControlProps: PropertyMeta[] = withCommon(
 const dataGridViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.columns',   label: 'Columns',   category: 'Data',       editorType: 'collection' },
   { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },
   { name: 'properties.readOnly',  label: 'ReadOnly',  category: 'Behavior',   editorType: 'boolean', defaultValue: false },
 );
 
@@ -180,9 +183,25 @@ const spreadsheetViewProps: PropertyMeta[] = withCommon(
 
 const jsonEditorProps: PropertyMeta[] = withCommon(
   { name: 'properties.font',        label: 'Font',        category: 'Appearance', editorType: 'font' },
+  { name: 'properties.foreColor',   label: 'ForeColor',   category: 'Appearance', editorType: 'color' },
   { name: 'properties.readOnly',    label: 'ReadOnly',    category: 'Behavior',   editorType: 'boolean', defaultValue: false },
   { name: 'properties.expandDepth', label: 'ExpandDepth', category: 'Behavior',   editorType: 'number',  min: 0, max: 10, defaultValue: 1 },
   { name: 'properties.backColor',   label: 'BackColor',   category: 'Appearance', editorType: 'color' },
+);
+
+const mongoDBViewProps: PropertyMeta[] = withCommon(
+  { name: 'properties.title',            label: 'Title',            category: 'Appearance', editorType: 'text' },
+  { name: 'properties.connectionString', label: 'ConnectionString', category: 'Data',       editorType: 'text' },
+  { name: 'properties.database',         label: 'Database',         category: 'Data',       editorType: 'text' },
+  { name: 'properties.collection',       label: 'Collection',       category: 'Data',       editorType: 'text' },
+  { name: 'properties.columns',          label: 'Columns',          category: 'Data',       editorType: 'mongoColumns' },
+  { name: 'properties.filter',           label: 'Filter',           category: 'Data',       editorType: 'text' },
+  { name: 'properties.pageSize',         label: 'PageSize',         category: 'Data',       editorType: 'number', min: 1, max: 1000, defaultValue: 50 },
+  { name: 'properties.readOnly',         label: 'ReadOnly',         category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.showToolbar',      label: 'ShowToolbar',      category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.font',             label: 'Font',             category: 'Appearance', editorType: 'font' },
+  { name: 'properties.foreColor',        label: 'ForeColor',        category: 'Appearance', editorType: 'color' },
+  { name: 'properties.backColor',        label: 'BackColor',        category: 'Appearance', editorType: 'color' },
 );
 
 const defaultProps: PropertyMeta[] = withCommon();
@@ -206,6 +225,7 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   DataGridView:   dataGridViewProps,
   SpreadsheetView: spreadsheetViewProps,
   JsonEditor:     jsonEditorProps,
+  MongoDBView:    mongoDBViewProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {

@@ -34,6 +34,7 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   ListView: ['SelectedIndexChanged', 'ItemActivate'],
   SpreadsheetView: ['CellChanged', 'RowAdded', 'RowDeleted', 'SelectionChanged', 'DataLoaded'],
   JsonEditor: ['ValueChanged'],
+  MongoDBView: ['DataLoaded', 'SelectionChanged', 'CellValueChanged', 'DocumentInserted', 'DocumentUpdated', 'DocumentDeleted', 'Error'],
 };
 
 export const FORM_EVENTS = [

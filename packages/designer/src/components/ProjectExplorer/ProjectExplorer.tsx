@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import type { FontDefinition } from '@webform/common';
 import { apiService } from '../../services/apiService';
 import type { ProjectDocument, FormSummary } from '../../services/apiService';
 import { useDesignerStore } from '../../stores/designerStore';
+import { FontPicker } from '../PropertyPanel/editors/FontPicker';
 
 interface ProjectExplorerProps {
   onFormSelect: (formId: string) => void;
@@ -30,6 +32,13 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
+
+  // 프로젝트 폰트 설정 다이얼로그
+  const [fontDialog, setFontDialog] = useState<{ projectId: string; projectName: string } | null>(null);
+  const [fontValue, setFontValue] = useState<FontDefinition>({
+    family: 'Segoe UI', size: 9, bold: false, italic: false, underline: false, strikethrough: false,
+  });
+  const [fontApplying, setFontApplying] = useState(false);
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -145,6 +154,38 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
     }
   };
 
+  const handleOpenFontDialog = (projectId: string, projectName: string) => {
+    setFontValue({
+      family: 'Segoe UI', size: 9, bold: false, italic: false, underline: false, strikethrough: false,
+    });
+    setFontDialog({ projectId, projectName });
+  };
+
+  const handleApplyProjectFont = async () => {
+    if (!fontDialog) return;
+    const confirmation = prompt(
+      '이 작업은 프로젝트 내 모든 폼과 모든 컨트롤의 폰트를 변경합니다.\n계속하려면 "confirm"을 입력하세요.',
+    );
+    if (confirmation !== 'confirm') return;
+    setFontApplying(true);
+    try {
+      const result = await apiService.applyProjectFont(fontDialog.projectId, fontValue);
+      alert(`${result.modifiedCount}개 폼의 모든 요소에 폰트가 적용되었습니다.`);
+      // 현재 열린 폼이 이 프로젝트에 속하면 서버에서 다시 로드
+      const state = useDesignerStore.getState();
+      if (state.currentFormId && state.currentProjectId === fontDialog.projectId) {
+        const { data } = await apiService.loadForm(state.currentFormId);
+        state.loadForm(state.currentFormId, data.controls, data.properties);
+      }
+      setFontDialog(null);
+    } catch (error) {
+      console.error('Failed to apply project font:', error);
+      alert('폰트 적용에 실패했습니다.');
+    } finally {
+      setFontApplying(false);
+    }
+  };
+
   const handleImportProject = async () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -167,12 +208,16 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
   const getContextMenuItems = () => {
     if (!contextMenu) return [];
     switch (contextMenu.targetType) {
-      case 'project':
+      case 'project': {
+        const proj = projects.find((p) => p.project._id === contextMenu.projectId);
+        const projName = proj?.project.name ?? '';
         return [
           { label: '새 폼', action: () => handleNewForm(contextMenu.projectId) },
+          { label: '프로젝트 폰트 설정', action: () => handleOpenFontDialog(contextMenu.projectId, projName) },
           { label: '내보내기', action: () => handleExportProject(contextMenu.projectId) },
           { label: '삭제', action: () => handleDeleteProject(contextMenu.projectId) },
         ];
+      }
       case 'folder':
         return [
           { label: '새 폼', action: () => handleNewForm(contextMenu.projectId) },
@@ -398,6 +443,91 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
               {item.label}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 프로젝트 폰트 설정 다이얼로그 */}
+      {fontDialog && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 20000,
+          }}
+          onClick={() => setFontDialog(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#fff',
+              border: '1px solid #999',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+              width: 320,
+              borderRadius: 4,
+              fontFamily: 'Segoe UI, sans-serif',
+              fontSize: 12,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 다이얼로그 헤더 */}
+            <div style={{
+              padding: '8px 12px',
+              borderBottom: '1px solid #ddd',
+              fontWeight: 600,
+              fontSize: 13,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <span>프로젝트 폰트 설정</span>
+              <button
+                type="button"
+                onClick={() => setFontDialog(null)}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#666' }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* 다이얼로그 본문 */}
+            <div style={{ padding: '12px' }}>
+              <div style={{ marginBottom: 8, color: '#555' }}>
+                <strong>{fontDialog.projectName}</strong> 프로젝트의 모든 폼에 아래 폰트를 일괄 적용합니다.
+              </div>
+              <FontPicker value={fontValue} onChange={setFontValue} />
+              <div style={{ marginTop: 8, padding: '6px 8px', backgroundColor: '#fff8e1', border: '1px solid #ffe082', borderRadius: 3, fontSize: 11, color: '#795548' }}>
+                이 작업은 프로젝트 내 모든 폼과 모든 컨트롤의 폰트를 일괄 변경합니다.
+              </div>
+            </div>
+
+            {/* 다이얼로그 푸터 */}
+            <div style={{
+              padding: '8px 12px',
+              borderTop: '1px solid #ddd',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 8,
+            }}>
+              <button
+                type="button"
+                onClick={() => setFontDialog(null)}
+                style={{ padding: '4px 16px', border: '1px solid #bbb', borderRadius: 2, backgroundColor: '#fff', fontSize: 12, cursor: 'pointer' }}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyProjectFont}
+                disabled={fontApplying}
+                style={{ padding: '4px 16px', border: '1px solid #0078d4', borderRadius: 2, backgroundColor: '#0078d4', color: '#fff', fontSize: 12, cursor: 'pointer' }}
+              >
+                {fontApplying ? '적용 중...' : '적용'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

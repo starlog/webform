@@ -10,6 +10,15 @@ export interface ColumnDefinition {
   editable?: boolean;
 }
 
+interface FontDef {
+  family?: string;
+  size?: number;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+}
+
 interface DataGridViewProps {
   id: string;
   name: string;
@@ -21,6 +30,8 @@ interface DataGridViewProps {
   style?: CSSProperties;
   enabled?: boolean;
   readOnly?: boolean;
+  font?: FontDef;
+  foreColor?: string;
   children?: ReactNode;
   [key: string]: unknown;
 }
@@ -104,6 +115,8 @@ export function DataGridView({
   style,
   enabled = true,
   readOnly = false,
+  font,
+  foreColor,
 }: DataGridViewProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number>(-1);
@@ -111,7 +124,22 @@ export function DataGridView({
   const editInputRef = useRef<HTMLInputElement>(null);
   const setSelectedRow = useBindingStore((s) => s.setSelectedRow);
 
-  const rows = (dataSource ?? []) as Record<string, unknown>[];
+  const fontStyle = useMemo<CSSProperties>(() => {
+    if (!font) return {};
+    const textDecoration = [
+      font.underline ? 'underline' : '',
+      font.strikethrough ? 'line-through' : '',
+    ].filter(Boolean).join(' ');
+    return {
+      fontFamily: font.family || undefined,
+      fontSize: font.size ? `${font.size}pt` : undefined,
+      fontWeight: font.bold ? 'bold' : undefined,
+      fontStyle: font.italic ? 'italic' : undefined,
+      textDecoration: textDecoration || undefined,
+    };
+  }, [font]);
+
+  const rows = useMemo(() => (dataSource ?? []) as Record<string, unknown>[], [dataSource]);
 
   // 컬럼 자동 생성: columns prop이 없으면 데이터의 키에서 추출
   const resolvedColumns = useMemo<ColumnDefinition[]>(() => {
@@ -230,7 +258,7 @@ export function DataGridView({
     [commitEdit, cancelEdit],
   );
 
-  const mergedStyle: CSSProperties = { ...styles.container, ...style };
+  const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, ...(foreColor ? { color: foreColor } : {}), ...style };
 
   // 빈 데이터 처리
   if (rows.length === 0) {

@@ -14,15 +14,16 @@ interface ControlRendererProps {
 }
 
 export function ControlRenderer({ definition, bindings, events }: ControlRendererProps) {
+  const controlState = useRuntimeStore((s) => s.controlStates[definition.id] ?? EMPTY_STATE);
+  const boundProps = useDataBinding(definition.id, bindings);
+  const eventHandlers = useEventHandlers(definition.id, events);
+
   const Component = runtimeControlRegistry[definition.type];
   if (!Component) {
     console.warn(`Unknown control type: ${definition.type}`);
     return null;
   }
 
-  const controlState = useRuntimeStore((s) => s.controlStates[definition.id] ?? EMPTY_STATE);
-  const boundProps = useDataBinding(definition.id, bindings);
-  const eventHandlers = useEventHandlers(definition.id, events);
   const layoutStyle = computeLayoutStyle(definition);
 
   if (controlState.visible === false) return null;

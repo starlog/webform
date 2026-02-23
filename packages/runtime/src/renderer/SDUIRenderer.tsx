@@ -15,7 +15,7 @@ export function SDUIRenderer({ formDefinition }: SDUIRendererProps) {
 
   useEffect(() => {
     setFormDef(formDefinition);
-  }, [formDefinition.id, setFormDef]);
+  }, [formDefinition, setFormDef]);
 
   // Form.Load 이벤트 실행
   useEffect(() => {
@@ -32,7 +32,7 @@ export function SDUIRenderer({ formDefinition }: SDUIRendererProps) {
         }
       }
     }
-  }, [formDefinition.id]);
+  }, [formDefinition.id, formDefinition.eventHandlers]);
 
   // Form.OnLoading 이벤트 실행 (서버 사이드)
   useEffect(() => {
@@ -64,7 +64,7 @@ export function SDUIRenderer({ formDefinition }: SDUIRendererProps) {
           });
       }
     }
-  }, [formDefinition.id, applyPatches]);
+  }, [formDefinition.id, formDefinition.eventHandlers, applyPatches]);
 
   return (
     <FormContainer properties={formDefinition.properties}>

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useDesignerStore } from '../../stores/designerStore';
 import { useHistoryStore } from '../../stores/historyStore';
 import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';

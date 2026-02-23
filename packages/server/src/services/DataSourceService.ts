@@ -58,7 +58,10 @@ export class DataSourceService {
     const result = created.toObject() as DataSourceDocument;
 
     // 응답에서 암호화된 config 제거
-    const { encryptedConfig, staticData, ...safe } = result as unknown as Record<string, unknown>;
+    const resultObj = result as unknown as Record<string, unknown>;
+    const safe = Object.fromEntries(
+      Object.entries(resultObj).filter(([k]) => k !== 'encryptedConfig' && k !== 'staticData'),
+    );
     return safe as unknown as DataSourceDocument;
   }
 
@@ -80,7 +83,10 @@ export class DataSourceService {
       config = {};
     }
 
-    const { encryptedConfig, staticData, ...rest } = doc as unknown as Record<string, unknown>;
+    const docObj = doc as unknown as Record<string, unknown>;
+    const rest = Object.fromEntries(
+      Object.entries(docObj).filter(([k]) => k !== 'encryptedConfig' && k !== 'staticData'),
+    );
     return { ...rest, config } as DataSourceDocument & { config: unknown };
   }
 
@@ -175,7 +181,10 @@ export class DataSourceService {
       throw new NotFoundError(`DataSource not found: ${id}`);
     }
 
-    const { encryptedConfig, staticData, ...safe } = doc as unknown as Record<string, unknown>;
+    const updateObj = doc as unknown as Record<string, unknown>;
+    const safe = Object.fromEntries(
+      Object.entries(updateObj).filter(([k]) => k !== 'encryptedConfig' && k !== 'staticData'),
+    );
     return safe as unknown as DataSourceDocument;
   }
 

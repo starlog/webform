@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useDesignerStore } from '../stores/designerStore';
-import type { ControlDefinition, FormProperties } from '@webform/common';
+import type { ControlDefinition, FontDefinition, FormProperties } from '@webform/common';
 
 // --- 타입 정의 ---
 
@@ -191,6 +191,17 @@ export const apiService = {
     return request('/projects/import', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  },
+
+  // 프로젝트 전체 폼 폰트 일괄 적용
+  async applyProjectFont(
+    projectId: string,
+    font: FontDefinition,
+  ): Promise<{ success: boolean; modifiedCount: number }> {
+    return request(`/projects/${projectId}/font`, {
+      method: 'PUT',
+      body: JSON.stringify({ font }),
     });
   },
 };

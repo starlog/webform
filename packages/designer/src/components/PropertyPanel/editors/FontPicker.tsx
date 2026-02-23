@@ -16,9 +16,17 @@ const DEFAULT_FONT: FontDefinition = {
 };
 
 const FONT_FAMILIES = [
+  // 기본 폰트
   'Segoe UI', 'Arial', 'Verdana', 'Tahoma',
   'Times New Roman', 'Georgia', 'Courier New',
   'Consolas', 'Malgun Gothic',
+  // 한국어 웹 폰트 (Google Fonts)
+  'Noto Sans KR', 'Noto Serif KR',
+  'Nanum Gothic', 'Nanum Myeongjo', 'Nanum Gothic Coding', 'Nanum Pen Script',
+  'Gothic A1', 'IBM Plex Sans KR',
+  'Black Han Sans', 'Do Hyeon', 'Jua', 'Gamja Flower',
+  'Sunflower', 'Poor Story', 'Single Day', 'Stylish',
+  'Gugi', 'East Sea Dokdo', 'Song Myung', 'Gaegu',
 ];
 
 export function FontPicker({ value, onChange }: FontPickerProps) {
@@ -61,7 +69,7 @@ export function FontPicker({ value, onChange }: FontPickerProps) {
               style={{ width: '100%', fontSize: 12 }}
             >
               {FONT_FAMILIES.map((f) => (
-                <option key={f} value={f}>{f}</option>
+                <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>
               ))}
             </select>
           </div>

@@ -66,6 +66,28 @@ projectsRouter.delete('/:id', async (req, res, next) => {
   }
 });
 
+// PUT /api/projects/:id/font — 프로젝트 전체 폼 폰트 일괄 적용
+projectsRouter.put('/:id/font', async (req, res, next) => {
+  try {
+    const font = req.body.font as {
+      family: string; size: number; bold: boolean;
+      italic: boolean; underline: boolean; strikethrough: boolean;
+    };
+    if (!font || !font.family || typeof font.size !== 'number') {
+      res.status(400).json({ error: { message: 'font object is required with family and size' } });
+      return;
+    }
+    const modifiedCount = await projectService.applyFontToAllForms(
+      req.params.id,
+      font,
+      req.user!.sub,
+    );
+    res.json({ success: true, modifiedCount });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/projects/:id/export — 프로젝트 내보내기
 projectsRouter.get('/:id/export', async (req, res, next) => {
   try {

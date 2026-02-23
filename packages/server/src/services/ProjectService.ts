@@ -130,6 +130,45 @@ export class ProjectService {
     };
   }
 
+  async applyFontToAllForms(
+    projectId: string,
+    font: { family: string; size: number; bold: boolean; italic: boolean; underline: boolean; strikethrough: boolean },
+    userId: string,
+  ): Promise<number> {
+    await this.getProject(projectId);
+    const forms = await Form.find({ projectId, deletedAt: null });
+
+    let modifiedCount = 0;
+    for (const form of forms) {
+      // 폼 레벨 폰트 설정
+      form.set('properties.font', font);
+
+      // 모든 컨트롤의 폰트도 설정
+      const controls = form.get('controls') as unknown as Array<Record<string, unknown>>;
+      if (Array.isArray(controls)) {
+        const walk = (ctrls: Array<Record<string, unknown>>) => {
+          for (const ctrl of ctrls) {
+            const props = ctrl.properties as Record<string, unknown> | undefined;
+            if (props) {
+              props.font = font;
+            }
+            if (Array.isArray(ctrl.children)) {
+              walk(ctrl.children as Array<Record<string, unknown>>);
+            }
+          }
+        };
+        walk(controls);
+        form.markModified('controls');
+      }
+
+      form.set('updatedBy', userId);
+      await form.save();
+      modifiedCount++;
+    }
+
+    return modifiedCount;
+  }
+
   async importProject(input: ImportProjectInput, userId: string): Promise<ProjectDocument> {
     const project = await this.createProject(
       { name: input.project.name, description: input.project.description },
