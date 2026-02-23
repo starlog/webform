@@ -6,6 +6,7 @@ interface TreeNode {
   text: string;
   children?: TreeNode[];
   expanded?: boolean;
+  checked?: boolean;
   imageIndex?: number;
 }
 
@@ -45,9 +46,11 @@ function TreeNodeItem({
   selectedNodePath,
   showLines,
   showPlusMinus,
+  checkBoxes,
   enabled,
   onToggle,
   onSelect,
+  onCheck,
 }: {
   node: TreeNode;
   path: string;
@@ -55,9 +58,11 @@ function TreeNodeItem({
   selectedNodePath: string;
   showLines: boolean;
   showPlusMinus: boolean;
+  checkBoxes: boolean;
   enabled: boolean;
   onToggle: (path: string, expanded: boolean) => void;
   onSelect: (path: string) => void;
+  onCheck: (path: string, checked: boolean) => void;
 }) {
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = node.expanded !== false && hasChildren;
@@ -112,6 +117,19 @@ function TreeNodeItem({
             }}
           />
         )}
+        {checkBoxes && (
+          <input
+            type="checkbox"
+            checked={!!node.checked}
+            disabled={!enabled}
+            style={{ margin: '0 2px 0 0', flexShrink: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              if (!enabled) return;
+              onCheck(path, e.target.checked);
+            }}
+          />
+        )}
         <span style={{ marginLeft: 2 }}>{node.text}</span>
       </div>
       {hasChildren && isExpanded && (
@@ -125,9 +143,11 @@ function TreeNodeItem({
               selectedNodePath={selectedNodePath}
               showLines={showLines}
               showPlusMinus={showPlusMinus}
+              checkBoxes={checkBoxes}
               enabled={enabled}
               onToggle={onToggle}
               onSelect={onSelect}
+              onCheck={onCheck}
             />
           ))}
         </div>
@@ -136,17 +156,21 @@ function TreeNodeItem({
   );
 }
 
-function updateNodeAtPath(nodes: TreeNode[], pathParts: number[], expanded: boolean): TreeNode[] {
+function updateNodeAtPath(
+  nodes: TreeNode[],
+  pathParts: number[],
+  update: Partial<Pick<TreeNode, 'expanded' | 'checked'>>,
+): TreeNode[] {
   if (pathParts.length === 0) return nodes;
   return nodes.map((node, i) => {
     if (i !== pathParts[0]) return node;
     if (pathParts.length === 1) {
-      return { ...node, expanded };
+      return { ...node, ...update };
     }
     return {
       ...node,
       children: node.children
-        ? updateNodeAtPath(node.children, pathParts.slice(1), expanded)
+        ? updateNodeAtPath(node.children, pathParts.slice(1), update)
         : node.children,
     };
   });
@@ -158,6 +182,7 @@ export function TreeView({
   selectedNodePath = '',
   showLines = false,
   showPlusMinus = true,
+  checkBoxes = false,
   style,
   enabled = true,
   backColor,
@@ -179,7 +204,7 @@ export function TreeView({
   const handleToggle = useCallback(
     (path: string, expanded: boolean) => {
       const pathParts = path.split('.').map(Number);
-      const updatedNodes = updateNodeAtPath(nodes, pathParts, expanded);
+      const updatedNodes = updateNodeAtPath(nodes, pathParts, { expanded });
       updateControlState(id, 'nodes', updatedNodes);
       if (expanded) {
         onAfterExpand?.();
@@ -188,6 +213,15 @@ export function TreeView({
       }
     },
     [id, nodes, updateControlState, onAfterExpand, onAfterCollapse],
+  );
+
+  const handleCheck = useCallback(
+    (path: string, checked: boolean) => {
+      const pathParts = path.split('.').map(Number);
+      const updatedNodes = updateNodeAtPath(nodes, pathParts, { checked });
+      updateControlState(id, 'nodes', updatedNodes);
+    },
+    [id, nodes, updateControlState],
   );
 
   const mergedStyle: CSSProperties = {
@@ -212,9 +246,11 @@ export function TreeView({
             selectedNodePath={selectedNodePath}
             showLines={showLines}
             showPlusMinus={showPlusMinus}
+            checkBoxes={checkBoxes}
             enabled={enabled}
             onToggle={handleToggle}
             onSelect={handleSelect}
+            onCheck={handleCheck}
           />
         ))
       )}

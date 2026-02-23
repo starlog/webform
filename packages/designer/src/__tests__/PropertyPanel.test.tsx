@@ -42,9 +42,14 @@ describe('PropertyPanel', () => {
     });
   });
 
-  it('선택 없을 때 "No control selected" 메시지를 표시한다', () => {
+  it('선택 없을 때 폼 속성을 표시한다', () => {
     render(<PropertyPanel />);
-    expect(screen.getByText('No control selected.')).toBeInTheDocument();
+    // 선택된 컨트롤이 없으면 폼 속성 패널이 표시됨
+    expect(screen.getByText(/\(Form\)/)).toBeInTheDocument();
+    // 폼 속성 항목들이 표시됨
+    expect(screen.getByText('Width')).toBeInTheDocument();
+    expect(screen.getByText('Height')).toBeInTheDocument();
+    expect(screen.getByText('BackColor')).toBeInTheDocument();
   });
 
   it('Button 선택 시 Button 속성을 표시한다', () => {

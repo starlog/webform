@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useDesignerStore } from '../stores/designerStore';
 import { nestControls } from '@webform/common';
-import type { ControlDefinition, FontDefinition, FormProperties } from '@webform/common';
+import type { ControlDefinition, FontDefinition, FormProperties, EventHandlerDefinition, DataBindingDefinition } from '@webform/common';
 
 // --- 타입 정의 ---
 
@@ -24,8 +24,8 @@ interface FormDocument extends FormSummary {
   projectId: string;
   properties: FormProperties;
   controls: ControlDefinition[];
-  eventHandlers: unknown[];
-  dataBindings: unknown[];
+  eventHandlers: EventHandlerDefinition[];
+  dataBindings: DataBindingDefinition[];
   createdBy: string;
   updatedBy: string;
   createdAt: string;
@@ -51,8 +51,8 @@ interface UpdateFormPayload {
   name?: string;
   properties?: Partial<FormProperties>;
   controls?: ControlDefinition[];
-  eventHandlers?: unknown[];
-  dataBindings?: unknown[];
+  eventHandlers?: EventHandlerDefinition[];
+  dataBindings?: DataBindingDefinition[];
 }
 
 interface CreateProjectPayload {

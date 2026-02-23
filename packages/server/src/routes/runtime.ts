@@ -3,6 +3,7 @@ import type { EventRequest } from '@webform/common';
 import { ObjectId } from 'mongodb';
 import { Form } from '../models/Form.js';
 import { EventEngine } from '../services/EventEngine.js';
+import { DataSourceService } from '../services/DataSourceService.js';
 import { MongoDBAdapter } from '../services/adapters/MongoDBAdapter.js';
 import { AppError, NotFoundError } from '../middleware/errorHandler.js';
 
@@ -27,6 +28,7 @@ function convertIds(obj: Record<string, unknown>): Record<string, unknown> {
 
 export const runtimeRouter = Router();
 const eventEngine = new EventEngine();
+const dataSourceService = new DataSourceService();
 
 /**
  * GET /api/runtime/forms/:id
@@ -110,7 +112,14 @@ runtimeRouter.post('/forms/:id/events', async (req, res, next) => {
 
 /**
  * POST /api/runtime/forms/:id/data
- * 데이터소스 쿼리를 실행한다. (스텁)
+ * 데이터소스 쿼리를 실행한다.
+ *
+ * Body:
+ *   - dataSourceId: string (직접 지정)
+ *   - query?: Record<string, unknown> (쿼리 파라미터: collection, filter, skip, limit 등)
+ *
+ * 또는 dataSourceId 없이 호출하면 폼의 dataBindings에서 사용하는
+ * 모든 데이터소스를 조회하여 결과를 맵으로 반환한다.
  */
 runtimeRouter.post('/forms/:id/data', async (req, res, next) => {
   try {
@@ -120,12 +129,39 @@ runtimeRouter.post('/forms/:id/data', async (req, res, next) => {
       throw new NotFoundError('Form not found');
     }
 
-    // TODO: DataSourceService.executeQuery 구현
-    res.json({
-      success: true,
-      data: [],
-      message: 'Data source query not yet implemented',
-    });
+    const { dataSourceId, query } = req.body as {
+      dataSourceId?: string;
+      query?: Record<string, unknown>;
+    };
+
+    // 특정 데이터소스를 직접 지정한 경우
+    if (dataSourceId) {
+      const data = await dataSourceService.executeQuery(dataSourceId, query || {});
+      res.json({ success: true, data });
+      return;
+    }
+
+    // dataSourceId 미지정 시: 폼의 모든 dataBindings에서 사용하는 데이터소스 일괄 조회
+    const bindings = form.dataBindings || [];
+    const uniqueDataSourceIds = [...new Set(bindings.map((b) => b.dataSourceId))];
+
+    if (uniqueDataSourceIds.length === 0) {
+      res.json({ success: true, data: {} });
+      return;
+    }
+
+    const results: Record<string, unknown[]> = {};
+    await Promise.all(
+      uniqueDataSourceIds.map(async (dsId) => {
+        try {
+          results[dsId] = await dataSourceService.executeQuery(dsId, query || {});
+        } catch {
+          results[dsId] = [];
+        }
+      }),
+    );
+
+    res.json({ success: true, data: results });
   } catch (err) {
     next(err);
   }

@@ -1,7 +1,7 @@
 import { Form } from '../models/Form.js';
 import type { FormDocument, FormVersionSnapshot } from '../models/Form.js';
 import type { CreateFormInput, UpdateFormInput, ListFormsQuery } from '../validators/formValidator.js';
-import { NotFoundError } from '../middleware/errorHandler.js';
+import { NotFoundError, AppError } from '../middleware/errorHandler.js';
 
 export class FormService {
   async createForm(input: CreateFormInput, userId: string): Promise<FormDocument> {
@@ -73,6 +73,11 @@ export class FormService {
       updatedBy: userId,
     };
 
+    // published 상태에서 수정 시 draft로 전환
+    if (existing.status === 'published') {
+      updateFields.status = 'draft';
+    }
+
     const form = await Form.findOneAndUpdate(
       { _id: id, deletedAt: null },
       {
@@ -104,6 +109,10 @@ export class FormService {
 
   async publishForm(id: string, userId: string): Promise<FormDocument> {
     const existing = await this.getForm(id);
+
+    if (existing.status === 'published') {
+      throw new AppError(409, 'Form is already published');
+    }
 
     const form = await Form.findByIdAndUpdate(
       id,

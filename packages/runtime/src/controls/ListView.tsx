@@ -64,6 +64,7 @@ export function ListView({
   columns = [],
   view = 'Details',
   selectedIndex = -1,
+  multiSelect = false,
   fullRowSelect = true,
   gridLines = false,
   style,
@@ -74,14 +75,41 @@ export function ListView({
   onItemActivate,
 }: ListViewProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const controlStates = useRuntimeStore((s) => s.controlStates);
+  const selectedIndices: number[] = (controlStates[id]?.selectedIndices as number[]) ?? (selectedIndex >= 0 ? [selectedIndex] : []);
 
   const handleSelect = useCallback(
-    (index: number) => {
+    (index: number, e?: React.MouseEvent) => {
       if (!enabled) return;
-      updateControlState(id, 'selectedIndex', index);
+      if (multiSelect && e) {
+        let newIndices: number[];
+        if (e.ctrlKey || e.metaKey) {
+          // Toggle selection
+          if (selectedIndices.includes(index)) {
+            newIndices = selectedIndices.filter((i) => i !== index);
+          } else {
+            newIndices = [...selectedIndices, index];
+          }
+        } else if (e.shiftKey && selectedIndices.length > 0) {
+          // Range selection
+          const anchor = selectedIndices[selectedIndices.length - 1];
+          const start = Math.min(anchor, index);
+          const end = Math.max(anchor, index);
+          const range: number[] = [];
+          for (let i = start; i <= end; i++) range.push(i);
+          newIndices = range;
+        } else {
+          newIndices = [index];
+        }
+        updateControlState(id, 'selectedIndices', newIndices);
+        updateControlState(id, 'selectedIndex', newIndices.length > 0 ? newIndices[newIndices.length - 1] : -1);
+      } else {
+        updateControlState(id, 'selectedIndex', index);
+        updateControlState(id, 'selectedIndices', [index]);
+      }
       onSelectedIndexChanged?.();
     },
-    [id, enabled, updateControlState, onSelectedIndexChanged],
+    [id, enabled, multiSelect, selectedIndices, updateControlState, onSelectedIndexChanged],
   );
 
   const handleDoubleClick = useCallback(
@@ -91,6 +119,16 @@ export function ListView({
       onItemActivate?.();
     },
     [id, enabled, updateControlState, onItemActivate],
+  );
+
+  const isItemSelected = useCallback(
+    (index: number): boolean => {
+      if (multiSelect) {
+        return selectedIndices.includes(index);
+      }
+      return index === selectedIndex;
+    },
+    [multiSelect, selectedIndices, selectedIndex],
   );
 
   const mergedStyle: CSSProperties = {
@@ -154,7 +192,7 @@ export function ListView({
           )}
           <tbody>
             {items.map((item, ri) => {
-              const isSelected = ri === selectedIndex;
+              const isSelected = isItemSelected(ri);
               return (
                 <tr
                   key={ri}
@@ -162,7 +200,7 @@ export function ListView({
                     cursor: enabled ? 'pointer' : 'default',
                     ...(isSelected && fullRowSelect ? selectedStyle : {}),
                   }}
-                  onClick={() => handleSelect(ri)}
+                  onClick={(e) => handleSelect(ri, e)}
                   onDoubleClick={() => handleDoubleClick(ri)}
                 >
                   {columns.length > 0 ? (
@@ -216,7 +254,7 @@ export function ListView({
         style={{ ...mergedStyle, display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', padding: 4 }}
       >
         {items.map((item, i) => {
-          const isSelected = i === selectedIndex;
+          const isSelected = isItemSelected(i);
           return (
             <div
               key={i}
@@ -228,7 +266,7 @@ export function ListView({
                 borderRadius: 2,
                 ...(isSelected ? { backgroundColor: '#0078D7', color: '#FFFFFF' } : {}),
               }}
-              onClick={() => handleSelect(i)}
+              onClick={(e) => handleSelect(i, e)}
               onDoubleClick={() => handleDoubleClick(i)}
             >
               <IconPlaceholder size={32} />
@@ -259,7 +297,7 @@ export function ListView({
         style={{ ...mergedStyle, display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', padding: 2 }}
       >
         {items.map((item, i) => {
-          const isSelected = i === selectedIndex;
+          const isSelected = isItemSelected(i);
           return (
             <div
               key={i}
@@ -272,7 +310,7 @@ export function ListView({
                 borderRadius: 2,
                 ...(isSelected ? { backgroundColor: '#0078D7', color: '#FFFFFF' } : {}),
               }}
-              onClick={() => handleSelect(i)}
+              onClick={(e) => handleSelect(i, e)}
               onDoubleClick={() => handleDoubleClick(i)}
             >
               <IconPlaceholder size={16} />
@@ -293,7 +331,7 @@ export function ListView({
         style={{ ...mergedStyle, padding: 2 }}
       >
         {items.map((item, i) => {
-          const isSelected = i === selectedIndex;
+          const isSelected = isItemSelected(i);
           return (
             <div
               key={i}
@@ -306,7 +344,7 @@ export function ListView({
                 cursor: enabled ? 'pointer' : 'default',
                 ...(isSelected ? { backgroundColor: '#0078D7', color: '#FFFFFF' } : {}),
               }}
-              onClick={() => handleSelect(i)}
+              onClick={(e) => handleSelect(i, e)}
               onDoubleClick={() => handleDoubleClick(i)}
             >
               <IconPlaceholder size={16} />
@@ -328,7 +366,7 @@ export function ListView({
       style={{ ...mergedStyle, display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', padding: 4 }}
     >
       {items.map((item, i) => {
-        const isSelected = i === selectedIndex;
+        const isSelected = isItemSelected(i);
         return (
           <div
             key={i}
@@ -342,7 +380,7 @@ export function ListView({
               borderRadius: 2,
               ...(isSelected ? { backgroundColor: '#0078D7', color: '#FFFFFF' } : {}),
             }}
-            onClick={() => handleSelect(i)}
+            onClick={(e) => handleSelect(i, e)}
             onDoubleClick={() => handleDoubleClick(i)}
           >
             <IconPlaceholder size={32} />

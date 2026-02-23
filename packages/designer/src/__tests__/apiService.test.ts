@@ -17,6 +17,12 @@ function mockResponse(body: unknown, status = 200) {
   };
 }
 
+// ensureAuth()의 auth token을 사전 설정하여 이후 테스트에서 auth fetch가 발생하지 않도록 함
+fetchMock.mockResolvedValueOnce(mockResponse({ token: 'test-token' }));
+fetchMock.mockResolvedValueOnce(mockResponse({ data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } }));
+await apiService.listForms();
+fetchMock.mockReset();
+
 describe('apiService', () => {
   beforeEach(() => {
     fetchMock.mockReset();
