@@ -124,7 +124,17 @@ export function MongoDBView({
 
   // 컬럼 자동 생성 + columns 속성으로 필터링
   const includeColumns = useMemo(
-    () => (columnsProp ? columnsProp.split(',').map((s) => s.trim()).filter(Boolean) : []),
+    () => {
+      if (!columnsProp) return [];
+      if (Array.isArray(columnsProp)) {
+        return (columnsProp as unknown[]).map((c) =>
+          typeof c === 'object' && c !== null
+            ? String((c as Record<string, unknown>).header ?? (c as Record<string, unknown>).field ?? '')
+            : String(c)
+        ).filter(Boolean);
+      }
+      return String(columnsProp).split(',').map((s) => s.trim()).filter(Boolean);
+    },
     [columnsProp],
   );
 
