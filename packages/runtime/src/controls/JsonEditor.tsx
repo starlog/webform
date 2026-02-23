@@ -35,6 +35,9 @@ interface JsonNodeProps {
   readOnly: boolean;
   enabled: boolean;
   onChange: (path: string[], newValue: unknown) => void;
+  onDelete?: () => void;
+  onAddItem: (arrayPath: string[]) => void;
+  onDeleteItem: (arrayPath: string[], index: number) => void;
 }
 
 function getValueType(v: unknown): string {
@@ -43,9 +46,13 @@ function getValueType(v: unknown): string {
   return typeof v;
 }
 
-function JsonNode({ label, value, path, depth, expandDepth, readOnly, enabled, onChange }: JsonNodeProps) {
+function JsonNode({
+  label, value, path, depth, expandDepth, readOnly, enabled,
+  onChange, onDelete, onAddItem, onDeleteItem,
+}: JsonNodeProps) {
   const [collapsed, setCollapsed] = useState(depth >= expandDepth);
   const type = getValueType(value);
+  const canEdit = !readOnly && enabled;
 
   const toggle = useCallback(() => setCollapsed((c) => !c), []);
 
@@ -55,6 +62,7 @@ function JsonNode({ label, value, path, depth, expandDepth, readOnly, enabled, o
       : Object.entries(value as Record<string, unknown>);
     const bracketOpen = type === 'array' ? '[' : '{';
     const bracketClose = type === 'array' ? ']' : '}';
+    const isArray = type === 'array';
 
     return (
       <div style={{ paddingLeft: depth > 0 ? 14 : 0 }}>
@@ -71,10 +79,30 @@ function JsonNode({ label, value, path, depth, expandDepth, readOnly, enabled, o
           ) : (
             <span style={styles.bracket}>{bracketOpen}</span>
           )}
+          {isArray && canEdit && (
+            <button
+              type="button"
+              onClick={() => onAddItem(path)}
+              style={styles.addBtn}
+              title="Add item"
+            >
+              +
+            </button>
+          )}
+          {onDelete && canEdit && (
+            <button
+              type="button"
+              onClick={onDelete}
+              style={styles.deleteBtn}
+              title="Delete"
+            >
+              ×
+            </button>
+          )}
         </div>
         {!collapsed && (
           <>
-            {entries.map(([k, v]) => (
+            {entries.map(([k, v], idx) => (
               <JsonNode
                 key={k}
                 label={String(k)}
@@ -85,6 +113,9 @@ function JsonNode({ label, value, path, depth, expandDepth, readOnly, enabled, o
                 readOnly={readOnly}
                 enabled={enabled}
                 onChange={onChange}
+                onDelete={isArray && canEdit ? () => onDeleteItem(path, idx) : undefined}
+                onAddItem={onAddItem}
+                onDeleteItem={onDeleteItem}
               />
             ))}
             <div style={{ paddingLeft: 14 + depth * 14 }}>
@@ -129,6 +160,16 @@ function JsonNode({ label, value, path, depth, expandDepth, readOnly, enabled, o
           style={styles.input}
         />
       )}
+      {onDelete && canEdit && (
+        <button
+          type="button"
+          onClick={onDelete}
+          style={styles.deleteBtn}
+          title="Delete"
+        >
+          ×
+        </button>
+      )}
     </div>
   );
 }
@@ -143,6 +184,36 @@ function parseValue(raw: unknown): unknown {
   }
   if (raw !== null && typeof raw === 'object') return raw;
   return {};
+}
+
+/** Navigate a cloned object to the array at `path` and return it */
+function navigateToArray(root: unknown, path: string[]): unknown[] | null {
+  let current: unknown = root;
+  for (const key of path) {
+    if (Array.isArray(current)) {
+      const idx = key.startsWith('[') ? Number(key.slice(1, -1)) : Number(key);
+      current = current[idx];
+    } else if (current !== null && typeof current === 'object') {
+      current = (current as Record<string, unknown>)[key];
+    } else {
+      return null;
+    }
+  }
+  return Array.isArray(current) ? current : null;
+}
+
+/** Infer a default value to add based on existing array items */
+function inferDefaultItem(arr: unknown[]): unknown {
+  if (arr.length === 0) return '';
+  const sample = arr[arr.length - 1];
+  const t = typeof sample;
+  if (sample === null) return null;
+  if (t === 'string') return '';
+  if (t === 'number') return 0;
+  if (t === 'boolean') return false;
+  if (Array.isArray(sample)) return [];
+  if (t === 'object') return {};
+  return '';
 }
 
 export function JsonEditor({
@@ -174,10 +245,17 @@ export function JsonEditor({
     };
   }, [font]);
 
+  const commit = useCallback(
+    (updated: unknown) => {
+      updateControlState(id, 'value', updated);
+      onValueChanged?.();
+    },
+    [id, updateControlState, onValueChanged],
+  );
+
   const handleChange = useCallback(
     (path: string[], newLeafValue: unknown) => {
       const updated = structuredClone(parsed);
-      // Navigate to parent and set value
       let current: unknown = updated;
       for (let i = 0; i < path.length - 1; i++) {
         const key = path[i];
@@ -195,10 +273,31 @@ export function JsonEditor({
       } else {
         (current as Record<string, unknown>)[lastKey] = newLeafValue;
       }
-      updateControlState(id, 'value', updated);
-      onValueChanged?.();
+      commit(updated);
     },
-    [parsed, id, updateControlState, onValueChanged],
+    [parsed, commit],
+  );
+
+  const handleAddItem = useCallback(
+    (arrayPath: string[]) => {
+      const updated = structuredClone(parsed);
+      const arr = navigateToArray(updated, arrayPath);
+      if (!arr) return;
+      arr.push(inferDefaultItem(arr));
+      commit(updated);
+    },
+    [parsed, commit],
+  );
+
+  const handleDeleteItem = useCallback(
+    (arrayPath: string[], index: number) => {
+      const updated = structuredClone(parsed);
+      const arr = navigateToArray(updated, arrayPath);
+      if (!arr) return;
+      arr.splice(index, 1);
+      commit(updated);
+    },
+    [parsed, commit],
   );
 
   const type = getValueType(parsed);
@@ -216,23 +315,38 @@ export function JsonEditor({
       }}
     >
       {isRoot ? (
-        Object.entries(
-          type === 'array'
-            ? Object.fromEntries((parsed as unknown[]).map((v, i) => [`[${i}]`, v]))
-            : (parsed as Record<string, unknown>),
-        ).map(([k, v]) => (
-          <JsonNode
-            key={k}
-            label={k}
-            value={v}
-            path={[k]}
-            depth={0}
-            expandDepth={expandDepth}
-            readOnly={readOnly}
-            enabled={enabled}
-            onChange={handleChange}
-          />
-        ))
+        <>
+          {Object.entries(
+            type === 'array'
+              ? Object.fromEntries((parsed as unknown[]).map((v, i) => [`[${i}]`, v]))
+              : (parsed as Record<string, unknown>),
+          ).map(([k, v], idx) => (
+            <JsonNode
+              key={k}
+              label={k}
+              value={v}
+              path={[k]}
+              depth={0}
+              expandDepth={expandDepth}
+              readOnly={readOnly}
+              enabled={enabled}
+              onChange={handleChange}
+              onDelete={type === 'array' && !readOnly && enabled ? () => handleDeleteItem([], idx) : undefined}
+              onAddItem={handleAddItem}
+              onDeleteItem={handleDeleteItem}
+            />
+          ))}
+          {type === 'array' && !readOnly && enabled && (
+            <button
+              type="button"
+              onClick={() => handleAddItem([])}
+              style={styles.rootAddBtn}
+              title="Add item"
+            >
+              + Add Item
+            </button>
+          )}
+        </>
       ) : (
         <span style={styles.nullValue}>{String(parsed)}</span>
       )}
@@ -296,5 +410,46 @@ const styles: Record<string, CSSProperties> = {
   nullValue: {
     color: '#999',
     fontStyle: 'italic',
+  },
+  addBtn: {
+    border: '1px solid #4caf50',
+    borderRadius: 2,
+    backgroundColor: '#e8f5e9',
+    color: '#2e7d32',
+    fontSize: 11,
+    fontWeight: 700,
+    width: 18,
+    height: 18,
+    padding: 0,
+    cursor: 'pointer',
+    lineHeight: '16px',
+    textAlign: 'center' as const,
+    flexShrink: 0,
+  },
+  deleteBtn: {
+    border: '1px solid #e57373',
+    borderRadius: 2,
+    backgroundColor: '#ffebee',
+    color: '#c62828',
+    fontSize: 13,
+    fontWeight: 700,
+    width: 18,
+    height: 18,
+    padding: 0,
+    cursor: 'pointer',
+    lineHeight: '16px',
+    textAlign: 'center' as const,
+    flexShrink: 0,
+  },
+  rootAddBtn: {
+    border: '1px dashed #4caf50',
+    borderRadius: 3,
+    backgroundColor: '#e8f5e9',
+    color: '#2e7d32',
+    fontSize: 11,
+    padding: '2px 10px',
+    cursor: 'pointer',
+    marginTop: 4,
+    marginLeft: 16,
   },
 };
