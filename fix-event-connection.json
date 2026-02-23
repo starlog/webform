@@ -45,7 +45,7 @@
       "description": "이벤트 핸들러가 모든 loadForm() 호출 경로에서 보존되는지 검증한다.",
       "phase": "bugfix",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "이벤트 핸들러 복원 버그 수정이 올바르게 작동하는지 테스트를 작성하고 검증하라.\n\n## 테스트 파일\n\n`packages/designer/src/__tests__/eventHandlerRestore.test.ts` 파일을 생성하라.\n\n### 테스트 케이스\n\n1. **loadForm with eventHandlers: 이벤트 핸들러가 컨트롤에 복원됨**\n   - flattenControls 가능한 중첩 컨트롤 구조와 eventHandlers 배열을 전달하여 loadForm() 호출\n   - 해당 컨트롤의 `properties._eventHandlers`와 `properties._eventCode`가 올바르게 설정되었는지 확인\n\n2. **loadForm with eventHandlers: 폼 레벨 이벤트가 복원됨**\n   - `controlId === formId`인 이벤트 핸들러를 포함한 eventHandlers 배열 전달\n   - `formEventHandlers`와 `formEventCode`가 올바르게 설정되었는지 확인\n\n3. **loadForm without eventHandlers: 기존 formEventHandlers 유지**\n   - 먼저 eventHandlers가 있는 loadForm() 호출\n   - 그 후 eventHandlers 없이 loadForm() 호출 (Undo/Redo 시나리오)\n   - 컨트롤의 `_eventHandlers`가 스냅샷에 포함되어 보존되는지 확인\n   - `formEventHandlers`/`formEventCode`가 리셋되지 않는지 확인\n\n4. **loadForm: 중첩 컨트롤(TabControl > Panel > Button)의 이벤트 핸들러 복원**\n   - generate-sample.sh의 '2. 컨테이너/레이아웃 데모' 폼과 동일한 중첩 구조 사용\n   - btnSaveProfile의 Click 이벤트가 복원되는지 확인\n\n5. **save/load cycle: 이벤트 핸들러가 저장 후 재로드 시 유지됨**\n   - loadForm()으로 이벤트 핸들러 복원\n   - extractEventHandlers()로 eventHandlers 배열 추출\n   - 추출된 배열로 다시 loadForm() 호출\n   - 이벤트 핸들러가 동일하게 복원되는지 확인\n\n## 검증\n\n```bash\ncd packages/designer\nnpx vitest run src/__tests__/eventHandlerRestore.test.ts\n```\n\n모든 테스트가 통과해야 한다. 실패 시 구현을 수정하라.\n\n추가로 기존 테스트도 통과하는지 확인:\n```bash\npnpm test\n```",
       "dependsOn": [
         "fix-event-restore-impl"
