@@ -210,7 +210,7 @@
       "description": "Runtime Shell API 엔드포인트 테스트",
       "phase": "phase2-server-runtime",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm server Runtime Shell API 구현을 테스트하세요.\n\n## 테스트\n1. packages/server/src/__tests__/runtime-shell.test.ts 작성:\n   - GET /api/runtime/shells/:projectId — 퍼블리시된 Shell 조회 성공/없는 케이스\n   - POST /api/runtime/shells/:projectId/events — 스텁 응답 확인\n   - GET /api/runtime/app/:projectId — Shell+폼 일괄 로딩, formId 파라미터 처리\n\n2. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/server typecheck`\n\n3. 테스트 실행:\n   `pnpm --filter @webform/server test`\n\n4. 실패 시 오류 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
         "server-runtime-api-impl"
@@ -603,7 +603,7 @@
       "description": "ShellCanvas, Toolbox 필터링, PropertyPanel Shell 속성 테스트",
       "phase": "phase4-designer",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm Designer Shell 캔버스/툴박스/속성 패널 구현을 테스트하세요.\n\n## 테스트\n1. packages/designer/src/__tests__/ShellCanvas.test.tsx 작성:\n   - ShellCanvas 기본 렌더링 확인\n   - Top/Bottom/Middle 영역 존재 확인\n   - '폼이 여기에 표시됩니다' 텍스트 존재 확인\n\n2. packages/designer/src/__tests__/Toolbox-shell.test.tsx 작성:\n   - editMode='shell'일 때 MenuStrip, ToolStrip, StatusStrip, Panel만 표시되는지 확인\n   - editMode='form'일 때 모든 컨트롤 표시되는지 확인\n\n3. packages/designer/src/__tests__/controlProperties-shell.test.ts 작성:\n   - SHELL_PROPERTIES 배열 export 확인\n   - 필수 속성(title, width, height, startFormId 등) 포함 여부 확인\n\n4. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/designer typecheck`\n\n5. 테스트 실행:\n   `pnpm --filter @webform/designer test`\n\n6. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
         "designer-shell-canvas-impl"
@@ -666,7 +666,7 @@
       "description": "apiService Shell CRUD 구현 및 Designer Shell 저장/로드 연동",
       "phase": "phase4-designer",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/designer-shell-api-plan.md를 읽고 Designer Shell API 연동을 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/designer-shell-api-plan.md\n2. packages/designer/src/services/apiService.ts\n3. packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx\n4. packages/designer/src/stores/designerStore.ts\n5. packages/designer/src/App.tsx\n\n## 구현 내용\n\n### packages/designer/src/services/apiService.ts 수정\n기존 fetch 패턴 따라 Shell API 함수 추가:\n```typescript\nexport async function getShell(projectId: string): Promise<ApplicationShellDefinition | null> {\n  const res = await fetch(`/api/projects/${projectId}/shell`);\n  if (res.status === 404) return null;\n  if (!res.ok) throw new Error(await res.text());\n  return res.json();\n}\n\nexport async function createShell(projectId: string, data: Partial<ApplicationShellDefinition>) {...}\nexport async function updateShell(projectId: string, data: Partial<ApplicationShellDefinition>) {...}\nexport async function deleteShell(projectId: string) {...}\nexport async function publishShell(projectId: string) {...}\n```\n\n### packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx 수정\nShell 노드 클릭 핸들러:\n```typescript\nconst handleShellClick = async () => {\n  let shell = await getShell(currentProjectId);\n  if (!shell) {\n    // Shell이 없으면 기본값으로 생성\n    shell = await createShell(currentProjectId, {\n      name: 'Main Shell',\n      properties: { ...defaultShellProperties },\n      controls: [],\n      eventHandlers: [],\n    });\n  }\n  store.loadShell(shell);\n};\n```\n\n### packages/designer/src/App.tsx 수정 (저장 로직 확장)\n- 기존 Ctrl+S 또는 저장 버튼 핸들러에서:\n  ```typescript\n  if (editMode === 'shell') {\n    await updateShell(currentProjectId, store.getShellDefinition());\n  } else {\n    // 기존 폼 저장 로직\n  }\n  ```\n- 퍼블리시 버튼 핸들러 추가 (editMode === 'shell' 일 때)\n\n## 주의사항\n- 기존 폼 저장/로드 로직 변경 없음\n- 에러 처리 (네트워크 오류, Shell 없음 등)\n- TypeScript 타입 안전성",
       "dependsOn": [
         "designer-shell-api-plan"
