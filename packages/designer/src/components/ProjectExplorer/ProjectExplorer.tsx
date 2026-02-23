@@ -30,6 +30,8 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [loading, setLoading] = useState(false);
+  const [renamingFormId, setRenamingFormId] = useState<string | null>(null);
+  const [renamingValue, setRenamingValue] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
 
@@ -105,6 +107,34 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
       onFormSelect(form._id);
     } catch (error) {
       console.error('Failed to create form:', error);
+    }
+  };
+
+  const startRename = (formId: string, currentName: string) => {
+    setRenamingFormId(formId);
+    setRenamingValue(currentName);
+  };
+
+  const cancelRename = () => {
+    setRenamingFormId(null);
+    setRenamingValue('');
+  };
+
+  const commitRename = async () => {
+    const formId = renamingFormId;
+    const newName = renamingValue.trim();
+    cancelRename();
+    if (!formId || !newName) return;
+    try {
+      await apiService.saveForm(formId, { name: newName });
+      await loadProjects();
+      if (currentFormId === formId) {
+        const { data } = await apiService.loadForm(formId);
+        const state = useDesignerStore.getState();
+        state.loadForm(formId, data.controls, data.properties);
+      }
+    } catch (error) {
+      console.error('Failed to rename form:', error);
     }
   };
 
@@ -222,18 +252,38 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
         return [
           { label: '새 폼', action: () => handleNewForm(contextMenu.projectId) },
         ];
-      case 'form':
+      case 'form': {
+        const targetForm = projects
+          .flatMap((p) => p.forms)
+          .find((f) => f._id === contextMenu.targetId);
         return [
           { label: '열기', action: () => onFormSelect(contextMenu.targetId) },
+          {
+            label: '이름 변경',
+            action: () => startRename(contextMenu.targetId, targetForm?.name ?? ''),
+          },
           { label: '삭제', action: () => handleDeleteForm(contextMenu.targetId) },
         ];
+      }
       default:
         return [];
     }
   };
 
   return (
-    <div ref={containerRef} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div
+      ref={containerRef}
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === 'F2' && selectedNode?.startsWith('form-') && !renamingFormId) {
+          e.preventDefault();
+          const formId = selectedNode.replace('form-', '');
+          const form = projects.flatMap((p) => p.forms).find((f) => f._id === formId);
+          if (form) startRename(formId, form.name);
+        }
+      }}
+      style={{ display: 'flex', flexDirection: 'column', height: '100%', outline: 'none' }}
+    >
       {/* 툴바 */}
       <div
         style={{
@@ -396,7 +446,37 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
                               flexShrink: 0,
                             }}
                           />
-                          <span>{form.name}</span>
+                          {renamingFormId === form._id ? (
+                            <input
+                              value={renamingValue}
+                              onChange={(e) => setRenamingValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  commitRename();
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault();
+                                  cancelRename();
+                                }
+                                e.stopPropagation();
+                              }}
+                              onBlur={() => commitRename()}
+                              autoFocus
+                              onFocus={(e) => e.target.select()}
+                              onClick={(e) => e.stopPropagation()}
+                              onDoubleClick={(e) => e.stopPropagation()}
+                              style={{
+                                fontSize: 12,
+                                padding: '0 2px',
+                                border: '1px solid #0078d4',
+                                outline: 'none',
+                                width: '100%',
+                                minWidth: 60,
+                              }}
+                            />
+                          ) : (
+                            <span>{form.name}</span>
+                          )}
                         </div>
                       );
                     })}
