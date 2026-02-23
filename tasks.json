@@ -230,7 +230,7 @@
       "description": "Runtime Shell API 구현 커밋",
       "phase": "phase2-server-runtime",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Runtime Shell API 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/server/src/routes/runtime.ts\n   - packages/server/src/__tests__/runtime-shell.test.ts\n   - plans/server-runtime-api-plan.md\n3. 커밋 메시지 (한국어): 'feat(server): Runtime Shell API 및 앱 일괄 로딩 엔드포인트 추가\\n\\n- GET /api/runtime/shells/:projectId Shell 조회 API 추가\\n- POST /api/runtime/shells/:projectId/events Shell 이벤트 스텁 추가\\n- GET /api/runtime/app/:projectId Shell+시작폼 일괄 로딩 API 추가'\n4. 커밋 확인",
       "dependsOn": [
         "server-runtime-api-test"
@@ -626,7 +626,7 @@
       "description": "Shell 캔버스/툴박스/속성 패널 구현 커밋",
       "phase": "phase4-designer",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Designer Shell 캔버스/툴박스/속성 패널 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/designer/src/components/Canvas/ShellCanvas.tsx\n   - packages/designer/src/components/Toolbox/Toolbox.tsx\n   - packages/designer/src/components/PropertyPanel/controlProperties.ts\n   - packages/designer/src/components/PropertyPanel/PropertyPanel.tsx\n   - packages/designer/src/App.tsx\n   - 관련 테스트 파일들\n   - plans/designer-shell-canvas-plan.md\n3. 커밋 메시지 (한국어): 'feat(designer): Shell 편집 캔버스, Toolbox 필터링, PropertyPanel Shell 속성 구현\\n\\n- ShellCanvas dock 기반 컨트롤 배치 편집기 구현\\n- Toolbox Shell 모드 필터링 (MenuStrip/ToolStrip/StatusStrip/Panel)\\n- PropertyPanel SHELL_PROPERTIES 속성 메타 추가\\n- Shell 편집 모드에서 Shell 속성 표시'\n4. 커밋 확인",
       "dependsOn": [
         "designer-shell-canvas-test"
@@ -685,7 +685,7 @@
       "description": "apiService Shell 메서드 테스트",
       "phase": "phase4-designer",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm Designer Shell API 연동 구현을 테스트하세요.\n\n## 테스트\n1. packages/designer/src/__tests__/apiService-shell.test.ts 작성:\n   - getShell: 성공 케이스 (Mock fetch)\n   - getShell: 404 → null 반환 확인\n   - createShell: 성공 케이스\n   - updateShell: 성공 케이스\n   - deleteShell: 성공 케이스\n   - publishShell: 성공 케이스\n\n2. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/designer typecheck`\n\n3. 테스트 실행:\n   `pnpm --filter @webform/designer test`\n\n4. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
         "designer-shell-api-impl"
