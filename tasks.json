@@ -386,7 +386,7 @@
       "description": "Runtime Store 확장 커밋",
       "phase": "phase3-runtime",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Runtime Store Shell 확장 작업을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/runtime/src/stores/runtimeStore.ts\n   - packages/runtime/src/communication/apiClient.ts\n   - packages/runtime/src/communication/wsClient.ts\n   - packages/runtime/src/__tests__/runtimeStore-shell.test.ts\n   - plans/runtime-shell-store-plan.md\n3. 커밋 메시지 (한국어): 'feat(runtime): Runtime Store Shell MDI 상태 확장\\n\\n- shellDef/shellControlStates/appState/formHistory 상태 추가\\n- applyShellPatches 메서드 구현\\n- apiClient에 fetchApp/fetchShell/postShellEvent 추가\\n- WebSocket per-project 연결 지원'\n4. 커밋 확인",
       "dependsOn": [
         "runtime-shell-store-test"
