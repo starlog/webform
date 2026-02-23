@@ -14,6 +14,7 @@ export interface ProjectDocument {
   name: string;
   description: string;
   defaultFont?: ProjectDefaultFont;
+  shellId?: mongoose.Types.ObjectId;
   createdBy: string;
   updatedBy: string;
   deletedAt?: Date | null;
@@ -37,6 +38,7 @@ const projectSchema = new Schema(
       default: undefined,
       _id: false,
     },
+    shellId: { type: Schema.Types.ObjectId, ref: 'Shell', default: undefined },
     deletedAt: { type: Date, default: null },
     createdBy: { type: String, required: true },
     updatedBy: { type: String, required: true },

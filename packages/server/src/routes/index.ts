@@ -5,6 +5,7 @@ import { runtimeRouter } from './runtime.js';
 import { datasourcesRouter } from './datasources.js';
 import { projectsRouter } from './projects.js';
 import { debugRouter } from './debug.js';
+import { shellsRouter } from './shells.js';
 
 export const apiRouter = Router();
 
@@ -19,3 +20,4 @@ apiRouter.use(authenticate);
 apiRouter.use('/forms', formsRouter);
 apiRouter.use('/datasources', datasourcesRouter);
 apiRouter.use('/projects', projectsRouter);
+apiRouter.use('/projects/:projectId/shell', shellsRouter);
