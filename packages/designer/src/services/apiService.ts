@@ -1,7 +1,14 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useDesignerStore } from '../stores/designerStore';
 import { nestControls } from '@webform/common';
-import type { ControlDefinition, FontDefinition, FormProperties, EventHandlerDefinition, DataBindingDefinition } from '@webform/common';
+import type {
+  ControlDefinition,
+  FontDefinition,
+  FormProperties,
+  EventHandlerDefinition,
+  DataBindingDefinition,
+  ShellProperties,
+} from '@webform/common';
 
 // --- 타입 정의 ---
 
@@ -58,6 +65,30 @@ interface UpdateFormPayload {
 interface CreateProjectPayload {
   name: string;
   description?: string;
+}
+
+interface ShellDocument {
+  _id: string;
+  projectId: string;
+  name: string;
+  version: number;
+  properties: ShellProperties;
+  controls: ControlDefinition[];
+  eventHandlers: EventHandlerDefinition[];
+  startFormId?: string;
+  published: boolean;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface UpdateShellPayload {
+  name?: string;
+  properties?: Partial<ShellProperties>;
+  controls?: ControlDefinition[];
+  eventHandlers?: EventHandlerDefinition[];
+  startFormId?: string;
 }
 
 interface ImportProjectPayload {
@@ -217,6 +248,48 @@ export const apiService = {
       body: JSON.stringify({ font }),
     });
   },
+
+  // Shell 조회
+  async getShell(projectId: string): Promise<{ data: ShellDocument } | null> {
+    try {
+      return await request(`/projects/${projectId}/shell`);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) return null;
+      throw error;
+    }
+  },
+
+  // Shell 생성
+  async createShell(
+    projectId: string,
+    data: Partial<UpdateShellPayload>,
+  ): Promise<{ data: ShellDocument }> {
+    return request(`/projects/${projectId}/shell`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Shell 수정
+  async updateShell(
+    projectId: string,
+    data: UpdateShellPayload,
+  ): Promise<{ data: ShellDocument }> {
+    return request(`/projects/${projectId}/shell`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Shell 삭제
+  async deleteShell(projectId: string): Promise<void> {
+    return request(`/projects/${projectId}/shell`, { method: 'DELETE' });
+  },
+
+  // Shell 퍼블리시
+  async publishShell(projectId: string): Promise<{ data: ShellDocument }> {
+    return request(`/projects/${projectId}/shell/publish`, { method: 'POST' });
+  },
 };
 
 // --- 컨트롤에서 eventHandlers 배열 추출 ---
@@ -289,10 +362,30 @@ export function useAutoSave() {
   const controls = useDesignerStore((s) => s.controls);
   const formProperties = useDesignerStore((s) => s.formProperties);
   const markClean = useDesignerStore((s) => s.markClean);
+  const editMode = useDesignerStore((s) => s.editMode);
 
   const save = useCallback(async () => {
-    if (!currentFormId || !isDirty) return;
+    if (!isDirty) return;
 
+    if (editMode === 'shell') {
+      const state = useDesignerStore.getState();
+      if (!state.currentProjectId) return;
+      try {
+        const shellDef = state.getShellDefinition();
+        await apiService.updateShell(state.currentProjectId, {
+          name: shellDef.name,
+          properties: shellDef.properties,
+          controls: shellDef.controls,
+          eventHandlers: shellDef.eventHandlers,
+        });
+        markClean();
+      } catch (error) {
+        console.error('Shell auto-save failed:', error);
+      }
+      return;
+    }
+
+    if (!currentFormId) return;
     try {
       const nestedControls = nestControls(controls);
       await apiService.saveForm(currentFormId, {
@@ -304,11 +397,29 @@ export function useAutoSave() {
     } catch (error) {
       console.error('Auto-save failed:', error);
     }
-  }, [currentFormId, isDirty, controls, formProperties, markClean]);
+  }, [currentFormId, isDirty, controls, formProperties, markClean, editMode]);
 
   // store에서 직접 읽어 클로저 문제 없이 즉시 저장 (EventEditor 등에서 사용)
   const forceSave = useCallback(async () => {
     const state = useDesignerStore.getState();
+
+    if (state.editMode === 'shell') {
+      if (!state.currentProjectId) return;
+      try {
+        const shellDef = state.getShellDefinition();
+        await apiService.updateShell(state.currentProjectId, {
+          name: shellDef.name,
+          properties: shellDef.properties,
+          controls: shellDef.controls,
+          eventHandlers: shellDef.eventHandlers,
+        });
+        state.markClean();
+      } catch (error) {
+        console.error('Shell save failed:', error);
+      }
+      return;
+    }
+
     if (!state.currentFormId) return;
     try {
       const nestedControls = nestControls(state.controls);
@@ -325,11 +436,15 @@ export function useAutoSave() {
 
   // 30초 인터벌 auto-save
   useEffect(() => {
-    if (!currentFormId || !isDirty) return;
+    const hasTarget =
+      editMode === 'shell'
+        ? useDesignerStore.getState().currentProjectId != null
+        : currentFormId != null;
+    if (!hasTarget || !isDirty) return;
 
     timerRef.current = setTimeout(save, AUTO_SAVE_INTERVAL);
     return () => clearTimeout(timerRef.current);
-  }, [currentFormId, isDirty, save]);
+  }, [currentFormId, isDirty, save, editMode]);
 
   return { save, forceSave };
 }
@@ -345,4 +460,6 @@ export type {
   CreateProjectPayload,
   ImportProjectPayload,
   ExportProjectData,
+  ShellDocument,
+  UpdateShellPayload,
 };

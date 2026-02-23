@@ -299,11 +299,32 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
     input.click();
   };
 
-  const handleShellSelect = (_projectId: string) => {
+  const handleShellSelect = async (projectId: string) => {
     const store = useDesignerStore.getState();
-    store.setEditMode('shell');
-    // Shell 로드는 다음 태스크(designer-shell-api)에서 API 연동 시 구현
-    // 현재는 editMode 전환만 수행
+    try {
+      let result = await apiService.getShell(projectId);
+
+      // Shell이 없으면 기본값으로 생성
+      if (!result) {
+        result = await apiService.createShell(projectId, {
+          name: 'Application Shell',
+        });
+      }
+
+      const shell = result.data;
+      store.setCurrentProject(projectId);
+      store.loadShell({
+        id: shell._id,
+        projectId: shell.projectId,
+        name: shell.name,
+        version: shell.version,
+        properties: shell.properties,
+        controls: shell.controls,
+        eventHandlers: shell.eventHandlers,
+      });
+    } catch (error) {
+      console.error('Failed to load shell:', error);
+    }
   };
 
   const getContextMenuItems = () => {

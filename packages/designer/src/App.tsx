@@ -41,8 +41,17 @@ export function App() {
   const handleSave = useCallback(async () => {
     try {
       if (editMode === 'shell') {
-        // Shell 저장 — designer-shell-api 태스크에서 구현
-        showStatus('Shell save not yet implemented');
+        const state = useDesignerStore.getState();
+        if (!state.currentProjectId) return;
+        const shellDef = state.getShellDefinition();
+        await apiService.updateShell(state.currentProjectId, {
+          name: shellDef.name,
+          properties: shellDef.properties,
+          controls: shellDef.controls,
+          eventHandlers: shellDef.eventHandlers,
+        });
+        state.markClean();
+        showStatus('Saved');
         return;
       }
       await save();
@@ -53,6 +62,26 @@ export function App() {
   }, [save, editMode]);
 
   const handlePublish = useCallback(async () => {
+    if (editMode === 'shell') {
+      const state = useDesignerStore.getState();
+      if (!state.currentProjectId) return;
+      try {
+        const shellDef = state.getShellDefinition();
+        await apiService.updateShell(state.currentProjectId, {
+          name: shellDef.name,
+          properties: shellDef.properties,
+          controls: shellDef.controls,
+          eventHandlers: shellDef.eventHandlers,
+        });
+        state.markClean();
+        await apiService.publishShell(state.currentProjectId);
+        showStatus('Published');
+      } catch {
+        showStatus('Publish failed');
+      }
+      return;
+    }
+
     if (!currentFormId) return;
     try {
       await save();
@@ -63,7 +92,7 @@ export function App() {
     } catch {
       showStatus('Publish failed');
     }
-  }, [currentFormId, save]);
+  }, [currentFormId, save, editMode]);
 
   const runtimeUrl = currentFormId
     ? `${window.location.origin.replace(':3000', ':3001')}/?formId=${currentFormId}`
@@ -130,7 +159,7 @@ export function App() {
               : 'WebForm Designer'}
         </span>
 
-        {currentFormId && (
+        {(currentFormId || editMode === 'shell') && (
           <>
             <span style={{ color: '#aaa' }}>|</span>
 
@@ -141,36 +170,40 @@ export function App() {
               Publish
             </button>
 
-            <span style={{ color: '#aaa' }}>|</span>
-
-            <span style={{
-              fontSize: 11,
-              color: formStatus === 'published' ? '#2e7d32' : '#888',
-              fontWeight: 500,
-            }}>
-              {formStatus === 'published' ? 'Published' : 'Draft'}
-            </span>
-
-            {formStatus === 'published' && runtimeUrl && (
+            {editMode === 'form' && currentFormId && (
               <>
                 <span style={{ color: '#aaa' }}>|</span>
-                <a
-                  href={runtimeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: 11, color: '#0078d4', textDecoration: 'none' }}
-                  title={runtimeUrl}
-                >
-                  Open Runtime
-                </a>
-                <button
-                  type="button"
-                  onClick={() => { navigator.clipboard.writeText(runtimeUrl); showStatus('URL copied'); }}
-                  style={{ ...menuBtnStyle, fontSize: 11, padding: '1px 4px' }}
-                  title="Copy runtime URL"
-                >
-                  Copy URL
-                </button>
+
+                <span style={{
+                  fontSize: 11,
+                  color: formStatus === 'published' ? '#2e7d32' : '#888',
+                  fontWeight: 500,
+                }}>
+                  {formStatus === 'published' ? 'Published' : 'Draft'}
+                </span>
+
+                {formStatus === 'published' && runtimeUrl && (
+                  <>
+                    <span style={{ color: '#aaa' }}>|</span>
+                    <a
+                      href={runtimeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 11, color: '#0078d4', textDecoration: 'none' }}
+                      title={runtimeUrl}
+                    >
+                      Open Runtime
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => { navigator.clipboard.writeText(runtimeUrl); showStatus('URL copied'); }}
+                      style={{ ...menuBtnStyle, fontSize: 11, padding: '1px 4px' }}
+                      title="Copy runtime URL"
+                    >
+                      Copy URL
+                    </button>
+                  </>
+                )}
               </>
             )}
 
