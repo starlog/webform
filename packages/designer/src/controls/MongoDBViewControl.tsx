@@ -8,11 +8,17 @@ export function MongoDBViewControl({ properties, size }: DesignerControlProps) {
   const showToolbar = (properties.showToolbar as boolean) ?? true;
   const collection = (properties.collection as string) || 'collection';
   const title = (properties.title as string) || '';
-  const columnsProp = (properties.columns as string) || '';
+  const columnsProp = properties.columns;
   const backColor = (properties.backColor as string) || '#ffffff';
 
   const previewCols = columnsProp
-    ? columnsProp.split(',').map((s) => s.trim()).filter(Boolean)
+    ? Array.isArray(columnsProp)
+      ? (columnsProp as unknown[]).map((c) =>
+          typeof c === 'object' && c !== null
+            ? (c as Record<string, unknown>).header ?? (c as Record<string, unknown>).field ?? ''
+            : String(c)
+        ).filter(Boolean) as string[]
+      : String(columnsProp).split(',').map((s) => s.trim()).filter(Boolean)
     : DEFAULT_previewCols;
 
   return (

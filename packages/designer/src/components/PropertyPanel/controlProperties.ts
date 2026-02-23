@@ -228,6 +228,29 @@ const graphViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.graphType',  label: 'Data Format', category: 'Sample',     editorType: 'graphSample' },
 );
 
+const treeViewProps: PropertyMeta[] = withCommon(
+  { name: 'properties.nodes',        label: 'Nodes',        category: 'Data',       editorType: 'collection' },
+  { name: 'properties.showLines',    label: 'ShowLines',    category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.showPlusMinus', label: 'ShowPlusMinus', category: 'Behavior', editorType: 'boolean', defaultValue: true },
+  { name: 'properties.checkBoxes',   label: 'CheckBoxes',   category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.backColor',    label: 'BackColor',    category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor',    label: 'ForeColor',    category: 'Appearance', editorType: 'color' },
+  { name: 'properties.font',        label: 'Font',         category: 'Appearance', editorType: 'font' },
+);
+
+const listViewProps: PropertyMeta[] = withCommon(
+  { name: 'properties.items',         label: 'Items',         category: 'Data',       editorType: 'collection' },
+  { name: 'properties.columns',       label: 'Columns',       category: 'Data',       editorType: 'collection' },
+  { name: 'properties.view',          label: 'View',          category: 'Appearance', editorType: 'dropdown', options: ['LargeIcon', 'SmallIcon', 'List', 'Details', 'Tile'] },
+  { name: 'properties.selectedIndex', label: 'SelectedIndex', category: 'Behavior',   editorType: 'number', min: -1 },
+  { name: 'properties.multiSelect',   label: 'MultiSelect',   category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.fullRowSelect', label: 'FullRowSelect', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.gridLines',     label: 'GridLines',     category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.backColor',     label: 'BackColor',     category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor',     label: 'ForeColor',     category: 'Appearance', editorType: 'color' },
+  { name: 'properties.font',         label: 'Font',          category: 'Appearance', editorType: 'font' },
+);
+
 const defaultProps: PropertyMeta[] = withCommon();
 
 // 현재 구현된 14개 + fallback
@@ -251,6 +274,8 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   JsonEditor:     jsonEditorProps,
   MongoDBView:    mongoDBViewProps,
   GraphView:      graphViewProps,
+  TreeView:       treeViewProps,
+  ListView:       listViewProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {

@@ -20,6 +20,8 @@ import { SpreadsheetView } from './SpreadsheetView';
 import { JsonEditor } from './JsonEditor';
 import { MongoDBView } from './MongoDBView';
 import { GraphView } from './GraphView';
+import { TreeView } from './TreeView';
+import { ListView } from './ListView';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<any>>> = {
@@ -42,4 +44,6 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   JsonEditor,
   MongoDBView,
   GraphView,
+  TreeView,
+  ListView,
 };

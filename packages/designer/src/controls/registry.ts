@@ -19,6 +19,8 @@ import { JsonEditorControl } from './JsonEditorControl';
 import { MongoDBViewControl } from './MongoDBViewControl';
 import { GraphViewControl } from './GraphViewControl';
 import { DataGridViewControl } from './DataGridViewControl';
+import { TreeViewControl } from './TreeViewControl';
+import { ListViewControl } from './ListViewControl';
 
 export interface DesignerControlProps {
   id?: string;
@@ -49,6 +51,8 @@ export const designerControlRegistry: Partial<
   JsonEditor: JsonEditorControl,
   MongoDBView: MongoDBViewControl,
   GraphView: GraphViewControl,
+  TreeView: TreeViewControl,
+  ListView: ListViewControl,
 };
 
 export interface ControlMeta {
@@ -80,6 +84,8 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'JsonEditor',     displayName: 'JsonEditor',     icon: '{}', category: 'data' },
   { type: 'MongoDBView',   displayName: 'MongoDBView',   icon: '\u25A7', category: 'data' },
   { type: 'GraphView',    displayName: 'GraphView',    icon: '\uD83D\uDCCA', category: 'data' },
+  { type: 'TreeView',    displayName: 'TreeView',    icon: '\uD83C\uDF33', category: 'data' },
+  { type: 'ListView',    displayName: 'ListView',    icon: '\uD83D\uDCCB', category: 'data' },
 ];
 
 export const TOOLBOX_CATEGORIES = [
