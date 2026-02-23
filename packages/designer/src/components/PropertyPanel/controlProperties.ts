@@ -13,7 +13,10 @@ export type EditorType =
   | 'tabEditor'
   | 'mongoColumns'
   | 'mongoConnectionString'
-  | 'graphSample';
+  | 'graphSample'
+  | 'menuEditor'
+  | 'toolStripEditor'
+  | 'statusStripEditor';
 
 export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data' | 'Sample';
 
@@ -252,19 +255,19 @@ const listViewProps: PropertyMeta[] = withCommon(
 );
 
 const statusStripProps: PropertyMeta[] = withCommon(
-  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'collection' },
+  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'statusStripEditor' },
   { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
   { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },
 );
 
 const toolStripProps: PropertyMeta[] = withCommon(
-  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'collection' },
+  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'toolStripEditor' },
   { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
   { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },
 );
 
 const menuStripProps: PropertyMeta[] = withCommon(
-  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'collection' },
+  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'menuEditor' },
   { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
   { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
   { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },
