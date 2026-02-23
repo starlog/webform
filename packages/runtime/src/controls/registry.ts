@@ -27,6 +27,9 @@ import { ToolStrip } from './ToolStrip';
 import { StatusStrip } from './StatusStrip';
 import { RichTextBox } from './RichTextBox';
 import { WebBrowser } from './WebBrowser';
+import { Chart } from './Chart';
+import { SplitContainer } from './SplitContainer';
+import { BindingNavigator } from './BindingNavigator';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<any>>> = {
@@ -56,4 +59,7 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   StatusStrip,
   RichTextBox,
   WebBrowser,
+  Chart,
+  SplitContainer,
+  BindingNavigator,
 };

@@ -41,6 +41,9 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   StatusStrip: ['ItemClicked'],
   RichTextBox: ['TextChanged', 'SelectionChanged'],
   WebBrowser: ['Navigated', 'DocumentCompleted'],
+  Chart: ['SeriesClicked', 'DataLoaded'],
+  SplitContainer: ['SplitterMoved'],
+  BindingNavigator: ['PositionChanged', 'ItemClicked'],
 };
 
 export const FORM_EVENTS = [

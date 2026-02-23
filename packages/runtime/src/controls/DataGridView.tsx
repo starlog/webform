@@ -3,8 +3,9 @@ import type { CSSProperties, ReactNode } from 'react';
 import { useBindingStore } from '../bindings/bindingStore';
 
 export interface ColumnDefinition {
-  field: string;
-  headerText: string;
+  field?: string;
+  key?: string;
+  headerText?: string;
   /** @deprecated use headerText instead */
   name?: string;
   width?: number;
@@ -37,6 +38,11 @@ interface DataGridViewProps {
   foreColor?: string;
   children?: ReactNode;
   [key: string]: unknown;
+}
+
+interface ResolvedColumn extends ColumnDefinition {
+  field: string;
+  headerText: string;
 }
 
 interface SortConfig {
@@ -146,12 +152,13 @@ export function DataGridView({
   const rows = useMemo(() => (dataSource ?? rowsProp ?? []) as Record<string, unknown>[], [dataSource, rowsProp]);
 
   // 컬럼 자동 생성: columns prop이 없으면 데이터의 키에서 추출
-  const resolvedColumns = useMemo<ColumnDefinition[]>(() => {
+  const resolvedColumns = useMemo<ResolvedColumn[]>(() => {
     if (columns && columns.length > 0) {
-      // headerText가 비어있으면 field 이름으로 폴백
+      // field/key 및 headerText/name 폴백 처리
       return columns.map((col, i) => ({
         ...col,
-        headerText: col.headerText || col.name || col.field || `Column${i + 1}`,
+        field: col.field || col.key || `col${i}`,
+        headerText: col.headerText || col.name || col.field || col.key || `Column${i + 1}`,
       }));
     }
     if (rows.length === 0) return [];

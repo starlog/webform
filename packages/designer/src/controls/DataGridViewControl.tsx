@@ -2,9 +2,9 @@ import type { CSSProperties } from 'react';
 import type { DesignerControlProps } from './registry';
 
 interface ColumnDefinition {
-  field: string;
-  headerText: string;
-  /** @deprecated use headerText instead */
+  field?: string;
+  key?: string;
+  headerText?: string;
   name?: string;
   width?: number;
 }
@@ -60,6 +60,8 @@ export function DataGridViewControl({ properties, size }: DesignerControlProps) 
   const columns = (properties.columns as ColumnDefinition[] | undefined);
   const dataSource = (properties.dataSource as Record<string, unknown>[] | undefined);
   const resolvedColumns = columns && columns.length > 0 ? columns : DEFAULT_COLUMNS;
+  const getField = (col: ColumnDefinition) => col.field || col.key || '';
+  const getHeader = (col: ColumnDefinition, i: number) => col.headerText || col.name || getField(col) || `Column${i + 1}`;
 
   return (
     <div style={{ ...styles.container, width: size.width, height: size.height }}>
@@ -67,8 +69,8 @@ export function DataGridViewControl({ properties, size }: DesignerControlProps) 
         <thead>
           <tr>
             {resolvedColumns.map((col, i) => (
-              <th key={col.field || i} style={{ ...styles.headerCell, width: col.width }}>
-                {col.headerText || col.name || col.field || `Column${i + 1}`}
+              <th key={getField(col) || i} style={{ ...styles.headerCell, width: col.width }}>
+                {getHeader(col, i)}
               </th>
             ))}
           </tr>
@@ -77,11 +79,14 @@ export function DataGridViewControl({ properties, size }: DesignerControlProps) 
           {dataSource && dataSource.length > 0 ? (
             dataSource.map((row, rowIndex) => (
               <tr key={rowIndex}>
-                {resolvedColumns.map((col) => (
-                  <td key={col.field} style={{ ...styles.cell, width: col.width }}>
-                    {String(row[col.field] ?? '')}
-                  </td>
-                ))}
+                {resolvedColumns.map((col, colIndex) => {
+                  const field = getField(col);
+                  return (
+                    <td key={field || colIndex} style={{ ...styles.cell, width: col.width }}>
+                      {String(row[field] ?? '')}
+                    </td>
+                  );
+                })}
               </tr>
             ))
           ) : (

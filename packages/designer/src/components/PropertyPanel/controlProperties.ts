@@ -285,6 +285,36 @@ const webBrowserProps: PropertyMeta[] = withCommon(
   { name: 'properties.backColor',       label: 'BackColor',       category: 'Appearance', editorType: 'color' },
 );
 
+const chartProps: PropertyMeta[] = withCommon(
+  { name: 'properties.chartType',  label: 'ChartType',  category: 'Appearance', editorType: 'dropdown', options: ['Line', 'Bar', 'Column', 'Area', 'Pie', 'Doughnut', 'Scatter', 'Radar'] },
+  { name: 'properties.series',     label: 'Series',     category: 'Data',       editorType: 'collection' },
+  { name: 'properties.title',      label: 'Title',      category: 'Appearance', editorType: 'text' },
+  { name: 'properties.xAxisTitle', label: 'XAxisTitle', category: 'Appearance', editorType: 'text' },
+  { name: 'properties.yAxisTitle', label: 'YAxisTitle', category: 'Appearance', editorType: 'text' },
+  { name: 'properties.showLegend', label: 'ShowLegend', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.showGrid',   label: 'ShowGrid',   category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.font',       label: 'Font',       category: 'Appearance', editorType: 'font' },
+  { name: 'properties.foreColor',  label: 'ForeColor',  category: 'Appearance', editorType: 'color' },
+  { name: 'properties.backColor',  label: 'BackColor',  category: 'Appearance', editorType: 'color' },
+);
+
+const splitContainerProps: PropertyMeta[] = withCommon(
+  { name: 'properties.orientation',      label: 'Orientation',      category: 'Behavior',   editorType: 'dropdown', options: ['Horizontal', 'Vertical'] },
+  { name: 'properties.splitterDistance', label: 'SplitterDistance', category: 'Layout',     editorType: 'number', min: 0 },
+  { name: 'properties.splitterWidth',   label: 'SplitterWidth',   category: 'Layout',     editorType: 'number', min: 1, max: 20, defaultValue: 4 },
+  { name: 'properties.fixedPanel',      label: 'FixedPanel',      category: 'Behavior',   editorType: 'dropdown', options: ['None', 'Panel1', 'Panel2'] },
+  { name: 'properties.isSplitterFixed', label: 'IsSplitterFixed', category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.backColor',       label: 'BackColor',       category: 'Appearance', editorType: 'color' },
+);
+
+const bindingNavigatorProps: PropertyMeta[] = withCommon(
+  { name: 'properties.bindingSource',    label: 'BindingSource',    category: 'Data',       editorType: 'text' },
+  { name: 'properties.showAddButton',    label: 'ShowAddButton',    category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.showDeleteButton', label: 'ShowDeleteButton', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.backColor',        label: 'BackColor',        category: 'Appearance', editorType: 'color' },
+  { name: 'properties.font',            label: 'Font',             category: 'Appearance', editorType: 'font' },
+);
+
 const defaultProps: PropertyMeta[] = withCommon();
 
 // 현재 구현된 14개 + fallback
@@ -315,6 +345,9 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   StatusStrip:    statusStripProps,
   RichTextBox:    richTextBoxProps,
   WebBrowser:     webBrowserProps,
+  Chart:          chartProps,
+  SplitContainer: splitContainerProps,
+  BindingNavigator: bindingNavigatorProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {

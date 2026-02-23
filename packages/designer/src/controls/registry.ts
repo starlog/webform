@@ -26,6 +26,9 @@ import { ToolStripControl } from './ToolStripControl';
 import { StatusStripControl } from './StatusStripControl';
 import { RichTextBoxControl } from './RichTextBoxControl';
 import { WebBrowserControl } from './WebBrowserControl';
+import { ChartControl } from './ChartControl';
+import { SplitContainerControl } from './SplitContainerControl';
+import { BindingNavigatorControl } from './BindingNavigatorControl';
 
 export interface DesignerControlProps {
   id?: string;
@@ -63,6 +66,9 @@ export const designerControlRegistry: Partial<
   StatusStrip: StatusStripControl,
   RichTextBox: RichTextBoxControl,
   WebBrowser: WebBrowserControl,
+  Chart: ChartControl,
+  SplitContainer: SplitContainerControl,
+  BindingNavigator: BindingNavigatorControl,
 };
 
 export interface ControlMeta {
@@ -102,6 +108,10 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'StatusStrip', displayName: 'StatusStrip', icon: '\u2581',  category: 'container' },
   { type: 'RichTextBox', displayName: 'RichTextBox', icon: '\uD83D\uDCDD', category: 'basic' },
   { type: 'WebBrowser',  displayName: 'WebBrowser',  icon: '\uD83C\uDF10', category: 'data' },
+
+  { type: 'Chart',            displayName: 'Chart',            icon: '\uD83D\uDCC8', category: 'data' },
+  { type: 'SplitContainer',   displayName: 'SplitContainer',   icon: '\u229F',  category: 'container' },
+  { type: 'BindingNavigator', displayName: 'BindingNavigator', icon: '\u23E9', category: 'data' },
 ];
 
 export const TOOLBOX_CATEGORIES = [
