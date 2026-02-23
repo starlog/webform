@@ -31,6 +31,10 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
       (c) => (c.properties._parentId as string) === tc.id,
     );
 
+    // tabs 속성에서 선택된 탭의 id를 가져옴 (tabId 기반 매칭)
+    const tabs = tc.properties.tabs as Array<{ title: string; id: string }> | undefined;
+    const selectedTabId = tabs?.[selectedIndex]?.id;
+
     // 모든 탭 페이지 Panel은 캔버스에서 숨김
     for (const panel of tabPagePanels) {
       hidden.add(panel.id);
@@ -38,8 +42,16 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
 
     // 선택되지 않은 탭 페이지의 모든 자손 컨트롤을 숨김
     for (let i = 0; i < tabPagePanels.length; i++) {
-      if (i !== selectedIndex) {
-        collectDescendants(controls, tabPagePanels[i].id, hidden);
+      const panel = tabPagePanels[i];
+      const panelTabId = panel.properties.tabId as string | undefined;
+
+      // tabId 기반 매칭 (tabs 속성이 있는 경우), 없으면 인덱스 기반
+      const isSelected = selectedTabId && panelTabId
+        ? panelTabId === selectedTabId
+        : i === selectedIndex;
+
+      if (!isSelected) {
+        collectDescendants(controls, panel.id, hidden);
       }
     }
   }
@@ -122,13 +134,13 @@ export function DesignerCanvas() {
 
       // TabControl 드롭 시 탭 페이지 Panel을 자동 생성
       if (item.type === 'TabControl') {
-        const tabPages = (control.properties.tabPages as string[]) ?? [];
-        for (let i = 0; i < tabPages.length; i++) {
+        const tabs = (control.properties.tabs as Array<{ title: string; id: string }>) ?? [];
+        for (const tab of tabs) {
           addControl({
             id: crypto.randomUUID(),
             type: 'Panel',
-            name: `${control.name}_page${i + 1}`,
-            properties: { _parentId: control.id, borderStyle: 'None' },
+            name: `tabPage_${tab.title.replace(/\s+/g, '')}`,
+            properties: { _parentId: control.id, tabId: tab.id, borderStyle: 'None' },
             position: { x: position.x, y: position.y },
             size: { width: control.size.width, height: control.size.height },
             anchor: { top: true, bottom: false, left: true, right: false },

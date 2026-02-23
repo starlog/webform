@@ -110,7 +110,13 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
     case 'GroupBox':
       return { text: 'GroupBox' };
     case 'TabControl':
-      return { tabPages: ['TabPage1', 'TabPage2'], selectedIndex: 0 };
+      return {
+        tabs: [
+          { title: 'TabPage1', id: crypto.randomUUID() },
+          { title: 'TabPage2', id: crypto.randomUUID() },
+        ],
+        selectedIndex: 0,
+      };
     case 'DataGridView':
       return { columns: [] };
     case 'SpreadsheetView':

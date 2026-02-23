@@ -9,6 +9,7 @@ import { DropdownEditor } from './editors/DropdownEditor';
 import { BooleanToggle } from './editors/BooleanToggle';
 import { AnchorEditor } from './editors/AnchorEditor';
 import { CollectionEditor } from './editors/CollectionEditor';
+import { TabPagesEditor } from './editors/TabPagesEditor';
 import { MongoColumnsEditor } from './editors/MongoColumnsEditor';
 import { MongoConnectionStringEditor } from './editors/MongoConnectionStringEditor';
 import { SampleDataEditor } from './editors/SampleDataEditor';
@@ -117,6 +118,8 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
       return <AnchorEditor value={value as AnchorStyle} onChange={onChange} />;
     case 'collection':
       return <CollectionEditor value={value as string[] ?? []} onChange={onChange} />;
+    case 'tabEditor':
+      return <TabPagesEditor value={value as { title: string; id: string }[] ?? []} onChange={onChange} />;
     case 'mongoColumns':
       return <MongoColumnsEditor value={value as string ?? ''} onChange={onChange} />;
     case 'mongoConnectionString':

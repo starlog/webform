@@ -10,6 +10,7 @@ export type EditorType =
   | 'boolean'
   | 'anchor'
   | 'collection'
+  | 'tabEditor'
   | 'mongoColumns'
   | 'mongoConnectionString'
   | 'graphSample';
@@ -158,8 +159,7 @@ const groupBoxProps: PropertyMeta[] = withCommon(
 );
 
 const tabControlProps: PropertyMeta[] = withCommon(
-  { name: 'properties.tabPages',      label: 'TabPages',      category: 'Data',     editorType: 'collection' },
-  { name: 'properties.tabs',          label: 'Tabs',          category: 'Data',     editorType: 'collection' },
+  { name: 'properties.tabs',          label: 'Tabs',          category: 'Data',     editorType: 'tabEditor' },
   { name: 'properties.selectedIndex', label: 'SelectedIndex', category: 'Behavior', editorType: 'number', min: 0 },
 );
 
