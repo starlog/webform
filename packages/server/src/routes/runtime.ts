@@ -1,11 +1,13 @@
 import { Router } from 'express';
-import type { EventRequest } from '@webform/common';
+import type { EventRequest, ShellEventRequest } from '@webform/common';
 import { ObjectId } from 'mongodb';
 import { Form } from '../models/Form.js';
 import { EventEngine } from '../services/EventEngine.js';
 import { DataSourceService } from '../services/DataSourceService.js';
 import { MongoDBAdapter } from '../services/adapters/MongoDBAdapter.js';
 import { AppError, NotFoundError } from '../middleware/errorHandler.js';
+import { ShellService } from '../services/ShellService.js';
+import type { ShellDocument } from '../models/Shell.js';
 
 function toObjectId(value: unknown): ObjectId | unknown {
   if (typeof value === 'string' && /^[a-f\d]{24}$/i.test(value)) {
@@ -29,6 +31,54 @@ function convertIds(obj: Record<string, unknown>): Record<string, unknown> {
 export const runtimeRouter = Router();
 const eventEngine = new EventEngine();
 const dataSourceService = new DataSourceService();
+const shellService = new ShellService();
+
+/** ShellDocument → 런타임용 Shell 정의 변환 (서버 핸들러만 노출) */
+function toShellDefinition(shell: ShellDocument) {
+  return {
+    id: shell._id.toString(),
+    projectId: shell.projectId,
+    name: shell.name,
+    version: shell.version,
+    properties: shell.properties,
+    controls: shell.controls,
+    eventHandlers: shell.eventHandlers
+      .filter((h) => h.handlerType === 'server')
+      .map((h) => ({
+        controlId: h.controlId,
+        eventName: h.eventName,
+        handlerType: h.handlerType,
+      })),
+    startFormId: shell.startFormId,
+  };
+}
+
+/** FormDocument → 런타임용 폼 정의 변환 (서버 핸들러만 노출) */
+function toRuntimeFormDef(form: {
+  _id: { toString(): string };
+  name: string;
+  version: number;
+  properties: unknown;
+  controls: unknown[];
+  eventHandlers: Array<{ controlId: string; eventName: string; handlerType: string }>;
+  dataBindings?: unknown[];
+}) {
+  return {
+    id: form._id.toString(),
+    name: form.name,
+    version: form.version,
+    properties: form.properties,
+    controls: form.controls,
+    eventHandlers: form.eventHandlers
+      .filter((h) => h.handlerType === 'server')
+      .map((h) => ({
+        controlId: h.controlId,
+        eventName: h.eventName,
+        handlerType: h.handlerType,
+      })),
+    dataBindings: form.dataBindings,
+  };
+}
 
 /**
  * GET /api/runtime/forms/:id
@@ -46,21 +96,7 @@ runtimeRouter.get('/forms/:id', async (req, res, next) => {
       throw new NotFoundError('Form not published');
     }
 
-    res.json({
-      id: form._id.toString(),
-      name: form.name,
-      version: form.version,
-      properties: form.properties,
-      controls: form.controls,
-      eventHandlers: form.eventHandlers
-        .filter((h) => h.handlerType === 'server')
-        .map((h) => ({
-          controlId: h.controlId,
-          eventName: h.eventName,
-          handlerType: h.handlerType,
-        })),
-      dataBindings: form.dataBindings,
-    });
+    res.json(toRuntimeFormDef(form));
   } catch (err) {
     next(err);
   }
@@ -292,6 +328,92 @@ runtimeRouter.post('/mongodb/delete', async (req, res, next) => {
     const adapter = new MongoDBAdapter(connectionString, database);
     const result = await adapter.deleteOne(collection, convertIds(filter));
     res.json({ success: true, ...result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── Shell Runtime API ───────────────────────────────────────────────────────
+
+/**
+ * GET /api/runtime/shells/:projectId
+ * 퍼블리시된 Shell 정의를 반환한다.
+ */
+runtimeRouter.get('/shells/:projectId', async (req, res, next) => {
+  try {
+    const shell = await shellService.getPublishedShell(req.params.projectId);
+
+    if (!shell) {
+      throw new NotFoundError('Published shell not found');
+    }
+
+    res.json(toShellDefinition(shell));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/runtime/shells/:projectId/events
+ * Shell 이벤트를 실행하고 UIPatch 배열을 반환한다.
+ * (스텁: server-shell-events 태스크에서 완성)
+ */
+runtimeRouter.post('/shells/:projectId/events', async (req, res, next) => {
+  try {
+    const shell = await shellService.getPublishedShell(req.params.projectId);
+
+    if (!shell) {
+      throw new NotFoundError('Published shell not found');
+    }
+
+    const payload = req.body as ShellEventRequest;
+
+    if (!payload.controlId || !payload.eventName || !payload.shellState) {
+      throw new AppError(400, 'Missing required fields: controlId, eventName, shellState');
+    }
+
+    // TODO: server-shell-events 태스크에서 EventEngine.executeShellEvent()로 교체
+    res.json({
+      success: true,
+      patches: [],
+      logs: [],
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/runtime/app/:projectId
+ * AppLoadResponse: Shell(있으면) + 시작 폼을 일괄 반환한다.
+ *
+ * Query params:
+ *   - formId?: string — 시작 폼 ID 직접 지정 (shell.startFormId 오버라이드)
+ */
+runtimeRouter.get('/app/:projectId', async (req, res, next) => {
+  try {
+    const shell = await shellService.getPublishedShell(req.params.projectId);
+
+    const formId = (req.query.formId as string) || shell?.startFormId;
+
+    if (!formId) {
+      throw new AppError(400, 'No start form specified: set shell.startFormId or pass ?formId=');
+    }
+
+    const form = await Form.findById(formId);
+
+    if (!form) {
+      throw new NotFoundError('Start form not found');
+    }
+
+    if (form.status !== 'published') {
+      throw new NotFoundError('Start form not published');
+    }
+
+    res.json({
+      shell: shell ? toShellDefinition(shell) : null,
+      startForm: toRuntimeFormDef(form),
+    });
   } catch (err) {
     next(err);
   }
