@@ -315,6 +315,15 @@ const bindingNavigatorProps: PropertyMeta[] = withCommon(
   { name: 'properties.font',            label: 'Font',             category: 'Appearance', editorType: 'font' },
 );
 
+const mongoDBConnectorProps: PropertyMeta[] = [
+  { name: 'name',                        label: 'Name',             category: 'Design',   editorType: 'text' },
+  { name: 'properties.connectionString', label: 'ConnectionString', category: 'Data',     editorType: 'mongoConnectionString' },
+  { name: 'properties.database',         label: 'Database',         category: 'Data',     editorType: 'text' },
+  { name: 'properties.defaultCollection', label: 'DefaultCollection', category: 'Data',   editorType: 'text' },
+  { name: 'properties.queryTimeout',     label: 'QueryTimeout',     category: 'Behavior', editorType: 'number', min: 1000, max: 60000, defaultValue: 10000 },
+  { name: 'properties.maxResultCount',   label: 'MaxResultCount',   category: 'Behavior', editorType: 'number', min: 1, max: 100000, defaultValue: 1000 },
+];
+
 const defaultProps: PropertyMeta[] = withCommon();
 
 // 현재 구현된 14개 + fallback
@@ -348,6 +357,7 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   Chart:          chartProps,
   SplitContainer: splitContainerProps,
   BindingNavigator: bindingNavigatorProps,
+  MongoDBConnector: mongoDBConnectorProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {

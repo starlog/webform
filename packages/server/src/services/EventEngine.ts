@@ -7,6 +7,7 @@ import type {
   UIPatch,
 } from '@webform/common';
 import { SandboxRunner } from './SandboxRunner.js';
+import type { MongoConnectorInfo } from './SandboxRunner.js';
 import { buildControlsContext } from './ControlProxy.js';
 
 export interface ExecuteEventOptions {
@@ -83,8 +84,11 @@ export class EventEngine {
       eventArgs: payload.eventArgs,
     };
 
+    const mongoConnectors = this.extractMongoConnectors(formDef.controls);
+
     const result = await this.sandboxRunner.runCode(handler.handlerCode, ctx, {
       debugMode: options?.debugMode,
+      mongoConnectors,
     });
 
     if (!result.success) {
@@ -149,5 +153,27 @@ export class EventEngine {
     }
 
     return { patches, logs };
+  }
+
+  private extractMongoConnectors(controls: ControlDefinition[]): MongoConnectorInfo[] {
+    const connectors: MongoConnectorInfo[] = [];
+
+    function walk(ctrls: ControlDefinition[]) {
+      for (const ctrl of ctrls) {
+        if (ctrl.type === 'MongoDBConnector') {
+          connectors.push({
+            controlName: ctrl.name,
+            connectionString: (ctrl.properties.connectionString as string) || '',
+            database: (ctrl.properties.database as string) || '',
+            defaultCollection: (ctrl.properties.defaultCollection as string) || '',
+            queryTimeout: (ctrl.properties.queryTimeout as number) || 10000,
+            maxResultCount: (ctrl.properties.maxResultCount as number) || 1000,
+          });
+        }
+        if (ctrl.children) walk(ctrl.children);
+      }
+    }
+    walk(controls);
+    return connectors;
   }
 }

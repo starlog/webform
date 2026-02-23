@@ -1,13 +1,24 @@
 import ivm from 'isolated-vm';
 import ts from 'typescript';
+import { MongoClient } from 'mongodb';
 import type { TraceEntry } from '@webform/common';
 import { env } from '../config/index.js';
 import { CodeInstrumenter } from './CodeInstrumenter.js';
+
+export interface MongoConnectorInfo {
+  controlName: string;
+  connectionString: string;
+  database: string;
+  defaultCollection: string;
+  queryTimeout: number;
+  maxResultCount: number;
+}
 
 export interface SandboxOptions {
   timeout?: number;
   memoryLimit?: number;
   debugMode?: boolean;
+  mongoConnectors?: MongoConnectorInfo[];
 }
 
 export interface SandboxResult {
@@ -27,6 +38,7 @@ export class SandboxRunner {
     const timeout = options?.timeout ?? env.SANDBOX_TIMEOUT_MS;
     const memoryLimit = options?.memoryLimit ?? env.SANDBOX_MEMORY_LIMIT_MB;
     const debugMode = options?.debugMode ?? false;
+    const mongoConnectors = options?.mongoConnectors ?? [];
 
     // TypeScript → JavaScript 변환 (type annotations 제거)
     let jsCode: string;
@@ -51,14 +63,14 @@ export class SandboxRunner {
     }
 
     const isolate = new ivm.Isolate({ memoryLimit });
-    const wrappedCode = this.wrapHandlerCode(codeToRun, debugMode);
+    const wrappedCode = this.wrapHandlerCode(codeToRun, debugMode, mongoConnectors);
 
     try {
       const vmContext = await isolate.createContext();
       const jail = vmContext.global;
 
       await this.blockDangerousGlobals(jail, debugMode);
-      await this.injectContext(jail, context);
+      await this.injectContext(jail, context, mongoConnectors);
 
       const script = await isolate.compileScript(wrappedCode);
 
@@ -110,6 +122,7 @@ export class SandboxRunner {
   private async injectContext(
     jail: ivm.Reference<Record<string, unknown>>,
     context: Record<string, unknown>,
+    mongoConnectors: MongoConnectorInfo[] = [],
   ): Promise<void> {
     await jail.set('__ctx__', new ivm.ExternalCopy(context).copyInto());
 
@@ -126,9 +139,76 @@ export class SandboxRunner {
       return new ivm.ExternalCopy({ status: res.status, ok: res.ok, data }).copyInto();
     });
     await jail.set('__httpHandler', httpHandler);
+
+    if (mongoConnectors.length > 0) {
+      const connectorMap = new Map<string, MongoConnectorInfo>();
+      for (const mc of mongoConnectors) {
+        connectorMap.set(mc.controlName, mc);
+      }
+
+      const mongoHandler = new ivm.Reference(
+        async (controlName: string, operation: string, collection: string, arg1?: string, arg2?: string) => {
+          const info = connectorMap.get(controlName);
+          if (!info) {
+            throw new Error(`MongoDBConnector "${controlName}" not found`);
+          }
+          if (!info.connectionString) {
+            throw new Error(`MongoDBConnector "${controlName}": connectionString is empty`);
+          }
+
+          const client = new MongoClient(info.connectionString);
+          try {
+            await client.connect();
+            const db = client.db(info.database);
+            const col = db.collection(collection || info.defaultCollection);
+            const filter = arg1 ? JSON.parse(arg1) : {};
+            const arg2Parsed = arg2 ? JSON.parse(arg2) : undefined;
+
+            let result: unknown;
+            switch (operation) {
+              case 'find': {
+                result = await col.find(filter).limit(info.maxResultCount).toArray();
+                break;
+              }
+              case 'findOne': {
+                result = await col.findOne(filter);
+                break;
+              }
+              case 'insertOne': {
+                // arg1 = document to insert
+                const insertResult = await col.insertOne(filter);
+                result = { insertedId: String(insertResult.insertedId) };
+                break;
+              }
+              case 'updateOne': {
+                // arg1 = filter, arg2 = update fields
+                const updateResult = await col.updateOne(filter, { $set: arg2Parsed });
+                result = { modifiedCount: updateResult.modifiedCount };
+                break;
+              }
+              case 'deleteOne': {
+                const deleteResult = await col.deleteOne(filter);
+                result = { deletedCount: deleteResult.deletedCount };
+                break;
+              }
+              case 'count': {
+                result = await col.countDocuments(filter);
+                break;
+              }
+              default:
+                throw new Error(`Unknown MongoDB operation: ${operation}`);
+            }
+            return new ivm.ExternalCopy(result).copyInto();
+          } finally {
+            await client.close();
+          }
+        },
+      );
+      await jail.set('__mongoHandler', mongoHandler);
+    }
   }
 
-  private wrapHandlerCode(code: string, debugMode?: boolean): string {
+  private wrapHandlerCode(code: string, debugMode?: boolean, mongoConnectors: MongoConnectorInfo[] = []): string {
     const traceSetup = debugMode
       ? `
         var __traces = [];
@@ -263,6 +343,27 @@ export class SandboxRunner {
             return __httpHandler.applySyncPromise(undefined, ['DELETE', String(url)]);
           }
         };
+${mongoConnectors.map((mc) => `
+        ctx.controls['${mc.controlName}'] = ctx.controls['${mc.controlName}'] || {};
+        ctx.controls['${mc.controlName}'].find = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'find', String(collection || ''), JSON.stringify(filter || {})]);
+        };
+        ctx.controls['${mc.controlName}'].findOne = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'findOne', String(collection || ''), JSON.stringify(filter || {})]);
+        };
+        ctx.controls['${mc.controlName}'].insertOne = function(collection, doc) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'insertOne', String(collection || ''), JSON.stringify(doc || {})]);
+        };
+        ctx.controls['${mc.controlName}'].updateOne = function(collection, filter, update) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'updateOne', String(collection || ''), JSON.stringify(filter || {}), JSON.stringify(update || {})]);
+        };
+        ctx.controls['${mc.controlName}'].deleteOne = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'deleteOne', String(collection || ''), JSON.stringify(filter || {})]);
+        };
+        ctx.controls['${mc.controlName}'].count = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'count', String(collection || ''), JSON.stringify(filter || {})]);
+        };
+`).join('')}
         ctx.getRadioGroupValue = function(groupName) {
           for (var name in ctx.controls) {
             var ctrl = ctx.controls[name];

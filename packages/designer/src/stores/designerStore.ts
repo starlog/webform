@@ -81,6 +81,7 @@ function getDefaultSize(type: ControlType): { width: number; height: number } {
     StatusStrip:     { width: 800, height: 22 },
     RichTextBox:     { width: 300, height: 150 },
     WebBrowser:      { width: 400, height: 300 },
+    MongoDBConnector: { width: 120, height: 40 },
   };
   return sizes[type] ?? { width: 100, height: 23 };
 }
@@ -187,6 +188,14 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
       return { text: '', readOnly: false, scrollBars: 'Both' };
     case 'WebBrowser':
       return { url: 'about:blank', allowNavigation: true };
+    case 'MongoDBConnector':
+      return {
+        connectionString: '',
+        database: '',
+        defaultCollection: '',
+        queryTimeout: 10000,
+        maxResultCount: 1000,
+      };
     default:
       return {};
   }

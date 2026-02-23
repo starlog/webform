@@ -8,6 +8,8 @@ import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';
 import type { Snapline as SnaplineType } from '../../utils/snapGrid';
 import { CanvasControl, DragItemTypes } from './CanvasControl';
 import { Snapline } from './Snapline';
+import { ComponentTray } from './ComponentTray';
+import { isNonVisualControl } from '../../controls/registry';
 
 type FormResizeDirection = 'e' | 's' | 'se';
 
@@ -116,6 +118,9 @@ export function DesignerCanvas() {
   const [{ isOver }, dropRef] = useDrop(() => ({
     accept: [DragItemTypes.TOOLBOX_CONTROL],
     drop: (item: { type: ControlType }, monitor) => {
+      // 비시각적 컨트롤은 캔버스가 아닌 ComponentTray에서 처리
+      if (isNonVisualControl(item.type)) return;
+
       const offset = monitor.getClientOffset();
       if (!offset || !canvasRef.current) return;
 
@@ -345,7 +350,7 @@ export function DesignerCanvas() {
         onMouseUp={handleMouseUp}
       >
         {controls
-          .filter((c) => !hiddenControlIds.has(c.id))
+          .filter((c) => !hiddenControlIds.has(c.id) && !isNonVisualControl(c.type))
           .map((control) => (
             <CanvasControl
               key={control.id}
@@ -363,6 +368,8 @@ export function DesignerCanvas() {
           <div style={getSelectionBoxStyle(selectionBox)} />
         )}
       </div>
+
+      <ComponentTray controls={controls} />
 
       {/* 폼 리사이즈 핸들: 오른쪽(e) */}
       <div

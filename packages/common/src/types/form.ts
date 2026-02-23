@@ -33,6 +33,7 @@ export const CONTROL_TYPES = [
   'DataGridView', 'BindingNavigator', 'Chart', 'TreeView', 'ListView',
   'MenuStrip', 'ToolStrip', 'StatusStrip', 'RichTextBox', 'WebBrowser',
   'SpreadsheetView', 'JsonEditor', 'MongoDBView', 'GraphView',
+  'MongoDBConnector',
 ] as const;
 
 export type ControlType = (typeof CONTROL_TYPES)[number];

@@ -29,6 +29,7 @@ import { WebBrowserControl } from './WebBrowserControl';
 import { ChartControl } from './ChartControl';
 import { SplitContainerControl } from './SplitContainerControl';
 import { BindingNavigatorControl } from './BindingNavigatorControl';
+import { MongoDBConnectorControl } from './MongoDBConnectorControl';
 
 export interface DesignerControlProps {
   id?: string;
@@ -69,13 +70,15 @@ export const designerControlRegistry: Partial<
   Chart: ChartControl,
   SplitContainer: SplitContainerControl,
   BindingNavigator: BindingNavigatorControl,
+  MongoDBConnector: MongoDBConnectorControl,
 };
 
 export interface ControlMeta {
   type: ControlType;
   displayName: string;
   icon: string;
-  category: 'basic' | 'container' | 'data';
+  category: 'basic' | 'container' | 'data' | 'database';
+  isNonVisual?: boolean;
 }
 
 export const controlMetadata: ControlMeta[] = [
@@ -112,12 +115,15 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'Chart',            displayName: 'Chart',            icon: '\uD83D\uDCC8', category: 'data' },
   { type: 'SplitContainer',   displayName: 'SplitContainer',   icon: '\u229F',  category: 'container' },
   { type: 'BindingNavigator', displayName: 'BindingNavigator', icon: '\u23E9', category: 'data' },
+
+  { type: 'MongoDBConnector', displayName: 'MongoDBConnector', icon: '\uD83D\uDDC4', category: 'database', isNonVisual: true },
 ];
 
 export const TOOLBOX_CATEGORIES = [
-  { id: 'basic',     name: '\uAE30\uBCF8 \uCEE8\uD2B8\uB864',  collapsed: false },
-  { id: 'container', name: '\uCEE8\uD14C\uC774\uB108',      collapsed: false },
-  { id: 'data',      name: '\uB370\uC774\uD130',        collapsed: false },
+  { id: 'basic',     name: '기본 컨트롤',  collapsed: false },
+  { id: 'container', name: '컨테이너',      collapsed: false },
+  { id: 'data',      name: '데이터',        collapsed: false },
+  { id: 'database',  name: '데이터베이스',  collapsed: false },
 ] as const;
 
 export function getDesignerComponent(type: ControlType): ComponentType<DesignerControlProps> | undefined {
@@ -126,4 +132,9 @@ export function getDesignerComponent(type: ControlType): ComponentType<DesignerC
 
 export function getControlsByCategory(categoryId: string): ControlMeta[] {
   return controlMetadata.filter((m) => m.category === categoryId);
+}
+
+export function isNonVisualControl(type: ControlType): boolean {
+  const meta = controlMetadata.find((m) => m.type === type);
+  return meta?.isNonVisual === true;
 }

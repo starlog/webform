@@ -44,6 +44,7 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   Chart: ['SeriesClicked', 'DataLoaded'],
   SplitContainer: ['SplitterMoved'],
   BindingNavigator: ['PositionChanged', 'ItemClicked'],
+  MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
 };
 
 export const FORM_EVENTS = [
