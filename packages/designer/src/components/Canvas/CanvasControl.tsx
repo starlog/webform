@@ -19,10 +19,12 @@ interface CanvasControlProps {
 }
 
 function ControlPreview({
+  id,
   type,
   properties,
   size,
 }: {
+  id: string;
   type: ControlType;
   properties: Record<string, unknown>;
   size: { width: number; height: number };
@@ -30,7 +32,7 @@ function ControlPreview({
   const Component = getDesignerComponent(type);
 
   if (Component) {
-    return <Component properties={properties} size={size} />;
+    return <Component id={id} properties={properties} size={size} />;
   }
 
   const text = (properties.text as string) ?? type;
@@ -40,8 +42,8 @@ function ControlPreview({
         width: '100%',
         height: '100%',
         overflow: 'hidden',
-        fontSize: 12,
-        fontFamily: 'Segoe UI, sans-serif',
+        fontSize: 'inherit',
+        fontFamily: 'inherit',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -151,7 +153,7 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
       }}
       onMouseDown={handleMouseDown}
     >
-      <ControlPreview type={control.type} properties={control.properties} size={control.size} />
+      <ControlPreview id={control.id} type={control.type} properties={control.properties} size={control.size} />
 
       {isSelected && (
         <>

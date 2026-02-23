@@ -11,8 +11,8 @@ export function ListBoxControl({ properties, size }: DesignerControlProps) {
       backgroundColor: '#FFFFFF',
       border: '1px inset #D0D0D0',
       overflow: 'auto',
-      fontSize: '12px',
-      fontFamily: 'Segoe UI, sans-serif',
+      fontSize: 'inherit',
+      fontFamily: 'inherit',
       boxSizing: 'border-box',
     }}>
       {items.length === 0 ? (

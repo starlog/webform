@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useDesignerStore } from '../stores/designerStore';
+import { nestControls } from '@webform/common';
 import type { ControlDefinition, FontDefinition, FormProperties } from '@webform/common';
 
 // --- 타입 정의 ---
@@ -293,8 +294,9 @@ export function useAutoSave() {
     if (!currentFormId || !isDirty) return;
 
     try {
+      const nestedControls = nestControls(controls);
       await apiService.saveForm(currentFormId, {
-        controls,
+        controls: nestedControls,
         properties: formProperties,
         eventHandlers: extractEventHandlers(controls),
       });
@@ -309,8 +311,9 @@ export function useAutoSave() {
     const state = useDesignerStore.getState();
     if (!state.currentFormId) return;
     try {
+      const nestedControls = nestControls(state.controls);
       await apiService.saveForm(state.currentFormId, {
-        controls: state.controls,
+        controls: nestedControls,
         properties: state.formProperties,
         eventHandlers: extractEventHandlers(state.controls),
       });

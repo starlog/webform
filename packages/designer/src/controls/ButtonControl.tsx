@@ -12,8 +12,8 @@ export function ButtonControl({ properties, size }: DesignerControlProps) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontSize: '12px',
-      fontFamily: 'Segoe UI, sans-serif',
+      fontSize: 'inherit',
+      fontFamily: 'inherit',
       userSelect: 'none',
       boxSizing: 'border-box',
     }}>

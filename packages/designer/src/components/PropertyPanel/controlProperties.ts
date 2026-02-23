@@ -159,6 +159,7 @@ const groupBoxProps: PropertyMeta[] = withCommon(
 
 const tabControlProps: PropertyMeta[] = withCommon(
   { name: 'properties.tabPages',      label: 'TabPages',      category: 'Data',     editorType: 'collection' },
+  { name: 'properties.tabs',          label: 'Tabs',          category: 'Data',     editorType: 'collection' },
   { name: 'properties.selectedIndex', label: 'SelectedIndex', category: 'Behavior', editorType: 'number', min: 0 },
 );
 

@@ -11,8 +11,8 @@ export function CheckBoxControl({ properties, size }: DesignerControlProps) {
       display: 'flex',
       alignItems: 'center',
       gap: '4px',
-      fontSize: '12px',
-      fontFamily: 'Segoe UI, sans-serif',
+      fontSize: 'inherit',
+      fontFamily: 'inherit',
       userSelect: 'none',
       boxSizing: 'border-box',
     }}>

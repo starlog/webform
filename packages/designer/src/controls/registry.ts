@@ -18,8 +18,10 @@ import { SpreadsheetViewControl } from './SpreadsheetViewControl';
 import { JsonEditorControl } from './JsonEditorControl';
 import { MongoDBViewControl } from './MongoDBViewControl';
 import { GraphViewControl } from './GraphViewControl';
+import { DataGridViewControl } from './DataGridViewControl';
 
 export interface DesignerControlProps {
+  id?: string;
   properties: Record<string, unknown>;
   size: { width: number; height: number };
   children?: React.ReactNode;
@@ -42,6 +44,7 @@ export const designerControlRegistry: Partial<
   Panel: PanelControl,
   GroupBox: GroupBoxControl,
   TabControl: TabControlControl,
+  DataGridView: DataGridViewControl,
   SpreadsheetView: SpreadsheetViewControl,
   JsonEditor: JsonEditorControl,
   MongoDBView: MongoDBViewControl,

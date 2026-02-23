@@ -155,8 +155,8 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
     }
   };
 
-  const handleDeleteProject = async (projectId: string) => {
-    if (!confirm('이 프로젝트와 하위 폼을 모두 삭제하시겠습니까?')) return;
+  const handleDeleteProject = async (projectId: string, projectName: string) => {
+    if (!confirm(`"${projectName}" 프로젝트와 하위 폼을 모두 삭제하시겠습니까?`)) return;
     try {
       await apiService.deleteProject(projectId);
       await loadProjects();
@@ -308,7 +308,7 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
           { label: '기본 폰트 설정', action: () => handleOpenDefaultFontDialog(contextMenu.projectId, projName) },
           { label: '폰트 일괄 적용', action: () => handleOpenFontDialog(contextMenu.projectId, projName) },
           { label: '내보내기', action: () => handleExportProject(contextMenu.projectId) },
-          { label: '삭제', action: () => handleDeleteProject(contextMenu.projectId) },
+          { label: '삭제', action: () => handleDeleteProject(contextMenu.projectId, projName) },
         ];
       }
       case 'folder':

@@ -7,8 +7,10 @@ interface FormContainerProps {
   children: ReactNode;
 }
 
+const TITLE_BAR_HEIGHT = 30;
+
 const titleBarStyle: CSSProperties = {
-  height: 30,
+  height: TITLE_BAR_HEIGHT,
   background: 'linear-gradient(to right, #0078D7, #005A9E)',
   display: 'flex',
   alignItems: 'center',
@@ -59,9 +61,11 @@ export function FormContainer({ properties, children }: FormContainerProps) {
   const borderStyles = getBorderStyle(properties.formBorderStyle);
   const fontStyles = computeFontStyle(properties.font);
 
+  const showTitleBar = properties.formBorderStyle !== 'None';
+
   const containerStyle: CSSProperties = {
     width: properties.width,
-    height: properties.height,
+    height: showTitleBar ? properties.height + TITLE_BAR_HEIGHT : properties.height,
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
@@ -75,8 +79,6 @@ export function FormContainer({ properties, children }: FormContainerProps) {
     overflow: 'hidden',
     ...fontStyles,
   };
-
-  const showTitleBar = properties.formBorderStyle !== 'None';
 
   return (
     <div className="wf-form" style={containerStyle}>

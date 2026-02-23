@@ -10,16 +10,17 @@ export function GroupBoxControl({ properties, size, children }: DesignerControlP
       border: '1px solid #D0D0D0',
       borderRadius: '2px',
       margin: 0,
-      padding: '8px 4px 4px',
+      padding: 0,
       position: 'relative',
       boxSizing: 'border-box',
-      fontSize: '12px',
-      fontFamily: 'Segoe UI, sans-serif',
+      fontSize: 'inherit',
+      fontFamily: 'inherit',
     }}>
       <legend style={{
         padding: '0 4px',
-        fontSize: '12px',
+        fontSize: 'inherit',
         color: '#000',
+        marginLeft: 8,
       }}>
         {text}
       </legend>

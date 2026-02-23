@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useDrop } from 'react-dnd';
 import type { ControlType, ControlDefinition } from '@webform/common';
 import { useDesignerStore, createDefaultControl } from '../../stores/designerStore';
@@ -13,6 +13,52 @@ type FormResizeDirection = 'e' | 's' | 'se';
 
 const FORM_MIN_WIDTH = 200;
 const FORM_MIN_HEIGHT = 150;
+
+/**
+ * TabControl의 탭 페이지 기반 숨김 컨트롤 ID를 계산한다.
+ * - 탭 페이지 Panel 자체는 항상 숨김 (TabControl 프리뷰가 시각적 경계를 표시)
+ * - 선택되지 않은 탭 페이지의 자식 컨트롤은 숨김
+ */
+function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
+  const hidden = new Set<string>();
+  const tabControls = controls.filter((c) => c.type === 'TabControl');
+
+  for (const tc of tabControls) {
+    const selectedIndex = (tc.properties.selectedIndex as number) ?? 0;
+
+    // TabControl의 직접 자식 Panel(탭 페이지)을 순서대로 찾기
+    const tabPagePanels = controls.filter(
+      (c) => (c.properties._parentId as string) === tc.id,
+    );
+
+    // 모든 탭 페이지 Panel은 캔버스에서 숨김
+    for (const panel of tabPagePanels) {
+      hidden.add(panel.id);
+    }
+
+    // 선택되지 않은 탭 페이지의 모든 자손 컨트롤을 숨김
+    for (let i = 0; i < tabPagePanels.length; i++) {
+      if (i !== selectedIndex) {
+        collectDescendants(controls, tabPagePanels[i].id, hidden);
+      }
+    }
+  }
+
+  return hidden;
+}
+
+function collectDescendants(
+  controls: ControlDefinition[],
+  parentId: string,
+  hidden: Set<string>,
+) {
+  for (const c of controls) {
+    if ((c.properties._parentId as string) === parentId) {
+      hidden.add(c.id);
+      collectDescendants(controls, c.id, hidden);
+    }
+  }
+}
 
 function getSelectionBoxStyle(box: { startX: number; startY: number; endX: number; endY: number }): React.CSSProperties {
   const left = Math.min(box.startX, box.endX);
@@ -51,6 +97,9 @@ export function DesignerCanvas() {
 
   const canvasRef = useRef<HTMLDivElement | null>(null);
 
+  // TabControl 탭 페이지 기반 숨김 컨트롤 계산
+  const hiddenControlIds = useMemo(() => getHiddenControlIds(controls), [controls]);
+
   // --- Drop target: 도구상자에서 새 컨트롤 드롭 ---
   const [{ isOver }, dropRef] = useDrop(() => ({
     accept: [DragItemTypes.TOOLBOX_CONTROL],
@@ -70,6 +119,26 @@ export function DesignerCanvas() {
 
       const control = createDefaultControl(item.type, position);
       addControl(control);
+
+      // TabControl 드롭 시 탭 페이지 Panel을 자동 생성
+      if (item.type === 'TabControl') {
+        const tabPages = (control.properties.tabPages as string[]) ?? [];
+        for (let i = 0; i < tabPages.length; i++) {
+          addControl({
+            id: crypto.randomUUID(),
+            type: 'Panel',
+            name: `${control.name}_page${i + 1}`,
+            properties: { _parentId: control.id, borderStyle: 'None' },
+            position: { x: position.x, y: position.y },
+            size: { width: control.size.width, height: control.size.height },
+            anchor: { top: true, bottom: false, left: true, right: false },
+            dock: 'None',
+            tabIndex: 0,
+            visible: true,
+            enabled: true,
+          });
+        }
+      }
 
       setSnaplines([]);
     },
@@ -183,6 +252,7 @@ export function DesignerCanvas() {
       const bottom = Math.max(selectionBox.startY, selectionBox.endY);
 
       const selectedControls = controls.filter((c) => {
+        if (hiddenControlIds.has(c.id)) return false;
         const cx = c.position.x;
         const cy = c.position.y;
         const cRight = cx + c.size.width;
@@ -253,6 +323,8 @@ export function DesignerCanvas() {
           outline: 'none',
           border: isOver ? '2px dashed #0078D7' : '1px solid #999',
           boxSizing: 'border-box',
+          fontFamily: formProperties.font?.family || 'Segoe UI, sans-serif',
+          fontSize: formProperties.font ? `${formProperties.font.size}pt` : '9pt',
         }}
         tabIndex={0}
         onKeyDown={handleKeyDown}
@@ -260,14 +332,16 @@ export function DesignerCanvas() {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       >
-        {controls.map((control) => (
-          <CanvasControl
-            key={control.id}
-            control={control}
-            isSelected={selectedIds.has(control.id)}
-            onSnaplineChange={setSnaplines}
-          />
-        ))}
+        {controls
+          .filter((c) => !hiddenControlIds.has(c.id))
+          .map((control) => (
+            <CanvasControl
+              key={control.id}
+              control={control}
+              isSelected={selectedIds.has(control.id)}
+              onSnaplineChange={setSnaplines}
+            />
+          ))}
 
         {snaplines.map((line, i) => (
           <Snapline key={`${line.type}-${line.position}-${i}`} snapline={line} />

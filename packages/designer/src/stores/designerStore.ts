@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { ControlDefinition, ControlType, FontDefinition, FormProperties } from '@webform/common';
+import { flattenControls } from '@webform/common';
 
 const DEFAULT_FORM_PROPERTIES: FormProperties = {
   title: 'Form1',
@@ -267,7 +268,7 @@ export const useDesignerStore = create<DesignerState>()(
 
     loadForm: (formId, controls, properties) => set((state) => {
       state.currentFormId = formId;
-      state.controls = controls;
+      state.controls = flattenControls(controls) as ControlDefinition[];
       state.formProperties = properties;
       state.formEventHandlers = {};
       state.formEventCode = {};

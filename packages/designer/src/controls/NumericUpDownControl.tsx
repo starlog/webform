@@ -16,8 +16,8 @@ export function NumericUpDownControl({ properties, size }: DesignerControlProps)
         flex: 1,
         backgroundColor: '#FFFFFF',
         padding: '1px 2px',
-        fontSize: '12px',
-        fontFamily: 'Segoe UI, sans-serif',
+        fontSize: 'inherit',
+        fontFamily: 'inherit',
         display: 'flex',
         alignItems: 'center',
       }}>

@@ -47,3 +47,4 @@ export type {
 // utils
 export { validateFormDefinition, validateControlDefinition, sanitizeQueryInput } from './utils/validation';
 export { serializeFormDefinition, deserializeFormDefinition } from './utils/serialization';
+export { flattenControls, nestControls } from './utils/controlUtils';

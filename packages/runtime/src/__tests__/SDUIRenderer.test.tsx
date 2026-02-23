@@ -152,7 +152,7 @@ describe('SDUIRenderer', () => {
     const formContainer = document.querySelector('.wf-form') as HTMLElement;
     expect(formContainer).toBeInTheDocument();
     expect(formContainer.style.width).toBe('640px');
-    expect(formContainer.style.height).toBe('480px');
+    expect(formContainer.style.height).toBe('510px'); // 480 + 30 (title bar)
 
     // Content 영역의 배경색 확인
     const contentArea = document.querySelector('.wf-content') as HTMLElement;

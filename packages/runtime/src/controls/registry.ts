@@ -7,6 +7,8 @@ import { Label } from './Label';
 import { CheckBox } from './CheckBox';
 import { RadioButton } from './RadioButton';
 import { ComboBox } from './ComboBox';
+import { ListBox } from './ListBox';
+import { NumericUpDown } from './NumericUpDown';
 import { Panel } from './Panel';
 import { GroupBox } from './GroupBox';
 import { TabControl } from './TabControl';
@@ -27,6 +29,8 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   CheckBox,
   RadioButton,
   ComboBox,
+  ListBox,
+  NumericUpDown,
   Panel,
   GroupBox,
   TabControl,

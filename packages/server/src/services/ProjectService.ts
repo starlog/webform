@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { Project } from '../models/Project.js';
 import type { ProjectDocument } from '../models/Project.js';
 import { Form } from '../models/Form.js';
@@ -109,20 +108,12 @@ export class ProjectService {
 
   async deleteProject(id: string): Promise<void> {
     await this.getProject(id);
-    const session = await mongoose.startSession();
-    try {
-      await session.withTransaction(async () => {
-        const now = new Date();
-        await Project.updateOne({ _id: id }, { $set: { deletedAt: now } }, { session });
-        await Form.updateMany(
-          { projectId: id, deletedAt: null },
-          { $set: { deletedAt: now } },
-          { session },
-        );
-      });
-    } finally {
-      await session.endSession();
-    }
+    const now = new Date();
+    await Project.updateOne({ _id: id }, { $set: { deletedAt: now } });
+    await Form.updateMany(
+      { projectId: id, deletedAt: null },
+      { $set: { deletedAt: now } },
+    );
   }
 
   async exportProject(id: string): Promise<ExportProjectData> {

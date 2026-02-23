@@ -1,8 +1,28 @@
+import { useDesignerStore } from '../stores/designerStore';
 import type { DesignerControlProps } from './registry';
 
-export function TabControlControl({ properties, size, children }: DesignerControlProps) {
+function getTabNames(properties: Record<string, unknown>): string[] {
+  if (properties.tabs && Array.isArray(properties.tabs)) {
+    return (properties.tabs as Array<{ title: string }>).map((t) => t.title);
+  }
+  if (properties.tabPages && Array.isArray(properties.tabPages)) {
+    return properties.tabPages as string[];
+  }
+  return ['TabPage1', 'TabPage2'];
+}
+
+export function TabControlControl({ id, properties, size }: DesignerControlProps) {
+  const updateControl = useDesignerStore((s) => s.updateControl);
   const selectedIndex = (properties.selectedIndex as number) ?? 0;
-  const tabNames = (properties.tabPages as string[]) ?? ['TabPage1', 'TabPage2'];
+  const tabNames = getTabNames(properties);
+
+  const handleTabClick = (index: number) => {
+    if (id) {
+      updateControl(id, {
+        properties: { ...properties, selectedIndex: index },
+      });
+    }
+  };
 
   return (
     <div style={{
@@ -21,6 +41,11 @@ export function TabControlControl({ properties, size, children }: DesignerContro
         {tabNames.map((name, i) => (
           <div
             key={i}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleTabClick(i);
+            }}
             style={{
               padding: '4px 12px',
               border: '1px solid #A0A0A0',
@@ -30,6 +55,7 @@ export function TabControlControl({ properties, size, children }: DesignerContro
               marginBottom: i === selectedIndex ? '-1px' : '0',
               fontSize: '11px',
               fontFamily: 'Segoe UI, sans-serif',
+              cursor: 'pointer',
             }}
           >
             {name}
@@ -43,9 +69,7 @@ export function TabControlControl({ properties, size, children }: DesignerContro
         position: 'relative',
         overflow: 'hidden',
         backgroundColor: '#FFFFFF',
-      }}>
-        {children}
-      </div>
+      }} />
     </div>
   );
 }
