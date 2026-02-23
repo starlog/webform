@@ -844,7 +844,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
       const res = await fetch('/api/debug/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, formState, controlId: controlId, debugMode: true }),
+        body: JSON.stringify({ code, formState, controlId: controlId, debugMode: true, controls }),
       });
       const data = await res.json();
 

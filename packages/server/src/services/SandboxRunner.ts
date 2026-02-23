@@ -282,6 +282,7 @@ export class SandboxRunner {
             var hasChanges = false;
             for (var prop in current) {
               if (!current.hasOwnProperty(prop)) continue;
+              if (typeof current[prop] === 'function') continue;
               if (!snapshot || !__deepEqual(snapshot[prop], current[prop])) {
                 changed[prop] = current[prop];
                 hasChanges = true;

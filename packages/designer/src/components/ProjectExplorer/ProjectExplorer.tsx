@@ -145,8 +145,8 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
     }
   };
 
-  const handleDeleteForm = async (formId: string) => {
-    if (!confirm('이 폼을 삭제하시겠습니까?')) return;
+  const handleDeleteForm = async (formId: string, formName: string) => {
+    if (!confirm(`"${formName}" 폼을 삭제하시겠습니까?`)) return;
     try {
       await apiService.deleteForm(formId);
       await loadProjects();
@@ -325,7 +325,7 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
             label: '이름 변경',
             action: () => startRename(contextMenu.targetId, targetForm?.name ?? ''),
           },
-          { label: '삭제', action: () => handleDeleteForm(contextMenu.targetId) },
+          { label: '삭제', action: () => handleDeleteForm(contextMenu.targetId, targetForm?.name ?? '') },
         ];
       }
       default:

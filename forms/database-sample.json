@@ -1,0 +1,269 @@
+{
+  "project": {
+    "name": "데모 프로젝트",
+    "description": "데모 프로젝트"
+  },
+  "forms": [
+    {
+      "name": "데이터베이스 샘플",
+      "properties": {
+        "title": "제품 정보 조회",
+        "width": 900,
+        "height": 620,
+        "backgroundColor": "#F5F5F5",
+        "font": {
+          "family": "Pretendard",
+          "size": 9,
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strikethrough": false
+        },
+        "startPosition": "CenterScreen",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblTitle",
+          "type": "Label",
+          "name": "lblTitle",
+          "position": { "x": 20, "y": 15 },
+          "size": { "width": 300, "height": 30 },
+          "properties": {
+            "text": "제품 정보",
+            "textAlign": "MiddleLeft",
+            "foreColor": "#1565C0",
+            "backColor": "transparent",
+            "font": {
+              "family": "Pretendard",
+              "size": 16,
+              "bold": true,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "autoSize": false
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None",
+          "tabIndex": 0,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": "lblSearch",
+          "type": "Label",
+          "name": "lblSearch",
+          "position": { "x": 20, "y": 58 },
+          "size": { "width": 60, "height": 26 },
+          "properties": {
+            "text": "검색어",
+            "textAlign": "MiddleLeft",
+            "foreColor": "#333333",
+            "backColor": "transparent",
+            "font": {
+              "family": "Pretendard",
+              "size": 9,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "autoSize": false
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None",
+          "tabIndex": 1,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": "txtSearch",
+          "type": "TextBox",
+          "name": "txtSearch",
+          "position": { "x": 80, "y": 55 },
+          "size": { "width": 250, "height": 26 },
+          "properties": {
+            "text": "",
+            "placeholderText": "제품명으로 검색...",
+            "foreColor": "#000000",
+            "backColor": "#FFFFFF",
+            "font": {
+              "family": "Pretendard",
+              "size": 9,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "readOnly": false,
+            "maxLength": 100,
+            "textAlign": "Left"
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None",
+          "tabIndex": 2,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": "btnSearch",
+          "type": "Button",
+          "name": "btnSearch",
+          "position": { "x": 340, "y": 55 },
+          "size": { "width": 80, "height": 28 },
+          "properties": {
+            "text": "검색",
+            "foreColor": "#FFFFFF",
+            "backColor": "#1565C0",
+            "font": {
+              "family": "Pretendard",
+              "size": 9,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "flatStyle": "Flat",
+            "textAlign": "MiddleCenter"
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None",
+          "tabIndex": 3,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": "btnLoadAll",
+          "type": "Button",
+          "name": "btnLoadAll",
+          "position": { "x": 430, "y": 55 },
+          "size": { "width": 100, "height": 28 },
+          "properties": {
+            "text": "전체 조회",
+            "foreColor": "#FFFFFF",
+            "backColor": "#2E7D32",
+            "font": {
+              "family": "Pretendard",
+              "size": 9,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "flatStyle": "Flat",
+            "textAlign": "MiddleCenter"
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None",
+          "tabIndex": 4,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": "dgvProducts",
+          "type": "DataGridView",
+          "name": "dgvProducts",
+          "position": { "x": 20, "y": 95 },
+          "size": { "width": 855, "height": 440 },
+          "properties": {
+            "columns": [
+              { "field": "sku", "headerText": "SKU", "width": 100 },
+              { "field": "title", "headerText": "제품명", "width": 280 },
+              { "field": "category", "headerText": "카테고리", "width": 100 },
+              { "field": "msrp", "headerText": "권장소비자가", "width": 110 },
+              { "field": "status", "headerText": "상태", "width": 80 },
+              { "field": "createdAt", "headerText": "등록일", "width": 130 }
+            ],
+            "dataSource": [],
+            "backColor": "#FFFFFF",
+            "foreColor": "#000000",
+            "font": {
+              "family": "Pretendard",
+              "size": 9,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "readOnly": true
+          },
+          "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+          "dock": "None",
+          "tabIndex": 5,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": "lblCount",
+          "type": "Label",
+          "name": "lblCount",
+          "position": { "x": 20, "y": 545 },
+          "size": { "width": 300, "height": 22 },
+          "properties": {
+            "text": "데이터를 조회하려면 [전체 조회] 버튼을 클릭하세요.",
+            "textAlign": "MiddleLeft",
+            "foreColor": "#666666",
+            "backColor": "transparent",
+            "font": {
+              "family": "Pretendard",
+              "size": 9,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "autoSize": false
+          },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": false },
+          "dock": "None",
+          "tabIndex": 6,
+          "visible": true,
+          "enabled": true
+        },
+        {
+          "id": "mongoDb",
+          "type": "MongoDBConnector",
+          "name": "mongoDb",
+          "position": { "x": 0, "y": 0 },
+          "size": { "width": 120, "height": 40 },
+          "properties": {
+            "connectionString": "mongodb://localhost:27017/?retryWrites=true&loadBalanced=false&serverSelectionTimeoutMS=5000&connectTimeoutMS=10000",
+            "database": "barunson",
+            "defaultCollection": "baseproducts",
+            "queryTimeout": 10000,
+            "maxResultCount": 1000
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None",
+          "tabIndex": 7,
+          "visible": true,
+          "enabled": true
+        }
+      ],
+      "eventHandlers": [
+        {
+          "controlId": "btnLoadAll",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var products = ctx.controls.mongoDb.find('baseproducts', {});\nctx.controls.dgvProducts.dataSource = products;\nvar count = ctx.controls.mongoDb.count('baseproducts', {});\nctx.controls.lblCount.text = '총 ' + count + '건의 제품이 조회되었습니다.';\nctx.controls.lblCount.foreColor = '#1565C0';"
+        },
+        {
+          "controlId": "btnSearch",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var keyword = ctx.controls.txtSearch.text;\nif (!keyword || keyword.trim() === '') {\n  ctx.showMessage('검색어를 입력해주세요.', '알림');\n  return;\n}\nvar filter = { title: { $regex: keyword, $options: 'i' } };\nvar products = ctx.controls.mongoDb.find('baseproducts', filter);\nctx.controls.dgvProducts.dataSource = products;\nvar count = products.length;\nctx.controls.lblCount.text = '\"' + keyword + '\" 검색 결과: ' + count + '건';\nctx.controls.lblCount.foreColor = '#1565C0';"
+        },
+        {
+          "controlId": "_form",
+          "eventName": "OnLoading",
+          "handlerType": "server",
+          "handlerCode": "var products = ctx.controls.mongoDb.find('baseproducts', {});\nctx.controls.dgvProducts.dataSource = products;\nvar count = ctx.controls.mongoDb.count('baseproducts', {});\nctx.controls.lblCount.text = '총 ' + count + '건의 제품이 조회되었습니다.';\nctx.controls.lblCount.foreColor = '#1565C0';"
+        }
+      ],
+      "dataBindings": []
+    }
+  ]
+}

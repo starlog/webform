@@ -1,0 +1,195 @@
+{
+  "project": {
+    "name": "바른손 상품관리",
+    "description": "바른손 기본상품(baseproducts) 목록 조회 및 관리 페이지"
+  },
+  "forms": [
+    {
+      "name": "상품 목록",
+      "properties": {
+        "title": "바른손 상품 목록",
+        "width": 1100,
+        "height": 700,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "mongoDb", "type": "MongoDBConnector", "name": "mongoDb",
+          "position": { "x": 0, "y": 0 }, "size": { "width": 120, "height": 40 },
+          "properties": {
+            "connectionString": "mongodb://localhost:27017/?retryWrites=true&loadBalanced=false&serverSelectionTimeoutMS=5000&connectTimeoutMS=10000",
+            "database": "barunson",
+            "defaultCollection": "baseproducts",
+            "queryTimeout": 10000,
+            "maxResultCount": 1000
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "pnlHeader", "type": "Panel", "name": "pnlHeader",
+          "position": { "x": 0, "y": 0 }, "size": { "width": 1100, "height": 50 },
+          "properties": { "backColor": "#1565C0", "borderStyle": "None" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "lblTitle", "type": "Label", "name": "lblTitle",
+              "position": { "x": 20, "y": 8 }, "size": { "width": 350, "height": 32 },
+              "properties": {
+                "text": "바른손 상품 목록",
+                "foreColor": "#FFFFFF",
+                "backColor": "#1565C0",
+                "font": { "family": "Pretendard", "size": 16, "bold": true, "italic": false, "underline": false, "strikethrough": false },
+                "textAlign": "MiddleLeft"
+              },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "pnlSearch", "type": "Panel", "name": "pnlSearch",
+          "position": { "x": 0, "y": 50 }, "size": { "width": 1100, "height": 55 },
+          "properties": { "backColor": "#FFFFFF", "borderStyle": "None" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "lblSearch", "type": "Label", "name": "lblSearch",
+              "position": { "x": 20, "y": 16 }, "size": { "width": 60, "height": 23 },
+              "properties": { "text": "검색어", "foreColor": "#333333", "textAlign": "MiddleLeft" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "txtSearch", "type": "TextBox", "name": "txtSearch",
+              "position": { "x": 85, "y": 13 }, "size": { "width": 250, "height": 28 },
+              "properties": { "text": "", "backColor": "#FAFAFA" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblCategory", "type": "Label", "name": "lblCategory",
+              "position": { "x": 350, "y": 16 }, "size": { "width": 65, "height": 23 },
+              "properties": { "text": "카테고리", "foreColor": "#333333", "textAlign": "MiddleLeft" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+            },
+            {
+              "id": "cmbCategory", "type": "ComboBox", "name": "cmbCategory",
+              "position": { "x": 420, "y": 13 }, "size": { "width": 130, "height": 28 },
+              "properties": {
+                "items": ["전체", "gifts", "household"],
+                "selectedIndex": 0,
+                "dropDownStyle": "DropDownList"
+              },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+            },
+            {
+              "id": "btnSearch", "type": "Button", "name": "btnSearch",
+              "position": { "x": 565, "y": 12 }, "size": { "width": 90, "height": 30 },
+              "properties": { "text": "검색", "backColor": "#1565C0", "foreColor": "#FFFFFF" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+            },
+            {
+              "id": "btnRefresh", "type": "Button", "name": "btnRefresh",
+              "position": { "x": 665, "y": 12 }, "size": { "width": 90, "height": 30 },
+              "properties": { "text": "새로고침", "backColor": "#43A047", "foreColor": "#FFFFFF" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 5, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblCount", "type": "Label", "name": "lblCount",
+              "position": { "x": 880, "y": 16 }, "size": { "width": 200, "height": 23 },
+              "properties": { "text": "총 0건", "foreColor": "#757575", "textAlign": "MiddleRight" },
+              "anchor": { "top": true, "bottom": false, "left": false, "right": true },
+              "dock": "None", "tabIndex": 6, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "dgvProducts", "type": "DataGridView", "name": "dgvProducts",
+          "position": { "x": 10, "y": 115 }, "size": { "width": 1080, "height": 500 },
+          "properties": {
+            "columns": [
+              { "field": "sku", "headerText": "SKU", "width": 100 },
+              { "field": "title", "headerText": "상품명", "width": 300 },
+              { "field": "category", "headerText": "카테고리", "width": 90 },
+              { "field": "msrp", "headerText": "권장소비자가", "width": 110 },
+              { "field": "basePrice", "headerText": "기본가", "width": 100 },
+              { "field": "quantity", "headerText": "재고", "width": 80 },
+              { "field": "leadTime", "headerText": "리드타임(일)", "width": 90 },
+              { "field": "status", "headerText": "상태", "width": 70 },
+              { "field": "createdAt", "headerText": "등록일", "width": 100 }
+            ],
+            "dataSource": [],
+            "readOnly": true,
+            "backColor": "#FFFFFF",
+            "foreColor": "#333333",
+            "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+        },
+        {
+          "id": "pnlFooter", "type": "Panel", "name": "pnlFooter",
+          "position": { "x": 0, "y": 625 }, "size": { "width": 1100, "height": 35 },
+          "properties": { "backColor": "#EEEEEE", "borderStyle": "None" },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 4, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "lblStatus", "type": "Label", "name": "lblStatus",
+              "position": { "x": 20, "y": 6 }, "size": { "width": 500, "height": 23 },
+              "properties": { "text": "데이터를 불러오는 중...", "foreColor": "#757575", "textAlign": "MiddleLeft" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblDbInfo", "type": "Label", "name": "lblDbInfo",
+              "position": { "x": 650, "y": 6 }, "size": { "width": 430, "height": 23 },
+              "properties": { "text": "DB: barunson / baseproducts", "foreColor": "#9E9E9E", "textAlign": "MiddleRight" },
+              "anchor": { "top": true, "bottom": false, "left": false, "right": true },
+              "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+            }
+          ]
+        }
+      ],
+      "eventHandlers": [
+        {
+          "controlId": "_form",
+          "eventName": "OnLoading",
+          "handlerType": "server",
+          "handlerCode": "var rawData = ctx.controls.mongoDb.find('baseproducts', {});\nvar data = [];\nfor (var i = 0; i < rawData.length; i++) {\n  var r = rawData[i];\n  data.push({\n    sku: r.sku || '',\n    title: r.title || '',\n    category: r.category || '',\n    msrp: r.msrp ? r.msrp.toLocaleString() + '원' : '-',\n    basePrice: (r.pricing && r.pricing.basePrice) ? r.pricing.basePrice.toLocaleString() + '원' : '-',\n    quantity: (r.inventory && r.inventory.isInfinite) ? '무제한' : ((r.inventory && r.inventory.quantity != null) ? r.inventory.quantity.toLocaleString() : '-'),\n    leadTime: (r.leadTime != null) ? r.leadTime : '-',\n    status: r.status === 'active' ? '판매중' : r.status,\n    createdAt: r.createdAt ? r.createdAt.substring(0, 10) : ''\n  });\n}\nctx.controls.dgvProducts.dataSource = data;\nctx.controls.lblCount.text = '총 ' + data.length + '건';\nctx.controls.lblStatus.text = '데이터 로드 완료 (' + data.length + '건)';\nctx.controls.lblStatus.foreColor = '#2E7D32';"
+        },
+        {
+          "controlId": "btnSearch",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var keyword = ctx.controls.txtSearch.text;\nvar catIdx = ctx.controls.cmbCategory.selectedIndex;\nvar categories = ['전체', 'gifts', 'household'];\nvar filter = {};\nvar conditions = [];\nif (keyword) {\n  conditions.push({ '$or': [{ 'title': { '$regex': keyword, '$options': 'i' } }, { 'sku': { '$regex': keyword, '$options': 'i' } }] });\n}\nif (catIdx > 0) {\n  conditions.push({ 'category': categories[catIdx] });\n}\nif (conditions.length === 1) {\n  filter = conditions[0];\n} else if (conditions.length > 1) {\n  filter = { '$and': conditions };\n}\nvar rawData = ctx.controls.mongoDb.find('baseproducts', filter);\nvar data = [];\nfor (var i = 0; i < rawData.length; i++) {\n  var r = rawData[i];\n  data.push({\n    sku: r.sku || '',\n    title: r.title || '',\n    category: r.category || '',\n    msrp: r.msrp ? r.msrp.toLocaleString() + '원' : '-',\n    basePrice: (r.pricing && r.pricing.basePrice) ? r.pricing.basePrice.toLocaleString() + '원' : '-',\n    quantity: (r.inventory && r.inventory.isInfinite) ? '무제한' : ((r.inventory && r.inventory.quantity != null) ? r.inventory.quantity.toLocaleString() : '-'),\n    leadTime: (r.leadTime != null) ? r.leadTime : '-',\n    status: r.status === 'active' ? '판매중' : r.status,\n    createdAt: r.createdAt ? r.createdAt.substring(0, 10) : ''\n  });\n}\nctx.controls.dgvProducts.dataSource = data;\nctx.controls.lblCount.text = '총 ' + data.length + '건';\nvar msg = '';\nif (keyword && catIdx > 0) {\n  msg = '\"' + keyword + '\" + ' + categories[catIdx] + ' 검색: ' + data.length + '건';\n} else if (keyword) {\n  msg = '\"' + keyword + '\" 검색: ' + data.length + '건';\n} else if (catIdx > 0) {\n  msg = categories[catIdx] + ' 필터: ' + data.length + '건';\n} else {\n  msg = '전체 조회: ' + data.length + '건';\n}\nctx.controls.lblStatus.text = msg;\nctx.controls.lblStatus.foreColor = '#1565C0';"
+        },
+        {
+          "controlId": "btnRefresh",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.txtSearch.text = '';\nctx.controls.cmbCategory.selectedIndex = 0;\nvar rawData = ctx.controls.mongoDb.find('baseproducts', {});\nvar data = [];\nfor (var i = 0; i < rawData.length; i++) {\n  var r = rawData[i];\n  data.push({\n    sku: r.sku || '',\n    title: r.title || '',\n    category: r.category || '',\n    msrp: r.msrp ? r.msrp.toLocaleString() + '원' : '-',\n    basePrice: (r.pricing && r.pricing.basePrice) ? r.pricing.basePrice.toLocaleString() + '원' : '-',\n    quantity: (r.inventory && r.inventory.isInfinite) ? '무제한' : ((r.inventory && r.inventory.quantity != null) ? r.inventory.quantity.toLocaleString() : '-'),\n    leadTime: (r.leadTime != null) ? r.leadTime : '-',\n    status: r.status === 'active' ? '판매중' : r.status,\n    createdAt: r.createdAt ? r.createdAt.substring(0, 10) : ''\n  });\n}\nctx.controls.dgvProducts.dataSource = data;\nctx.controls.lblCount.text = '총 ' + data.length + '건';\nctx.controls.lblStatus.text = '새로고침 완료 (' + data.length + '건)';\nctx.controls.lblStatus.foreColor = '#2E7D32';"
+        },
+        {
+          "controlId": "dgvProducts",
+          "eventName": "CellClick",
+          "handlerType": "server",
+          "handlerCode": "var grid = ctx.controls.dgvProducts;\nif (grid.dataSource && grid.dataSource.length > 0 && ctx.eventArgs.rowIndex >= 0) {\n  var row = grid.dataSource[ctx.eventArgs.rowIndex];\n  ctx.controls.lblStatus.text = '선택: [' + row.sku + '] ' + row.title + ' | ' + row.msrp + ' | 재고: ' + row.quantity;\n  ctx.controls.lblStatus.foreColor = '#424242';\n}"
+        }
+      ],
+      "dataBindings": []
+    }
+  ]
+}

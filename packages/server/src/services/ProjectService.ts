@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { Project } from '../models/Project.js';
 import type { ProjectDocument } from '../models/Project.js';
 import { Form } from '../models/Form.js';
@@ -190,19 +191,28 @@ export class ProjectService {
     );
 
     if (input.forms.length > 0) {
-      const formDocs = input.forms.map((f) => ({
-        name: f.name,
-        properties: f.properties,
-        controls: f.controls,
-        eventHandlers: f.eventHandlers,
-        dataBindings: f.dataBindings,
-        projectId: project._id.toString(),
-        version: 1,
-        status: 'draft' as const,
-        versions: [],
-        createdBy: userId,
-        updatedBy: userId,
-      }));
+      const formDocs = input.forms.map((f) => {
+        const formId = new Types.ObjectId();
+        return {
+          _id: formId,
+          name: f.name,
+          properties: f.properties,
+          controls: f.controls,
+          eventHandlers: (f.eventHandlers ?? []).map((h) => {
+            const handler = h as Record<string, unknown>;
+            return handler.controlId === '_form'
+              ? { ...handler, controlId: formId.toString() }
+              : handler;
+          }),
+          dataBindings: f.dataBindings,
+          projectId: project._id.toString(),
+          version: 1,
+          status: 'draft' as const,
+          versions: [],
+          createdBy: userId,
+          updatedBy: userId,
+        };
+      });
       await Form.insertMany(formDocs);
     }
 

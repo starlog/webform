@@ -26,9 +26,11 @@ export function MongoColumnsEditor({ value, onChange }: MongoColumnsEditorProps)
   const db = (control?.properties?.database as string) || '';
   const coll = (control?.properties?.collection as string) || '';
 
+  const safeValue = typeof value === 'string' ? value : '';
+
   const selectedCols = useMemo(
-    () => (value ? value.split(',').map((s) => s.trim()).filter(Boolean) : []),
-    [value],
+    () => (safeValue ? safeValue.split(',').map((s) => s.trim()).filter(Boolean) : []),
+    [safeValue],
   );
 
   const handleFetch = useCallback(async () => {
@@ -105,7 +107,7 @@ export function MongoColumnsEditor({ value, onChange }: MongoColumnsEditorProps)
     }
   }, [fetchedCols, onChange]);
 
-  const summary = value || '(all columns)';
+  const summary = safeValue || '(all columns)';
 
   return (
     <div>
@@ -141,7 +143,7 @@ export function MongoColumnsEditor({ value, onChange }: MongoColumnsEditorProps)
           <div style={{ marginBottom: 4 }}>
             <input
               type="text"
-              value={value ?? ''}
+              value={safeValue}
               onChange={(e) => onChange(e.target.value)}
               placeholder="col1,col2,... (empty = all)"
               style={{

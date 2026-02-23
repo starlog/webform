@@ -647,7 +647,7 @@ var count = ctx.controls.myDb.count('users', { active: true });
 }
 ```
 
-> 폼 이벤트의 경우 `controlId`에 `"_form"` 또는 폼 자체의 식별자를 사용한다.
+> **폼 이벤트의 `controlId`**: 항상 `"_form"`을 사용한다. `form-gen.sh` 및 Import API가 `"_form"`을 실제 폼 ID로 자동 변환한다.
 
 ### COMMON_EVENTS (16개) — 모든 컨트롤 공통
 
@@ -666,6 +666,20 @@ VisibleChanged, EnabledChanged
 Load, Shown, FormClosing, FormClosed, Resize,
 OnLoading, BeforeLeaving
 ```
+
+> **`Load` vs `OnLoading` 차이**:
+> - `Load` — 클라이언트 사이드에서만 실행된다 (`handlerType: "client"`). 서버 왕복 없이 브라우저에서 즉시 실행.
+> - **`OnLoading`** — **서버 사이드에서 실행된다** (`handlerType: "server"`). 폼 로딩 시 MongoDB 조회, HTTP 호출 등 서버 로직을 실행할 때 사용. **폼 로드 시 데이터를 조회하려면 반드시 `OnLoading`을 사용해야 한다.**
+>
+> ```jsonc
+> // 폼 로드 시 서버에서 데이터 조회하는 올바른 예:
+> {
+>   "controlId": "_form",
+>   "eventName": "OnLoading",     // ← Load가 아닌 OnLoading
+>   "handlerType": "server",
+>   "handlerCode": "var data = ctx.controls.myDb.find('products', {});\nctx.controls.dgvList.dataSource = data;"
+> }
+> ```
 
 ### CONTROL_EVENTS — 컨트롤 타입별 고유 이벤트
 
@@ -1366,7 +1380,8 @@ AI가 폼 JSON을 생성할 때 확인해야 할 항목:
 - [ ] **anchor 기본값**: anchor에 4방향(`top`, `bottom`, `left`, `right`) 모두 명시했는가?
 - [ ] **dock 기본값**: dock을 `"None"`으로 명시했는가? (도킹하지 않는 경우)
 - [ ] **properties 정확성**: 각 컨트롤 타입의 고유 속성을 `properties` 객체 안에 넣었는가?
-- [ ] **이벤트 핸들러 controlId**: `eventHandlers[].controlId`가 해당 컨트롤의 `id`와 일치하는가?
+- [ ] **이벤트 핸들러 controlId**: `eventHandlers[].controlId`가 해당 컨트롤의 `id`와 일치하는가? 폼 이벤트는 `"_form"`을 사용하는가?
+- [ ] **폼 로드 이벤트**: 폼 로딩 시 서버 코드를 실행하려면 `eventName: "OnLoading"` + `handlerType: "server"` + `controlId: "_form"`을 사용했는가? (`Load`는 클라이언트 전용)
 - [ ] **이벤트 핸들러 코드에서 name 사용**: `handlerCode` 안에서 `ctx.controls.<name>`으로 접근하는가? (id가 아닌 name)
 - [ ] **유효한 이벤트 이름**: `eventName`이 COMMON_EVENTS 또는 해당 컨트롤의 CONTROL_EVENTS에 있는가?
 - [ ] **handlerType**: `"server"`로 설정했는가?
@@ -1421,8 +1436,11 @@ claude -p "FORM.md를 참조하여 로그인 폼 JSON을 만들어줘" | ./form-
 2. JSON 유효성 검사 (필수 필드 `project.name`, `forms[].name` 확인)
 3. `packages/server/.env`의 `JWT_SECRET`으로 인증 토큰 자동 생성
 4. API 서버 상태 확인
-5. `POST /api/projects/import`로 폼 임포트
-6. 결과 요약 출력 (프로젝트 ID, 폼/컨트롤/이벤트 수)
+5. `GET /api/projects?search=`로 **동일 이름의 기존 프로젝트 검색**
+   - **기존 프로젝트가 있으면**: 해당 프로젝트에 `POST /api/forms`로 폼만 추가 (프로젝트 중복 생성 없음)
+   - **기존 프로젝트가 없으면**: `POST /api/projects/import`로 새 프로젝트와 폼을 함께 생성
+6. `eventHandlers`에서 `controlId: "_form"`을 실제 생성된 폼의 MongoDB `_id`로 **자동 변환** (AI는 항상 `"_form"`을 사용하면 된다)
+7. 결과 요약 출력 (프로젝트 ID, 폼/컨트롤/이벤트 수)
 
 ### 출력
 

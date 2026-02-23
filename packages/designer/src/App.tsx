@@ -6,6 +6,7 @@ import { Toolbox } from './components/Toolbox';
 import { PropertyPanel } from './components/PropertyPanel';
 import { EventEditor } from './components/EventEditor/EventEditor';
 import { ProjectExplorer } from './components/ProjectExplorer';
+import { ElementList } from './components/ElementList';
 import { apiService, useAutoSave } from './services/apiService';
 import { useDesignerStore } from './stores/designerStore';
 
@@ -190,8 +191,11 @@ export function App() {
             overflow: 'hidden',
           }}
         >
-          <div style={{ flex: '0 0 auto', maxHeight: '40%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
+          <div style={{ flex: '0 0 auto', maxHeight: '30%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
             <ProjectExplorer onFormSelect={handleFormSelect} refreshKey={explorerRefreshKey} />
+          </div>
+          <div style={{ flex: '0 0 auto', maxHeight: '35%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
+            <ElementList />
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
             <Toolbox />

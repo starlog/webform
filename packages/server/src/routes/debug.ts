@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { env } from '../config/index.js';
 import { SandboxRunner } from '../services/SandboxRunner.js';
+import type { MongoConnectorInfo } from '../services/SandboxRunner.js';
 import { buildControlsContext } from '../services/ControlProxy.js';
 
 export const debugRouter = Router();
@@ -19,11 +20,12 @@ const sandboxRunner = new SandboxRunner();
 // POST /api/debug/execute — 코드 테스트 실행
 debugRouter.post('/execute', async (req, res, next) => {
   try {
-    const { code, formState, controlId, debugMode } = req.body as {
+    const { code, formState, controlId, debugMode, controls: formControls } = req.body as {
       code: string;
       formState: Record<string, Record<string, unknown>>;
       controlId?: string;
       debugMode?: boolean;
+      controls?: Array<{ type: string; name: string; properties: Record<string, unknown>; children?: unknown[] }>;
     };
 
     if (typeof code !== 'string' || !code.trim()) {
@@ -45,10 +47,32 @@ debugRouter.post('/execute', async (req, res, next) => {
 
     const startTime = performance.now();
 
+    // MongoDBConnector 추출
+    const mongoConnectors: MongoConnectorInfo[] = [];
+    if (formControls) {
+      const walk = (ctrls: typeof formControls) => {
+        for (const ctrl of ctrls) {
+          if (ctrl.type === 'MongoDBConnector') {
+            mongoConnectors.push({
+              controlName: ctrl.name,
+              connectionString: (ctrl.properties.connectionString as string) || '',
+              database: (ctrl.properties.database as string) || '',
+              defaultCollection: (ctrl.properties.defaultCollection as string) || '',
+              queryTimeout: (ctrl.properties.queryTimeout as number) || 10000,
+              maxResultCount: (ctrl.properties.maxResultCount as number) || 1000,
+            });
+          }
+          if (Array.isArray(ctrl.children)) walk(ctrl.children as typeof formControls);
+        }
+      };
+      walk(formControls);
+    }
+
     const result = await sandboxRunner.runCode(code, ctx, {
       timeout: env.SANDBOX_TIMEOUT_MS,
       memoryLimit: env.SANDBOX_MEMORY_LIMIT_MB,
       debugMode: enableDebug,
+      mongoConnectors,
     });
 
     const executionTime = Math.round((performance.now() - startTime) * 100) / 100;

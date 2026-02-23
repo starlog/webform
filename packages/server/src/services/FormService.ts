@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { Form } from '../models/Form.js';
 import type { FormDocument, FormVersionSnapshot } from '../models/Form.js';
 import type { CreateFormInput, UpdateFormInput, ListFormsQuery } from '../validators/formValidator.js';
@@ -5,8 +6,14 @@ import { NotFoundError, AppError } from '../middleware/errorHandler.js';
 
 export class FormService {
   async createForm(input: CreateFormInput, userId: string): Promise<FormDocument> {
+    const formId = new Types.ObjectId();
+    const eventHandlers = (input.eventHandlers ?? []).map((h) =>
+      h.controlId === '_form' ? { ...h, controlId: formId.toString() } : h,
+    );
     const form = await Form.create({
       ...input,
+      _id: formId,
+      eventHandlers,
       version: 1,
       status: 'draft',
       versions: [],
