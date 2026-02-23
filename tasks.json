@@ -1,138 +1,16 @@
 {
-  "projectName": "WebForm",
+  "projectName": "WebForm MDI Application Shell System",
   "version": "1.0.0",
   "tasks": [
     {
-      "id": "monorepo-setup-plan",
-      "title": "모노레포 셋업 - 계획",
-      "description": null,
-      "phase": "phase1-foundation",
-      "category": "plan",
-      "done": true,
-      "prompt": "WebForm 프로젝트의 모노레포 셋업 계획을 수립하라. PRD.md를 분석하고 현재 프로젝트 디렉토리 구조를 확인하라. pnpm workspace 기반 모노레포를 구성하기 위해 다음을 계획하라:\n\n1. 루트 package.json (name: 'webform', private: true, scripts: dev/build/test/lint)\n2. pnpm-workspace.yaml (packages: ['packages/*'])\n3. tsconfig.base.json (strict: true, ES2022, moduleResolution: bundler)\n4. 패키지 구조:\n   - packages/common (@webform/common): 공유 타입/유틸\n   - packages/designer (@webform/designer): 폼 디자이너 React SPA\n   - packages/runtime (@webform/runtime): 폼 런타임 React SPA\n   - packages/server (@webform/server): Node.js 백엔드\n5. 각 패키지의 package.json 구성 (의존성, scripts)\n6. Vitest 테스트 설정\n7. ESLint + Prettier 설정\n8. Vite 빌드 설정 (designer: 3000포트, runtime: 3001포트)\n\n계획을 plans/monorepo-setup-plan.md 파일에 상세히 작성하라.",
-      "dependsOn": null,
-      "outputFiles": [
-        "plans/monorepo-setup-plan.md"
-      ],
-      "modifiedFiles": [
-        "plans/monorepo-setup-plan.md"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "monorepo-setup-impl",
-      "title": "모노레포 셋업 - 구현",
-      "description": null,
-      "phase": "phase1-foundation",
-      "category": "implementation",
-      "done": true,
-      "prompt": "plans/monorepo-setup-plan.md의 계획에 따라 pnpm workspace 기반 모노레포를 구현하라.\n\n생성할 파일:\n1. package.json (루트): name='webform', private=true, scripts\n2. pnpm-workspace.yaml\n3. tsconfig.base.json: strict, ES2022, composite true\n4. .gitignore: node_modules, dist, .env, coverage\n5. .eslintrc.js, .prettierrc\n6. packages/common/package.json: name='@webform/common'\n7. packages/common/tsconfig.json\n8. packages/designer/package.json: react@18, react-dnd, @monaco-editor/react, zustand, immer, @webform/common\n9. packages/designer/tsconfig.json, vite.config.ts, index.html\n10. packages/runtime/package.json: react@18, zustand, @webform/common\n11. packages/runtime/tsconfig.json, vite.config.ts, index.html\n12. packages/server/package.json: express, cors, helmet, mongoose, ioredis, ws, isolated-vm, zod, jsonwebtoken, @webform/common\n13. packages/server/tsconfig.json\n14. 각 패키지에 vitest 개발 의존성 추가\n\n파일 생성 후 pnpm install을 실행하라.",
-      "dependsOn": [
-        "monorepo-setup-plan"
-      ],
-      "outputFiles": [
-        "package.json",
-        "pnpm-workspace.yaml",
-        "tsconfig.base.json",
-        ".gitignore",
-        ".eslintrc.js",
-        ".prettierrc",
-        "packages/common/package.json",
-        "packages/common/tsconfig.json",
-        "packages/designer/package.json",
-        "packages/designer/tsconfig.json",
-        "packages/designer/vite.config.ts",
-        "packages/designer/index.html",
-        "packages/runtime/package.json",
-        "packages/runtime/tsconfig.json",
-        "packages/runtime/vite.config.ts",
-        "packages/runtime/index.html",
-        "packages/server/package.json",
-        "packages/server/tsconfig.json"
-      ],
-      "modifiedFiles": [
-        "package.json",
-        "pnpm-workspace.yaml",
-        "tsconfig.base.json",
-        ".gitignore",
-        "packages/common/package.json",
-        "packages/common/tsconfig.json",
-        "packages/designer/package.json",
-        "packages/designer/tsconfig.json",
-        "packages/designer/vite.config.ts",
-        "packages/designer/index.html",
-        "packages/runtime/package.json",
-        "packages/runtime/tsconfig.json",
-        "packages/runtime/vite.config.ts",
-        "packages/runtime/index.html",
-        "packages/server/package.json",
-        "packages/server/tsconfig.json"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "monorepo-setup-test",
-      "title": "모노레포 셋업 - 테스트",
-      "description": null,
-      "phase": "phase1-foundation",
-      "category": "testing",
-      "done": true,
-      "prompt": "모노레포 셋업이 올바르게 완료되었는지 검증하라.\n\n1. 각 패키지에 최소한의 소스 파일 생성:\n   - packages/common/src/index.ts: export const VERSION = '1.0.0';\n   - packages/designer/src/main.tsx: React 18 createRoot 기본 앱\n   - packages/runtime/src/main.tsx: React 18 createRoot 기본 앱\n   - packages/server/src/index.ts: 'Hello WebForm' 콘솔 출력\n\n2. 각 패키지에 vitest.config.ts 생성\n\n3. 각 패키지에 기본 테스트 파일 생성:\n   - packages/common/src/__tests__/index.test.ts: VERSION 값 확인\n   - packages/designer/src/__tests__/setup.test.ts: 기본 import 테스트\n   - packages/runtime/src/__tests__/setup.test.ts: 기본 import 테스트\n   - packages/server/src/__tests__/setup.test.ts: 기본 import 테스트\n\n4. 검증:\n   - pnpm -r tsc --noEmit: TypeScript 컴파일 오류 없어야 함\n   - pnpm -r test: 모든 패키지 테스트 통과\n\n실패 시 즉시 수정하라.",
-      "dependsOn": [
-        "monorepo-setup-impl"
-      ],
-      "outputFiles": [
-        "packages/common/src/index.ts",
-        "packages/common/src/__tests__/index.test.ts",
-        "packages/common/vitest.config.ts",
-        "packages/designer/src/main.tsx",
-        "packages/designer/src/__tests__/setup.test.ts",
-        "packages/designer/vitest.config.ts",
-        "packages/runtime/src/main.tsx",
-        "packages/runtime/src/__tests__/setup.test.ts",
-        "packages/runtime/vitest.config.ts",
-        "packages/server/src/index.ts",
-        "packages/server/src/__tests__/setup.test.ts",
-        "packages/server/vitest.config.ts"
-      ],
-      "modifiedFiles": [
-        "packages/common/src/index.ts",
-        "packages/common/vitest.config.ts",
-        "packages/designer/src/main.tsx",
-        "packages/designer/vitest.config.ts",
-        "packages/runtime/src/main.tsx",
-        "packages/runtime/vitest.config.ts",
-        "packages/server/src/index.ts",
-        "packages/server/vitest.config.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "monorepo-setup-commit",
-      "title": "모노레포 셋업 - 커밋",
-      "description": null,
-      "phase": "phase1-foundation",
-      "category": "commit",
-      "done": true,
-      "prompt": "모노레포 셋업 작업을 커밋하라.\n\n.env, .env.local 등 민감한 파일은 제외하고 관련 파일을 스테이징하라.\n다음 한국어 커밋 메시지로 커밋하라:\n\nfeat: pnpm workspace 기반 모노레포 초기 셋업\n\n- packages/common, designer, runtime, server 4개 패키지 구조 생성\n- TypeScript 5+ strict 모드 공통 설정 (tsconfig.base.json)\n- Vite 빌드 설정 (designer: 3000포트, runtime: 3001포트)\n- ESLint + Prettier 코드 품질 도구 설정\n- Vitest 테스트 환경 설정 (각 패키지별)\n- pnpm workspace 의존성 연결",
-      "dependsOn": [
-        "monorepo-setup-test"
-      ],
-      "outputFiles": null,
-      "modifiedFiles": [],
-      "subtasks": null
-    },
-    {
       "id": "common-types-plan",
-      "title": "공통 타입 패키지 - 계획",
-      "description": null,
+      "title": "공통 Shell 타입 정의 - 계획",
+      "description": "ApplicationShell 시스템을 위한 공통 타입 정의 계획 수립",
       "phase": "phase1-foundation",
       "category": "plan",
-      "done": true,
-      "prompt": "WebForm 공통 타입 패키지(@webform/common) 구현 계획을 수립하라. PRD.md의 섹션 3.3(폼 정의 스키마)과 섹션 4.2.2(UIPatch 프로토콜)를 분석하여 다음 타입들의 완전한 구조를 설계하라:\n\n1. FormDefinition, FormProperties 타입\n2. ControlDefinition 타입 (id, type, name, properties, position, size, children, anchor, dock, tabIndex, visible, enabled)\n3. ControlType 유니언 타입: PRD 4.1.2의 모든 컨트롤 25종\n4. AnchorStyle, DockStyle 타입\n5. EventHandlerDefinition 타입\n6. DataSourceDefinition, DataBindingDefinition 타입\n7. UIPatch 인터페이스 (updateProperty, addControl, removeControl, showDialog, navigate)\n8. WebSocket 메시지 타입\n9. FormContext 인터페이스 (서버 이벤트 핸들러용)\n10. validation.ts: validateFormDefinition, sanitizeQueryInput (NoSQL 인젝션 방지)\n11. serialization.ts: serialize/deserialize FormDefinition\n\n계획을 plans/common-types-plan.md에 상세히 작성하라.",
-      "dependsOn": [
-        "monorepo-setup-commit"
-      ],
+      "done": false,
+      "prompt": "WebForm 모노레포(/home/felix/src/webform)의 common 패키지에 Application Shell MDI 시스템을 위한 타입 정의를 추가하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/common/src/types/form.ts — ControlDefinition, FormDefinition, FontDefinition, DockStyle 등 파악\n- packages/common/src/types/events.ts — EventHandlerDefinition, CONTROL_EVENTS, FORM_EVENTS 등 파악\n- packages/common/src/types/protocol.ts — UIPatch, EventRequest 타입 파악\n- packages/common/src/index.ts — 현재 export 구조 파악\n\n## 구현해야 할 내용\n\n### 신규 파일: packages/common/src/types/shell.ts\n- ApplicationShellDefinition 인터페이스: id(string), projectId(string), name(string), version(number), properties(ShellProperties), controls(ControlDefinition[]), eventHandlers(EventHandlerDefinition[]), startFormId?(string)\n- ShellProperties 인터페이스: title(string), width(number), height(number), backgroundColor(string), font(FontDefinition), showTitleBar(boolean), formBorderStyle(FormBorderStyle enum 또는 string), maximizeBox(boolean), minimizeBox(boolean)\n- SHELL_EVENTS 상수: ['Load', 'FormChanged', 'BeforeFormChange'] as const\n- ShellEventRequest 인터페이스: projectId, controlId, eventName, eventArgs, shellState(Record<string, Record<string,unknown>>), currentFormId\n\n### 수정: packages/common/src/types/protocol.ts\n- UIPatch type union에 추가: 'updateShell' | 'updateAppState' | 'closeApp'\n- EventRequest에 옵셔널 필드 추가: appState?: Record<string, unknown>, scope?: 'shell' | 'form'\n- RuntimeWsMessage에 scope?: 'shell' | 'form' 필드 추가\n\n### 수정: packages/common/src/index.ts\n- shell.ts에서 ApplicationShellDefinition, ShellProperties, SHELL_EVENTS, ShellEventRequest export 추가\n\n## 계획 작성\n위 파일들을 읽은 후, plans/common-types-plan.md 파일을 생성하세요. 계획에는:\n1. 현재 UIPatch 타입 구조 (기존 union 멤버 목록)\n2. 현재 EventRequest 필드 목록\n3. shell.ts에 작성할 전체 코드 초안\n4. protocol.ts 변경 사항 (diff 형태로)\n5. index.ts 추가 export 목록\n6. 타입 충돌 또는 주의사항",
+      "dependsOn": null,
       "outputFiles": [
         "plans/common-types-plan.md"
       ],
@@ -143,1055 +21,786 @@
     },
     {
       "id": "common-types-impl",
-      "title": "공통 타입 패키지 - 구현",
-      "description": null,
+      "title": "공통 Shell 타입 정의 - 구현",
+      "description": "common 패키지에 Shell 타입 파일 생성 및 기존 타입 확장",
       "phase": "phase1-foundation",
       "category": "implementation",
-      "done": true,
-      "prompt": "plans/common-types-plan.md에 따라 @webform/common 패키지를 완전히 구현하라.\n\n1. packages/common/src/types/form.ts:\n   - FontDefinition 인터페이스\n   - FormProperties 인터페이스 (title, width, height, backgroundColor, font, startPosition, formBorderStyle, maximizeBox, minimizeBox)\n   - ControlType 유니언: 'Button'|'Label'|'TextBox'|'CheckBox'|'RadioButton'|'ComboBox'|'ListBox'|'NumericUpDown'|'DateTimePicker'|'ProgressBar'|'PictureBox'|'Panel'|'GroupBox'|'TabControl'|'SplitContainer'|'DataGridView'|'BindingNavigator'|'Chart'|'TreeView'|'ListView'|'MenuStrip'|'ToolStrip'|'StatusStrip'|'RichTextBox'|'WebBrowser'\n   - AnchorStyle, DockStyle 타입\n   - ControlDefinition, FormDefinition 인터페이스\n\n2. packages/common/src/types/events.ts:\n   - EventHandlerDefinition 인터페이스\n   - COMMON_EVENTS 상수 배열\n   - CONTROL_EVENTS: 컨트롤별 추가 이벤트 맵\n   - FormContext, EventArgs 인터페이스\n\n3. packages/common/src/types/datasource.ts:\n   - DataSourceDefinition (type: 'database'|'restApi'|'static')\n   - DatabaseConfig, RestApiConfig, StaticConfig, AuthConfig\n   - DataBindingDefinition (bindingMode: 'oneWay'|'twoWay'|'oneTime')\n\n4. packages/common/src/types/protocol.ts:\n   - UIPatch 인터페이스\n   - EventRequest, EventResponse 인터페이스\n   - WebSocket 메시지 타입 유니언\n\n5. packages/common/src/utils/validation.ts:\n   - validateFormDefinition, validateControlDefinition\n   - sanitizeQueryInput: $where, $function, $accumulator 등 위험 연산자 제거\n\n6. packages/common/src/utils/serialization.ts:\n   - serializeFormDefinition, deserializeFormDefinition\n\n7. packages/common/src/index.ts: 모든 타입/유틸 re-export",
+      "done": false,
+      "prompt": "plans/common-types-plan.md 계획서를 읽고 WebForm common 패키지에 Application Shell 타입을 구현하세요.\n\n## 구현 순서\n1. plans/common-types-plan.md를 읽어 계획 확인\n2. packages/common/src/types/form.ts를 읽어 ControlDefinition, FontDefinition 타입 확인\n3. packages/common/src/types/events.ts를 읽어 EventHandlerDefinition 타입 확인\n4. packages/common/src/types/protocol.ts를 읽어 UIPatch, EventRequest 타입 확인\n5. packages/common/src/index.ts를 읽어 현재 export 구조 확인\n\n## 구현 내용\n\n### packages/common/src/types/shell.ts (새 파일 생성)\n```typescript\nimport type { ControlDefinition, FontDefinition } from './form';\nimport type { EventHandlerDefinition, EventArgs } from './events';\n\nexport interface ShellProperties {\n  title: string;\n  width: number;\n  height: number;\n  backgroundColor: string;\n  font: FontDefinition;\n  showTitleBar: boolean;\n  formBorderStyle: string;\n  maximizeBox: boolean;\n  minimizeBox: boolean;\n}\n\nexport interface ApplicationShellDefinition {\n  id: string;\n  projectId: string;\n  name: string;\n  version: number;\n  properties: ShellProperties;\n  controls: ControlDefinition[];\n  eventHandlers: EventHandlerDefinition[];\n  startFormId?: string;\n}\n\nexport const SHELL_EVENTS = ['Load', 'FormChanged', 'BeforeFormChange'] as const;\nexport type ShellEventType = typeof SHELL_EVENTS[number];\n\nexport interface ShellEventRequest {\n  projectId: string;\n  controlId: string;\n  eventName: string;\n  eventArgs: EventArgs;\n  shellState: Record<string, Record<string, unknown>>;\n  currentFormId: string;\n}\n```\n\n### packages/common/src/types/protocol.ts 수정\n- UIPatch type에 'updateShell' | 'updateAppState' | 'closeApp' 추가 (기존 union 타입 확장)\n- EventRequest 인터페이스에 appState?: Record<string, unknown> 및 scope?: 'shell' | 'form' 추가\n- RuntimeWsMessage에 scope?: 'shell' | 'form' 추가\n\n### packages/common/src/index.ts 수정\n- shell.ts의 타입들 export 추가: ApplicationShellDefinition, ShellProperties, SHELL_EVENTS, ShellEventType, ShellEventRequest\n\n## 주의사항\n- 기존 타입과 하위 호환성 유지\n- TypeScript strict 모드 준수\n- pnpm 모노레포 빌드 규칙 준수 (packages/common은 의존성 없음)",
       "dependsOn": [
         "common-types-plan"
       ],
       "outputFiles": [
-        "packages/common/src/types/form.ts",
-        "packages/common/src/types/events.ts",
-        "packages/common/src/types/datasource.ts",
-        "packages/common/src/types/protocol.ts",
-        "packages/common/src/utils/validation.ts",
-        "packages/common/src/utils/serialization.ts",
-        "packages/common/src/index.ts"
+        "packages/common/src/types/shell.ts"
       ],
       "modifiedFiles": [
-        "packages/common/src/types/form.ts",
-        "packages/common/src/types/events.ts",
-        "packages/common/src/types/datasource.ts",
+        "packages/common/src/types/shell.ts",
         "packages/common/src/types/protocol.ts",
-        "packages/common/src/utils/validation.ts",
-        "packages/common/src/utils/serialization.ts",
         "packages/common/src/index.ts"
       ],
       "subtasks": null
     },
     {
       "id": "common-types-test",
-      "title": "공통 타입 패키지 - 테스트",
-      "description": null,
+      "title": "공통 Shell 타입 정의 - 테스트",
+      "description": "추가된 Shell 타입의 타입 체크 및 export 검증",
       "phase": "phase1-foundation",
       "category": "testing",
-      "done": true,
-      "prompt": "packages/common 패키지의 타입과 유틸리티를 테스트하라.\n\n1. packages/common/src/__tests__/validation.test.ts:\n   - validateFormDefinition: 올바른 FormDefinition → true, 필수 필드 누락 → false\n   - sanitizeQueryInput: { $where: '...' } → $where 제거 확인\n   - sanitizeQueryInput: { name: '홍길동' } → 변경 없이 통과\n   - sanitizeQueryInput: 중첩된 $where 제거 확인\n   - { $regex: /test/ } → 허용 확인\n\n2. packages/common/src/__tests__/serialization.test.ts:\n   - FormDefinition 직렬화 → 역직렬화 라운드트립\n   - 중첩 children 포함 FormDefinition 테스트\n   - 잘못된 JSON 역직렬화 시 에러\n\n3. packages/common/src/__tests__/events.test.ts:\n   - COMMON_EVENTS에 'Click', 'MouseEnter' 포함 확인\n   - CONTROL_EVENTS['TextBox']에 'TextChanged' 포함 확인\n\n실행: pnpm --filter @webform/common test && pnpm --filter @webform/common tsc --noEmit\n모든 테스트 통과 확인. 실패 시 즉시 수정하라.",
+      "done": false,
+      "prompt": "WebForm common 패키지의 Shell 타입 구현을 검증하세요.\n\n## 검증 방법\n1. packages/common 디렉토리에서 TypeScript 타입 체크 실행:\n   `cd /home/felix/src/webform && pnpm --filter @webform/common typecheck`\n   실패 시 오류를 수정하세요.\n\n2. packages/common/src/index.ts가 shell.ts의 모든 필요한 타입을 export하는지 확인\n\n3. 필요시 간단한 테스트 파일 생성:\n   packages/common/src/__tests__/shell.test.ts\n   - ApplicationShellDefinition 객체 생성 가능한지 타입 레벨 검증\n   - SHELL_EVENTS 배열의 타입 검증\n   - UIPatch에 'updateShell', 'updateAppState', 'closeApp'이 포함되는지 검증\n\n4. 테스트 실행: `pnpm --filter @webform/common test`\n\n## 모든 체크 통과 확인 후 결과 보고",
       "dependsOn": [
         "common-types-impl"
       ],
       "outputFiles": [
-        "packages/common/src/__tests__/validation.test.ts",
-        "packages/common/src/__tests__/serialization.test.ts",
-        "packages/common/src/__tests__/events.test.ts"
+        "packages/common/src/__tests__/shell.test.ts"
       ],
       "modifiedFiles": [
-        "packages/common/src/__tests__/validation.test.ts",
-        "packages/common/src/__tests__/serialization.test.ts",
-        "packages/common/src/__tests__/events.test.ts"
+        "packages/common/src/__tests__/shell.test.ts",
+        "packages/common/src/types/shell.ts",
+        "packages/common/src/types/protocol.ts",
+        "packages/common/src/index.ts"
       ],
       "subtasks": null
     },
     {
       "id": "common-types-commit",
-      "title": "공통 타입 패키지 - 커밋",
-      "description": null,
+      "title": "공통 Shell 타입 정의 - 커밋",
+      "description": "common 패키지 Shell 타입 변경사항 커밋",
       "phase": "phase1-foundation",
       "category": "commit",
-      "done": true,
-      "prompt": "공통 타입 패키지 구현을 커밋하라.\n\npackages/common 관련 파일과 plans/common-types-plan.md를 스테이징하라.\n다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(common): WebForm 공통 타입 및 유틸리티 패키지 구현\n\n- FormDefinition, ControlDefinition 등 SDUI 핵심 타입 정의\n- 25종 ControlType 지원 (Button ~ WebBrowser)\n- UIPatch 프로토콜 타입 (updateProperty, addControl 등)\n- DataSourceDefinition (MongoDB, REST API, Static) 타입\n- NoSQL 인젝션 방지 sanitizeQueryInput 유틸리티\n- 폼 직렬화/역직렬화 유틸리티",
+      "done": false,
+      "prompt": "WebForm common 패키지의 Shell 타입 추가 작업을 git 커밋합니다.\n\n1. `git status`로 변경된 파일 확인\n2. 다음 파일들을 스테이징:\n   - packages/common/src/types/shell.ts\n   - packages/common/src/types/protocol.ts\n   - packages/common/src/index.ts\n   - packages/common/src/__tests__/shell.test.ts (있다면)\n   - plans/common-types-plan.md\n3. 커밋 메시지 (한국어): 'feat(common): Application Shell MDI 시스템 타입 정의 추가\\n\\n- ApplicationShellDefinition, ShellProperties 인터페이스 추가\\n- SHELL_EVENTS 상수 정의\\n- UIPatch에 updateShell/updateAppState/closeApp 타입 확장\\n- EventRequest에 appState/scope 옵셔널 필드 추가'\n4. `git status`로 커밋 성공 확인",
       "dependsOn": [
         "common-types-test"
       ],
       "outputFiles": null,
-      "modifiedFiles": [],
+      "modifiedFiles": [
+        "packages/common/src/types/shell.ts",
+        "packages/common/src/types/protocol.ts",
+        "packages/common/src/index.ts"
+      ],
       "subtasks": null
     },
     {
-      "id": "server-foundation-plan",
-      "title": "서버 기반 구조 - 계획",
-      "description": null,
-      "phase": "phase1-foundation",
+      "id": "server-shell-backend-plan",
+      "title": "서버 Shell 백엔드 (모델/서비스/라우트) - 계획",
+      "description": "Shell MongoDB 모델, ShellService, Shell API 라우트 구현 계획 수립",
+      "phase": "phase2-server-backend",
       "category": "plan",
-      "done": true,
-      "prompt": "WebForm 백엔드 서버(@webform/server) 기반 구조 계획을 수립하라. PRD.md 섹션 3.1과 기술 스택(Node.js, Express, MongoDB, Redis)을 분석하여 다음을 설계하라:\n\n1. Express 앱 구조 (app.ts, index.ts 분리)\n2. 미들웨어 스택: cors, helmet, express.json, morgan, 요청 ID\n3. MongoDB 연결 관리 (Mongoose, 재시도, 연결 풀)\n4. Redis 연결 (ioredis)\n5. 환경 변수 설계 (PORT, MONGODB_URI, REDIS_URL, JWT_SECRET, ENCRYPTION_KEY)\n6. 라우터 구조 (forms, runtime, datasources, projects)\n7. 전역 에러 핸들러 미들웨어\n8. JWT 인증 미들웨어\n9. WebSocket 서버 설정 (/ws/designer/:formId, /ws/runtime/:formId)\n10. health check 엔드포인트 (GET /health)\n\n계획을 plans/server-foundation-plan.md에 작성하라.",
-      "dependsOn": [
-        "monorepo-setup-commit",
-        "common-types-commit"
-      ],
-      "outputFiles": [
-        "plans/server-foundation-plan.md"
-      ],
-      "modifiedFiles": [
-        "plans/server-foundation-plan.md"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "server-foundation-impl",
-      "title": "서버 기반 구조 - 구현",
-      "description": null,
-      "phase": "phase1-foundation",
-      "category": "implementation",
-      "done": true,
-      "prompt": "plans/server-foundation-plan.md에 따라 서버 기반 구조를 구현하라. @webform/common 타입을 사용하라.\n\n1. packages/server/src/config/index.ts: 환경 변수 로드/검증\n2. packages/server/src/db/mongodb.ts: Mongoose 연결, graceful shutdown\n3. packages/server/src/db/redis.ts: ioredis 클라이언트\n4. packages/server/src/middleware/errorHandler.ts: 전역 에러 핸들러, ValidationError/NotFoundError\n5. packages/server/src/middleware/auth.ts: JWT 검증, req.user 설정, 401 응답\n6. packages/server/src/middleware/requestId.ts: UUID 요청 ID 부여\n7. packages/server/src/routes/forms.ts: 스텁 (GET / → 200 빈 배열)\n8. packages/server/src/routes/runtime.ts: 스텁\n9. packages/server/src/routes/datasources.ts: 스텁\n10. packages/server/src/routes/projects.ts: 스텁\n11. packages/server/src/routes/index.ts: 라우터 통합 (/api/* 경로)\n12. packages/server/src/websocket/index.ts: ws.Server 생성, URL 패턴 라우팅\n13. packages/server/src/app.ts: Express 앱 (미들웨어 + 라우터 + 에러핸들러 + GET /health)\n14. packages/server/src/index.ts: MongoDB 연결 후 서버 시작\n15. packages/server/.env.example: 환경 변수 예시\n16. packages/server/src/models/Form.ts: 기본 Mongoose 스키마",
-      "dependsOn": [
-        "server-foundation-plan"
-      ],
-      "outputFiles": [
-        "packages/server/src/config/index.ts",
-        "packages/server/src/db/mongodb.ts",
-        "packages/server/src/db/redis.ts",
-        "packages/server/src/middleware/errorHandler.ts",
-        "packages/server/src/middleware/auth.ts",
-        "packages/server/src/middleware/requestId.ts",
-        "packages/server/src/routes/forms.ts",
-        "packages/server/src/routes/runtime.ts",
-        "packages/server/src/routes/datasources.ts",
-        "packages/server/src/routes/projects.ts",
-        "packages/server/src/routes/index.ts",
-        "packages/server/src/websocket/index.ts",
-        "packages/server/src/app.ts",
-        "packages/server/src/index.ts",
-        "packages/server/.env.example",
-        "packages/server/src/models/Form.ts"
-      ],
-      "modifiedFiles": [
-        "packages/server/src/config/index.ts",
-        "packages/server/src/db/mongodb.ts",
-        "packages/server/src/db/redis.ts",
-        "packages/server/src/middleware/errorHandler.ts",
-        "packages/server/src/middleware/auth.ts",
-        "packages/server/src/middleware/requestId.ts",
-        "packages/server/src/routes/forms.ts",
-        "packages/server/src/routes/runtime.ts",
-        "packages/server/src/routes/datasources.ts",
-        "packages/server/src/routes/projects.ts",
-        "packages/server/src/routes/index.ts",
-        "packages/server/src/websocket/index.ts",
-        "packages/server/src/app.ts",
-        "packages/server/src/index.ts",
-        "packages/server/src/models/Form.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "server-foundation-test",
-      "title": "서버 기반 구조 - 테스트",
-      "description": null,
-      "phase": "phase1-foundation",
-      "category": "testing",
-      "done": true,
-      "prompt": "서버 기반 구조를 테스트하라. supertest와 vitest, mongodb-memory-server를 사용하라.\n\n1. packages/server/src/__tests__/setup.ts: mongodb-memory-server 시작/정지 설정\n\n2. packages/server/src/__tests__/app.test.ts:\n   - GET /health → 200, { status: 'ok' }\n   - CORS 헤더 포함 확인\n   - 존재하지 않는 라우트 → 404\n   - 에러 핸들러: 던진 에러가 JSON으로 응답\n\n3. packages/server/src/__tests__/middleware.test.ts:\n   - auth: 유효한 JWT → 통과, 토큰 없음 → 401, 만료 토큰 → 401\n   - requestId: X-Request-Id 헤더 설정 확인\n   - errorHandler: ValidationError → 400, Error → 500\n\n실행: pnpm --filter @webform/server test\n모든 테스트 통과 확인. 실패 시 즉시 수정하라.",
-      "dependsOn": [
-        "server-foundation-impl"
-      ],
-      "outputFiles": [
-        "packages/server/src/__tests__/app.test.ts",
-        "packages/server/src/__tests__/middleware.test.ts",
-        "packages/server/src/__tests__/setup.ts"
-      ],
-      "modifiedFiles": [
-        "packages/server/src/__tests__/app.test.ts",
-        "packages/server/src/__tests__/middleware.test.ts",
-        "packages/server/src/__tests__/setup.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "server-foundation-commit",
-      "title": "서버 기반 구조 - 커밋",
-      "description": null,
-      "phase": "phase1-foundation",
-      "category": "commit",
-      "done": true,
-      "prompt": "서버 기반 구조 구현을 커밋하라.\n\n.env, .env.local 등 민감 파일 제외. .env.example은 포함 가능.\npackages/server 관련 파일과 plans/server-foundation-plan.md를 스테이징하라.\n다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(server): Express 서버 기반 구조 구현\n\n- MongoDB(Mongoose) 및 Redis(ioredis) 연결 관리\n- 미들웨어: cors, helmet, morgan, 요청 ID\n- JWT 인증 미들웨어\n- 전역 에러 핸들러 (ValidationError, NotFoundError)\n- REST API 라우터 구조 (/api/forms, /api/runtime, /api/datasources, /api/projects)\n- WebSocket 서버 기반 설정\n- GET /health 엔드포인트",
-      "dependsOn": [
-        "server-foundation-test"
-      ],
-      "outputFiles": null,
-      "modifiedFiles": [],
-      "subtasks": null
-    },
-    {
-      "id": "form-crud-api-plan",
-      "title": "폼 CRUD API - 계획",
-      "description": null,
-      "phase": "phase2-core-api",
-      "category": "plan",
-      "done": true,
-      "prompt": "WebForm 폼 CRUD API 구현 계획을 수립하라. PRD.md 섹션 6.1과 4.3.3(버전 관리 및 배포)을 분석하여 다음을 계획하라:\n\n## API 엔드포인트\n- GET /api/forms: 목록 (page, limit, search, status 파라미터)\n- POST /api/forms: 새 폼 생성\n- GET /api/forms/:id: 폼 정의 조회\n- PUT /api/forms/:id: 폼 정의 수정\n- DELETE /api/forms/:id: 폼 삭제 (soft delete)\n- GET /api/forms/:id/versions: 버전 히스토리\n- POST /api/forms/:id/publish: draft → published\n\n## MongoDB 스키마\n- FormDocument: FormDefinition 확장\n- status: 'draft' | 'published'\n- versions: { version, snapshot, savedAt }[]\n- projectId, createdBy, deletedAt (soft delete)\n\n## FormService 메서드\n- createForm, getForm, listForms, updateForm(버전 자동 증가), deleteForm(soft), getVersions, publishForm\n\n## 검증\n- Zod 스키마: createFormSchema, updateFormSchema\n- 응답 형식: { data, meta: { total, page, limit } }\n\n계획을 plans/form-crud-api-plan.md에 작성하라.",
-      "dependsOn": [
-        "common-types-commit",
-        "server-foundation-commit"
-      ],
-      "outputFiles": [
-        "plans/form-crud-api-plan.md"
-      ],
-      "modifiedFiles": [
-        "plans/form-crud-api-plan.md"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "form-crud-api-impl",
-      "title": "폼 CRUD API - 구현",
-      "description": null,
-      "phase": "phase2-core-api",
-      "category": "implementation",
-      "done": true,
-      "prompt": "plans/form-crud-api-plan.md에 따라 폼 CRUD API를 구현하라.\n\n1. packages/server/src/models/Form.ts (업데이트):\n   - FormVersionSnapshot 인터페이스 (version, snapshot, savedAt)\n   - FormDocument 인터페이스 (FormDefinition 확장 + status, versions, projectId, deletedAt)\n   - Mongoose 스키마: id unique 인덱스, status+deletedAt 복합 인덱스\n\n2. packages/server/src/services/FormService.ts:\n   - createForm: 초기 version=1, status='draft'\n   - getForm: deletedAt 없는 폼만 조회\n   - listForms: 페이지네이션\n   - updateForm: 현재 스냅샷 versions 배열에 push, version 증가\n   - deleteForm: soft delete (deletedAt = now)\n   - getVersions: versions 메타 반환 (snapshot 제외)\n   - publishForm: status='published'\n\n3. packages/server/src/validators/formValidator.ts:\n   - createFormSchema, updateFormSchema (Zod)\n   - validateRequest 미들웨어 팩토리\n\n4. packages/server/src/routes/forms.ts (전체 구현):\n   - 모든 엔드포인트, auth 미들웨어, validateRequest 적용\n   - { data, meta } 응답 형식",
-      "dependsOn": [
-        "form-crud-api-plan"
-      ],
-      "outputFiles": [
-        "packages/server/src/models/Form.ts",
-        "packages/server/src/services/FormService.ts",
-        "packages/server/src/validators/formValidator.ts",
-        "packages/server/src/routes/forms.ts"
-      ],
-      "modifiedFiles": [
-        "packages/server/src/models/Form.ts",
-        "packages/server/src/services/FormService.ts",
-        "packages/server/src/validators/formValidator.ts",
-        "packages/server/src/routes/forms.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "form-crud-api-test",
-      "title": "폼 CRUD API - 테스트",
-      "description": null,
-      "phase": "phase2-core-api",
-      "category": "testing",
-      "done": true,
-      "prompt": "폼 CRUD API를 테스트하라. mongodb-memory-server로 격리.\n\n1. packages/server/src/__tests__/FormService.test.ts:\n   - createForm: version=1, status='draft' 확인\n   - updateForm: version 증가, versions 배열에 이전 스냅샷 저장\n   - deleteForm: soft delete 후 getForm → NotFoundError\n   - publishForm: status='published' 전환\n   - listForms: 페이지네이션 동작\n\n2. packages/server/src/__tests__/forms.integration.test.ts (supertest):\n   - POST /api/forms: 201, name 없음 → 400\n   - GET /api/forms: 200, data 배열\n   - GET /api/forms/:id: 200 또는 404\n   - PUT /api/forms/:id: 200, version 증가\n   - DELETE /api/forms/:id: 200, 이후 GET → 404\n   - GET /api/forms/:id/versions: 배열 반환\n   - POST /api/forms/:id/publish: status='published'\n\n실행: pnpm --filter @webform/server test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
-      "dependsOn": [
-        "form-crud-api-impl"
-      ],
-      "outputFiles": [
-        "packages/server/src/__tests__/FormService.test.ts",
-        "packages/server/src/__tests__/forms.integration.test.ts"
-      ],
-      "modifiedFiles": [
-        "packages/server/src/__tests__/FormService.test.ts",
-        "packages/server/src/__tests__/forms.integration.test.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "form-crud-api-commit",
-      "title": "폼 CRUD API - 커밋",
-      "description": null,
-      "phase": "phase2-core-api",
-      "category": "commit",
-      "done": true,
-      "prompt": "폼 CRUD API 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(server): 폼 CRUD REST API 구현\n\n- GET/POST/PUT/DELETE /api/forms 엔드포인트 완전 구현\n- 폼 버전 히스토리 자동 관리 (수정 시 스냅샷 보존)\n- Draft/Published 퍼블리싱 워크플로우\n- Zod 기반 요청 유효성 검증\n- Mongoose FormDocument 스키마 (soft delete, 버전 배열)\n- FormService 서비스 레이어",
-      "dependsOn": [
-        "form-crud-api-test"
-      ],
-      "outputFiles": null,
-      "modifiedFiles": [],
-      "subtasks": null
-    },
-    {
-      "id": "designer-canvas-plan",
-      "title": "디자인 캔버스 - 계획",
-      "description": null,
-      "phase": "phase2-core-designer",
-      "category": "plan",
-      "done": true,
-      "prompt": "WebForm 디자인 캔버스 컴포넌트 구현 계획을 수립하라. PRD.md 섹션 4.1.3을 분석하여 다음을 설계하라:\n\n## 구현 기능\n1. 드래그 앤 드롭 (react-dnd): 도구상자 → 캔버스 배치, 캔버스 내 이동\n2. 8방향 리사이즈 핸들 (n, ne, e, se, s, sw, w, nw)\n3. 그리드 스냅 (기본 8px, 설정 가능)\n4. 다중 선택 (Ctrl+클릭, 드래그 선택 박스)\n5. 정렬 가이드라인 (Snaplines): 다른 컨트롤과 정렬 시 가이드\n6. Undo/Redo: Ctrl+Z/Y (최소 50단계)\n7. 복사/붙여넣기: Ctrl+C/V (오프셋 적용)\n8. Delete/Backspace 키로 선택 컨트롤 삭제\n\n## Zustand 스토어\n- designerStore: controls[], formProperties, isDirty, currentFormId\n- selectionStore: selectedIds: Set<string>, clipboard: ControlDefinition[]\n- historyStore: past[], future[] (JSON 스냅샷, 최대 50개)\n\n## 컴포넌트 구조\n- DesignerCanvas: DropTarget, 키보드 이벤트, 그리드 배경\n- CanvasControl: DragSource, 선택 처리, 리사이즈 핸들\n- ResizeHandle: 8방향, 최소 크기 20px\n- Snapline: 수평/수직 가이드라인\n\n계획을 plans/designer-canvas-plan.md에 작성하라.",
+      "done": false,
+      "prompt": "WebForm server 패키지에 Application Shell 백엔드를 구현하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/server/src/models/ 디렉토리 구조 확인 (Mongoose 모델 파일들)\n- packages/server/src/services/FormService.ts — FormService 패턴 파악\n- packages/server/src/services/ProjectService.ts — ProjectService 패턴 파악\n- packages/server/src/routes/forms.ts — forms 라우트 패턴 파악\n- packages/server/src/routes/projects.ts — projects 라우트 및 Project 스키마 파악\n- packages/server/src/routes/index.ts — 라우트 등록 패턴 파악\n\n## 구현해야 할 내용\n\n### 신규: packages/server/src/models/Shell.ts\nMongoose 스키마:\n```javascript\n{\n  projectId: { type: ObjectId, ref: 'Project', required: true, index: true },\n  name: { type: String, required: true },\n  version: { type: Number, default: 1 },\n  properties: { type: Mixed, required: true },\n  controls: [{ type: Mixed }],\n  eventHandlers: [{ type: Mixed }],\n  startFormId: { type: ObjectId, ref: 'Form' },\n  published: { type: Boolean, default: false },\n  createdBy: String,\n  updatedBy: String,\n}\n```\n타임스탬프, 모델 export\n\n### 신규: packages/server/src/services/ShellService.ts\n- getShellByProjectId(projectId): Shell 조회\n- createShell(projectId, data): Shell 생성\n- updateShell(projectId, data): Shell 수정\n- deleteShell(projectId): Shell 삭제\n- publishShell(projectId): Shell 퍼블리시 (published = true)\n- getPublishedShell(projectId): 퍼블리시된 Shell 조회\n\n### 신규: packages/server/src/routes/shells.ts\n```\nGET    /api/projects/:projectId/shell\nPOST   /api/projects/:projectId/shell\nPUT    /api/projects/:projectId/shell\nDELETE /api/projects/:projectId/shell\nPOST   /api/projects/:projectId/shell/publish\n```\n\n### 수정: packages/server/src/routes/index.ts\n- shells 라우트 등록\n\n### 수정: packages/server/src/routes/projects.ts\n- Project 모델/스키마에 shellId?: ObjectId 필드 추가\n\n## 계획 작성\n위 파일들을 읽은 후 plans/server-shell-backend-plan.md를 작성하세요. 포함 내용:\n1. 현재 Mongoose 모델 패턴 (Form/Project 모델 구조)\n2. 현재 서비스 패턴 (에러 처리, 반환 타입)\n3. 현재 라우트 패턴 (미들웨어, 응답 형식)\n4. 신규 Shell.ts 전체 코드 초안\n5. ShellService.ts 전체 코드 초안\n6. shells.ts 라우트 전체 코드 초안\n7. 기존 파일 변경 사항 (diff 형태)",
       "dependsOn": [
         "common-types-commit"
       ],
       "outputFiles": [
-        "plans/designer-canvas-plan.md"
+        "plans/server-shell-backend-plan.md"
       ],
       "modifiedFiles": [
-        "plans/designer-canvas-plan.md"
+        "plans/server-shell-backend-plan.md"
       ],
       "subtasks": null
     },
     {
-      "id": "designer-canvas-impl",
-      "title": "디자인 캔버스 - 구현",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-shell-backend-impl",
+      "title": "서버 Shell 백엔드 (모델/서비스/라우트) - 구현",
+      "description": "Shell Mongoose 모델, ShellService CRUD, Shell API 라우트 구현",
+      "phase": "phase2-server-backend",
       "category": "implementation",
-      "done": true,
-      "prompt": "plans/designer-canvas-plan.md에 따라 디자인 캔버스를 구현하라.\n\n1. packages/designer/src/stores/designerStore.ts:\n   - controls: ControlDefinition[], formProperties, isDirty, currentFormId\n   - addControl, updateControl, removeControl, moveControl, resizeControl, bringToFront, sendToBack\n   - Zustand + immer\n\n2. packages/designer/src/stores/selectionStore.ts:\n   - selectedIds: Set<string>, clipboard: ControlDefinition[]\n   - select, deselect, toggleSelect, selectMultiple, clearSelection\n   - copySelected, pasteControls (새 UUID + +16px 오프셋)\n\n3. packages/designer/src/stores/historyStore.ts:\n   - past: string[], future: string[] (JSON 스냅샷, 최대 50개)\n   - pushSnapshot, undo, redo, canUndo, canRedo\n\n4. packages/designer/src/utils/snapGrid.ts:\n   - snapToGrid(value, gridSize=8): number\n   - snapPositionToGrid(pos, gridSize?): { x, y }\n   - getSnaplines(movingControl, allControls): Snapline[]\n\n5. packages/designer/src/components/Canvas/DesignerCanvas.tsx:\n   - useDrop (react-dnd): 드롭 시 createDefaultControl + snapToGrid + addControl\n   - 그리드 배경 (CSS)\n   - 키보드: Ctrl+Z, Ctrl+Y, Ctrl+C, Ctrl+V, Delete\n   - 빈 영역 클릭 → clearSelection\n\n6. packages/designer/src/components/Canvas/CanvasControl.tsx:\n   - useDrag: 이동 드래그\n   - 클릭: select, Ctrl+클릭: toggleSelect\n   - 선택 시 파란 테두리 + ResizeHandle 표시\n   - position: absolute\n\n7. packages/designer/src/components/Canvas/ResizeHandle.tsx:\n   - 8방향 핸들, mousedown→mousemove로 리사이즈\n   - 최소 width, height 20px\n\n8. packages/designer/src/components/Canvas/Snapline.tsx\n\n9. packages/designer/src/App.tsx:\n   - DndProvider(HTML5Backend) 래핑\n   - 3패널 레이아웃: Toolbox(200px) + Canvas(flex) + PropertyPanel(250px)\n\n10. packages/designer/src/main.tsx: React 18 createRoot",
+      "done": false,
+      "prompt": "plans/server-shell-backend-plan.md를 읽고 WebForm server 패키지에 Shell 백엔드를 구현하세요.\n\n## 구현 순서\n1. 계획서 읽기: plans/server-shell-backend-plan.md\n2. 참조 파일 읽기: packages/server/src/models/ 기존 모델, packages/server/src/services/FormService.ts, packages/server/src/routes/forms.ts, packages/server/src/routes/index.ts\n\n## 구현 내용\n\n### packages/server/src/models/Shell.ts (새 파일)\n- IShell 인터페이스 정의 (TypeScript Document 타입)\n- ShellSchema Mongoose 스키마 정의:\n  - projectId: ObjectId ref Project, required, index\n  - name: String required\n  - version: Number default 1\n  - properties: Mixed required (ShellProperties)\n  - controls: [Mixed]\n  - eventHandlers: [Mixed]\n  - startFormId: ObjectId ref Form optional\n  - published: Boolean default false\n  - createdBy, updatedBy: String optional\n  - timestamps: true\n- Shell 모델 export\n\n### packages/server/src/services/ShellService.ts (새 파일)\n기존 FormService.ts 패턴을 따라:\n- getShellByProjectId(projectId: string): Promise<IShell | null>\n- createShell(projectId: string, data: Partial<IShell>): Promise<IShell>\n- updateShell(projectId: string, data: Partial<IShell>): Promise<IShell | null>\n- deleteShell(projectId: string): Promise<boolean>\n- publishShell(projectId: string): Promise<IShell | null>\n- getPublishedShell(projectId: string): Promise<IShell | null>\n\n### packages/server/src/routes/shells.ts (새 파일)\n기존 forms.ts 패턴을 따라 Express Router:\n- GET /api/projects/:projectId/shell → ShellService.getShellByProjectId\n- POST /api/projects/:projectId/shell → ShellService.createShell\n- PUT /api/projects/:projectId/shell → ShellService.updateShell\n- DELETE /api/projects/:projectId/shell → ShellService.deleteShell\n- POST /api/projects/:projectId/shell/publish → ShellService.publishShell\n에러 처리, 적절한 HTTP 상태 코드 반환\n\n### packages/server/src/routes/index.ts 수정\n- shellsRouter import 및 app.use('/api', shellsRouter) 등록\n\n### packages/server/src/routes/projects.ts 수정\n- Project 스키마/인터페이스에 shellId?: string 또는 ObjectId 옵셔널 필드 추가 (기존 필드 유지)\n\n## 주의사항\n- @webform/common 패키지 타입 임포트 가능 (ApplicationShellDefinition 등)\n- TypeScript strict 모드 준수\n- 기존 API 하위 호환성 유지",
       "dependsOn": [
-        "designer-canvas-plan"
+        "server-shell-backend-plan"
       ],
       "outputFiles": [
-        "packages/designer/src/stores/designerStore.ts",
-        "packages/designer/src/stores/selectionStore.ts",
-        "packages/designer/src/stores/historyStore.ts",
-        "packages/designer/src/utils/snapGrid.ts",
-        "packages/designer/src/components/Canvas/DesignerCanvas.tsx",
-        "packages/designer/src/components/Canvas/CanvasControl.tsx",
-        "packages/designer/src/components/Canvas/ResizeHandle.tsx",
-        "packages/designer/src/components/Canvas/Snapline.tsx",
-        "packages/designer/src/components/Canvas/index.ts",
-        "packages/designer/src/App.tsx",
-        "packages/designer/src/main.tsx"
+        "packages/server/src/models/Shell.ts",
+        "packages/server/src/services/ShellService.ts",
+        "packages/server/src/routes/shells.ts"
       ],
       "modifiedFiles": [
-        "packages/designer/src/stores/designerStore.ts",
-        "packages/designer/src/stores/selectionStore.ts",
-        "packages/designer/src/stores/historyStore.ts",
-        "packages/designer/src/utils/snapGrid.ts",
-        "packages/designer/src/components/Canvas/DesignerCanvas.tsx",
-        "packages/designer/src/components/Canvas/CanvasControl.tsx",
-        "packages/designer/src/components/Canvas/ResizeHandle.tsx",
-        "packages/designer/src/components/Canvas/Snapline.tsx",
-        "packages/designer/src/App.tsx",
-        "packages/designer/src/main.tsx"
+        "packages/server/src/models/Shell.ts",
+        "packages/server/src/services/ShellService.ts",
+        "packages/server/src/routes/shells.ts",
+        "packages/server/src/routes/index.ts",
+        "packages/server/src/routes/projects.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "designer-canvas-test",
-      "title": "디자인 캔버스 - 테스트",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-shell-backend-test",
+      "title": "서버 Shell 백엔드 (모델/서비스/라우트) - 테스트",
+      "description": "Shell 백엔드 CRUD API 테스트 작성 및 실행",
+      "phase": "phase2-server-backend",
       "category": "testing",
-      "done": true,
-      "prompt": "디자인 캔버스의 핵심 기능을 테스트하라.\n\n1. packages/designer/src/__tests__/designerStore.test.ts:\n   - addControl: controls 배열에 추가 확인\n   - updateControl: position 변경 확인\n   - removeControl: 배열에서 제거 확인\n   - bringToFront/sendToBack: 배열 순서 변경\n   - isDirty: 수정 후 true\n\n2. packages/designer/src/__tests__/selectionStore.test.ts:\n   - select/deselect/toggleSelect/clearSelection 동작\n   - copySelected + pasteControls: 새 ID, +16px 오프셋\n\n3. packages/designer/src/__tests__/historyStore.test.ts:\n   - pushSnapshot/undo/redo 동작\n   - 50개 초과 시 오래된 것 제거\n   - canUndo, canRedo 상태\n\n4. packages/designer/src/__tests__/snapGrid.test.ts:\n   - snapToGrid(13, 8) === 16\n   - snapToGrid(4, 8) === 0\n   - snapPositionToGrid({ x: 13, y: 5 }) === { x: 16, y: 8 }\n\n실행: pnpm --filter @webform/designer test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
+      "done": false,
+      "prompt": "WebForm server 패키지의 Shell 백엔드 구현을 테스트하세요.\n\n## 테스트 방법\n1. packages/server/src/__tests__/ 디렉토리 확인 (기존 테스트 패턴 파악)\n2. packages/server/src/__tests__/shells.test.ts 작성:\n   - ShellService 단위 테스트 (Mock Mongoose)\n   - Shell 라우트 통합 테스트 (supertest)\n   - 테스트 케이스: 생성, 조회, 수정, 삭제, 퍼블리시, 없는 Shell 조회\n\n3. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/server typecheck`\n\n4. 테스트 실행:\n   `pnpm --filter @webform/server test`\n   또는 server 디렉토리에서\n   `npx vitest run src/__tests__/shells.test.ts`\n\n5. 실패 시 원인 파악 후 수정\n\n## 통과 기준\n- TypeScript 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
-        "designer-canvas-impl"
+        "server-shell-backend-impl"
       ],
       "outputFiles": [
-        "packages/designer/src/__tests__/designerStore.test.ts",
-        "packages/designer/src/__tests__/selectionStore.test.ts",
-        "packages/designer/src/__tests__/historyStore.test.ts",
-        "packages/designer/src/__tests__/snapGrid.test.ts"
+        "packages/server/src/__tests__/shells.test.ts"
       ],
       "modifiedFiles": [
-        "packages/designer/src/__tests__/designerStore.test.ts",
-        "packages/designer/src/__tests__/selectionStore.test.ts",
-        "packages/designer/src/__tests__/historyStore.test.ts",
-        "packages/designer/src/__tests__/snapGrid.test.ts"
+        "packages/server/src/__tests__/shells.test.ts",
+        "packages/server/src/models/Shell.ts",
+        "packages/server/src/services/ShellService.ts",
+        "packages/server/src/routes/shells.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "designer-canvas-commit",
-      "title": "디자인 캔버스 - 커밋",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-shell-backend-commit",
+      "title": "서버 Shell 백엔드 (모델/서비스/라우트) - 커밋",
+      "description": "서버 Shell 백엔드 구현 커밋",
+      "phase": "phase2-server-backend",
       "category": "commit",
-      "done": true,
-      "prompt": "디자인 캔버스 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(designer): react-dnd 기반 드래그앤드롭 디자인 캔버스 구현\n\n- 도구상자 → 캔버스 드래그앤드롭 배치 (react-dnd)\n- 8방향 리사이즈 핸들\n- 8px 그리드 스냅\n- 다중 선택 (Ctrl+클릭, 드래그 선택 박스)\n- 정렬 가이드라인 (Snaplines)\n- Undo/Redo 히스토리 50단계\n- Ctrl+C/V 복사/붙여넣기 (새 UUID + 오프셋)\n- Zustand 3개 스토어 (designer, selection, history)",
+      "done": false,
+      "prompt": "WebForm server 패키지 Shell 백엔드 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/server/src/models/Shell.ts\n   - packages/server/src/services/ShellService.ts\n   - packages/server/src/routes/shells.ts\n   - packages/server/src/routes/index.ts\n   - packages/server/src/routes/projects.ts\n   - packages/server/src/__tests__/shells.test.ts\n   - plans/server-shell-backend-plan.md\n3. 커밋 메시지 (한국어): 'feat(server): Application Shell CRUD 백엔드 구현\\n\\n- Shell Mongoose 모델 및 스키마 추가\\n- ShellService CRUD 서비스 구현\\n- /api/projects/:projectId/shell CRUD 라우트 추가\\n- Shell 퍼블리시 엔드포인트 추가\\n- Project 스키마에 shellId 필드 추가'\n4. `git status`로 커밋 확인",
       "dependsOn": [
-        "designer-canvas-test"
+        "server-shell-backend-test"
       ],
       "outputFiles": null,
-      "modifiedFiles": [],
+      "modifiedFiles": [
+        "packages/server/src/models/Shell.ts",
+        "packages/server/src/services/ShellService.ts",
+        "packages/server/src/routes/shells.ts",
+        "packages/server/src/routes/index.ts",
+        "packages/server/src/routes/projects.ts"
+      ],
       "subtasks": null
     },
     {
-      "id": "toolbox-controls-plan",
-      "title": "도구상자 및 기본 컨트롤 - 계획",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-runtime-api-plan",
+      "title": "서버 Runtime Shell API (앱 로딩) - 계획",
+      "description": "Runtime용 Shell 조회 API 및 앱 일괄 로딩 엔드포인트 계획",
+      "phase": "phase2-server-runtime",
       "category": "plan",
-      "done": true,
-      "prompt": "WebForm 도구상자(Toolbox)와 Phase 1 기본 컨트롤 구현 계획을 수립하라. PRD.md 섹션 4.1.2를 분석하여 다음을 설계하라:\n\n## 도구상자\n- 카테고리별 컨트롤 목록 (기본 컨트롤, 컨테이너)\n- useDrag로 드래그 지원 (type='NEW_CONTROL')\n- 아이콘 + 컨트롤명 표시\n\n## Phase 1 디자이너용 컨트롤 (WinForm 스타일 렌더링)\n1. Button: 회색 배경, 3D 테두리\n2. Label: 투명 배경, text 속성\n3. TextBox: 흰색 배경, sunken 테두리, multiline 지원\n4. CheckBox: 체크박스 + 텍스트\n5. RadioButton: 라디오 + 텍스트\n6. ComboBox: 드롭다운 화살표\n7. ListBox: 스크롤 목록\n8. NumericUpDown: 입력 + 화살표 버튼\n9. DateTimePicker: 날짜 입력 + 달력 아이콘\n10. ProgressBar: 진행 바\n11. PictureBox: 이미지 또는 회색 플레이스홀더\n12. Panel: 자식 컨트롤 포함 가능\n13. GroupBox: 상단 텍스트 + 테두리\n14. TabControl: 탭 헤더 + 콘텐츠\n\n## 컨트롤 레지스트리\n- designerControlRegistry: ControlType → 컴포넌트\n- defaultControlProperties: ControlType → 기본 속성\n- defaultControlSizes: ControlType → { width, height }\n- createDefaultControl(type, position): ControlDefinition (UUID id)\n\n계획을 plans/toolbox-controls-plan.md에 작성하라.",
+      "done": false,
+      "prompt": "WebForm server 패키지에 Runtime용 Shell API와 앱 일괄 로딩 엔드포인트를 추가하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/server/src/routes/runtime.ts — 현재 Runtime API 구조 전체 파악\n- packages/server/src/services/ShellService.ts — 방금 구현한 ShellService 확인\n- packages/server/src/services/FormService.ts — getPublishedForm 메서드 파악\n\n## 구현해야 할 내용\n\n### packages/server/src/routes/runtime.ts 수정\n\n1. **GET /api/runtime/shells/:projectId**\n   - ShellService.getPublishedShell(projectId) 호출\n   - 없으면 404 반환\n   - ApplicationShellDefinition 형태로 반환\n\n2. **POST /api/runtime/shells/:projectId/events**\n   - ShellEventRequest 처리 (일단 스텁, 이벤트 엔진은 server-shell-events 태스크에서 구현)\n   - projectId로 Shell 조회 → EventEngine 호출 (ShellEventRequest 형태)\n\n3. **GET /api/runtime/app/:projectId** (신규 핵심 엔드포인트)\n   - AppLoadResponse: { shell: ApplicationShellDefinition | null, startForm: FormDefinition }\n   - 로직:\n     a. ShellService.getPublishedShell(projectId) 조회\n     b. shell.startFormId 또는 쿼리 파라미터 ?formId=xxx로 시작 폼 결정\n     c. FormService.getPublishedForm(startFormId) 조회\n     d. { shell, startForm } 반환\n   - Shell 없으면 { shell: null, startForm: 기본폼 } 반환\n\n## 계획 작성\nplans/server-runtime-api-plan.md 파일 작성:\n1. 현재 runtime.ts의 엔드포인트 목록 및 패턴\n2. 각 신규 엔드포인트 구현 코드 초안\n3. AppLoadResponse 타입 (common에 추가할지 server 로컬로 정의할지 결정)\n4. 에러 시나리오 처리 방법",
       "dependsOn": [
-        "designer-canvas-commit"
+        "server-shell-backend-commit"
       ],
       "outputFiles": [
-        "plans/toolbox-controls-plan.md"
+        "plans/server-runtime-api-plan.md"
       ],
       "modifiedFiles": [
-        "plans/toolbox-controls-plan.md"
+        "plans/server-runtime-api-plan.md"
       ],
       "subtasks": null
     },
     {
-      "id": "toolbox-controls-impl",
-      "title": "도구상자 및 기본 컨트롤 - 구현",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-runtime-api-impl",
+      "title": "서버 Runtime Shell API (앱 로딩) - 구현",
+      "description": "Runtime Shell 조회 API 및 /api/runtime/app/:projectId 엔드포인트 구현",
+      "phase": "phase2-server-runtime",
       "category": "implementation",
-      "done": true,
-      "prompt": "plans/toolbox-controls-plan.md에 따라 도구상자와 기본 컨트롤을 구현하라.\n\n1. packages/designer/src/components/Toolbox/Toolbox.tsx:\n   - TOOLBOX_CATEGORIES 배열 (기본 컨트롤, 컨테이너)\n   - 카테고리별 접기/펼치기\n   - ToolboxItem 목록 렌더링\n\n2. packages/designer/src/components/Toolbox/ToolboxItem.tsx:\n   - useDrag: type='NEW_CONTROL', item={ controlType }\n   - 아이콘(텍스트 약어 또는 Lucide) + 컨트롤명\n   - 드래그 중 opacity 0.5\n\n3. packages/designer/src/controls/ 아래 14개 컨트롤:\n   각 컴포넌트는 ControlDefinition['properties']를 props로 받음.\n   - Button.tsx, Label.tsx, TextBox.tsx (multiline 지원), CheckBox.tsx\n   - RadioButton.tsx, ComboBox.tsx, ListBox.tsx, NumericUpDown.tsx\n   - DateTimePicker.tsx, ProgressBar.tsx, PictureBox.tsx\n   - Panel.tsx (children 슬롯), GroupBox.tsx, TabControl.tsx\n\n4. packages/designer/src/controls/registry.ts:\n   - designerControlRegistry, defaultControlProperties, defaultControlSizes\n   - createDefaultControl(type, position): uuid로 id 생성\n\n5. packages/designer/src/controls/index.ts: 모든 export\n\n6. packages/designer/src/components/Canvas/DesignerCanvas.tsx 업데이트:\n   - drop 핸들러에서 createDefaultControl 호출\n\n7. packages/designer/src/App.tsx 업데이트:\n   - Toolbox 좌측 패널에 통합",
+      "done": false,
+      "prompt": "plans/server-runtime-api-plan.md를 읽고 Runtime Shell API를 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/server-runtime-api-plan.md\n2. packages/server/src/routes/runtime.ts\n3. packages/server/src/services/ShellService.ts\n4. packages/server/src/services/FormService.ts\n\n## 구현 내용\n\n### packages/server/src/routes/runtime.ts 수정\n\n기존 코드를 유지하면서 추가:\n\n1. `GET /api/runtime/shells/:projectId`\n```typescript\nrouter.get('/shells/:projectId', async (req, res) => {\n  const shell = await ShellService.getPublishedShell(req.params.projectId);\n  if (!shell) return res.status(404).json({ error: 'Shell not found' });\n  res.json(shell);\n});\n```\n\n2. `POST /api/runtime/shells/:projectId/events`\n```typescript\nrouter.post('/shells/:projectId/events', async (req, res) => {\n  // ShellEventRequest 처리 - EventEngine 연동은 server-shell-events에서 완성\n  // 현재는 빈 UIPatch 배열 반환하는 스텁으로 구현\n  res.json({ patches: [], logs: [] });\n});\n```\n\n3. `GET /api/runtime/app/:projectId`\n```typescript\nrouter.get('/app/:projectId', async (req, res) => {\n  const { formId } = req.query;\n  const shell = await ShellService.getPublishedShell(req.params.projectId);\n  const startFormId = (formId as string) || shell?.startFormId?.toString();\n  if (!startFormId) return res.status(400).json({ error: 'No start form specified' });\n  const startForm = await FormService.getPublishedForm(startFormId);\n  if (!startForm) return res.status(404).json({ error: 'Start form not found' });\n  res.json({ shell: shell || null, startForm });\n});\n```\n\n## 주의사항\n- ShellService import 추가\n- 기존 runtime.ts 엔드포인트 변경 금지\n- TypeScript 타입 안전성 유지",
       "dependsOn": [
-        "toolbox-controls-plan"
+        "server-runtime-api-plan"
       ],
-      "outputFiles": [
-        "packages/designer/src/components/Toolbox/Toolbox.tsx",
-        "packages/designer/src/components/Toolbox/ToolboxItem.tsx",
-        "packages/designer/src/components/Toolbox/index.ts",
-        "packages/designer/src/controls/Button.tsx",
-        "packages/designer/src/controls/Label.tsx",
-        "packages/designer/src/controls/TextBox.tsx",
-        "packages/designer/src/controls/CheckBox.tsx",
-        "packages/designer/src/controls/RadioButton.tsx",
-        "packages/designer/src/controls/ComboBox.tsx",
-        "packages/designer/src/controls/ListBox.tsx",
-        "packages/designer/src/controls/NumericUpDown.tsx",
-        "packages/designer/src/controls/DateTimePicker.tsx",
-        "packages/designer/src/controls/ProgressBar.tsx",
-        "packages/designer/src/controls/PictureBox.tsx",
-        "packages/designer/src/controls/Panel.tsx",
-        "packages/designer/src/controls/GroupBox.tsx",
-        "packages/designer/src/controls/TabControl.tsx",
-        "packages/designer/src/controls/registry.ts",
-        "packages/designer/src/controls/index.ts"
-      ],
+      "outputFiles": [],
       "modifiedFiles": [
-        "packages/designer/src/components/Toolbox/Toolbox.tsx",
-        "packages/designer/src/components/Toolbox/ToolboxItem.tsx",
-        "packages/designer/src/controls/Button.tsx",
-        "packages/designer/src/controls/Label.tsx",
-        "packages/designer/src/controls/TextBox.tsx",
-        "packages/designer/src/controls/CheckBox.tsx",
-        "packages/designer/src/controls/RadioButton.tsx",
-        "packages/designer/src/controls/ComboBox.tsx",
-        "packages/designer/src/controls/ListBox.tsx",
-        "packages/designer/src/controls/NumericUpDown.tsx",
-        "packages/designer/src/controls/DateTimePicker.tsx",
-        "packages/designer/src/controls/ProgressBar.tsx",
-        "packages/designer/src/controls/PictureBox.tsx",
-        "packages/designer/src/controls/Panel.tsx",
-        "packages/designer/src/controls/GroupBox.tsx",
-        "packages/designer/src/controls/TabControl.tsx",
-        "packages/designer/src/controls/registry.ts",
-        "packages/designer/src/controls/index.ts",
-        "packages/designer/src/components/Canvas/DesignerCanvas.tsx",
-        "packages/designer/src/App.tsx"
+        "packages/server/src/routes/runtime.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "toolbox-controls-test",
-      "title": "도구상자 및 기본 컨트롤 - 테스트",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-runtime-api-test",
+      "title": "서버 Runtime Shell API (앱 로딩) - 테스트",
+      "description": "Runtime Shell API 엔드포인트 테스트",
+      "phase": "phase2-server-runtime",
       "category": "testing",
-      "done": true,
-      "prompt": "도구상자와 기본 컨트롤을 테스트하라.\n\n1. packages/designer/src/__tests__/registry.test.ts:\n   - 모든 Phase 1 ControlType에 대해 designerControlRegistry에 컴포넌트 등록 확인\n   - defaultControlProperties에 기본값 존재 확인\n   - defaultControlSizes에 width, height 존재 확인\n   - createDefaultControl('Button', { x: 10, y: 20 }): 고유 id, type='Button' 확인\n   - createDefaultControl 두 번 호출 시 다른 id 생성\n\n2. packages/designer/src/__tests__/controls/Button.test.tsx:\n   - 기본 props로 렌더링 확인\n   - text='저장' 전달 시 표시\n\n3. packages/designer/src/__tests__/controls/TextBox.test.tsx:\n   - 기본 단일행 렌더링\n   - multiline=true 시 textarea 렌더링\n\n4. packages/designer/src/__tests__/Toolbox.test.tsx:\n   - 'Button', 'Label', 'TextBox' 등 컨트롤명 표시 확인\n   - 카테고리 헤더 표시 확인\n\n실행: pnpm --filter @webform/designer test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
+      "done": false,
+      "prompt": "WebForm server Runtime Shell API 구현을 테스트하세요.\n\n## 테스트\n1. packages/server/src/__tests__/runtime-shell.test.ts 작성:\n   - GET /api/runtime/shells/:projectId — 퍼블리시된 Shell 조회 성공/없는 케이스\n   - POST /api/runtime/shells/:projectId/events — 스텁 응답 확인\n   - GET /api/runtime/app/:projectId — Shell+폼 일괄 로딩, formId 파라미터 처리\n\n2. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/server typecheck`\n\n3. 테스트 실행:\n   `pnpm --filter @webform/server test`\n\n4. 실패 시 오류 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
-        "toolbox-controls-impl"
+        "server-runtime-api-impl"
       ],
       "outputFiles": [
-        "packages/designer/src/__tests__/registry.test.ts",
-        "packages/designer/src/__tests__/controls/Button.test.tsx",
-        "packages/designer/src/__tests__/controls/TextBox.test.tsx",
-        "packages/designer/src/__tests__/Toolbox.test.tsx"
+        "packages/server/src/__tests__/runtime-shell.test.ts"
       ],
       "modifiedFiles": [
-        "packages/designer/src/__tests__/registry.test.ts",
-        "packages/designer/src/__tests__/controls/Button.test.tsx",
-        "packages/designer/src/__tests__/controls/TextBox.test.tsx",
-        "packages/designer/src/__tests__/Toolbox.test.tsx"
+        "packages/server/src/__tests__/runtime-shell.test.ts",
+        "packages/server/src/routes/runtime.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "toolbox-controls-commit",
-      "title": "도구상자 및 기본 컨트롤 - 커밋",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-runtime-api-commit",
+      "title": "서버 Runtime Shell API (앱 로딩) - 커밋",
+      "description": "Runtime Shell API 구현 커밋",
+      "phase": "phase2-server-runtime",
       "category": "commit",
-      "done": true,
-      "prompt": "도구상자 및 기본 컨트롤 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(designer): 도구상자 및 Phase 1 기본 컨트롤 14종 구현\n\n- Toolbox: 카테고리별 컨트롤 목록, 드래그 지원\n- 기본 컨트롤: Button, Label, TextBox, CheckBox, RadioButton, ComboBox, ListBox, NumericUpDown, DateTimePicker, ProgressBar, PictureBox\n- 컨테이너: Panel, GroupBox, TabControl\n- WinForm 스타일 렌더링 (회색 배경, 3D/sunken 테두리)\n- 컨트롤 레지스트리 + createDefaultControl (UUID 기반)",
+      "done": false,
+      "prompt": "Runtime Shell API 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/server/src/routes/runtime.ts\n   - packages/server/src/__tests__/runtime-shell.test.ts\n   - plans/server-runtime-api-plan.md\n3. 커밋 메시지 (한국어): 'feat(server): Runtime Shell API 및 앱 일괄 로딩 엔드포인트 추가\\n\\n- GET /api/runtime/shells/:projectId Shell 조회 API 추가\\n- POST /api/runtime/shells/:projectId/events Shell 이벤트 스텁 추가\\n- GET /api/runtime/app/:projectId Shell+시작폼 일괄 로딩 API 추가'\n4. 커밋 확인",
       "dependsOn": [
-        "toolbox-controls-test"
+        "server-runtime-api-test"
       ],
       "outputFiles": null,
-      "modifiedFiles": [],
+      "modifiedFiles": [
+        "packages/server/src/routes/runtime.ts"
+      ],
       "subtasks": null
     },
     {
-      "id": "properties-panel-plan",
-      "title": "속성 패널 - 계획",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-shell-events-plan",
+      "title": "서버 Shell 이벤트 엔진 및 WebSocket - 계획",
+      "description": "Shell 이벤트 처리, appState 지원, per-project WebSocket 계획 수립",
+      "phase": "phase2-server-events",
       "category": "plan",
-      "done": true,
-      "prompt": "WebForm 속성 패널(Properties Panel) 구현 계획을 수립하라. PRD.md 섹션 4.1.4를 분석하여 다음을 설계하라:\n\n## 속성 패널 기능\n1. 선택 컨트롤 속성 표시/편집 (selectionStore 구독)\n2. 선택 없으면 FormProperties 편집\n3. 카테고리: Appearance, Behavior, Layout, Design\n4. 카테고리순/알파벳순 토글\n5. 속성 탭 / 이벤트 탭 전환\n\n## 속성 에디터 타입\n- TextEditor: 문자열 인라인 편집\n- NumberEditor: 숫자 (min/max)\n- ColorPicker: HTML color input\n- FontPicker: family/size/bold/italic\n- DropdownEditor: 열거형 select\n- BooleanToggle: checkbox\n- AnchorEditor: 4방향 시각적 UI\n- CollectionEditor: 배열 아이템 모달\n\n## controlProperties.ts 설계\nPropertyMeta 인터페이스: name, category, editorType, label, defaultValue, options, min, max\n각 ControlType별 PropertyMeta[] 정의\n\n## 이벤트 탭\n이벤트 목록 + 핸들러 이름 입력 + 더블클릭 시 Monaco Editor 열기\n\n계획을 plans/properties-panel-plan.md에 작성하라.",
+      "done": false,
+      "prompt": "WebForm server 패키지에 Shell 이벤트 처리 시스템을 구현하는 계획을 수립하세요.\n이 작업은 server-runtime-api 태스크와 병렬로 실행될 수 있습니다.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/server/src/services/EventEngine.ts — 전체 내용 파악\n- packages/server/src/services/SandboxRunner.ts — ctx 객체 구성 방법 파악\n- packages/server/src/websocket/index.ts — WebSocket 설정 파악\n- packages/server/src/websocket/runtimeEvents.ts — 런타임 WebSocket 핸들러 파악\n- packages/common/src/types/protocol.ts — UIPatch, EventRequest 타입 파악\n\n## 구현해야 할 내용\n\n### packages/server/src/services/EventEngine.ts 수정\n- Shell 이벤트 요청 처리 분기 추가:\n  - ShellEventRequest 판별 (projectId 존재 여부)\n  - Shell 컨트롤 상태로 컨텍스트 구성\n  - navigate, currentFormId, appState, closeApp ctx 메서드 추가\n  - Shell 컨트롤 상태 diff → UIPatch(updateShell) 생성\n  - appState 변경 감지 → UIPatch(updateAppState) 생성\n\n### packages/server/src/services/SandboxRunner.ts 수정\n- appState 파라미터 수신 및 ctx 주입 추가\n- navigate(formId, params?) 메서드 ctx에 추가 → UIPatch(navigate) 반환\n- navigateBack() 메서드 ctx에 추가 → UIPatch(navigate, back:true) 반환\n- closeApp() 메서드 ctx에 추가 → UIPatch(closeApp) 반환\n- currentFormId ctx에 추가 (읽기 전용)\n- ctx.params 지원 (폼 전환 시 파라미터)\n\n### packages/server/src/websocket/ 수정 또는 신규\n- per-project WebSocket 엔드포인트: /ws/runtime/app/:projectId\n- 메시지에 scope: 'shell' | 'form' 필드 지원\n- Shell 이벤트 결과를 Shell scope로 브로드캐스트\n- 폼 이벤트 결과를 Form scope로 브로드캐스트\n\n## 계획 작성\nplans/server-shell-events-plan.md 파일 작성:\n1. 현재 EventEngine 처리 흐름 분석\n2. 현재 SandboxRunner ctx 객체 목록\n3. Shell 이벤트 처리 분기 로직 설계\n4. 신규 ctx 메서드 구현 방법\n5. WebSocket 확장 설계\n6. 수정할 코드 섹션 정확한 위치 및 초안",
       "dependsOn": [
-        "toolbox-controls-commit"
+        "server-shell-backend-commit"
       ],
       "outputFiles": [
-        "plans/properties-panel-plan.md"
+        "plans/server-shell-events-plan.md"
       ],
       "modifiedFiles": [
-        "plans/properties-panel-plan.md"
+        "plans/server-shell-events-plan.md"
       ],
       "subtasks": null
     },
     {
-      "id": "properties-panel-impl",
-      "title": "속성 패널 - 구현",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-shell-events-impl",
+      "title": "서버 Shell 이벤트 엔진 및 WebSocket - 구현",
+      "description": "EventEngine Shell 분기, SandboxRunner ctx 확장, per-project WebSocket 구현",
+      "phase": "phase2-server-events",
       "category": "implementation",
-      "done": true,
-      "prompt": "plans/properties-panel-plan.md에 따라 속성 패널을 구현하라.\n\n1. packages/designer/src/components/PropertyPanel/controlProperties.ts:\n   - PropertyMeta 인터페이스\n   - CONTROL_PROPERTY_META: Record<ControlType, PropertyMeta[]>\n   - CONTROL_EVENTS_META: Record<ControlType, string[]>\n\n2. 에디터 컴포넌트들:\n   - editors/TextEditor.tsx: 인라인 편집\n   - editors/NumberEditor.tsx: min/max 지원\n   - editors/ColorPicker.tsx: HTML color input\n   - editors/FontPicker.tsx: family/size/bold/italic\n   - editors/DropdownEditor.tsx: select + options\n   - editors/BooleanToggle.tsx: checkbox\n   - editors/AnchorEditor.tsx: 4방향 체크박스 + 시각적 다이어그램\n   - editors/CollectionEditor.tsx: 모달, 아이템 추가/삭제/순서변경\n\n3. packages/designer/src/components/PropertyPanel/PropertyCategory.tsx:\n   - 카테고리 헤더 (접기/펼치기)\n   - PropertyMeta 기반 에디터 선택 렌더링\n\n4. packages/designer/src/components/PropertyPanel/EventsTab.tsx:\n   - 이벤트 목록 + 핸들러 이름 입력\n   - 더블클릭/입력 완료 시 EventEditor 열기\n\n5. packages/designer/src/components/PropertyPanel/PropertyPanel.tsx:\n   - selectedIds 구독, 속성 탭/이벤트 탭 전환\n   - 카테고리순/알파벳순 토글\n   - 속성 변경 시 designerStore.updateControl 호출\n\n6. packages/designer/src/components/EventEditor/EventEditor.tsx:\n   - @monaco-editor/react, TypeScript 모드\n   - FormContext 타입 힌트 (addExtraLib)\n   - Ctrl+S 시 이벤트 핸들러 저장\n\n7. packages/designer/src/App.tsx 업데이트:\n   - PropertyPanel 우측 패널 통합\n   - EventEditor 모달 통합",
+      "done": false,
+      "prompt": "plans/server-shell-events-plan.md를 읽고 Shell 이벤트 엔진 및 WebSocket을 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/server-shell-events-plan.md\n2. packages/server/src/services/EventEngine.ts\n3. packages/server/src/services/SandboxRunner.ts\n4. packages/server/src/websocket/index.ts\n5. packages/server/src/websocket/runtimeEvents.ts\n6. packages/common/src/types/protocol.ts (UIPatch 타입 확인)\n\n## 구현 내용\n\n### packages/server/src/services/SandboxRunner.ts 수정\nctx 객체에 Shell 전용 메서드 추가:\n```typescript\n// ctx에 추가\nnavigate: (formId: string, params?: Record<string, unknown>) => void, // UIPatch { type: 'navigate', payload: { formId, params } } 생성\nnavigateBack: () => void, // UIPatch { type: 'navigate', payload: { back: true } } 생성  \nnavigateReplace: (formId: string, params?: Record<string, unknown>) => void,\ncloseApp: () => void, // UIPatch { type: 'closeApp' } 생성\ncurrentFormId: string, // 읽기 전용, ShellEventRequest.currentFormId에서\nappState: Record<string, unknown>, // 읽기/쓰기, 변경 추적\nparams: Record<string, unknown>, // 폼 전환 파라미터\n```\nappState 변경 감지: Proxy 또는 변경 전/후 비교 방식으로 UIPatch(updateAppState) 생성\n\n### packages/server/src/services/EventEngine.ts 수정\n- ShellEventRequest 타입 임포트\n- processShellEvent 메서드 추가:\n  - Shell 컨트롤 상태를 컨텍스트로 구성\n  - SandboxRunner에 appState, currentFormId, shellState 전달\n  - Shell 컨트롤 상태 diff → updateShell UIPatch 생성\n  - appState 변경 → updateAppState UIPatch 생성\n- 기존 processEvent와 분리하여 Shell/Form 이벤트 분기\n\n### packages/server/src/websocket/ 수정\npackages/server/src/websocket/runtimeEvents.ts에 per-project 경로 추가:\n- /ws/runtime/app/:projectId 핸들러\n- RuntimeWsMessage에 scope 필드 지원\n- Shell/Form 패치를 scope로 구분하여 브로드캐스트\n\n### packages/server/src/routes/runtime.ts 수정 (선택)\n- POST /api/runtime/shells/:projectId/events 스텁을 실제 Shell 이벤트 엔진 연동으로 업그레이드\n\n## 주의사항\n- 기존 폼 이벤트 처리 로직 변경 금지 (하위 호환)\n- TypeScript strict 모드\n- 격리된 isolated-vm 샌드박스 내에서 navigate/appState 변경이 UIPatch로 수집되는 구조 유지",
       "dependsOn": [
-        "properties-panel-plan"
+        "server-shell-events-plan"
       ],
-      "outputFiles": [
-        "packages/designer/src/components/PropertyPanel/controlProperties.ts",
-        "packages/designer/src/components/PropertyPanel/editors/TextEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/NumberEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/ColorPicker.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/FontPicker.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/DropdownEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/BooleanToggle.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/AnchorEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/CollectionEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/PropertyCategory.tsx",
-        "packages/designer/src/components/PropertyPanel/EventsTab.tsx",
-        "packages/designer/src/components/PropertyPanel/PropertyPanel.tsx",
-        "packages/designer/src/components/PropertyPanel/index.ts",
-        "packages/designer/src/components/EventEditor/EventEditor.tsx"
-      ],
+      "outputFiles": [],
       "modifiedFiles": [
-        "packages/designer/src/components/PropertyPanel/controlProperties.ts",
-        "packages/designer/src/components/PropertyPanel/editors/TextEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/NumberEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/ColorPicker.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/FontPicker.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/DropdownEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/BooleanToggle.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/AnchorEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/editors/CollectionEditor.tsx",
-        "packages/designer/src/components/PropertyPanel/PropertyCategory.tsx",
-        "packages/designer/src/components/PropertyPanel/EventsTab.tsx",
-        "packages/designer/src/components/PropertyPanel/PropertyPanel.tsx",
-        "packages/designer/src/components/EventEditor/EventEditor.tsx",
-        "packages/designer/src/App.tsx"
+        "packages/server/src/services/EventEngine.ts",
+        "packages/server/src/services/SandboxRunner.ts",
+        "packages/server/src/websocket/runtimeEvents.ts",
+        "packages/server/src/websocket/index.ts",
+        "packages/server/src/routes/runtime.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "properties-panel-test",
-      "title": "속성 패널 - 테스트",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-shell-events-test",
+      "title": "서버 Shell 이벤트 엔진 및 WebSocket - 테스트",
+      "description": "Shell 이벤트 처리 및 WebSocket 기능 테스트",
+      "phase": "phase2-server-events",
       "category": "testing",
-      "done": true,
-      "prompt": "속성 패널 컴포넌트를 테스트하라.\n\n1. packages/designer/src/__tests__/controlProperties.test.ts:\n   - 모든 ControlType에 CONTROL_PROPERTY_META 존재 확인\n   - Button 속성에 'text', 'enabled', 'backColor' 포함\n   - CONTROL_EVENTS_META['TextBox']에 'TextChanged' 포함\n\n2. packages/designer/src/__tests__/PropertyPanel.test.tsx:\n   - 선택 없을 때 폼 속성 표시\n   - Button 선택 시 Button 속성 표시\n   - 카테고리순/알파벳순 토글\n   - 속성 탭/이벤트 탭 전환\n\n3. packages/designer/src/__tests__/editors/NumberEditor.test.tsx:\n   - 숫자 변경 시 onChange 콜백\n   - min/max 제한 확인\n\n4. packages/designer/src/__tests__/editors/AnchorEditor.test.tsx:\n   - 'Top,Left' → Top, Left 체크박스만 체크\n   - Bottom 체크 시 onChange('Top,Left,Bottom') 호출\n\n실행: pnpm --filter @webform/designer test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
+      "done": false,
+      "prompt": "WebForm server Shell 이벤트 엔진 구현을 테스트하세요.\n\n## 테스트\n1. packages/server/src/__tests__/EventEngine.test.ts 확인 또는 신규 작성\n   packages/server/src/__tests__/shell-events.test.ts 작성:\n   - SandboxRunner ctx에 navigate, closeApp, appState 메서드 존재 확인\n   - navigate 호출 시 UIPatch({ type: 'navigate' }) 반환 확인\n   - closeApp 호출 시 UIPatch({ type: 'closeApp' }) 반환 확인\n   - appState 변경 시 UIPatch({ type: 'updateAppState' }) 반환 확인\n   - EventEngine.processShellEvent 메서드 존재 및 기본 동작 확인\n\n2. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/server typecheck`\n\n3. 테스트 실행:\n   `pnpm --filter @webform/server test`\n\n4. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
-        "properties-panel-impl"
+        "server-shell-events-impl"
       ],
       "outputFiles": [
-        "packages/designer/src/__tests__/controlProperties.test.ts",
-        "packages/designer/src/__tests__/PropertyPanel.test.tsx",
-        "packages/designer/src/__tests__/editors/NumberEditor.test.tsx",
-        "packages/designer/src/__tests__/editors/AnchorEditor.test.tsx"
+        "packages/server/src/__tests__/shell-events.test.ts"
       ],
       "modifiedFiles": [
-        "packages/designer/src/__tests__/controlProperties.test.ts",
-        "packages/designer/src/__tests__/PropertyPanel.test.tsx",
-        "packages/designer/src/__tests__/editors/NumberEditor.test.tsx",
-        "packages/designer/src/__tests__/editors/AnchorEditor.test.tsx"
+        "packages/server/src/__tests__/shell-events.test.ts",
+        "packages/server/src/services/EventEngine.ts",
+        "packages/server/src/services/SandboxRunner.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "properties-panel-commit",
-      "title": "속성 패널 - 커밋",
-      "description": null,
-      "phase": "phase2-core-designer",
+      "id": "server-shell-events-commit",
+      "title": "서버 Shell 이벤트 엔진 및 WebSocket - 커밋",
+      "description": "Shell 이벤트 엔진 구현 커밋",
+      "phase": "phase2-server-events",
       "category": "commit",
-      "done": true,
-      "prompt": "속성 패널 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(designer): WinForm 스타일 속성 패널 구현\n\n- 카테고리별 속성 표시/편집 (Appearance, Behavior, Layout, Design)\n- 8종 속성 에디터: 텍스트, 숫자, 색상, 폰트, 드롭다운, 불리언, Anchor, 컬렉션\n- 이벤트 탭 (컨트롤별 이벤트 목록, 핸들러 이름 입력)\n- Monaco Editor 기반 이벤트 코드 편집기 (TypeScript, FormContext 타입 힌트)\n- 카테고리순/알파벳순 정렬 토글",
+      "done": false,
+      "prompt": "Shell 이벤트 엔진 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/server/src/services/EventEngine.ts\n   - packages/server/src/services/SandboxRunner.ts\n   - packages/server/src/websocket/runtimeEvents.ts\n   - packages/server/src/websocket/index.ts\n   - packages/server/src/routes/runtime.ts\n   - packages/server/src/__tests__/shell-events.test.ts\n   - plans/server-shell-events-plan.md\n3. 커밋 메시지 (한국어): 'feat(server): Shell 이벤트 엔진 및 WebSocket per-project 지원 추가\\n\\n- SandboxRunner ctx에 navigate/navigateBack/closeApp/appState 주입\\n- EventEngine Shell 이벤트 처리 분기 추가\\n- WebSocket /ws/runtime/app/:projectId per-project 엔드포인트 추가\\n- RuntimeWsMessage scope 필드 지원'\n4. 커밋 확인",
       "dependsOn": [
-        "properties-panel-test"
+        "server-shell-events-test"
       ],
       "outputFiles": null,
-      "modifiedFiles": [],
+      "modifiedFiles": [
+        "packages/server/src/services/EventEngine.ts",
+        "packages/server/src/services/SandboxRunner.ts",
+        "packages/server/src/websocket/runtimeEvents.ts"
+      ],
       "subtasks": null
     },
     {
-      "id": "sdui-renderer-plan",
-      "title": "SDUI 런타임 렌더러 - 계획",
-      "description": null,
+      "id": "runtime-shell-store-plan",
+      "title": "Runtime Store Shell 상태 확장 - 계획",
+      "description": "runtimeStore에 shellDef, shellControlStates, appState, formHistory 추가 계획",
       "phase": "phase3-runtime",
       "category": "plan",
-      "done": true,
-      "prompt": "WebForm SDUI 런타임 렌더러 구현 계획을 수립하라. PRD.md 섹션 4.2.1~4.2.3을 분석하여 다음을 설계하라:\n\n## 핵심 컴포넌트\n1. SDUIRenderer: FormDefinition → React 컴포넌트 트리\n2. ControlRenderer: 재귀 렌더링 (children 지원)\n3. FormContainer: 폼 크기/색/폰트, WinForm 제목 표시줄 에뮬레이션\n\n## 레이아웃 유틸리티\n- computeLayoutStyle(def): position:absolute, left/top/width/height CSS\n- Anchor 계산 로직\n- Dock 계산 로직\n\n## 런타임 컨트롤 구현체 (packages/runtime/src/controls/)\n- 실제 동작하는 컨트롤 (클릭, 입력 등)\n- runtimeControlRegistry\n\n## 훅 설계\n- useDataBinding(controlId, bindings): 바인딩 값 (초기엔 stub)\n- useEventHandlers(controlId, events): 이벤트 핸들러 맵\n  * client 이벤트: Function 생성자로 로컬 실행\n  * server 이벤트: POST /api/runtime/forms/:id/events + UIPatch 적용\n\n## 폼 상태 관리\n- runtimeStore (Zustand): currentFormDef, controlStates, applyPatch\n\n## 서버 통신\n- apiClient.ts: postEvent, fetchForm\n- wsClient.ts: WebSocket 연결, UIPatch 수신\n- patchApplier.ts: UIPatch → runtimeStore 적용\n\n계획을 plans/sdui-renderer-plan.md에 작성하라.",
+      "done": false,
+      "prompt": "WebForm runtime 패키지의 runtimeStore를 Application Shell MDI 시스템을 위해 확장하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/runtime/src/stores/runtimeStore.ts — 전체 내용 파악\n- packages/runtime/src/communication/apiClient.ts — API 호출 패턴 파악\n- packages/runtime/src/communication/wsClient.ts — WebSocket 클라이언트 파악 (있다면)\n- packages/runtime/src/App.tsx — 앱 초기화 및 폼 로딩 방식 파악\n- packages/common/src/types/shell.ts — 방금 구현한 Shell 타입 확인\n\n## 구현해야 할 내용\n\n### packages/runtime/src/stores/runtimeStore.ts 확장\n기존 RuntimeState에 추가:\n```typescript\n// Shell 관련 상태\nshellDef: ApplicationShellDefinition | null;\nshellControlStates: Record<string, Record<string, unknown>>;\nappState: Record<string, unknown>;\nformHistory: Array<{ formId: string; params?: Record<string, unknown> }>;\nnavigateParams: Record<string, unknown>; // 현재 폼에 전달된 파라미터\n\n// Shell 관련 메서드\nsetShellDef(def: ApplicationShellDefinition | null): void;\nupdateShellControlState(controlId: string, property: string, value: unknown): void;\ngetShellControlState(controlId: string): Record<string, unknown>;\napplyShellPatches(patches: UIPatch[]): void;\nsetAppState(key: string, value: unknown): void;\npushFormHistory(formId: string, params?: Record<string, unknown>): void;\npopFormHistory(): { formId: string; params?: Record<string, unknown> } | null;\n```\n\n### packages/runtime/src/communication/apiClient.ts 확장\n- fetchApp(projectId: string, formId?: string): Promise<AppLoadResponse>\n- fetchShell(projectId: string): Promise<ApplicationShellDefinition | null>\n- postShellEvent(projectId: string, event: ShellEventRequest): Promise<EventResponse>\n\n### packages/runtime/src/communication/wsClient.ts 확장 (또는 신규)\n- per-project WebSocket: /ws/runtime/app/:projectId 연결\n- scope 필드 기반 메시지 라우팅 (shell/form)\n\n## 계획 작성\nplans/runtime-shell-store-plan.md 파일 작성:\n1. 현재 runtimeStore 상태 전체 목록\n2. 현재 apiClient 메서드 목록\n3. 확장할 상태/메서드의 정확한 코드 초안\n4. applyShellPatches 로직 설계 (updateShell/updateAppState/navigate/closeApp 처리)\n5. wsClient scope 기반 라우팅 설계",
       "dependsOn": [
-        "common-types-commit"
+        "server-runtime-api-commit",
+        "server-shell-events-commit"
       ],
       "outputFiles": [
-        "plans/sdui-renderer-plan.md"
+        "plans/runtime-shell-store-plan.md"
       ],
       "modifiedFiles": [
-        "plans/sdui-renderer-plan.md"
+        "plans/runtime-shell-store-plan.md"
       ],
       "subtasks": null
     },
     {
-      "id": "sdui-renderer-impl",
-      "title": "SDUI 런타임 렌더러 - 구현",
-      "description": null,
+      "id": "runtime-shell-store-impl",
+      "title": "Runtime Store Shell 상태 확장 - 구현",
+      "description": "runtimeStore Shell 상태 추가, apiClient Shell API 메서드 추가, wsClient 확장",
       "phase": "phase3-runtime",
       "category": "implementation",
-      "done": true,
-      "prompt": "plans/sdui-renderer-plan.md에 따라 SDUI 런타임 렌더러를 구현하라.\n\n1. packages/runtime/src/stores/runtimeStore.ts:\n   - currentFormDef: FormDefinition | null\n   - controlStates: Record<string, Record<string, any>>\n   - setFormDef, updateControlState, applyPatch(patch: UIPatch): void\n   - Zustand + immer\n\n2. packages/runtime/src/renderer/layoutUtils.ts:\n   - computeLayoutStyle(def: ControlDefinition): React.CSSProperties\n   - computeAnchorStyle(def, parentSize): CSSProperties\n   - computeDockStyle(dock: DockStyle): CSSProperties\n\n3. packages/runtime/src/renderer/FormContainer.tsx:\n   - 폼 width/height/backgroundColor/font 적용\n   - WinForm 제목 표시줄 (title, 최소화/최대화/닫기 버튼 에뮬레이션)\n\n4. packages/runtime/src/renderer/ControlRenderer.tsx:\n   - runtimeControlRegistry에서 컴포넌트 조회\n   - useDataBinding, useEventHandlers 적용\n   - computeLayoutStyle로 CSS 적용\n   - children 재귀 렌더링\n\n5. packages/runtime/src/renderer/SDUIRenderer.tsx:\n   - FormDefinition prop 받아 FormContainer + controls.map(ControlRenderer)\n   - useEffect로 Form.Load 이벤트 발생\n\n6. packages/runtime/src/controls/ (런타임 구현체):\n   - Button.tsx: onClick 이벤트 발생\n   - TextBox.tsx: 입력 상태 관리, onTextChanged\n   - Label.tsx: 텍스트 표시\n   - CheckBox.tsx: 체크 상태\n   - ComboBox.tsx: 선택 상태\n   - Panel.tsx, GroupBox.tsx, TabControl.tsx: 컨테이너\n   - registry.ts: runtimeControlRegistry\n\n7. packages/runtime/src/hooks/useEventHandlers.ts:\n   - client 이벤트: new Function(code)(args)\n   - server 이벤트: apiClient.postEvent → applyPatches\n\n8. packages/runtime/src/hooks/useDataBinding.ts:\n   - runtimeStore.controlStates에서 바인딩 값 반환 (stub)\n\n9. packages/runtime/src/communication/apiClient.ts:\n   - fetchForm(id): GET /api/runtime/forms/:id\n   - postEvent(formId, payload): POST /api/runtime/forms/:id/events\n\n10. packages/runtime/src/communication/wsClient.ts:\n    - WebSocket 연결, UIPatch 메시지 수신 → runtimeStore.applyPatch\n\n11. packages/runtime/src/App.tsx:\n    - URL 파라미터에서 formId 추출, fetchForm → SDUIRenderer\n\n12. packages/runtime/src/main.tsx: React 18 createRoot",
+      "done": false,
+      "prompt": "plans/runtime-shell-store-plan.md를 읽고 Runtime Store 및 통신 레이어를 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/runtime-shell-store-plan.md\n2. packages/runtime/src/stores/runtimeStore.ts\n3. packages/runtime/src/communication/apiClient.ts\n4. packages/runtime/src/communication/wsClient.ts (있다면)\n5. packages/common/src/types/shell.ts\n6. packages/common/src/types/protocol.ts\n\n## 구현 내용\n\n### packages/runtime/src/stores/runtimeStore.ts 수정\nZustand + Immer 패턴 유지하면서 확장:\n\n```typescript\n// 추가 상태\nshellDef: ApplicationShellDefinition | null = null;\nshellControlStates: Record<string, Record<string, unknown>> = {};\nappState: Record<string, unknown> = {};\nformHistory: Array<{ formId: string; params?: Record<string, unknown> }> = [];\nnavigateParams: Record<string, unknown> = {};\n\n// 추가 메서드 (기존 메서드 패턴 따라 구현)\nsetShellDef: (def: ApplicationShellDefinition | null) => void;\nupdateShellControlState: (controlId: string, property: string, value: unknown) => void;\ngetShellControlState: (controlId: string) => Record<string, unknown>;\napplyShellPatches: (patches: UIPatch[]) => void; // updateShell, updateAppState, navigate, closeApp 처리\nsetAppState: (key: string, value: unknown) => void;\npushFormHistory: (formId: string, params?: Record<string, unknown>) => void;\npopFormHistory: () => { formId: string; params?: Record<string, unknown> } | null;\n```\n\napplyShellPatches 로직:\n- 'updateShell': shellControlStates 업데이트\n- 'updateAppState': appState 업데이트\n- 'navigate': navigateRequest 설정 (기존 메커니즘 재사용)\n- 'closeApp': 앱 종료 처리 (window.close() 또는 특수 상태)\n- 기존 UIPatch 타입은 applyPatches로 위임\n\n### packages/runtime/src/communication/apiClient.ts 수정\n기존 함수 패턴 유지하면서 추가:\n```typescript\nexport async function fetchApp(projectId: string, formId?: string): Promise<AppLoadResponse>\nexport async function fetchShell(projectId: string): Promise<ApplicationShellDefinition | null>\nexport async function postShellEvent(projectId: string, event: ShellEventRequest): Promise<EventResponse>\n```\nAppLoadResponse 타입 로컬 정의 또는 common에서 임포트\n\n### packages/runtime/src/communication/wsClient.ts 수정 (있다면) 또는 신규\n- connectApp(projectId, onShellPatch, onFormPatch) 함수\n- scope: 'shell' | 'form' 기반 메시지 라우팅\n\n## 주의사항\n- 기존 상태/메서드 변경 금지\n- Immer draft 패턴 일관성 유지",
       "dependsOn": [
-        "sdui-renderer-plan"
+        "runtime-shell-store-plan"
       ],
-      "outputFiles": [
-        "packages/runtime/src/stores/runtimeStore.ts",
-        "packages/runtime/src/renderer/layoutUtils.ts",
-        "packages/runtime/src/renderer/FormContainer.tsx",
-        "packages/runtime/src/renderer/ControlRenderer.tsx",
-        "packages/runtime/src/renderer/SDUIRenderer.tsx",
-        "packages/runtime/src/controls/Button.tsx",
-        "packages/runtime/src/controls/TextBox.tsx",
-        "packages/runtime/src/controls/Label.tsx",
-        "packages/runtime/src/controls/CheckBox.tsx",
-        "packages/runtime/src/controls/ComboBox.tsx",
-        "packages/runtime/src/controls/Panel.tsx",
-        "packages/runtime/src/controls/GroupBox.tsx",
-        "packages/runtime/src/controls/TabControl.tsx",
-        "packages/runtime/src/controls/registry.ts",
-        "packages/runtime/src/hooks/useEventHandlers.ts",
-        "packages/runtime/src/hooks/useDataBinding.ts",
-        "packages/runtime/src/communication/apiClient.ts",
-        "packages/runtime/src/communication/wsClient.ts",
-        "packages/runtime/src/App.tsx",
-        "packages/runtime/src/main.tsx"
-      ],
+      "outputFiles": [],
       "modifiedFiles": [
         "packages/runtime/src/stores/runtimeStore.ts",
-        "packages/runtime/src/renderer/layoutUtils.ts",
-        "packages/runtime/src/renderer/FormContainer.tsx",
-        "packages/runtime/src/renderer/ControlRenderer.tsx",
-        "packages/runtime/src/renderer/SDUIRenderer.tsx",
-        "packages/runtime/src/controls/Button.tsx",
-        "packages/runtime/src/controls/TextBox.tsx",
-        "packages/runtime/src/controls/Label.tsx",
-        "packages/runtime/src/controls/CheckBox.tsx",
-        "packages/runtime/src/controls/ComboBox.tsx",
-        "packages/runtime/src/controls/Panel.tsx",
-        "packages/runtime/src/controls/GroupBox.tsx",
-        "packages/runtime/src/controls/TabControl.tsx",
-        "packages/runtime/src/controls/registry.ts",
-        "packages/runtime/src/hooks/useEventHandlers.ts",
-        "packages/runtime/src/hooks/useDataBinding.ts",
         "packages/runtime/src/communication/apiClient.ts",
-        "packages/runtime/src/communication/wsClient.ts",
-        "packages/runtime/src/App.tsx",
-        "packages/runtime/src/main.tsx"
+        "packages/runtime/src/communication/wsClient.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "sdui-renderer-test",
-      "title": "SDUI 런타임 렌더러 - 테스트",
-      "description": null,
+      "id": "runtime-shell-store-test",
+      "title": "Runtime Store Shell 상태 확장 - 테스트",
+      "description": "runtimeStore Shell 상태 및 API 클라이언트 테스트",
       "phase": "phase3-runtime",
       "category": "testing",
-      "done": true,
-      "prompt": "SDUI 런타임 렌더러를 테스트하라.\n\n1. packages/runtime/src/__tests__/runtimeStore.test.ts:\n   - setFormDef: currentFormDef 설정 확인\n   - updateControlState: 특정 컨트롤 속성 업데이트\n   - applyPatch: updateProperty 패치 적용 확인\n   - applyPatch: addControl 패치 처리\n\n2. packages/runtime/src/__tests__/layoutUtils.test.ts:\n   - computeLayoutStyle: position/size → CSS 변환\n   - computeDockStyle('Fill') → { position: 'absolute', top:0, left:0, right:0, bottom:0 }\n\n3. packages/runtime/src/__tests__/SDUIRenderer.test.tsx:\n   - Button + Label FormDefinition 렌더링 후 컴포넌트 존재 확인\n   - 중첩 Panel + 자식 컨트롤 렌더링\n   - FormContainer 크기/색 적용 확인\n\n4. packages/runtime/src/__tests__/useEventHandlers.test.ts:\n   - client 이벤트: apiClient 호출 없이 로컬 실행\n   - server 이벤트: apiClient.postEvent 호출 확인 (mock)\n\n5. packages/runtime/src/__tests__/apiClient.test.ts:\n   - fetchForm: GET 요청 확인\n   - postEvent: POST 요청 형식, UIPatch 응답 처리\n\n실행: pnpm --filter @webform/runtime test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
+      "done": false,
+      "prompt": "WebForm runtime Shell Store 구현을 테스트하세요.\n\n## 테스트\n1. packages/runtime/src/__tests__/ 디렉토리 확인\n2. packages/runtime/src/__tests__/runtimeStore-shell.test.ts 작성:\n   - setShellDef 동작 확인\n   - updateShellControlState 동작 확인\n   - applyShellPatches (updateShell, updateAppState, navigate 타입) 동작 확인\n   - pushFormHistory / popFormHistory 스택 동작 확인\n   - appState 업데이트 확인\n\n3. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/runtime typecheck`\n\n4. 테스트 실행:\n   `pnpm --filter @webform/runtime test`\n\n5. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
-        "sdui-renderer-impl"
+        "runtime-shell-store-impl"
       ],
       "outputFiles": [
-        "packages/runtime/src/__tests__/runtimeStore.test.ts",
-        "packages/runtime/src/__tests__/layoutUtils.test.ts",
-        "packages/runtime/src/__tests__/SDUIRenderer.test.tsx",
-        "packages/runtime/src/__tests__/useEventHandlers.test.ts",
-        "packages/runtime/src/__tests__/apiClient.test.ts"
+        "packages/runtime/src/__tests__/runtimeStore-shell.test.ts"
       ],
       "modifiedFiles": [
-        "packages/runtime/src/__tests__/runtimeStore.test.ts",
-        "packages/runtime/src/__tests__/layoutUtils.test.ts",
-        "packages/runtime/src/__tests__/SDUIRenderer.test.tsx",
-        "packages/runtime/src/__tests__/useEventHandlers.test.ts",
-        "packages/runtime/src/__tests__/apiClient.test.ts"
+        "packages/runtime/src/__tests__/runtimeStore-shell.test.ts",
+        "packages/runtime/src/stores/runtimeStore.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "sdui-renderer-commit",
-      "title": "SDUI 런타임 렌더러 - 커밋",
-      "description": null,
+      "id": "runtime-shell-store-commit",
+      "title": "Runtime Store Shell 상태 확장 - 커밋",
+      "description": "Runtime Store 확장 커밋",
       "phase": "phase3-runtime",
       "category": "commit",
-      "done": true,
-      "prompt": "SDUI 런타임 렌더러 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(runtime): SDUI 런타임 렌더러 구현\n\n- FormDefinition JSON → React 컴포넌트 트리 변환\n- 런타임 컨트롤: Button, TextBox, Label, CheckBox, ComboBox, Panel, GroupBox, TabControl\n- Anchor/Dock 레이아웃 계산 유틸리티\n- Client/Server 이벤트 처리 분기\n- UIPatch 기반 폼 상태 업데이트 (runtimeStore)\n- REST API 이벤트 전송 + WebSocket 실시간 통신",
+      "done": false,
+      "prompt": "Runtime Store Shell 확장 작업을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/runtime/src/stores/runtimeStore.ts\n   - packages/runtime/src/communication/apiClient.ts\n   - packages/runtime/src/communication/wsClient.ts\n   - packages/runtime/src/__tests__/runtimeStore-shell.test.ts\n   - plans/runtime-shell-store-plan.md\n3. 커밋 메시지 (한국어): 'feat(runtime): Runtime Store Shell MDI 상태 확장\\n\\n- shellDef/shellControlStates/appState/formHistory 상태 추가\\n- applyShellPatches 메서드 구현\\n- apiClient에 fetchApp/fetchShell/postShellEvent 추가\\n- WebSocket per-project 연결 지원'\n4. 커밋 확인",
       "dependsOn": [
-        "sdui-renderer-test"
+        "runtime-shell-store-test"
       ],
       "outputFiles": null,
-      "modifiedFiles": [],
+      "modifiedFiles": [
+        "packages/runtime/src/stores/runtimeStore.ts",
+        "packages/runtime/src/communication/apiClient.ts"
+      ],
       "subtasks": null
     },
     {
-      "id": "event-engine-plan",
-      "title": "서버 이벤트 엔진 - 계획",
-      "description": null,
+      "id": "runtime-shell-ui-plan",
+      "title": "Runtime Shell UI 렌더링 및 앱 로딩 - 계획",
+      "description": "AppContainer, ShellRenderer 컴포넌트 및 앱 로딩 플로우 변경 계획",
       "phase": "phase3-runtime",
       "category": "plan",
-      "done": true,
-      "prompt": "WebForm 서버 사이드 이벤트 엔진 구현 계획을 수립하라. PRD.md 섹션 4.1.5와 5.2(보안)를 분석하여 다음을 설계하라:\n\n## 핵심 요구사항\n1. 이벤트 핸들러 TypeScript/JS 코드를 샌드박스 내 실행\n2. isolated-vm 사용: 타임아웃 5초, 메모리 128MB\n3. FormContext 객체 제공 (controls, dataSources, showDialog, navigate)\n4. 컨트롤 속성 변경 추적 → UIPatch 배열 생성\n\n## FormContext API\n```typescript\ninterface FormContext {\n  controls: Record<string, ControlProxy>; // 속성 get/set Proxy\n  dataSources: Record<string, DataSourceProxy>;\n  showDialog(formId: string, params: any): Promise<DialogResult>;\n  navigate(formId: string, params: any): void;\n}\n```\n\n## 이벤트 실행 흐름\n1. POST /api/runtime/forms/:id/events 수신\n2. EventEngine: 핸들러 코드 + FormContext 샌드박스 실행\n3. ControlProxy로 변경사항 추적\n4. 변경사항 → UIPatch[] 변환 후 응답\n\n## 보안\n- 허용 모듈 화이트리스트\n- process, require, eval 접근 차단\n- sanitizeQueryInput 적용\n\n## API\n- POST /api/runtime/forms/:id/events\n- POST /api/runtime/forms/:id/data\n- GET /api/runtime/forms/:id (published 폼만)\n\n## WebSocket\n- runtimeEvents.ts: WS 이벤트 → EventEngine → UIPatch 전송\n- designerSync.ts: 디자이너 실시간 동기화\n\n계획을 plans/event-engine-plan.md에 작성하라.",
+      "done": false,
+      "prompt": "WebForm runtime 패키지에 Shell UI 렌더링 컴포넌트와 앱 로딩 플로우를 구현하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/runtime/src/App.tsx — 현재 앱 초기화, 폼 로딩, URL 파라미터 처리 방식\n- packages/runtime/src/renderer/SDUIRenderer.tsx — SDUIRenderer 컴포넌트 구조\n- packages/runtime/src/controls/registry.ts — 컨트롤 레지스트리\n- packages/runtime/src/stores/runtimeStore.ts — 방금 구현한 Shell 상태 확인\n\n## 구현해야 할 내용\n\n### 신규: packages/runtime/src/renderer/AppContainer.tsx\n- 최상위 앱 컨테이너\n- projectId가 있으면 fetchApp()으로 Shell + startForm 로드\n- formId만 있으면 기존 방식으로 동작 (하위 호환)\n- Shell 있으면 ShellRenderer 사용, 없으면 기존 FormContainer 사용\n\n### 신규: packages/runtime/src/renderer/ShellRenderer.tsx\n```\n<ShellRenderer shell={shellDef}>\n  <ShellDockTop>  → MenuStrip, ToolStrip (dock: Top 컨트롤들)\n  <FormArea>      → 교체 가능한 폼 영역\n  <ShellDockBottom> → StatusStrip (dock: Bottom 컨트롤들)\n</ShellRenderer>\n```\n- Shell 컨트롤을 dock 위치에 따라 배치\n- FormArea에 현재 폼 SDUIRenderer 렌더링\n- Shell 컨트롤 이벤트 → postShellEvent API 호출\n\n### packages/runtime/src/App.tsx 수정\n- URL 파라미터 처리 변경:\n  - ?projectId=xxx → AppContainer (Shell 모드)\n  - ?formId=xxx → 기존 방식 (하위 호환)\n- Shell 폼 전환: navigateRequest 처리 시 Shell 모드에서 FormArea만 교체\n\n### packages/runtime/src/renderer/SDUIRenderer.tsx 수정 (최소)\n- Shell 모드와 독립 모드 공통으로 동작하도록 (변경 최소화)\n\n## 계획 작성\nplans/runtime-shell-ui-plan.md 파일 작성:\n1. 현재 App.tsx URL 파라미터 처리 및 폼 로딩 코드 분석\n2. AppContainer 컴포넌트 전체 코드 초안\n3. ShellRenderer 컴포넌트 전체 코드 초안\n4. App.tsx 변경 diff 초안\n5. 폼 전환 시 Shell 유지 로직 설계\n6. Shell 컨트롤 이벤트 처리 흐름",
       "dependsOn": [
-        "server-foundation-commit",
+        "runtime-shell-store-commit"
+      ],
+      "outputFiles": [
+        "plans/runtime-shell-ui-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/runtime-shell-ui-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "runtime-shell-ui-impl",
+      "title": "Runtime Shell UI 렌더링 및 앱 로딩 - 구현",
+      "description": "AppContainer, ShellRenderer 컴포넌트 구현 및 App.tsx 앱 로딩 플로우 변경",
+      "phase": "phase3-runtime",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/runtime-shell-ui-plan.md를 읽고 Runtime Shell UI를 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/runtime-shell-ui-plan.md\n2. packages/runtime/src/App.tsx\n3. packages/runtime/src/renderer/SDUIRenderer.tsx\n4. packages/runtime/src/controls/registry.ts\n5. packages/runtime/src/stores/runtimeStore.ts\n6. packages/common/src/types/shell.ts\n\n## 구현 내용\n\n### packages/runtime/src/renderer/AppContainer.tsx (새 파일)\n```typescript\nimport { useEffect, useState } from 'react';\nimport { fetchApp } from '../communication/apiClient';\nimport { useRuntimeStore } from '../stores/runtimeStore';\nimport { ShellRenderer } from './ShellRenderer';\nimport { FormContainer } from './FormContainer'; // 기존 컴포넌트\n\ninterface Props {\n  projectId?: string;\n  formId?: string;\n}\n\nexport function AppContainer({ projectId, formId }: Props) {\n  const { shellDef, setShellDef, currentFormDef, setFormDef } = useRuntimeStore();\n  \n  useEffect(() => {\n    if (projectId) {\n      fetchApp(projectId, formId).then(({ shell, startForm }) => {\n        setShellDef(shell);\n        setFormDef(startForm);\n      });\n    }\n  }, [projectId]);\n  \n  if (shellDef) return <ShellRenderer shell={shellDef} />;\n  return <FormContainer />; // 기존 방식\n}\n```\n\n### packages/runtime/src/renderer/ShellRenderer.tsx (새 파일)\n- shell.controls를 dock 위치별로 분류\n- Top dock 컨트롤들 → ShellDockTop에 렌더링 (SDUIRenderer 재사용)\n- Bottom dock 컨트롤들 → ShellDockBottom에 렌더링\n- 가운데 FormArea에 현재 폼 렌더링 (currentFormDef 사용)\n- Shell 컨트롤 이벤트 처리: 기존 이벤트 핸들러와 유사하게 구현\n  (postShellEvent 호출 → applyShellPatches)\n- CSS 레이아웃: flexbox column, top/bottom dock 고정, FormArea flex-grow\n\n### packages/runtime/src/App.tsx 수정\n- URL 파라미터 파싱:\n  ```typescript\n  const searchParams = new URLSearchParams(window.location.search);\n  const projectId = searchParams.get('projectId');\n  const formId = searchParams.get('formId');\n  ```\n- projectId 있으면 AppContainer 렌더링\n- formId만 있으면 기존 방식 유지\n\n## 주의사항\n- 기존 ?formId=xxx 동작 완전히 유지\n- Shell 없는 ?projectId=xxx 케이스도 처리\n- React 컴포넌트 키 관리 (폼 전환 시 리마운트 방지)",
+      "dependsOn": [
+        "runtime-shell-ui-plan"
+      ],
+      "outputFiles": [
+        "packages/runtime/src/renderer/AppContainer.tsx",
+        "packages/runtime/src/renderer/ShellRenderer.tsx"
+      ],
+      "modifiedFiles": [
+        "packages/runtime/src/renderer/AppContainer.tsx",
+        "packages/runtime/src/renderer/ShellRenderer.tsx",
+        "packages/runtime/src/App.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "runtime-shell-ui-test",
+      "title": "Runtime Shell UI 렌더링 및 앱 로딩 - 테스트",
+      "description": "AppContainer, ShellRenderer 컴포넌트 테스트",
+      "phase": "phase3-runtime",
+      "category": "testing",
+      "done": false,
+      "prompt": "WebForm Runtime Shell UI 구현을 테스트하세요.\n\n## 테스트\n1. packages/runtime/src/__tests__/ 디렉토리 확인\n2. packages/runtime/src/__tests__/ShellRenderer.test.tsx 작성:\n   - Shell 정의로 ShellRenderer 렌더링 확인\n   - dock Top 컨트롤이 상단에 렌더링되는지 확인\n   - dock Bottom 컨트롤이 하단에 렌더링되는지 확인\n   - FormArea에 폼이 렌더링되는지 확인\n\n3. packages/runtime/src/__tests__/AppContainer.test.tsx 작성:\n   - projectId prop으로 fetchApp 호출 확인\n   - Shell 있을 때 ShellRenderer 렌더링 확인\n   - Shell 없을 때 기존 FormContainer 렌더링 확인\n\n4. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/runtime typecheck`\n\n5. 테스트 실행:\n   `pnpm --filter @webform/runtime test`\n\n6. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
+      "dependsOn": [
+        "runtime-shell-ui-impl"
+      ],
+      "outputFiles": [
+        "packages/runtime/src/__tests__/ShellRenderer.test.tsx",
+        "packages/runtime/src/__tests__/AppContainer.test.tsx"
+      ],
+      "modifiedFiles": [
+        "packages/runtime/src/__tests__/ShellRenderer.test.tsx",
+        "packages/runtime/src/__tests__/AppContainer.test.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "runtime-shell-ui-commit",
+      "title": "Runtime Shell UI 렌더링 및 앱 로딩 - 커밋",
+      "description": "Runtime Shell UI 구현 커밋",
+      "phase": "phase3-runtime",
+      "category": "commit",
+      "done": false,
+      "prompt": "Runtime Shell UI 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/runtime/src/renderer/AppContainer.tsx\n   - packages/runtime/src/renderer/ShellRenderer.tsx\n   - packages/runtime/src/App.tsx\n   - packages/runtime/src/__tests__/ShellRenderer.test.tsx\n   - packages/runtime/src/__tests__/AppContainer.test.tsx\n   - plans/runtime-shell-ui-plan.md\n3. 커밋 메시지 (한국어): 'feat(runtime): Shell MDI UI 렌더링 컴포넌트 구현\\n\\n- AppContainer 앱 수준 컨테이너 추가 (?projectId 라우팅)\\n- ShellRenderer dock 기반 Shell 컨트롤 렌더링 구현\\n- FormArea 폼 교체 영역 구현\\n- 기존 ?formId 방식 하위 호환 유지'\n4. 커밋 확인",
+      "dependsOn": [
+        "runtime-shell-ui-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/runtime/src/renderer/AppContainer.tsx",
+        "packages/runtime/src/renderer/ShellRenderer.tsx",
+        "packages/runtime/src/App.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-core-plan",
+      "title": "Designer Shell 핵심 기능 (Store/ProjectExplorer) - 계획",
+      "description": "designerStore Shell 편집 모드 확장 및 ProjectExplorer Shell 노드 계획",
+      "phase": "phase4-designer",
+      "category": "plan",
+      "done": false,
+      "prompt": "WebForm designer 패키지에 Application Shell 편집 모드를 추가하는 계획을 수립하세요.\n이 작업은 server-shell-backend 태스크와 병렬로 실행될 수 있습니다 (designer 패키지만 수정).\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/designer/src/stores/designerStore.ts — 현재 상태/메서드 전체 파악\n- packages/designer/src/App.tsx — 앱 구조 및 현재 편집 모드 파악\n- packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx — 현재 프로젝트 탐색기 구조\n- packages/common/src/types/shell.ts — Shell 타입 확인\n\n## 구현해야 할 내용\n\n### packages/designer/src/stores/designerStore.ts 확장\n기존 상태 유지하면서 추가:\n```typescript\n// Shell 관련 추가 상태\neditMode: 'form' | 'shell'; // 기본값: 'form'\nshellControls: ControlDefinition[];\nshellProperties: ShellProperties;\ncurrentShellId: string | null;\n\n// Shell 관련 메서드\nsetEditMode(mode: 'form' | 'shell'): void;\nloadShell(shellDef: ApplicationShellDefinition): void;\naddShellControl(control: ControlDefinition): void;\nupdateShellControl(id: string, changes: Partial<ControlDefinition>): void;\nsetShellProperties(props: Partial<ShellProperties>): void;\ngetShellDefinition(): ApplicationShellDefinition;\n```\n\n### packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx 수정\n- Shell 노드 추가: '\uD83D\uDDA5️ Application Shell' 항목\n- 더블클릭 시 Shell 편집 모드로 전환 (setEditMode('shell'))\n- 폼 더블클릭 시 폼 편집 모드로 전환 (setEditMode('form'))\n- 현재 편집 중인 항목 시각적 표시\n- Shell이 없을 때 Shell 생성 버튼 또는 클릭 시 생성 플로우\n\n### packages/designer/src/App.tsx 수정\n- editMode를 designerStore에서 읽어 캔버스/속성 패널 분기\n- Shell 편집 모드 시 ShellCanvas 컴포넌트 렌더링 (다음 태스크에서 구현)\n- 폼 편집 모드 시 기존 DesignerCanvas 컴포넌트 유지\n\n## 계획 작성\nplans/designer-shell-core-plan.md 파일 작성:\n1. 현재 designerStore 상태/메서드 전체 목록\n2. 현재 ProjectExplorer 구조 분석\n3. 현재 App.tsx 구조 분석\n4. designerStore 확장 코드 초안 (추가될 부분만)\n5. ProjectExplorer Shell 노드 추가 코드 초안\n6. App.tsx editMode 분기 로직 초안\n7. 기존 폼 편집 기능에 영향 없음을 보장하는 방법",
+      "dependsOn": [
         "common-types-commit"
       ],
       "outputFiles": [
-        "plans/event-engine-plan.md"
+        "plans/designer-shell-core-plan.md"
       ],
       "modifiedFiles": [
-        "plans/event-engine-plan.md"
+        "plans/designer-shell-core-plan.md"
       ],
       "subtasks": null
     },
     {
-      "id": "event-engine-impl",
-      "title": "서버 이벤트 엔진 - 구현",
-      "description": null,
-      "phase": "phase3-runtime",
+      "id": "designer-shell-core-impl",
+      "title": "Designer Shell 핵심 기능 (Store/ProjectExplorer) - 구현",
+      "description": "designerStore Shell 편집 모드 확장, ProjectExplorer Shell 노드 추가",
+      "phase": "phase4-designer",
       "category": "implementation",
-      "done": true,
-      "prompt": "plans/event-engine-plan.md에 따라 서버 이벤트 엔진을 구현하라.\n\n1. packages/server/src/services/SandboxRunner.ts:\n   - isolated-vm 사용\n   - runCode(code: string, context: Record<string, any>, options?: { timeout?: number; memoryLimit?: number }): Promise<any>\n   - 기본값: timeout 5000ms, memoryLimit 128MB\n   - process, require, eval, __dirname 등 차단\n\n2. packages/server/src/services/ControlProxy.ts:\n   - createControlProxy(controlId, initialState, patchCollector): ControlProxy\n   - set 트랩: 변경 시 patchCollector에 { type:'updateProperty', target:controlId, payload:{[prop]:value} } 추가\n   - get 트랩: 현재 상태 반환\n\n3. packages/server/src/services/EventEngine.ts:\n   - executeEvent(formId: string, payload: EventRequest, formDef: FormDefinition): Promise<UIPatch[]>\n   - FormContext 객체 생성 (controls Proxy 맵, dataSources)\n   - SandboxRunner.runCode 호출\n   - 실행 결과 UIPatch[] 반환\n   - 에러 시 { patches: [], error: message } 반환\n\n4. packages/server/src/routes/runtime.ts (전체 구현):\n   - GET /api/runtime/forms/:id: published 폼만 반환\n   - POST /api/runtime/forms/:id/events: EventEngine.executeEvent\n   - POST /api/runtime/forms/:id/data: DataSourceService.executeQuery (stub)\n\n5. packages/server/src/websocket/runtimeEvents.ts:\n   - WebSocket 메시지 파싱 → EventEngine 실행\n   - UIPatch 결과를 해당 WebSocket 클라이언트에 전송\n\n6. packages/server/src/websocket/designerSync.ts:\n   - 디자이너 동기화: 폼 정의 변경 브로드캐스트\n   - 연결된 디자이너 클라이언트 관리",
+      "done": false,
+      "prompt": "plans/designer-shell-core-plan.md를 읽고 Designer Shell 핵심 기능을 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/designer-shell-core-plan.md\n2. packages/designer/src/stores/designerStore.ts\n3. packages/designer/src/App.tsx\n4. packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx\n5. packages/common/src/types/shell.ts\n\n## 구현 내용\n\n### packages/designer/src/stores/designerStore.ts 수정\nImmer + Zustand 기존 패턴 따라 추가:\n\n```typescript\n// 상태 추가\neditMode: 'form' | 'shell' = 'form';\nshellControls: ControlDefinition[] = [];\nshellProperties: ShellProperties = {\n  title: 'Application',\n  width: 1200,\n  height: 800,\n  backgroundColor: '#f0f0f0',\n  font: { family: 'Segoe UI', size: 9, bold: false, italic: false },\n  showTitleBar: true,\n  formBorderStyle: 'Sizable',\n  maximizeBox: true,\n  minimizeBox: true,\n};\ncurrentShellId: string | null = null;\n\n// 메서드 추가\nsetEditMode: (mode: 'form' | 'shell') => set(draft => { draft.editMode = mode; }),\nloadShell: (shellDef: ApplicationShellDefinition) => set(draft => {\n  draft.shellControls = shellDef.controls;\n  draft.shellProperties = shellDef.properties;\n  draft.currentShellId = shellDef.id;\n  draft.editMode = 'shell';\n}),\naddShellControl: (control: ControlDefinition) => set(draft => { draft.shellControls.push(control); }),\nupdateShellControl: (id: string, changes: Partial<ControlDefinition>) => ...,\nsetShellProperties: (props: Partial<ShellProperties>) => ...,\ngetShellDefinition: () => ..., // get() 패턴으로 현재 Shell 상태 반환\n```\n\n### packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx 수정\n- Shell 노드를 폼 목록 상단에 추가\n- '\uD83D\uDDA5️ Application Shell' 텍스트\n- 클릭/더블클릭 → store.setEditMode('shell'), shell 로드 또는 생성 플로우\n- 현재 editMode에 따라 활성 항목 시각적 강조\n- 기존 폼 노드는 변경 없이 유지\n\n### packages/designer/src/App.tsx 수정\n- designerStore에서 editMode 읽기\n- editMode === 'shell' 일 때: ShellCanvas 플레이스홀더 렌더링 (다음 태스크)\n  일단 `<div>Shell 편집 모드 (구현 예정)</div>` 로 placeholder\n- editMode === 'form' 일 때: 기존 DesignerCanvas 렌더링 (기존 코드 그대로)\n\n## 주의사항\n- 기존 폼 편집 기능 변경 금지\n- TypeScript strict 모드\n- Zustand Immer 패턴 일관성",
       "dependsOn": [
-        "event-engine-plan"
+        "designer-shell-core-plan"
       ],
-      "outputFiles": [
-        "packages/server/src/services/SandboxRunner.ts",
-        "packages/server/src/services/ControlProxy.ts",
-        "packages/server/src/services/EventEngine.ts",
-        "packages/server/src/routes/runtime.ts",
-        "packages/server/src/websocket/runtimeEvents.ts",
-        "packages/server/src/websocket/designerSync.ts"
-      ],
+      "outputFiles": [],
       "modifiedFiles": [
-        "packages/server/src/services/SandboxRunner.ts",
-        "packages/server/src/services/ControlProxy.ts",
-        "packages/server/src/services/EventEngine.ts",
-        "packages/server/src/routes/runtime.ts",
-        "packages/server/src/websocket/runtimeEvents.ts",
-        "packages/server/src/websocket/designerSync.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "event-engine-test",
-      "title": "서버 이벤트 엔진 - 테스트",
-      "description": null,
-      "phase": "phase3-runtime",
-      "category": "testing",
-      "done": true,
-      "prompt": "서버 이벤트 엔진을 테스트하라.\n\n1. packages/server/src/__tests__/SandboxRunner.test.ts:\n   - 단순 연산 실행: runCode('return 1 + 1', {}) === 2\n   - 타임아웃 동작: 무한 루프 → TimeoutError (timeout: 100ms)\n   - 위험 코드 차단: process.exit() 접근 → 에러\n   - 컨텍스트 전달: runCode('return ctx.value', { ctx: { value: 42 } }) === 42\n\n2. packages/server/src/__tests__/ControlProxy.test.ts:\n   - 속성 set 시 UIPatch 기록 확인\n   - 여러 속성 set 시 복수 UIPatch 생성\n   - get 시 현재 값 반환 확인\n\n3. packages/server/src/__tests__/EventEngine.test.ts:\n   - 핸들러: ctx.controls.lblStatus.text = '클릭됨'\n   - 반환값: [{ type:'updateProperty', target:'lblStatus', payload:{ text:'클릭됨' } }]\n   - 여러 컨트롤 동시 업데이트\n   - 에러 코드 실행 시 error 필드 있는 응답\n\n4. packages/server/src/__tests__/runtime.integration.test.ts:\n   - POST /api/runtime/forms/:id/events: UIPatch 배열 응답\n   - GET /api/runtime/forms/:id: published 폼만, draft 폼 → 404\n\n실행: pnpm --filter @webform/server test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
-      "dependsOn": [
-        "event-engine-impl"
-      ],
-      "outputFiles": [
-        "packages/server/src/__tests__/SandboxRunner.test.ts",
-        "packages/server/src/__tests__/ControlProxy.test.ts",
-        "packages/server/src/__tests__/EventEngine.test.ts",
-        "packages/server/src/__tests__/runtime.integration.test.ts"
-      ],
-      "modifiedFiles": [
-        "packages/server/src/__tests__/SandboxRunner.test.ts",
-        "packages/server/src/__tests__/ControlProxy.test.ts",
-        "packages/server/src/__tests__/EventEngine.test.ts",
-        "packages/server/src/__tests__/runtime.integration.test.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "event-engine-commit",
-      "title": "서버 이벤트 엔진 - 커밋",
-      "description": null,
-      "phase": "phase3-runtime",
-      "category": "commit",
-      "done": true,
-      "prompt": "서버 이벤트 엔진 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(server): 샌드박스 기반 서버 이벤트 엔진 구현\n\n- isolated-vm 샌드박스 내 이벤트 핸들러 코드 실행\n- 타임아웃(5s), 메모리(128MB) 리소스 제한\n- ControlProxy: 속성 변경 추적 → UIPatch 자동 생성\n- FormContext (controls, dataSources) 제공\n- POST /api/runtime/forms/:id/events 엔드포인트\n- WebSocket 실시간 이벤트 처리 (runtimeEvents, designerSync)",
-      "dependsOn": [
-        "event-engine-test"
-      ],
-      "outputFiles": null,
-      "modifiedFiles": [],
-      "subtasks": null
-    },
-    {
-      "id": "datasource-service-plan",
-      "title": "데이터소스 서비스 - 계획",
-      "description": null,
-      "phase": "phase4-data",
-      "category": "plan",
-      "done": true,
-      "prompt": "WebForm 데이터소스 서비스 구현 계획을 수립하라. PRD.md 섹션 4.1.6(데이터소스 설정)과 5.2(보안)를 분석하여 다음을 계획하라:\n\n## 지원 데이터소스 타입\n1. MongoDB: native driver 또는 mongoose\n2. REST API: axios 기반\n3. Static: 정적 배열\n\n## API 엔드포인트\n- GET /api/datasources: 목록 (config 암호화 정보 제외)\n- POST /api/datasources: 생성 (connectionString AES-256 암호화)\n- PUT /api/datasources/:id: 수정\n- DELETE /api/datasources/:id: 삭제\n- POST /api/datasources/:id/test: 연결 테스트\n- POST /api/datasources/:id/query: 쿼리 실행\n\n## 보안 설계\n- connectionString: AES-256-CBC 암호화 (Node.js crypto, ENCRYPTION_KEY env)\n- 쿼리 입력: sanitizeQueryInput 적용\n- $where, $function, $accumulator 연산자 차단\n- 쿼리 타임아웃 (기본 10초)\n\n## DataSourceService 메서드\ncreateDataSource, getDataSource(복호화), listDataSources(암호화 제외), updateDataSource, deleteDataSource, testConnection, executeQuery\n\n## 어댑터 패턴\n- MongoDBAdapter, RestApiAdapter, StaticAdapter\n\n계획을 plans/datasource-service-plan.md에 작성하라.",
-      "dependsOn": [
-        "server-foundation-commit",
-        "common-types-commit"
-      ],
-      "outputFiles": [
-        "plans/datasource-service-plan.md"
-      ],
-      "modifiedFiles": [
-        "plans/datasource-service-plan.md"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "datasource-service-impl",
-      "title": "데이터소스 서비스 - 구현",
-      "description": null,
-      "phase": "phase4-data",
-      "category": "implementation",
-      "done": true,
-      "prompt": "plans/datasource-service-plan.md에 따라 데이터소스 서비스를 구현하라.\n\n1. packages/server/src/models/DataSource.ts:\n   - DataSourceDocument 인터페이스 (DataSourceDefinition 확장)\n   - encryptedConfig 필드 (암호화된 config 저장)\n   - Mongoose 스키마\n\n2. packages/server/src/services/EncryptionService.ts:\n   - AES-256-CBC 암호화/복호화 (Node.js crypto)\n   - encrypt(text: string): string (iv:encrypted 형식)\n   - decrypt(encrypted: string): string\n   - ENCRYPTION_KEY 환경 변수 사용 (32바이트)\n\n3. packages/server/src/services/adapters/MongoDBAdapter.ts:\n   - connect(config: DatabaseConfig): MongoClient\n   - executeQuery(client, { collection, filter, sort, projection, limit }): any[]\n   - sanitizeFilter(filter): 위험 연산자 제거\n   - testConnection(config): boolean\n\n4. packages/server/src/services/adapters/RestApiAdapter.ts:\n   - executeQuery(config: RestApiConfig, queryParams): any\n   - 헤더, Bearer/Basic 인증 처리\n   - testConnection(config): boolean\n\n5. packages/server/src/services/adapters/StaticAdapter.ts:\n   - executeQuery(config: StaticConfig, filter?): any[]\n   - testConnection(config): boolean (항상 true)\n\n6. packages/server/src/services/DataSourceService.ts:\n   - createDataSource: config 암호화 후 저장\n   - getDataSource: 조회 + config 복호화\n   - listDataSources: config 제외한 목록\n   - testConnection, executeQuery: 어댑터 위임\n\n7. packages/server/src/routes/datasources.ts (전체 구현):\n   - 모든 CRUD + test + query 엔드포인트\n\n8. packages/server/src/validators/datasourceValidator.ts:\n   - Zod 스키마 (createDatasourceSchema, querySchema)",
-      "dependsOn": [
-        "datasource-service-plan"
-      ],
-      "outputFiles": [
-        "packages/server/src/models/DataSource.ts",
-        "packages/server/src/services/EncryptionService.ts",
-        "packages/server/src/services/adapters/MongoDBAdapter.ts",
-        "packages/server/src/services/adapters/RestApiAdapter.ts",
-        "packages/server/src/services/adapters/StaticAdapter.ts",
-        "packages/server/src/services/DataSourceService.ts",
-        "packages/server/src/routes/datasources.ts",
-        "packages/server/src/validators/datasourceValidator.ts"
-      ],
-      "modifiedFiles": [
-        "packages/server/src/models/DataSource.ts",
-        "packages/server/src/services/EncryptionService.ts",
-        "packages/server/src/services/adapters/MongoDBAdapter.ts",
-        "packages/server/src/services/adapters/RestApiAdapter.ts",
-        "packages/server/src/services/adapters/StaticAdapter.ts",
-        "packages/server/src/services/DataSourceService.ts",
-        "packages/server/src/routes/datasources.ts",
-        "packages/server/src/validators/datasourceValidator.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "datasource-service-test",
-      "title": "데이터소스 서비스 - 테스트",
-      "description": null,
-      "phase": "phase4-data",
-      "category": "testing",
-      "done": true,
-      "prompt": "데이터소스 서비스를 테스트하라.\n\n1. packages/server/src/__tests__/EncryptionService.test.ts:\n   - 암호화 → 복호화 라운드트립 동일값 확인\n   - 다른 키로 복호화 시 에러\n   - 한국어 문자열 암호화 테스트\n\n2. packages/server/src/__tests__/MongoDBAdapter.test.ts:\n   - sanitizeFilter: { $where: '...' } → $where 필드 제거\n   - sanitizeFilter: { name: '홍길동' } → 변경 없이 통과\n   - sanitizeFilter: 중첩 $where 제거\n\n3. packages/server/src/__tests__/DataSourceService.test.ts:\n   - createDataSource: config 암호화 확인 (DB 저장 값이 plaintext가 아님)\n   - getDataSource: 복호화된 config 반환\n   - listDataSources: config 필드 없는 목록 반환\n\n4. packages/server/src/__tests__/datasources.integration.test.ts:\n   - POST /api/datasources: Static 타입 생성 → 201\n   - POST /api/datasources/:id/query: Static 데이터 쿼리 결과\n   - POST /api/datasources/:id/test: { success: true }\n   - PUT /api/datasources/:id: 수정 성공\n   - DELETE /api/datasources/:id: 삭제 성공\n\n실행: pnpm --filter @webform/server test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
-      "dependsOn": [
-        "datasource-service-impl"
-      ],
-      "outputFiles": [
-        "packages/server/src/__tests__/EncryptionService.test.ts",
-        "packages/server/src/__tests__/MongoDBAdapter.test.ts",
-        "packages/server/src/__tests__/DataSourceService.test.ts",
-        "packages/server/src/__tests__/datasources.integration.test.ts"
-      ],
-      "modifiedFiles": [
-        "packages/server/src/__tests__/EncryptionService.test.ts",
-        "packages/server/src/__tests__/MongoDBAdapter.test.ts",
-        "packages/server/src/__tests__/DataSourceService.test.ts",
-        "packages/server/src/__tests__/datasources.integration.test.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "datasource-service-commit",
-      "title": "데이터소스 서비스 - 커밋",
-      "description": null,
-      "phase": "phase4-data",
-      "category": "commit",
-      "done": true,
-      "prompt": "데이터소스 서비스 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(server): 데이터소스 서비스 구현 (MongoDB, REST API, Static)\n\n- AES-256-CBC 연결 정보 암호화 저장\n- MongoDB, REST API, Static 어댑터 패턴\n- NoSQL 인젝션 방지 ($where, $function 차단)\n- 연결 테스트 엔드포인트 (/api/datasources/:id/test)\n- 쿼리 실행 API (filter, sort, projection, limit)",
-      "dependsOn": [
-        "datasource-service-test"
-      ],
-      "outputFiles": null,
-      "modifiedFiles": [
-        "tasks.json"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "data-binding-plan",
-      "title": "데이터 바인딩 엔진 - 계획",
-      "description": null,
-      "phase": "phase4-data",
-      "category": "plan",
-      "done": true,
-      "prompt": "WebForm 데이터 바인딩 엔진 구현 계획을 수립하라. PRD.md 섹션 4.1.6(데이터 바인딩)을 분석하여 다음을 설계하라:\n\n## 바인딩 모드\n- oneWay: 데이터소스 → 컨트롤 (읽기 전용)\n- twoWay: 데이터소스 ↔ 컨트롤 (편집 가능)\n- oneTime: 초기 로드 1회\n\n## 클라이언트 바인딩 엔진\n- BindingEngine: 바인딩 초기화, 데이터 로드\n- bindingStore (Zustand): dataSourceData, selectedRows\n- useDataBinding 훅 업데이트: bindingStore 구독\n\n## DataGridView 컨트롤\n- DataBindingDefinition에 따라 데이터 렌더링\n- 정렬 가능 컬럼 헤더\n- 행 선택 → selectedRows 업데이트\n- 다른 컨트롤에 선택 행 데이터 바인딩 가능\n- 셀 편집 (twoWay)\n\n## 디자이너 DataSourcePanel\n- 데이터소스 목록 + 새 소스 추가\n- 연결 테스트\n- 데이터 미리보기\n\n## 서버 API 연동\n- GET /api/datasources: 데이터소스 목록\n- POST /api/datasources/:id/query: 런타임 데이터 로드\n\n계획을 plans/data-binding-plan.md에 작성하라.",
-      "dependsOn": [
-        "sdui-renderer-commit",
-        "datasource-service-commit"
-      ],
-      "outputFiles": [
-        "plans/data-binding-plan.md"
-      ],
-      "modifiedFiles": [
-        "plans/data-binding-plan.md"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "data-binding-impl",
-      "title": "데이터 바인딩 엔진 - 구현",
-      "description": null,
-      "phase": "phase4-data",
-      "category": "implementation",
-      "done": true,
-      "prompt": "plans/data-binding-plan.md에 따라 데이터 바인딩 엔진을 구현하라.\n\n1. packages/runtime/src/bindings/bindingStore.ts:\n   - dataSourceData: Record<string, any[]> (데이터소스ID → 데이터)\n   - selectedRows: Record<string, number> (컨트롤ID → 선택 행)\n   - loadDataSource, setSelectedRow, updateCellValue 액션\n   - Zustand + immer\n\n2. packages/runtime/src/bindings/BindingEngine.ts:\n   - initializeBindings(formDef, formId): 모든 DataBindingDefinition 초기화\n   - loadDataSourceData(dsId, formId): POST /api/runtime/forms/:id/data\n   - getControlValue(controlId, property, bindings): 바인딩 값 계산\n   - handleTwoWayUpdate(controlId, property, value): 변경사항 서버 전송\n\n3. packages/runtime/src/hooks/useDataBinding.ts (전체 구현):\n   - bindingStore 구독\n   - DataBindingDefinition 기반 현재 값 계산\n   - oneWay: 읽기 전용 값 반환\n   - twoWay: 값 + onChange 핸들러 반환\n   - oneTime: 초기 로드 후 고정\n\n4. packages/runtime/src/controls/DataGridView.tsx:\n   - DataBindingDefinition 기반 행/열 렌더링\n   - 정렬 가능 컬럼 헤더 (asc/desc 토글)\n   - 행 클릭 시 setSelectedRow 호출\n   - 셀 편집 모드 (twoWay 바인딩)\n   - 빈 데이터 처리\n\n5. packages/runtime/src/controls/registry.ts 업데이트:\n   - DataGridView 등록\n\n6. packages/designer/src/components/DataSourcePanel/DataSourcePanel.tsx:\n   - GET /api/datasources로 목록 조회\n   - 새 데이터소스 추가 폼 (type 선택, config 입력)\n   - 연결 테스트 버튼 → POST /api/datasources/:id/test\n   - 데이터 미리보기 테이블",
-      "dependsOn": [
-        "data-binding-plan"
-      ],
-      "outputFiles": [
-        "packages/runtime/src/bindings/bindingStore.ts",
-        "packages/runtime/src/bindings/BindingEngine.ts",
-        "packages/runtime/src/hooks/useDataBinding.ts",
-        "packages/runtime/src/controls/DataGridView.tsx",
-        "packages/designer/src/components/DataSourcePanel/DataSourcePanel.tsx",
-        "packages/designer/src/components/DataSourcePanel/index.ts"
-      ],
-      "modifiedFiles": [
-        "packages/runtime/src/bindings/bindingStore.ts",
-        "packages/runtime/src/bindings/BindingEngine.ts",
-        "packages/runtime/src/hooks/useDataBinding.ts",
-        "packages/runtime/src/controls/DataGridView.tsx",
-        "packages/runtime/src/controls/registry.ts",
-        "packages/designer/src/components/DataSourcePanel/DataSourcePanel.tsx"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "data-binding-test",
-      "title": "데이터 바인딩 엔진 - 테스트",
-      "description": null,
-      "phase": "phase4-data",
-      "category": "testing",
-      "done": true,
-      "prompt": "데이터 바인딩 엔진을 테스트하라.\n\n1. packages/runtime/src/__tests__/bindingStore.test.ts:\n   - loadDataSource: 데이터 저장 확인\n   - setSelectedRow: selectedRows 업데이트\n   - updateCellValue: 특정 행의 값 변경\n\n2. packages/runtime/src/__tests__/BindingEngine.test.ts:\n   - oneTime 바인딩: 초기 로드 후 변경 없음\n   - oneWay 바인딩: 데이터소스 변경 시 컨트롤 값 업데이트\n   - twoWay 바인딩: onChange 시 서버 전송 (mock)\n\n3. packages/runtime/src/__tests__/DataGridView.test.tsx:\n   - 데이터 배열 → 행 렌더링 확인\n   - 컬럼 헤더 클릭 → 정렬 전환\n   - 행 클릭 → setSelectedRow 호출\n   - 빈 데이터 처리 (빈 상태 메시지)\n\n4. packages/runtime/src/__tests__/useDataBinding.test.ts:\n   - Static 데이터소스 바인딩 값 반환\n   - twoWay onChange 핸들러 동작\n\n실행: pnpm --filter @webform/runtime test && pnpm --filter @webform/designer test\n모든 테스트 통과. 실패 시 즉시 수정하라.",
-      "dependsOn": [
-        "data-binding-impl"
-      ],
-      "outputFiles": [
-        "packages/runtime/src/__tests__/bindingStore.test.ts",
-        "packages/runtime/src/__tests__/BindingEngine.test.ts",
-        "packages/runtime/src/__tests__/DataGridView.test.tsx",
-        "packages/runtime/src/__tests__/useDataBinding.test.ts"
-      ],
-      "modifiedFiles": [
-        "packages/runtime/src/__tests__/bindingStore.test.ts",
-        "packages/runtime/src/__tests__/BindingEngine.test.ts",
-        "packages/runtime/src/__tests__/DataGridView.test.tsx",
-        "packages/runtime/src/__tests__/useDataBinding.test.ts"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "data-binding-commit",
-      "title": "데이터 바인딩 엔진 - 커밋",
-      "description": null,
-      "phase": "phase4-data",
-      "category": "commit",
-      "done": true,
-      "prompt": "데이터 바인딩 엔진 구현을 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat(runtime): 데이터 바인딩 엔진 및 DataGridView 구현\n\n- oneWay/twoWay/oneTime 바인딩 모드 지원\n- Zustand 기반 데이터소스 상태 관리 (bindingStore)\n- DataGridView: 정렬, 행 선택, 셀 편집\n- BindingEngine: 데이터 로드, 컨트롤 값 동기화\n- 디자이너 DataSourcePanel (소스 추가/테스트/미리보기)",
-      "dependsOn": [
-        "data-binding-test"
-      ],
-      "outputFiles": null,
-      "modifiedFiles": [],
-      "subtasks": null
-    },
-    {
-      "id": "project-management-plan",
-      "title": "프로젝트 관리 - 계획",
-      "description": null,
-      "phase": "phase5-project",
-      "category": "plan",
-      "done": true,
-      "prompt": "WebForm 프로젝트 관리 기능 구현 계획을 수립하라. PRD.md 섹션 4.3(프로젝트 관리)을 분석하여 다음을 설계하라:\n\n## 프로젝트 구조\n- Solution/Project 계층\n- 프로젝트 내: Forms, DataSources, SharedCode, Assets\n\n## API 엔드포인트\n- GET /api/projects: 목록\n- POST /api/projects: 생성\n- GET /api/projects/:id: 상세 (포함 폼 목록)\n- DELETE /api/projects/:id: 삭제\n- GET /api/projects/:id/export: JSON 내보내기\n- POST /api/projects/import: JSON 가져오기\n\n## ProjectExplorer 컴포넌트 (디자이너)\n- 트리뷰: 프로젝트 → Forms/DataSources 폴더 → 항목\n- 폼 더블클릭 → 캔버스 로드\n- 우클릭 컨텍스트 메뉴 (새 폼, 이름 변경, 삭제)\n\n## 폼 저장 워크플로우\n- Ctrl+S: PUT /api/forms/:id\n- Auto-save 30초 간격\n- isDirty 상태로 변경사항 표시 (*)\n\n## apiService.ts\n- loadForm, saveForm, createForm, listForms\n- autoSave 훅\n\n계획을 plans/project-management-plan.md에 작성하라.",
-      "dependsOn": [
-        "form-crud-api-commit"
-      ],
-      "outputFiles": [
-        "plans/project-management-plan.md"
-      ],
-      "modifiedFiles": [
-        "plans/project-management-plan.md"
-      ],
-      "subtasks": null
-    },
-    {
-      "id": "project-management-impl",
-      "title": "프로젝트 관리 - 구현",
-      "description": null,
-      "phase": "phase5-project",
-      "category": "implementation",
-      "done": true,
-      "prompt": "plans/project-management-plan.md에 따라 프로젝트 관리 기능을 구현하라.\n\n1. packages/server/src/models/Project.ts:\n   - ProjectDocument 인터페이스 (name, description, formIds, dataSourceIds, createdAt)\n   - Mongoose 스키마\n\n2. packages/server/src/services/ProjectService.ts:\n   - createProject, getProject, listProjects, deleteProject\n   - exportProject(id): 프로젝트 + 포함된 모든 폼/데이터소스 JSON\n   - importProject(data): JSON에서 프로젝트 복원\n\n3. packages/server/src/routes/projects.ts (전체 구현):\n   - GET/POST /api/projects\n   - GET/DELETE /api/projects/:id\n   - GET /api/projects/:id/export\n   - POST /api/projects/import\n\n4. packages/designer/src/services/apiService.ts:\n   - loadForm(id): GET /api/forms/:id → designerStore.loadForm\n   - saveForm(id, data): PUT /api/forms/:id\n   - createForm(data): POST /api/forms\n   - listForms(projectId?): GET /api/forms\n   - useAutoSave 훅: 30초마다 isDirty시 saveForm\n\n5. packages/designer/src/stores/designerStore.ts 업데이트:\n   - loadForm(formDef): controls, formProperties, currentFormId 설정, isDirty=false\n   - setDirty(): isDirty=true\n\n6. packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx:\n   - 트리뷰: 프로젝트 목록 → Forms/DataSources 노드\n   - 폼 더블클릭 → apiService.loadForm\n   - 우클릭 메뉴: 새 폼, 이름 변경, 삭제\n\n7. packages/designer/src/App.tsx 업데이트:\n   - ProjectExplorer 좌측 패널 상단에 추가 (Toolbox 위)\n   - 상단 메뉴바 (File > New Form, Open, Save, Save All)\n   - window 제목에 isDirty 시 * 표시\n   - useAutoSave 훅 등록",
-      "dependsOn": [
-        "project-management-plan"
-      ],
-      "outputFiles": [
-        "packages/server/src/models/Project.ts",
-        "packages/server/src/services/ProjectService.ts",
-        "packages/server/src/routes/projects.ts",
-        "packages/designer/src/services/apiService.ts",
-        "packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx",
-        "packages/designer/src/components/ProjectExplorer/index.ts"
-      ],
-      "modifiedFiles": [
-        "packages/server/src/models/Project.ts",
-        "packages/server/src/services/ProjectService.ts",
-        "packages/server/src/routes/projects.ts",
-        "packages/designer/src/services/apiService.ts",
-        "packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx",
         "packages/designer/src/stores/designerStore.ts",
+        "packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx",
         "packages/designer/src/App.tsx"
       ],
       "subtasks": null
     },
     {
-      "id": "project-management-test",
-      "title": "프로젝트 관리 - 테스트",
-      "description": null,
-      "phase": "phase5-project",
+      "id": "designer-shell-core-test",
+      "title": "Designer Shell 핵심 기능 (Store/ProjectExplorer) - 테스트",
+      "description": "designerStore Shell 상태 및 ProjectExplorer 테스트",
+      "phase": "phase4-designer",
       "category": "testing",
-      "done": true,
-      "prompt": "프로젝트 관리 기능을 테스트하라.\n\n1. packages/server/src/__tests__/ProjectService.test.ts:\n   - createProject: name, formIds 기본값 확인\n   - exportProject: 폼 스냅샷 포함 JSON 반환\n   - importProject: 새 프로젝트 + 폼 복원 확인\n\n2. packages/server/src/__tests__/projects.integration.test.ts:\n   - POST /api/projects: 201, 프로젝트 생성\n   - GET /api/projects: 목록 반환\n   - GET /api/projects/:id/export: JSON 응답, 폼 포함\n   - POST /api/projects/import: 복원 후 새 ID로 생성\n   - DELETE /api/projects/:id: 200\n\n3. packages/designer/src/__tests__/apiService.test.ts:\n   - loadForm: API 호출 + designerStore 업데이트 확인\n   - saveForm: PUT 요청 전송 확인\n   - isDirty가 true일 때만 autoSave 실행 확인\n\n4. packages/designer/src/__tests__/ProjectExplorer.test.tsx:\n   - 프로젝트 목록 렌더링\n   - 폼 더블클릭 이벤트 핸들링\n\n마지막 전체 테스트 실행: pnpm -r test\n모든 패키지의 테스트가 통과해야 한다. 실패한 테스트는 즉시 수정하라.",
+      "done": false,
+      "prompt": "WebForm designer Shell 핵심 기능 구현을 테스트하세요.\n\n## 테스트\n1. packages/designer/src/__tests__/ 디렉토리 확인\n2. packages/designer/src/__tests__/designerStore-shell.test.ts 작성:\n   - setEditMode('shell') → editMode 변경 확인\n   - loadShell() → shellControls, shellProperties, currentShellId 설정 확인\n   - addShellControl() → shellControls 배열에 추가 확인\n   - updateShellControl() → 특정 컨트롤 업데이트 확인\n   - setShellProperties() → shellProperties 업데이트 확인\n   - setEditMode('form') 전환 후 기존 controls/formProperties 유지 확인\n\n3. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/designer typecheck`\n\n4. 테스트 실행:\n   `pnpm --filter @webform/designer test`\n\n5. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
-        "project-management-impl"
+        "designer-shell-core-impl"
       ],
       "outputFiles": [
-        "packages/server/src/__tests__/ProjectService.test.ts",
-        "packages/server/src/__tests__/projects.integration.test.ts",
-        "packages/designer/src/__tests__/apiService.test.ts",
-        "packages/designer/src/__tests__/ProjectExplorer.test.tsx"
+        "packages/designer/src/__tests__/designerStore-shell.test.ts"
       ],
       "modifiedFiles": [
-        "packages/server/src/__tests__/ProjectService.test.ts",
-        "packages/server/src/__tests__/projects.integration.test.ts",
-        "packages/designer/src/__tests__/apiService.test.ts",
-        "packages/designer/src/__tests__/ProjectExplorer.test.tsx"
+        "packages/designer/src/__tests__/designerStore-shell.test.ts"
       ],
       "subtasks": null
     },
     {
-      "id": "project-management-commit",
-      "title": "프로젝트 관리 - 커밋",
-      "description": null,
-      "phase": "phase5-project",
+      "id": "designer-shell-core-commit",
+      "title": "Designer Shell 핵심 기능 (Store/ProjectExplorer) - 커밋",
+      "description": "Designer Shell 핵심 기능 커밋",
+      "phase": "phase4-designer",
       "category": "commit",
-      "done": true,
-      "prompt": "프로젝트 관리 기능 전체를 커밋하라.\n\n관련 파일 스테이징 후 다음 한국어 커밋 메시지로 커밋하라:\n\nfeat: 프로젝트 관리 기능 구현 (Solution/Project 구조)\n\n- 프로젝트 CRUD API (/api/projects)\n- 프로젝트 내보내기/가져오기 (JSON 포맷, 폼 포함)\n- ProjectExplorer 트리뷰 컴포넌트 (디자이너)\n- 폼 자동 저장 (30초 간격, isDirty 조건)\n- Ctrl+S 수동 저장 단축키\n- isDirty 상태 관리 (변경사항 표시 *)\n- apiService: loadForm, saveForm, createForm, listForms",
+      "done": false,
+      "prompt": "Designer Shell 핵심 기능 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/designer/src/stores/designerStore.ts\n   - packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx\n   - packages/designer/src/App.tsx\n   - packages/designer/src/__tests__/designerStore-shell.test.ts\n   - plans/designer-shell-core-plan.md\n3. 커밋 메시지 (한국어): 'feat(designer): Shell 편집 모드 핵심 기능 추가\\n\\n- designerStore에 editMode/shellControls/shellProperties 상태 추가\\n- Shell 편집 관련 메서드 구현 (loadShell, addShellControl, setShellProperties 등)\\n- ProjectExplorer에 Application Shell 노드 추가\\n- App.tsx editMode 기반 편집 모드 분기 추가'\n4. 커밋 확인",
       "dependsOn": [
-        "project-management-test"
+        "designer-shell-core-test"
       ],
       "outputFiles": null,
       "modifiedFiles": [
-        "tasks.json"
+        "packages/designer/src/stores/designerStore.ts",
+        "packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx",
+        "packages/designer/src/App.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-canvas-plan",
+      "title": "Designer Shell 캔버스/툴박스/속성 패널 - 계획",
+      "description": "Shell 편집 캔버스, Toolbox 필터, PropertyPanel Shell 속성 메타 계획",
+      "phase": "phase4-designer",
+      "category": "plan",
+      "done": false,
+      "prompt": "WebForm designer 패키지에 Shell 편집 캔버스, Toolbox 필터링, PropertyPanel Shell 속성을 구현하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/designer/src/components/Canvas/DesignerCanvas.tsx — 캔버스 구조 전체 파악\n- packages/designer/src/components/Toolbox/Toolbox.tsx — Toolbox 구조 및 컨트롤 목록 파악\n- packages/designer/src/components/PropertyPanel/PropertyPanel.tsx — 속성 패널 구조\n- packages/designer/src/components/PropertyPanel/controlProperties.ts — PropertyMeta 정의 및 withCommon 패턴\n- packages/designer/src/stores/designerStore.ts — 방금 구현한 Shell 상태 확인\n\n## 구현해야 할 내용\n\n### Shell 편집 캔버스 (ShellCanvas)\n기존 DesignerCanvas.tsx를 참고하여 packages/designer/src/components/Canvas/ShellCanvas.tsx 신규 생성:\n- 레이아웃:\n  - Top 영역: MenuStrip, ToolStrip 드롭/편집 (dock Top 컨트롤)\n  - Middle 영역: Form Preview Area (회색 배경, 비활성, '폼이 여기에 표시됩니다')\n  - Bottom 영역: StatusStrip 드롭/편집 (dock Bottom 컨트롤)\n- Shell 컨트롤 드롭 받기 (react-dnd 사용)\n- 컨트롤 선택 → PropertyPanel에서 Shell 컨트롤 속성 표시\n- Shell 캔버스에서 드롭된 컨트롤은 자동으로 적절한 dock 배치\n\n### Toolbox 필터링\npackages/designer/src/components/Toolbox/Toolbox.tsx 수정:\n- editMode === 'shell'일 때 Shell 호환 컨트롤만 표시:\n  - MenuStrip, ToolStrip, StatusStrip, Panel\n- editMode === 'form'일 때 기존 모든 컨트롤 표시\n\n### PropertyPanel Shell 속성\npackages/designer/src/components/PropertyPanel/controlProperties.ts 수정:\n- shellProperties 배열 추가:\n  ```typescript\n  export const SHELL_PROPERTIES: PropertyMeta[] = [\n    { name: 'properties.width',    label: 'Width',           category: 'Layout',     editorType: 'number' },\n    { name: 'properties.height',   label: 'Height',          category: 'Layout',     editorType: 'number' },\n    { name: 'properties.title',    label: 'Title',           category: 'Appearance', editorType: 'text' },\n    { name: 'properties.backgroundColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },\n    { name: 'properties.font',     label: 'Font',            category: 'Appearance', editorType: 'font' },\n    { name: 'properties.showTitleBar', label: 'ShowTitleBar', category: 'Appearance', editorType: 'boolean' },\n    { name: 'properties.formBorderStyle', label: 'FormBorderStyle', category: 'Appearance', editorType: 'dropdown',\n      options: ['None', 'FixedSingle', 'Fixed3D', 'FixedDialog', 'Sizable', 'FixedToolWindow', 'SizableToolWindow'] },\n    { name: 'startFormId',         label: 'StartForm',       category: 'Behavior',   editorType: 'dropdown' },\n    { name: 'properties.maximizeBox', label: 'MaximizeBox',  category: 'Behavior',   editorType: 'boolean' },\n    { name: 'properties.minimizeBox', label: 'MinimizeBox',  category: 'Behavior',   editorType: 'boolean' },\n  ];\n  ```\n\npackages/designer/src/components/PropertyPanel/PropertyPanel.tsx 수정:\n- editMode === 'shell' && 컨트롤 미선택 시: SHELL_PROPERTIES 표시\n- Shell 컨트롤 선택 시: 해당 컨트롤 속성 표시 (기존과 동일)\n\n## 계획 작성\nplans/designer-shell-canvas-plan.md 파일 작성:\n1. 현재 DesignerCanvas.tsx 구조 분석 (react-dnd 드롭 로직, 컨트롤 렌더링)\n2. ShellCanvas.tsx 전체 코드 초안\n3. Toolbox.tsx 필터링 코드 변경 초안\n4. controlProperties.ts 추가 코드\n5. PropertyPanel.tsx Shell 분기 코드 초안",
+      "dependsOn": [
+        "designer-shell-core-commit"
+      ],
+      "outputFiles": [
+        "plans/designer-shell-canvas-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/designer-shell-canvas-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-canvas-impl",
+      "title": "Designer Shell 캔버스/툴박스/속성 패널 - 구현",
+      "description": "ShellCanvas 컴포넌트 구현, Toolbox 필터링, PropertyPanel Shell 속성 추가",
+      "phase": "phase4-designer",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/designer-shell-canvas-plan.md를 읽고 Shell 캔버스/툴박스/속성 패널을 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/designer-shell-canvas-plan.md\n2. packages/designer/src/components/Canvas/DesignerCanvas.tsx\n3. packages/designer/src/components/Toolbox/Toolbox.tsx\n4. packages/designer/src/components/Toolbox/ToolboxItem.tsx\n5. packages/designer/src/components/PropertyPanel/PropertyPanel.tsx\n6. packages/designer/src/components/PropertyPanel/controlProperties.ts\n7. packages/designer/src/stores/designerStore.ts\n\n## 구현 내용\n\n### packages/designer/src/components/Canvas/ShellCanvas.tsx (새 파일)\nDesignerCanvas.tsx를 참고하여:\n- Shell 컨트롤 드롭 영역 (react-dnd useDrop)\n- 드롭된 컨트롤의 dock 위치에 따라 자동 배치\n  - MenuStrip, ToolStrip → dock Top\n  - StatusStrip → dock Bottom\n  - Panel → 사용자 지정\n- Top 영역: dropzone + Shell Top 컨트롤 목록 렌더링\n- Middle 영역: `<div style={{flex:1, background:'#e0e0e0', display:'flex', alignItems:'center', justifyContent:'center'}}>폼이 여기에 표시됩니다</div>`\n- Bottom 영역: dropzone + Shell Bottom 컨트롤 목록 렌더링\n- 컨트롤 선택 (클릭) → selectionStore 업데이트\n- designerStore.shellControls 사용\n- App.tsx에서 editMode === 'shell'일 때 이 컴포넌트 사용하도록 연결\n\n### packages/designer/src/components/Toolbox/Toolbox.tsx 수정\n```typescript\n// editMode 읽기\nconst editMode = useDesignerStore(s => s.editMode);\n\n// Shell 호환 컨트롤 필터\nconst SHELL_ALLOWED = ['MenuStrip', 'ToolStrip', 'StatusStrip', 'Panel'];\nconst filteredControls = editMode === 'shell'\n  ? allControls.filter(c => SHELL_ALLOWED.includes(c.type))\n  : allControls;\n```\n\n### packages/designer/src/components/PropertyPanel/controlProperties.ts 수정\n- SHELL_PROPERTIES 배열 export 추가 (위 계획의 내용)\n\n### packages/designer/src/components/PropertyPanel/PropertyPanel.tsx 수정\n- editMode === 'shell' && selectedControlId === null → SHELL_PROPERTIES 렌더링\n  (shellProperties 상태를 데이터 소스로 사용)\n- 나머지는 기존 로직 그대로\n\n### packages/designer/src/App.tsx 수정\n- ShellCanvas import 추가\n- editMode === 'shell' → ShellCanvas 렌더링 (기존 placeholder 대체)\n\n## 주의사항\n- 기존 폼 편집 흐름 변경 없음\n- react-dnd 드롭 타입 기존과 호환",
+      "dependsOn": [
+        "designer-shell-canvas-plan"
+      ],
+      "outputFiles": [
+        "packages/designer/src/components/Canvas/ShellCanvas.tsx"
+      ],
+      "modifiedFiles": [
+        "packages/designer/src/components/Canvas/ShellCanvas.tsx",
+        "packages/designer/src/components/Toolbox/Toolbox.tsx",
+        "packages/designer/src/components/PropertyPanel/controlProperties.ts",
+        "packages/designer/src/components/PropertyPanel/PropertyPanel.tsx",
+        "packages/designer/src/App.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-canvas-test",
+      "title": "Designer Shell 캔버스/툴박스/속성 패널 - 테스트",
+      "description": "ShellCanvas, Toolbox 필터링, PropertyPanel Shell 속성 테스트",
+      "phase": "phase4-designer",
+      "category": "testing",
+      "done": false,
+      "prompt": "WebForm Designer Shell 캔버스/툴박스/속성 패널 구현을 테스트하세요.\n\n## 테스트\n1. packages/designer/src/__tests__/ShellCanvas.test.tsx 작성:\n   - ShellCanvas 기본 렌더링 확인\n   - Top/Bottom/Middle 영역 존재 확인\n   - '폼이 여기에 표시됩니다' 텍스트 존재 확인\n\n2. packages/designer/src/__tests__/Toolbox-shell.test.tsx 작성:\n   - editMode='shell'일 때 MenuStrip, ToolStrip, StatusStrip, Panel만 표시되는지 확인\n   - editMode='form'일 때 모든 컨트롤 표시되는지 확인\n\n3. packages/designer/src/__tests__/controlProperties-shell.test.ts 작성:\n   - SHELL_PROPERTIES 배열 export 확인\n   - 필수 속성(title, width, height, startFormId 등) 포함 여부 확인\n\n4. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/designer typecheck`\n\n5. 테스트 실행:\n   `pnpm --filter @webform/designer test`\n\n6. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
+      "dependsOn": [
+        "designer-shell-canvas-impl"
+      ],
+      "outputFiles": [
+        "packages/designer/src/__tests__/ShellCanvas.test.tsx",
+        "packages/designer/src/__tests__/Toolbox-shell.test.tsx",
+        "packages/designer/src/__tests__/controlProperties-shell.test.ts"
+      ],
+      "modifiedFiles": [
+        "packages/designer/src/__tests__/ShellCanvas.test.tsx",
+        "packages/designer/src/__tests__/Toolbox-shell.test.tsx",
+        "packages/designer/src/__tests__/controlProperties-shell.test.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-canvas-commit",
+      "title": "Designer Shell 캔버스/툴박스/속성 패널 - 커밋",
+      "description": "Shell 캔버스/툴박스/속성 패널 구현 커밋",
+      "phase": "phase4-designer",
+      "category": "commit",
+      "done": false,
+      "prompt": "Designer Shell 캔버스/툴박스/속성 패널 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/designer/src/components/Canvas/ShellCanvas.tsx\n   - packages/designer/src/components/Toolbox/Toolbox.tsx\n   - packages/designer/src/components/PropertyPanel/controlProperties.ts\n   - packages/designer/src/components/PropertyPanel/PropertyPanel.tsx\n   - packages/designer/src/App.tsx\n   - 관련 테스트 파일들\n   - plans/designer-shell-canvas-plan.md\n3. 커밋 메시지 (한국어): 'feat(designer): Shell 편집 캔버스, Toolbox 필터링, PropertyPanel Shell 속성 구현\\n\\n- ShellCanvas dock 기반 컨트롤 배치 편집기 구현\\n- Toolbox Shell 모드 필터링 (MenuStrip/ToolStrip/StatusStrip/Panel)\\n- PropertyPanel SHELL_PROPERTIES 속성 메타 추가\\n- Shell 편집 모드에서 Shell 속성 표시'\n4. 커밋 확인",
+      "dependsOn": [
+        "designer-shell-canvas-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/designer/src/components/Canvas/ShellCanvas.tsx",
+        "packages/designer/src/components/Toolbox/Toolbox.tsx",
+        "packages/designer/src/components/PropertyPanel/controlProperties.ts",
+        "packages/designer/src/components/PropertyPanel/PropertyPanel.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-api-plan",
+      "title": "Designer Shell API 연동 (저장/로드/퍼블리시) - 계획",
+      "description": "apiService Shell CRUD 추가 및 Designer에서 Shell 저장/로드 계획",
+      "phase": "phase4-designer",
+      "category": "plan",
+      "done": false,
+      "prompt": "WebForm designer 패키지에 Shell API 연동(저장/로드/퍼블리시)을 구현하는 계획을 수립하세요.\n이 작업은 designer-shell-canvas 태스크와 병렬로 실행될 수 있습니다.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/designer/src/services/apiService.ts — 현재 API 서비스 메서드 전체 파악\n- packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx — Shell 노드 클릭 처리 파악\n- packages/designer/src/stores/designerStore.ts — getShellDefinition 메서드 확인\n\n## 구현해야 할 내용\n\n### packages/designer/src/services/apiService.ts 수정\n기존 폼/프로젝트 API 패턴을 따라 Shell API 메서드 추가:\n```typescript\n// Shell 조회\nexport async function getShell(projectId: string): Promise<ApplicationShellDefinition | null>\n// Shell 생성\nexport async function createShell(projectId: string, data: Partial<ApplicationShellDefinition>): Promise<ApplicationShellDefinition>\n// Shell 수정\nexport async function updateShell(projectId: string, data: Partial<ApplicationShellDefinition>): Promise<ApplicationShellDefinition>\n// Shell 삭제\nexport async function deleteShell(projectId: string): Promise<void>\n// Shell 퍼블리시\nexport async function publishShell(projectId: string): Promise<ApplicationShellDefinition>\n```\n\n### Designer Shell 저장/로드 연동\nProjectExplorer.tsx 또는 App.tsx에 Shell 로드 로직 추가:\n- ProjectExplorer에서 Shell 노드 클릭 시 getShell(projectId) 호출 → loadShell()\n- Shell이 없으면 createShell() 후 loadShell()\n- Designer의 저장(Ctrl+S) 기능이 Shell 편집 모드일 때 updateShell() 호출하도록 확장\n- '퍼블리시' 버튼 또는 메뉴: publishShell() 호출\n\n## 계획 작성\nplans/designer-shell-api-plan.md 파일 작성:\n1. 현재 apiService.ts 메서드 목록 및 패턴 (baseURL, 에러 처리)\n2. Shell API 메서드 코드 초안\n3. Shell 저장/로드 연동 위치 및 코드 초안\n4. 저장 기능 확장 방법 (기존 폼 저장과 공존)",
+      "dependsOn": [
+        "designer-shell-core-commit",
+        "server-shell-backend-commit"
+      ],
+      "outputFiles": [
+        "plans/designer-shell-api-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/designer-shell-api-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-api-impl",
+      "title": "Designer Shell API 연동 (저장/로드/퍼블리시) - 구현",
+      "description": "apiService Shell CRUD 구현 및 Designer Shell 저장/로드 연동",
+      "phase": "phase4-designer",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/designer-shell-api-plan.md를 읽고 Designer Shell API 연동을 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/designer-shell-api-plan.md\n2. packages/designer/src/services/apiService.ts\n3. packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx\n4. packages/designer/src/stores/designerStore.ts\n5. packages/designer/src/App.tsx\n\n## 구현 내용\n\n### packages/designer/src/services/apiService.ts 수정\n기존 fetch 패턴 따라 Shell API 함수 추가:\n```typescript\nexport async function getShell(projectId: string): Promise<ApplicationShellDefinition | null> {\n  const res = await fetch(`/api/projects/${projectId}/shell`);\n  if (res.status === 404) return null;\n  if (!res.ok) throw new Error(await res.text());\n  return res.json();\n}\n\nexport async function createShell(projectId: string, data: Partial<ApplicationShellDefinition>) {...}\nexport async function updateShell(projectId: string, data: Partial<ApplicationShellDefinition>) {...}\nexport async function deleteShell(projectId: string) {...}\nexport async function publishShell(projectId: string) {...}\n```\n\n### packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx 수정\nShell 노드 클릭 핸들러:\n```typescript\nconst handleShellClick = async () => {\n  let shell = await getShell(currentProjectId);\n  if (!shell) {\n    // Shell이 없으면 기본값으로 생성\n    shell = await createShell(currentProjectId, {\n      name: 'Main Shell',\n      properties: { ...defaultShellProperties },\n      controls: [],\n      eventHandlers: [],\n    });\n  }\n  store.loadShell(shell);\n};\n```\n\n### packages/designer/src/App.tsx 수정 (저장 로직 확장)\n- 기존 Ctrl+S 또는 저장 버튼 핸들러에서:\n  ```typescript\n  if (editMode === 'shell') {\n    await updateShell(currentProjectId, store.getShellDefinition());\n  } else {\n    // 기존 폼 저장 로직\n  }\n  ```\n- 퍼블리시 버튼 핸들러 추가 (editMode === 'shell' 일 때)\n\n## 주의사항\n- 기존 폼 저장/로드 로직 변경 없음\n- 에러 처리 (네트워크 오류, Shell 없음 등)\n- TypeScript 타입 안전성",
+      "dependsOn": [
+        "designer-shell-api-plan"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/designer/src/services/apiService.ts",
+        "packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx",
+        "packages/designer/src/App.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-api-test",
+      "title": "Designer Shell API 연동 (저장/로드/퍼블리시) - 테스트",
+      "description": "apiService Shell 메서드 테스트",
+      "phase": "phase4-designer",
+      "category": "testing",
+      "done": false,
+      "prompt": "WebForm Designer Shell API 연동 구현을 테스트하세요.\n\n## 테스트\n1. packages/designer/src/__tests__/apiService-shell.test.ts 작성:\n   - getShell: 성공 케이스 (Mock fetch)\n   - getShell: 404 → null 반환 확인\n   - createShell: 성공 케이스\n   - updateShell: 성공 케이스\n   - deleteShell: 성공 케이스\n   - publishShell: 성공 케이스\n\n2. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/designer typecheck`\n\n3. 테스트 실행:\n   `pnpm --filter @webform/designer test`\n\n4. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
+      "dependsOn": [
+        "designer-shell-api-impl"
+      ],
+      "outputFiles": [
+        "packages/designer/src/__tests__/apiService-shell.test.ts"
+      ],
+      "modifiedFiles": [
+        "packages/designer/src/__tests__/apiService-shell.test.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-shell-api-commit",
+      "title": "Designer Shell API 연동 (저장/로드/퍼블리시) - 커밋",
+      "description": "Designer Shell API 연동 커밋",
+      "phase": "phase4-designer",
+      "category": "commit",
+      "done": false,
+      "prompt": "Designer Shell API 연동 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/designer/src/services/apiService.ts\n   - packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx\n   - packages/designer/src/App.tsx\n   - packages/designer/src/__tests__/apiService-shell.test.ts\n   - plans/designer-shell-api-plan.md\n3. 커밋 메시지 (한국어): 'feat(designer): Shell API 연동 및 저장/로드/퍼블리시 기능 추가\\n\\n- apiService에 Shell CRUD API 메서드 추가\\n- ProjectExplorer Shell 노드 클릭 시 Shell 로드/생성 연동\\n- Shell 편집 모드 저장(Ctrl+S) 시 Shell updateShell API 호출\\n- Shell 퍼블리시 기능 추가'\n4. 커밋 확인",
+      "dependsOn": [
+        "designer-shell-api-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/designer/src/services/apiService.ts",
+        "packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx",
+        "packages/designer/src/App.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-item-editors-plan",
+      "title": "Designer 아이템 컬렉션 에디터 - 계획",
+      "description": "MenuStrip/ToolStrip/StatusStrip 아이템 시각적 편집기 계획",
+      "phase": "phase5-item-editors",
+      "category": "plan",
+      "done": false,
+      "prompt": "WebForm designer 패키지에 MenuStrip, ToolStrip, StatusStrip의 아이템 컬렉션을 시각적으로 편집하는 에디터를 구현하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/designer/src/components/PropertyPanel/controlProperties.ts — MenuStrip, ToolStrip, StatusStrip의 PropertyMeta 확인 (collection editorType 항목)\n- packages/designer/src/components/PropertyPanel/editors/CollectionEditor.tsx — 현재 컬렉션 에디터 구조 파악\n- packages/designer/src/components/PropertyPanel/editors/TabPagesEditor.tsx — 참고용 탭 에디터 패턴\n- packages/designer/src/components/PropertyPanel/PropertyPanel.tsx — 에디터 선택 로직\n- packages/runtime/src/controls/MenuStrip.tsx — 아이템 데이터 구조 파악\n- packages/runtime/src/controls/ToolStrip.tsx — 아이템 데이터 구조 파악\n\n## 구현해야 할 내용\n\n### MenuStrip 아이템 에디터: packages/designer/src/components/Editors/MenuItemEditor.tsx (신규)\n- 다이얼로그 형태 (Modal)\n- 왼쪽: 트리뷰 (계층 구조 메뉴 아이템)\n  - 아이템 클릭 → 오른쪽 속성 표시\n  - 들여쓰기로 서브메뉴 표시\n- 오른쪽: 선택된 아이템 속성 편집\n  - text: 텍스트 입력\n  - shortcut: 단축키 입력\n  - enabled: 체크박스\n  - checked: 체크박스\n  - separator: 체크박스 (구분선 여부)\n- 하단: [+ Add] [+ Add Child] [\uD83D\uDDD1 Delete] [↑] [↓] 버튼\n- [OK] [Cancel] 버튼\n- 아이템 데이터 구조: { id, text, shortcut?, enabled, checked, separator, children?: [...] }\n\n### ToolStrip 아이템 에디터: packages/designer/src/components/Editors/ToolStripItemEditor.tsx (신규)\n- 다이얼로그 형태\n- 왼쪽: 플랫 리스트\n- 오른쪽: 속성\n  - type: dropdown (button, separator, label, dropdownButton)\n  - text: 텍스트\n  - tooltip: 툴팁\n  - enabled: 체크박스\n  - checked: 체크박스\n- 하단: [+ Add] [\uD83D\uDDD1 Delete] [↑] [↓]\n- 아이템 데이터: { id, type, text, tooltip?, enabled, checked }\n\n### StatusStrip 아이템 에디터: packages/designer/src/components/Editors/StatusStripItemEditor.tsx (신규)\n- 다이얼로그 형태\n- 왼쪽: 플랫 리스트\n- 오른쪽: 속성\n  - type: dropdown (label, progressBar, dropDownButton)\n  - text: 텍스트\n  - spring: 체크박스 (남은 공간 채우기)\n  - width: 숫자 또는 'auto'\n- 아이템 데이터: { id, type, text, spring, width? }\n\n### packages/designer/src/components/PropertyPanel/controlProperties.ts 수정\n- MenuStrip의 items 속성 editorType을 'collection'에서 전용 'menuEditor'로 변경 (또는 collection 에디터에서 MenuItemEditor를 조건부 렌더링)\n- ToolStrip, StatusStrip도 동일\n\n## 계획 작성\nplans/designer-item-editors-plan.md 파일 작성:\n1. 현재 MenuStrip/ToolStrip/StatusStrip 아이템 데이터 구조 (runtime 컨트롤 분석)\n2. 현재 CollectionEditor.tsx 구조 분석\n3. MenuItemEditor.tsx 전체 코드 초안\n4. ToolStripItemEditor.tsx 전체 코드 초안\n5. StatusStripItemEditor.tsx 전체 코드 초안\n6. PropertyPanel 또는 controlProperties에서 에디터 연결 방법\n7. Modal/Dialog 구현 방법 (기존 프로젝트 패턴 확인)",
+      "dependsOn": [
+        "designer-shell-canvas-commit"
+      ],
+      "outputFiles": [
+        "plans/designer-item-editors-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/designer-item-editors-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-item-editors-impl",
+      "title": "Designer 아이템 컬렉션 에디터 - 구현",
+      "description": "MenuItemEditor, ToolStripItemEditor, StatusStripItemEditor 컴포넌트 구현",
+      "phase": "phase5-item-editors",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/designer-item-editors-plan.md를 읽고 아이템 컬렉션 에디터를 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/designer-item-editors-plan.md\n2. packages/designer/src/components/PropertyPanel/editors/CollectionEditor.tsx\n3. packages/designer/src/components/PropertyPanel/editors/TabPagesEditor.tsx\n4. packages/runtime/src/controls/MenuStrip.tsx\n5. packages/runtime/src/controls/ToolStrip.tsx\n6. packages/designer/src/components/PropertyPanel/controlProperties.ts\n7. packages/designer/src/components/PropertyPanel/PropertyPanel.tsx\n\n## 구현 내용\n\n### packages/designer/src/components/Editors/ 디렉토리 생성 후:\n\n#### MenuItemEditor.tsx\n- React 컴포넌트: interface Props { items: MenuItem[], onChange: (items: MenuItem[]) => void, onClose: () => void }\n- MenuItem 타입: { id: string, text: string, shortcut?: string, enabled: boolean, checked: boolean, separator: boolean, children?: MenuItem[] }\n- 트리뷰: 선택된 노드 강조, 들여쓰기 depth 표현\n- 속성 패널: 선택 아이템의 속성 편집 (onChange 즉시 반영)\n- 버튼 기능: Add(루트 추가), Add Child(하위 추가), Delete, Move Up, Move Down\n- Modal 스타일 (position: fixed, z-index 높음, backdrop)\n\n#### ToolStripItemEditor.tsx\n- ToolStripItem 타입: { id: string, type: 'button'|'separator'|'label'|'dropdownButton', text: string, tooltip?: string, enabled: boolean, checked: boolean }\n- 플랫 리스트 편집\n- 속성 패널\n- Add, Delete, Move Up/Down 버튼\n\n#### StatusStripItemEditor.tsx\n- StatusStripItem 타입: { id: string, type: 'label'|'progressBar'|'dropDownButton', text: string, spring: boolean, width?: number }\n- 플랫 리스트 편집\n- 속성 패널\n- Add, Delete, Move Up/Down 버튼\n\n### packages/designer/src/components/PropertyPanel/controlProperties.ts 수정\n- MenuStrip의 items 속성 editorType 변경 또는 metadata 추가하여 MenuItemEditor 연결 식별자 추가\n- ToolStrip, StatusStrip 동일\n\n### packages/designer/src/components/PropertyPanel/PropertyPanel.tsx 또는 editors/CollectionEditor.tsx 수정\n- items 속성 편집 시 해당 컨트롤 타입에 맞는 에디터 다이얼로그 열기\n  (MenuStrip → MenuItemEditor, ToolStrip → ToolStripItemEditor, StatusStrip → StatusStripItemEditor)\n\n## 주의사항\n- 각 에디터는 독립적인 로컬 상태로 편집 후 OK 클릭 시 onChange 호출\n- Cancel 클릭 시 원래값 유지\n- 아이템 ID는 nanoid 또는 Date.now() 기반 생성",
+      "dependsOn": [
+        "designer-item-editors-plan"
+      ],
+      "outputFiles": [
+        "packages/designer/src/components/Editors/MenuItemEditor.tsx",
+        "packages/designer/src/components/Editors/ToolStripItemEditor.tsx",
+        "packages/designer/src/components/Editors/StatusStripItemEditor.tsx"
+      ],
+      "modifiedFiles": [
+        "packages/designer/src/components/Editors/MenuItemEditor.tsx",
+        "packages/designer/src/components/Editors/ToolStripItemEditor.tsx",
+        "packages/designer/src/components/Editors/StatusStripItemEditor.tsx",
+        "packages/designer/src/components/PropertyPanel/controlProperties.ts",
+        "packages/designer/src/components/PropertyPanel/PropertyPanel.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-item-editors-test",
+      "title": "Designer 아이템 컬렉션 에디터 - 테스트",
+      "description": "MenuItemEditor, ToolStripItemEditor, StatusStripItemEditor 테스트",
+      "phase": "phase5-item-editors",
+      "category": "testing",
+      "done": false,
+      "prompt": "WebForm Designer 아이템 컬렉션 에디터 구현을 테스트하세요.\n\n## 테스트\n1. packages/designer/src/__tests__/MenuItemEditor.test.tsx 작성:\n   - 기본 렌더링 확인\n   - 아이템 추가(Add) 기능 확인\n   - 아이템 삭제(Delete) 기능 확인\n   - 아이템 선택 시 속성 패널 표시 확인\n   - 속성 변경 시 onChange 즉시 호출 확인\n   - OK 클릭 시 최종 items 반환 확인\n   - Cancel 클릭 시 onChange 미호출 확인\n\n2. packages/designer/src/__tests__/ToolStripItemEditor.test.tsx 작성:\n   - 기본 렌더링 확인\n   - 아이템 타입 변경 확인\n   - 순서 변경(Up/Down) 확인\n\n3. packages/designer/src/__tests__/StatusStripItemEditor.test.tsx 작성:\n   - 기본 렌더링 확인\n   - spring 속성 토글 확인\n\n4. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/designer typecheck`\n\n5. 테스트 실행:\n   `pnpm --filter @webform/designer test`\n\n6. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
+      "dependsOn": [
+        "designer-item-editors-impl"
+      ],
+      "outputFiles": [
+        "packages/designer/src/__tests__/MenuItemEditor.test.tsx",
+        "packages/designer/src/__tests__/ToolStripItemEditor.test.tsx",
+        "packages/designer/src/__tests__/StatusStripItemEditor.test.tsx"
+      ],
+      "modifiedFiles": [
+        "packages/designer/src/__tests__/MenuItemEditor.test.tsx",
+        "packages/designer/src/__tests__/ToolStripItemEditor.test.tsx",
+        "packages/designer/src/__tests__/StatusStripItemEditor.test.tsx"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "designer-item-editors-commit",
+      "title": "Designer 아이템 컬렉션 에디터 - 커밋",
+      "description": "아이템 컬렉션 에디터 구현 커밋",
+      "phase": "phase5-item-editors",
+      "category": "commit",
+      "done": false,
+      "prompt": "Designer 아이템 컬렉션 에디터 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/designer/src/components/Editors/MenuItemEditor.tsx\n   - packages/designer/src/components/Editors/ToolStripItemEditor.tsx\n   - packages/designer/src/components/Editors/StatusStripItemEditor.tsx\n   - packages/designer/src/components/PropertyPanel/controlProperties.ts\n   - packages/designer/src/components/PropertyPanel/PropertyPanel.tsx\n   - 관련 테스트 파일들\n   - plans/designer-item-editors-plan.md\n3. 커밋 메시지 (한국어): 'feat(designer): MenuStrip/ToolStrip/StatusStrip 아이템 컬렉션 에디터 구현\\n\\n- MenuItemEditor 트리뷰 기반 계층 메뉴 편집기 추가\\n- ToolStripItemEditor 플랫 리스트 기반 툴바 아이템 편집기 추가\\n- StatusStripItemEditor 상태바 아이템 편집기 추가\\n- PropertyPanel에서 해당 컨트롤 타입별 전용 에디터 연결'\n4. 커밋 확인",
+      "dependsOn": [
+        "designer-item-editors-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/designer/src/components/Editors/MenuItemEditor.tsx",
+        "packages/designer/src/components/Editors/ToolStripItemEditor.tsx",
+        "packages/designer/src/components/Editors/StatusStripItemEditor.tsx",
+        "packages/designer/src/components/PropertyPanel/controlProperties.ts"
       ],
       "subtasks": null
     }
