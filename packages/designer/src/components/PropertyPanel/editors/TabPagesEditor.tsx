@@ -159,6 +159,9 @@ function TabPagesModal({ items: initial, onClose, onSave }: TabPagesModalProps) 
 
       for (const tab of items) {
         if (!existingTabIds.has(tab.id)) {
+          // 탭 헤더 높이(약 30px) 아래에 위치하도록 오프셋 적용
+          const TAB_HEADER_OFFSET_X = 10;
+          const TAB_HEADER_OFFSET_Y = 40;
           addControl({
             id: crypto.randomUUID(),
             type: 'Panel',
@@ -168,8 +171,14 @@ function TabPagesModal({ items: initial, onClose, onSave }: TabPagesModalProps) 
               tabId: tab.id,
               borderStyle: 'None',
             },
-            position: { x: tabControl.position.x, y: tabControl.position.y },
-            size: { width: tabControl.size.width, height: tabControl.size.height },
+            position: {
+              x: tabControl.position.x + TAB_HEADER_OFFSET_X,
+              y: tabControl.position.y + TAB_HEADER_OFFSET_Y,
+            },
+            size: {
+              width: tabControl.size.width - TAB_HEADER_OFFSET_X * 2,
+              height: tabControl.size.height - TAB_HEADER_OFFSET_Y - TAB_HEADER_OFFSET_X,
+            },
             anchor: { top: true, bottom: false, left: true, right: false },
             dock: 'None',
             tabIndex: 0,

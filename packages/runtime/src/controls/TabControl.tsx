@@ -95,6 +95,7 @@ export function TabControl({
         display: 'flex',
         flexDirection: 'column',
         pointerEvents: 'none',
+        zIndex: 1,
       }}>
         <div style={{ ...tabHeaderStyle, pointerEvents: 'auto' }}>
           {childArray.map((child, i) => (
