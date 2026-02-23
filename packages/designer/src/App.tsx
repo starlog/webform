@@ -23,6 +23,8 @@ export function App() {
   const isDirty = useDesignerStore((s) => s.isDirty);
   const formTitle = useDesignerStore((s) => s.formProperties.title);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
+  const editMode = useDesignerStore((s) => s.editMode);
+  const shellTitle = useDesignerStore((s) => s.shellProperties.title);
   const [formStatus, setFormStatus] = useState<'draft' | 'published'>('draft');
   const [explorerRefreshKey, setExplorerRefreshKey] = useState(0);
 
@@ -37,12 +39,17 @@ export function App() {
 
   const handleSave = useCallback(async () => {
     try {
+      if (editMode === 'shell') {
+        // Shell 저장 — designer-shell-api 태스크에서 구현
+        showStatus('Shell save not yet implemented');
+        return;
+      }
       await save();
       showStatus('Saved');
     } catch {
       showStatus('Save failed');
     }
-  }, [save]);
+  }, [save, editMode]);
 
   const handlePublish = useCallback(async () => {
     if (!currentFormId) return;
@@ -77,6 +84,7 @@ export function App() {
     try {
       const { data } = await apiService.loadForm(formId);
       const store = useDesignerStore.getState();
+      store.setEditMode('form');
       store.loadForm(formId, data.controls, data.properties, data.eventHandlers);
 
       // 프로젝트 정보 설정 (기본 폰트 포함)
@@ -114,7 +122,11 @@ export function App() {
         }}
       >
         <span style={{ fontWeight: 600 }}>
-          {currentFormId ? `${formTitle}${isDirty ? ' *' : ''}` : 'WebForm Designer'}
+          {editMode === 'shell'
+            ? `${shellTitle} (Shell)${isDirty ? ' *' : ''}`
+            : currentFormId
+              ? `${formTitle}${isDirty ? ' *' : ''}`
+              : 'WebForm Designer'}
         </span>
 
         {currentFormId && (
@@ -212,7 +224,20 @@ export function App() {
             backgroundColor: '#E0E0E0',
           }}
         >
-          <DesignerCanvas />
+          {editMode === 'shell' ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#888',
+              fontSize: 14,
+            }}>
+              Shell 편집 모드 (구현 예정)
+            </div>
+          ) : (
+            <DesignerCanvas />
+          )}
         </div>
 
         {/* 속성 패널 */}
