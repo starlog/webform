@@ -145,7 +145,13 @@ export function DataGridView({
 
   // 컬럼 자동 생성: columns prop이 없으면 데이터의 키에서 추출
   const resolvedColumns = useMemo<ColumnDefinition[]>(() => {
-    if (columns && columns.length > 0) return columns;
+    if (columns && columns.length > 0) {
+      // headerText가 비어있으면 field 이름으로 폴백
+      return columns.map((col, i) => ({
+        ...col,
+        headerText: col.headerText || col.field || `Column${i + 1}`,
+      }));
+    }
     if (rows.length === 0) return [];
     const keys = Object.keys(rows[0]).filter((k) => !INTERNAL_FIELDS.includes(k));
     return keys.map((key) => ({

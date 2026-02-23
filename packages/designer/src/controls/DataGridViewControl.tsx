@@ -64,9 +64,9 @@ export function DataGridViewControl({ properties, size }: DesignerControlProps) 
       <table style={styles.table}>
         <thead>
           <tr>
-            {resolvedColumns.map((col) => (
-              <th key={col.field} style={{ ...styles.headerCell, width: col.width }}>
-                {col.headerText}
+            {resolvedColumns.map((col, i) => (
+              <th key={col.field || i} style={{ ...styles.headerCell, width: col.width }}>
+                {col.headerText || col.field || `Column${i + 1}`}
               </th>
             ))}
           </tr>
