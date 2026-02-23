@@ -308,7 +308,7 @@
       "description": "Shell 이벤트 엔진 구현 커밋",
       "phase": "phase2-server-events",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Shell 이벤트 엔진 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/server/src/services/EventEngine.ts\n   - packages/server/src/services/SandboxRunner.ts\n   - packages/server/src/websocket/runtimeEvents.ts\n   - packages/server/src/websocket/index.ts\n   - packages/server/src/routes/runtime.ts\n   - packages/server/src/__tests__/shell-events.test.ts\n   - plans/server-shell-events-plan.md\n3. 커밋 메시지 (한국어): 'feat(server): Shell 이벤트 엔진 및 WebSocket per-project 지원 추가\\n\\n- SandboxRunner ctx에 navigate/navigateBack/closeApp/appState 주입\\n- EventEngine Shell 이벤트 처리 분기 추가\\n- WebSocket /ws/runtime/app/:projectId per-project 엔드포인트 추가\\n- RuntimeWsMessage scope 필드 지원'\n4. 커밋 확인",
       "dependsOn": [
         "server-shell-events-test"
@@ -767,7 +767,7 @@
       "description": "MenuItemEditor, ToolStripItemEditor, StatusStripItemEditor 테스트",
       "phase": "phase5-item-editors",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm Designer 아이템 컬렉션 에디터 구현을 테스트하세요.\n\n## 테스트\n1. packages/designer/src/__tests__/MenuItemEditor.test.tsx 작성:\n   - 기본 렌더링 확인\n   - 아이템 추가(Add) 기능 확인\n   - 아이템 삭제(Delete) 기능 확인\n   - 아이템 선택 시 속성 패널 표시 확인\n   - 속성 변경 시 onChange 즉시 호출 확인\n   - OK 클릭 시 최종 items 반환 확인\n   - Cancel 클릭 시 onChange 미호출 확인\n\n2. packages/designer/src/__tests__/ToolStripItemEditor.test.tsx 작성:\n   - 기본 렌더링 확인\n   - 아이템 타입 변경 확인\n   - 순서 변경(Up/Down) 확인\n\n3. packages/designer/src/__tests__/StatusStripItemEditor.test.tsx 작성:\n   - 기본 렌더링 확인\n   - spring 속성 토글 확인\n\n4. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/designer typecheck`\n\n5. 테스트 실행:\n   `pnpm --filter @webform/designer test`\n\n6. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
         "designer-item-editors-impl"
