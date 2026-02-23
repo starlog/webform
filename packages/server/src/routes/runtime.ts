@@ -372,12 +372,27 @@ runtimeRouter.post('/shells/:projectId/events', async (req, res, next) => {
       throw new AppError(400, 'Missing required fields: controlId, eventName, shellState');
     }
 
-    // TODO: server-shell-events 태스크에서 EventEngine.executeShellEvent()로 교체
-    res.json({
-      success: true,
-      patches: [],
-      logs: [],
-    });
+    const shellDef = {
+      id: shell._id.toString(),
+      projectId: shell.projectId,
+      name: shell.name,
+      version: shell.version,
+      properties: shell.properties,
+      controls: shell.controls,
+      eventHandlers: shell.eventHandlers,
+      startFormId: shell.startFormId,
+    };
+
+    const appState = (req.body as { appState?: Record<string, unknown> }).appState ?? {};
+
+    const result = await eventEngine.executeShellEvent(
+      req.params.projectId,
+      payload,
+      shellDef,
+      appState,
+    );
+
+    res.json(result);
   } catch (err) {
     next(err);
   }

@@ -19,6 +19,10 @@ export interface SandboxOptions {
   memoryLimit?: number;
   debugMode?: boolean;
   mongoConnectors?: MongoConnectorInfo[];
+  shellMode?: boolean;
+  appState?: Record<string, unknown>;
+  currentFormId?: string;
+  params?: Record<string, unknown>;
 }
 
 export interface SandboxResult {
@@ -39,6 +43,7 @@ export class SandboxRunner {
     const memoryLimit = options?.memoryLimit ?? env.SANDBOX_MEMORY_LIMIT_MB;
     const debugMode = options?.debugMode ?? false;
     const mongoConnectors = options?.mongoConnectors ?? [];
+    const shellMode = options?.shellMode ?? false;
 
     // TypeScript → JavaScript 변환 (type annotations 제거)
     let jsCode: string;
@@ -63,7 +68,14 @@ export class SandboxRunner {
     }
 
     const isolate = new ivm.Isolate({ memoryLimit });
-    const wrappedCode = this.wrapHandlerCode(codeToRun, debugMode, mongoConnectors);
+    const wrappedCode = this.wrapHandlerCode(
+      codeToRun,
+      debugMode,
+      mongoConnectors,
+      shellMode,
+      options?.currentFormId,
+      options?.params,
+    );
 
     try {
       const vmContext = await isolate.createContext();
@@ -71,6 +83,10 @@ export class SandboxRunner {
 
       await this.blockDangerousGlobals(jail, debugMode);
       await this.injectContext(jail, context, mongoConnectors);
+
+      if (shellMode && options?.appState) {
+        await this.injectAppState(jail, options.appState);
+      }
 
       const script = await isolate.compileScript(wrappedCode);
 
@@ -208,7 +224,21 @@ export class SandboxRunner {
     }
   }
 
-  private wrapHandlerCode(code: string, debugMode?: boolean, mongoConnectors: MongoConnectorInfo[] = []): string {
+  private async injectAppState(
+    jail: ivm.Reference<Record<string, unknown>>,
+    appState: Record<string, unknown>,
+  ): Promise<void> {
+    await jail.set('__appState__', new ivm.ExternalCopy(appState).copyInto());
+  }
+
+  private wrapHandlerCode(
+    code: string,
+    debugMode?: boolean,
+    mongoConnectors: MongoConnectorInfo[] = [],
+    shellMode?: boolean,
+    currentFormId?: string,
+    params?: Record<string, unknown>,
+  ): string {
     const traceSetup = debugMode
       ? `
         var __traces = [];
@@ -248,8 +278,49 @@ export class SandboxRunner {
       : '';
 
     const returnValue = debugMode
-      ? '{ operations: __operations, logs: __logs, traces: __traces }'
-      : '{ operations: __operations, logs: __logs }';
+      ? shellMode
+        ? '{ operations: __operations, logs: __logs, traces: __traces, appState: ctx.appState }'
+        : '{ operations: __operations, logs: __logs, traces: __traces }'
+      : shellMode
+        ? '{ operations: __operations, logs: __logs, appState: ctx.appState }'
+        : '{ operations: __operations, logs: __logs }';
+
+    const shellSetup = shellMode
+      ? `
+        ctx.currentFormId = ${JSON.stringify(currentFormId ?? '')};
+        ctx.params = ${JSON.stringify(params ?? {})};
+        ctx.appState = typeof __appState__ !== 'undefined'
+          ? JSON.parse(JSON.stringify(__appState__))
+          : {};
+        ctx.navigateBack = function() {
+          __flushChanges();
+          __operations.push({
+            type: 'navigate',
+            target: '_system',
+            payload: { back: true }
+          });
+        };
+        ctx.navigateReplace = function(formId, params) {
+          __flushChanges();
+          __operations.push({
+            type: 'navigate',
+            target: '_system',
+            payload: {
+              formId: String(formId || ''),
+              params: params || {},
+              replace: true
+            }
+          });
+        };
+        ctx.closeApp = function() {
+          __flushChanges();
+          __operations.push({
+            type: 'closeApp',
+            target: '_system',
+            payload: {}
+          });
+        };`
+      : '';
 
     return `
       (function(ctx) {
@@ -326,7 +397,7 @@ export class SandboxRunner {
               params: params || {}
             }
           });
-        };
+        };${shellSetup}
         ctx.http = {
           get: function(url) {
             return __httpHandler.applySyncPromise(undefined, ['GET', String(url)]);
