@@ -338,7 +338,7 @@ describe('designerStore - Shell', () => {
 
       expect(result.id).toBe('shell-99');
       expect(result.projectId).toBe('proj-1');
-      expect(result.name).toBe('My App');
+      expect(result.name).toBe('Test Shell');
       expect(result.version).toBe(1);
       expect(result.controls).toHaveLength(1);
       expect(result.controls[0].id).toBe('status-1');

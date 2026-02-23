@@ -63,6 +63,7 @@ interface DesignerState {
   editMode: 'form' | 'shell';
   shellControls: ControlDefinition[];
   shellProperties: ShellProperties;
+  shellName: string;
   currentShellId: string | null;
 
   addControl: (control: ControlDefinition) => void;
@@ -307,6 +308,7 @@ export const useDesignerStore = create<DesignerState>()(
     editMode: 'form' as const,
     shellControls: [] as ControlDefinition[],
     shellProperties: DEFAULT_SHELL_PROPERTIES,
+    shellName: 'Application Shell',
     currentShellId: null as string | null,
 
     addControl: (control) => set((state) => {
@@ -460,6 +462,7 @@ export const useDesignerStore = create<DesignerState>()(
 
     loadShell: (shellDef) => set((state) => {
       state.currentShellId = shellDef.id;
+      state.shellName = shellDef.name;
       state.shellControls = shellDef.controls as ControlDefinition[];
       state.shellProperties = shellDef.properties;
       state.editMode = 'shell';
@@ -494,7 +497,7 @@ export const useDesignerStore = create<DesignerState>()(
       return {
         id: state.currentShellId ?? '',
         projectId: state.currentProjectId ?? '',
-        name: state.shellProperties.title,
+        name: state.shellName,
         version: 1,
         properties: state.shellProperties,
         controls: state.shellControls,

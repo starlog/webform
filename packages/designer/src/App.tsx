@@ -24,6 +24,7 @@ export function App() {
   const isDirty = useDesignerStore((s) => s.isDirty);
   const formTitle = useDesignerStore((s) => s.formProperties.title);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
+  const currentProjectId = useDesignerStore((s) => s.currentProjectId);
   const editMode = useDesignerStore((s) => s.editMode);
   const shellTitle = useDesignerStore((s) => s.shellProperties.title);
   const [formStatus, setFormStatus] = useState<'draft' | 'published'>('draft');
@@ -96,6 +97,10 @@ export function App() {
 
   const runtimeUrl = currentFormId
     ? `${window.location.origin.replace(':3000', ':3001')}/?formId=${currentFormId}`
+    : null;
+
+  const appRuntimeUrl = currentProjectId && currentFormId
+    ? `${window.location.origin.replace(':3000', ':3001')}/?projectId=${currentProjectId}&formId=${currentFormId}`
     : null;
 
   // Ctrl+S 키보드 단축키
@@ -194,6 +199,17 @@ export function App() {
                     >
                       Open Runtime
                     </a>
+                    {appRuntimeUrl && (
+                      <a
+                        href={appRuntimeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: 11, color: '#0078d4', textDecoration: 'none' }}
+                        title={appRuntimeUrl}
+                      >
+                        Open With Application
+                      </a>
+                    )}
                     <button
                       type="button"
                       onClick={() => { navigator.clipboard.writeText(runtimeUrl); showStatus('URL copied'); }}
