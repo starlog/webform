@@ -117,7 +117,8 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
     case 'anchor':
       return <AnchorEditor value={value as AnchorStyle} onChange={onChange} />;
     case 'collection':
-      return <CollectionEditor value={value as string[] ?? []} onChange={onChange} />;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return <CollectionEditor value={value as any[] ?? []} onChange={onChange} />;
     case 'tabEditor':
       return <TabPagesEditor value={value as { title: string; id: string }[] ?? []} onChange={onChange} />;
     case 'mongoColumns':
