@@ -8,13 +8,31 @@ interface TabInfo {
 }
 
 interface TabPagesEditorProps {
-  value: TabInfo[];
+  value: unknown;
   onChange: (value: TabInfo[]) => void;
+}
+
+/** 문자열 배열, id 없는 객체 등 다양한 입력을 TabInfo[]로 정규화 */
+function normalizeTabItems(raw: unknown): TabInfo[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    if (typeof item === 'string') {
+      return { title: item, id: crypto.randomUUID() };
+    }
+    if (item && typeof item === 'object') {
+      const obj = item as Record<string, unknown>;
+      return {
+        title: (obj.title as string) ?? (obj.name as string) ?? String(obj),
+        id: (obj.id as string) ?? crypto.randomUUID(),
+      };
+    }
+    return { title: String(item), id: crypto.randomUUID() };
+  });
 }
 
 export function TabPagesEditor({ value, onChange }: TabPagesEditorProps) {
   const [open, setOpen] = useState(false);
-  const items = Array.isArray(value) ? value : [];
+  const items = normalizeTabItems(value);
 
   return (
     <>
@@ -55,7 +73,7 @@ interface TabPagesModalProps {
 }
 
 function TabPagesModal({ items: initial, onClose, onSave }: TabPagesModalProps) {
-  const [items, setItems] = useState<TabInfo[]>(initial.map((t) => ({ ...t })));
+  const [items, setItems] = useState<TabInfo[]>(() => initial.map((t) => ({ title: t.title, id: t.id })));
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const addControl = useDesignerStore((s) => s.addControl);
