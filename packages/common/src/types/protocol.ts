@@ -2,7 +2,8 @@ import type { ControlDefinition, FormDefinition, FormProperties } from './form';
 import type { EventArgs } from './events';
 
 export interface UIPatch {
-  type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate';
+  type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate'
+    | 'updateShell' | 'updateAppState' | 'closeApp';
   target: string;
   payload: Record<string, unknown>;
 }
@@ -13,6 +14,8 @@ export interface EventRequest {
   eventName: string;
   eventArgs: EventArgs;
   formState: Record<string, Record<string, unknown>>;
+  appState?: Record<string, unknown>;
+  scope?: 'shell' | 'form';
 }
 
 export interface DebugLog {
@@ -50,7 +53,7 @@ export type DesignerWsMessage =
 export type RuntimeWsMessage =
   | { type: 'event'; payload: EventRequest }
   | { type: 'eventResult'; payload: EventResponse }
-  | { type: 'uiPatch'; payload: UIPatch[] }
+  | { type: 'uiPatch'; payload: UIPatch[]; scope?: 'shell' | 'form' }
   | { type: 'dataRefresh'; payload: { controlId: string; data: unknown[] } }
   | { type: 'error'; payload: { code: string; message: string } };
 

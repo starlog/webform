@@ -32,6 +32,15 @@ export type {
   DataBindingDefinition,
 } from './types/datasource';
 
+// types/shell
+export type {
+  ApplicationShellDefinition,
+  ShellProperties,
+  ShellEventRequest,
+  ShellEventType,
+} from './types/shell';
+export { SHELL_EVENTS } from './types/shell';
+
 // types/protocol
 export type {
   DebugLog,
