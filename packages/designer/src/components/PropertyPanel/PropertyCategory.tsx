@@ -13,6 +13,9 @@ import { TabPagesEditor } from './editors/TabPagesEditor';
 import { MongoColumnsEditor } from './editors/MongoColumnsEditor';
 import { MongoConnectionStringEditor } from './editors/MongoConnectionStringEditor';
 import { SampleDataEditor } from './editors/SampleDataEditor';
+import { MenuItemEditor } from '../Editors/MenuItemEditor';
+import { ToolStripItemEditor } from '../Editors/ToolStripItemEditor';
+import { StatusStripItemEditor } from '../Editors/StatusStripItemEditor';
 
 interface PropertyCategoryProps {
   category: string;
@@ -127,6 +130,15 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
       return <MongoConnectionStringEditor value={value as string ?? ''} onChange={onChange} />;
     case 'graphSample':
       return <SampleDataEditor value={value as string ?? 'Bar'} />;
+    case 'menuEditor':
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return <MenuItemEditor value={value as any[] ?? []} onChange={onChange} />;
+    case 'toolStripEditor':
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return <ToolStripItemEditor value={value as any[] ?? []} onChange={onChange} />;
+    case 'statusStripEditor':
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return <StatusStripItemEditor value={value as any[] ?? []} onChange={onChange} />;
     default:
       return <TextEditor value={String(value ?? '')} onChange={onChange} />;
   }
