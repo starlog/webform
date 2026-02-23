@@ -287,7 +287,7 @@
       "description": "Shell 이벤트 처리 및 WebSocket 기능 테스트",
       "phase": "phase2-server-events",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm server Shell 이벤트 엔진 구현을 테스트하세요.\n\n## 테스트\n1. packages/server/src/__tests__/EventEngine.test.ts 확인 또는 신규 작성\n   packages/server/src/__tests__/shell-events.test.ts 작성:\n   - SandboxRunner ctx에 navigate, closeApp, appState 메서드 존재 확인\n   - navigate 호출 시 UIPatch({ type: 'navigate' }) 반환 확인\n   - closeApp 호출 시 UIPatch({ type: 'closeApp' }) 반환 확인\n   - appState 변경 시 UIPatch({ type: 'updateAppState' }) 반환 확인\n   - EventEngine.processShellEvent 메서드 존재 및 기본 동작 확인\n\n2. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/server typecheck`\n\n3. 테스트 실행:\n   `pnpm --filter @webform/server test`\n\n4. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
         "server-shell-events-impl"
@@ -742,7 +742,7 @@
       "description": "MenuItemEditor, ToolStripItemEditor, StatusStripItemEditor 컴포넌트 구현",
       "phase": "phase5-item-editors",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/designer-item-editors-plan.md를 읽고 아이템 컬렉션 에디터를 구현하세요.\n\n## 구현 전 파일 읽기\n1. plans/designer-item-editors-plan.md\n2. packages/designer/src/components/PropertyPanel/editors/CollectionEditor.tsx\n3. packages/designer/src/components/PropertyPanel/editors/TabPagesEditor.tsx\n4. packages/runtime/src/controls/MenuStrip.tsx\n5. packages/runtime/src/controls/ToolStrip.tsx\n6. packages/designer/src/components/PropertyPanel/controlProperties.ts\n7. packages/designer/src/components/PropertyPanel/PropertyPanel.tsx\n\n## 구현 내용\n\n### packages/designer/src/components/Editors/ 디렉토리 생성 후:\n\n#### MenuItemEditor.tsx\n- React 컴포넌트: interface Props { items: MenuItem[], onChange: (items: MenuItem[]) => void, onClose: () => void }\n- MenuItem 타입: { id: string, text: string, shortcut?: string, enabled: boolean, checked: boolean, separator: boolean, children?: MenuItem[] }\n- 트리뷰: 선택된 노드 강조, 들여쓰기 depth 표현\n- 속성 패널: 선택 아이템의 속성 편집 (onChange 즉시 반영)\n- 버튼 기능: Add(루트 추가), Add Child(하위 추가), Delete, Move Up, Move Down\n- Modal 스타일 (position: fixed, z-index 높음, backdrop)\n\n#### ToolStripItemEditor.tsx\n- ToolStripItem 타입: { id: string, type: 'button'|'separator'|'label'|'dropdownButton', text: string, tooltip?: string, enabled: boolean, checked: boolean }\n- 플랫 리스트 편집\n- 속성 패널\n- Add, Delete, Move Up/Down 버튼\n\n#### StatusStripItemEditor.tsx\n- StatusStripItem 타입: { id: string, type: 'label'|'progressBar'|'dropDownButton', text: string, spring: boolean, width?: number }\n- 플랫 리스트 편집\n- 속성 패널\n- Add, Delete, Move Up/Down 버튼\n\n### packages/designer/src/components/PropertyPanel/controlProperties.ts 수정\n- MenuStrip의 items 속성 editorType 변경 또는 metadata 추가하여 MenuItemEditor 연결 식별자 추가\n- ToolStrip, StatusStrip 동일\n\n### packages/designer/src/components/PropertyPanel/PropertyPanel.tsx 또는 editors/CollectionEditor.tsx 수정\n- items 속성 편집 시 해당 컨트롤 타입에 맞는 에디터 다이얼로그 열기\n  (MenuStrip → MenuItemEditor, ToolStrip → ToolStripItemEditor, StatusStrip → StatusStripItemEditor)\n\n## 주의사항\n- 각 에디터는 독립적인 로컬 상태로 편집 후 OK 클릭 시 onChange 호출\n- Cancel 클릭 시 원래값 유지\n- 아이템 ID는 nanoid 또는 Date.now() 기반 생성",
       "dependsOn": [
         "designer-item-editors-plan"
