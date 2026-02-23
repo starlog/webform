@@ -34,6 +34,7 @@ interface ProjectDocument {
   _id: string;
   name: string;
   description: string;
+  defaultFont?: FontDefinition;
   createdBy: string;
   updatedBy: string;
   createdAt: string;
@@ -191,6 +192,17 @@ export const apiService = {
     return request('/projects/import', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  },
+
+  // 프로젝트 업데이트
+  async updateProject(
+    id: string,
+    input: { name?: string; description?: string; defaultFont?: FontDefinition | null },
+  ): Promise<{ data: ProjectDocument }> {
+    return request(`/projects/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
     });
   },
 

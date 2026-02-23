@@ -17,6 +17,14 @@ export interface ExportProjectData {
   project: {
     name: string;
     description: string;
+    defaultFont?: {
+      family: string;
+      size: number;
+      bold: boolean;
+      italic: boolean;
+      underline: boolean;
+      strikethrough: boolean;
+    };
   };
   forms: Array<{
     name: string;
@@ -78,9 +86,19 @@ export class ProjectService {
 
   async updateProject(id: string, input: UpdateProjectInput, userId: string): Promise<ProjectDocument> {
     await this.getProject(id);
+    const { defaultFont, ...rest } = input;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const update: Record<string, any> = {
+      $set: { ...rest, updatedBy: userId },
+    };
+    if (defaultFont === null) {
+      update.$unset = { defaultFont: 1 };
+    } else if (defaultFont !== undefined) {
+      update.$set.defaultFont = defaultFont;
+    }
     const project = await Project.findOneAndUpdate(
       { _id: id, deletedAt: null },
-      { $set: { ...input, updatedBy: userId } },
+      update,
       { new: true },
     );
     if (!project) {
@@ -119,6 +137,7 @@ export class ProjectService {
       project: {
         name: project.name,
         description: project.description,
+        ...(project.defaultFont ? { defaultFont: project.defaultFont } : {}),
       },
       forms: forms.map((f) => ({
         name: f.name,
@@ -171,7 +190,11 @@ export class ProjectService {
 
   async importProject(input: ImportProjectInput, userId: string): Promise<ProjectDocument> {
     const project = await this.createProject(
-      { name: input.project.name, description: input.project.description },
+      {
+        name: input.project.name,
+        description: input.project.description,
+        ...(input.project.defaultFont ? { defaultFont: input.project.defaultFont } : {}),
+      },
       userId,
     );
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { ControlDefinition, ControlType, FormProperties } from '@webform/common';
+import type { ControlDefinition, ControlType, FontDefinition, FormProperties } from '@webform/common';
 
 const DEFAULT_FORM_PROPERTIES: FormProperties = {
   title: 'Form1',
@@ -27,6 +27,7 @@ interface DesignerState {
   isDirty: boolean;
   currentFormId: string | null;
   currentProjectId: string | null;
+  projectDefaultFont: FontDefinition | null;
   gridSize: number;
   formEventHandlers: Record<string, string>; // eventName → handlerName
   formEventCode: Record<string, string>;     // handlerName → code
@@ -48,6 +49,7 @@ interface DesignerState {
   deleteFormEventHandler: (eventName: string) => void;
   markClean: () => void;
   setCurrentProject: (projectId: string | null) => void;
+  setProjectDefaultFont: (font: FontDefinition | null) => void;
 }
 
 // 컨트롤 타입별 기본 크기
@@ -161,11 +163,16 @@ export function createDefaultControl(
   type: ControlType,
   position: { x: number; y: number },
 ): ControlDefinition {
+  const props = getDefaultProperties(type);
+  const { projectDefaultFont } = useDesignerStore.getState();
+  if (projectDefaultFont) {
+    props.font = { ...projectDefaultFont };
+  }
   return {
     id: crypto.randomUUID(),
     type,
     name: generateControlName(type),
-    properties: getDefaultProperties(type),
+    properties: props,
     position,
     size: getDefaultSize(type),
     anchor: { top: true, bottom: false, left: true, right: false },
@@ -185,6 +192,7 @@ export const useDesignerStore = create<DesignerState>()(
     isDirty: false,
     currentFormId: null,
     currentProjectId: null,
+    projectDefaultFont: null as FontDefinition | null,
     gridSize: 8,
     formEventHandlers: {} as Record<string, string>,
     formEventCode: {} as Record<string, string>,
@@ -298,6 +306,13 @@ export const useDesignerStore = create<DesignerState>()(
 
     setCurrentProject: (projectId) => set((state) => {
       state.currentProjectId = projectId;
+      if (projectId === null) {
+        state.projectDefaultFont = null;
+      }
+    }),
+
+    setProjectDefaultFont: (font) => set((state) => {
+      state.projectDefaultFont = font;
     }),
   })),
 );

@@ -1,8 +1,18 @@
 import { z } from 'zod';
 
+const fontSchema = z.object({
+  family: z.string().min(1),
+  size: z.number().positive(),
+  bold: z.boolean(),
+  italic: z.boolean(),
+  underline: z.boolean(),
+  strikethrough: z.boolean(),
+});
+
 export const createProjectSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(1000).default(''),
+  defaultFont: fontSchema.optional(),
 });
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
@@ -10,6 +20,7 @@ export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export const updateProjectSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional(),
+  defaultFont: fontSchema.optional().nullable(),
 });
 
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
@@ -26,6 +37,7 @@ export const importProjectSchema = z.object({
   project: z.object({
     name: z.string().min(1),
     description: z.string().default(''),
+    defaultFont: fontSchema.optional(),
   }),
   forms: z.array(z.object({
     name: z.string().min(1),

@@ -82,6 +82,17 @@ export function App() {
         data.properties,
       );
 
+      // 프로젝트 정보 설정 (기본 폰트 포함)
+      if (data.projectId) {
+        store.setCurrentProject(data.projectId);
+        try {
+          const { data: projectDetail } = await apiService.getProject(data.projectId);
+          store.setProjectDefaultFont(projectDetail.project.defaultFont ?? null);
+        } catch {
+          store.setProjectDefaultFont(null);
+        }
+      }
+
       // 폼 레벨 이벤트 핸들러 복원
       const formHandlers: Record<string, string> = {};
       const formCode: Record<string, string> = {};

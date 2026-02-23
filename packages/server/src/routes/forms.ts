@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { FormService } from '../services/FormService.js';
+import { ProjectService } from '../services/ProjectService.js';
 import { createFormSchema, updateFormSchema, listFormsQuerySchema } from '../validators/formValidator.js';
 
 export const formsRouter = Router();
 const formService = new FormService();
+const projectService = new ProjectService();
 
 // GET /api/forms — 폼 목록 조회
 formsRouter.get('/', async (req, res, next) => {
@@ -24,6 +26,22 @@ formsRouter.get('/', async (req, res, next) => {
 formsRouter.post('/', async (req, res, next) => {
   try {
     const input = createFormSchema.parse(req.body);
+
+    // 프로젝트 기본 폰트가 설정되어 있으면 폼 속성에 적용
+    if (input.projectId) {
+      try {
+        const project = await projectService.getProject(input.projectId);
+        if (project.defaultFont) {
+          input.properties = {
+            ...input.properties,
+            font: project.defaultFont,
+          };
+        }
+      } catch {
+        // 프로젝트 조회 실패 시 무시 (기본 폰트 없이 생성)
+      }
+    }
+
     const form = await formService.createForm(input, req.user!.sub);
     res.status(201).json({ data: form });
   } catch (err) {

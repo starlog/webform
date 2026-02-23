@@ -35,12 +35,19 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
   const containerRef = useRef<HTMLDivElement>(null);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
 
-  // 프로젝트 폰트 설정 다이얼로그
+  // 프로젝트 폰트 설정 다이얼로그 (일괄 적용)
   const [fontDialog, setFontDialog] = useState<{ projectId: string; projectName: string } | null>(null);
   const [fontValue, setFontValue] = useState<FontDefinition>({
     family: 'Segoe UI', size: 9, bold: false, italic: false, underline: false, strikethrough: false,
   });
   const [fontApplying, setFontApplying] = useState(false);
+
+  // 기본 폰트 설정 다이얼로그
+  const [defaultFontDialog, setDefaultFontDialog] = useState<{ projectId: string; projectName: string } | null>(null);
+  const [defaultFontValue, setDefaultFontValue] = useState<FontDefinition>({
+    family: 'Segoe UI', size: 9, bold: false, italic: false, underline: false, strikethrough: false,
+  });
+  const [defaultFontSaving, setDefaultFontSaving] = useState(false);
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -216,6 +223,61 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
     }
   };
 
+  const handleOpenDefaultFontDialog = async (projectId: string, projectName: string) => {
+    try {
+      const { data } = await apiService.getProject(projectId);
+      if (data.project.defaultFont) {
+        setDefaultFontValue(data.project.defaultFont);
+      } else {
+        setDefaultFontValue({
+          family: 'Segoe UI', size: 9, bold: false, italic: false, underline: false, strikethrough: false,
+        });
+      }
+    } catch {
+      setDefaultFontValue({
+        family: 'Segoe UI', size: 9, bold: false, italic: false, underline: false, strikethrough: false,
+      });
+    }
+    setDefaultFontDialog({ projectId, projectName });
+  };
+
+  const handleSaveDefaultFont = async () => {
+    if (!defaultFontDialog) return;
+    setDefaultFontSaving(true);
+    try {
+      await apiService.updateProject(defaultFontDialog.projectId, { defaultFont: defaultFontValue });
+      // 현재 프로젝트면 스토어 동기화
+      const state = useDesignerStore.getState();
+      if (state.currentProjectId === defaultFontDialog.projectId) {
+        state.setProjectDefaultFont(defaultFontValue);
+      }
+      setDefaultFontDialog(null);
+    } catch (error) {
+      console.error('Failed to save default font:', error);
+      alert('기본 폰트 저장에 실패했습니다.');
+    } finally {
+      setDefaultFontSaving(false);
+    }
+  };
+
+  const handleResetDefaultFont = async () => {
+    if (!defaultFontDialog) return;
+    setDefaultFontSaving(true);
+    try {
+      await apiService.updateProject(defaultFontDialog.projectId, { defaultFont: null });
+      const state = useDesignerStore.getState();
+      if (state.currentProjectId === defaultFontDialog.projectId) {
+        state.setProjectDefaultFont(null);
+      }
+      setDefaultFontDialog(null);
+    } catch (error) {
+      console.error('Failed to reset default font:', error);
+      alert('기본 폰트 초기화에 실패했습니다.');
+    } finally {
+      setDefaultFontSaving(false);
+    }
+  };
+
   const handleImportProject = async () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -243,7 +305,8 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
         const projName = proj?.project.name ?? '';
         return [
           { label: '새 폼', action: () => handleNewForm(contextMenu.projectId) },
-          { label: '프로젝트 폰트 설정', action: () => handleOpenFontDialog(contextMenu.projectId, projName) },
+          { label: '기본 폰트 설정', action: () => handleOpenDefaultFontDialog(contextMenu.projectId, projName) },
+          { label: '폰트 일괄 적용', action: () => handleOpenFontDialog(contextMenu.projectId, projName) },
           { label: '내보내기', action: () => handleExportProject(contextMenu.projectId) },
           { label: '삭제', action: () => handleDeleteProject(contextMenu.projectId) },
         ];
@@ -526,7 +589,94 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
         </div>
       )}
 
-      {/* 프로젝트 폰트 설정 다이얼로그 */}
+      {/* 기본 폰트 설정 다이얼로그 */}
+      {defaultFontDialog && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 20000,
+          }}
+          onClick={() => setDefaultFontDialog(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#fff',
+              border: '1px solid #999',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+              width: 320,
+              borderRadius: 4,
+              fontFamily: 'Segoe UI, sans-serif',
+              fontSize: 12,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              padding: '8px 12px',
+              borderBottom: '1px solid #ddd',
+              fontWeight: 600,
+              fontSize: 13,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <span>기본 폰트 설정</span>
+              <button
+                type="button"
+                onClick={() => setDefaultFontDialog(null)}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#666' }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ padding: '12px' }}>
+              <div style={{ marginBottom: 8, color: '#555' }}>
+                <strong>{defaultFontDialog.projectName}</strong> 프로젝트에서 새로 생성되는 폼과 컨트롤에 적용될 기본 폰트를 설정합니다.
+              </div>
+              <FontPicker value={defaultFontValue} onChange={setDefaultFontValue} />
+            </div>
+
+            <div style={{
+              padding: '8px 12px',
+              borderTop: '1px solid #ddd',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 8,
+            }}>
+              <button
+                type="button"
+                onClick={handleResetDefaultFont}
+                disabled={defaultFontSaving}
+                style={{ padding: '4px 16px', border: '1px solid #d32f2f', borderRadius: 2, backgroundColor: '#fff', color: '#d32f2f', fontSize: 12, cursor: 'pointer', marginRight: 'auto' }}
+              >
+                초기화
+              </button>
+              <button
+                type="button"
+                onClick={() => setDefaultFontDialog(null)}
+                style={{ padding: '4px 16px', border: '1px solid #bbb', borderRadius: 2, backgroundColor: '#fff', fontSize: 12, cursor: 'pointer' }}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveDefaultFont}
+                disabled={defaultFontSaving}
+                style={{ padding: '4px 16px', border: '1px solid #0078d4', borderRadius: 2, backgroundColor: '#0078d4', color: '#fff', fontSize: 12, cursor: 'pointer' }}
+              >
+                {defaultFontSaving ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 폰트 일괄 적용 다이얼로그 */}
       {fontDialog && (
         <div
           style={{
@@ -562,7 +712,7 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-              <span>프로젝트 폰트 설정</span>
+              <span>폰트 일괄 적용</span>
               <button
                 type="button"
                 onClick={() => setFontDialog(null)}

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ProjectService } from '../services/ProjectService.js';
 import {
   createProjectSchema,
+  updateProjectSchema,
   listProjectsQuerySchema,
   importProjectSchema,
 } from '../validators/projectValidator.js';
@@ -83,6 +84,17 @@ projectsRouter.put('/:id/font', async (req, res, next) => {
       req.user!.sub,
     );
     res.json({ success: true, modifiedCount });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/projects/:id — 프로젝트 업데이트
+projectsRouter.put('/:id', async (req, res, next) => {
+  try {
+    const input = updateProjectSchema.parse(req.body);
+    const project = await projectService.updateProject(req.params.id, input, req.user!.sub);
+    res.json({ data: project });
   } catch (err) {
     next(err);
   }
