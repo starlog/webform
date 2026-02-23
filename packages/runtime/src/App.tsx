@@ -1,12 +1,33 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormDefinition } from '@webform/common';
 import { SDUIRenderer } from './renderer/SDUIRenderer';
+import { AppContainer } from './renderer/AppContainer';
 import { apiClient } from './communication/apiClient';
 import { wsClient } from './communication/wsClient';
 import { setupPatchListener } from './communication/patchApplier';
 import { useRuntimeStore, type DialogMessage } from './stores/runtimeStore';
 
 export function App() {
+  const params = new URLSearchParams(window.location.search);
+  const projectId = params.get('projectId');
+  const formId = params.get('formId');
+
+  // projectId가 있으면 Shell 모드 (AppContainer)
+  if (projectId) {
+    return (
+      <>
+        <AppContainer projectId={projectId} initialFormId={formId ?? undefined} />
+        <MessageDialog />
+      </>
+    );
+  }
+
+  // formId만 있으면 기존 방식 (하위 호환)
+  return <LegacyFormApp formId={formId} />;
+}
+
+// 기존 App 로직을 LegacyFormApp으로 이동
+function LegacyFormApp({ formId: initialFormId }: { formId: string | null }) {
   const [formDefinition, setFormDefinition] = useState<FormDefinition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,21 +102,18 @@ export function App() {
 
   // 초기 폼 로드
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const formId = params.get('formId');
-
-    if (!formId) {
+    if (!initialFormId) {
       setError('formId 파라미터가 필요합니다.');
       setLoading(false);
       return;
     }
 
-    loadForm(formId);
+    loadForm(initialFormId);
 
     return () => {
       wsClient.disconnect();
     };
-  }, [loadForm]);
+  }, [initialFormId, loadForm]);
 
   // 브라우저 닫기/새로고침 시 BeforeLeaving 이벤트 실행
   useEffect(() => {
@@ -122,11 +140,17 @@ export function App() {
   }
 
   if (error) {
-    return <div style={{ padding: 20, fontFamily: 'Segoe UI, sans-serif', color: 'red' }}>오류: {error}</div>;
+    return (
+      <div style={{ padding: 20, fontFamily: 'Segoe UI, sans-serif', color: 'red' }}>
+        오류: {error}
+      </div>
+    );
   }
 
   if (!formDefinition) {
-    return <div style={{ padding: 20, fontFamily: 'Segoe UI, sans-serif' }}>폼을 찾을 수 없습니다.</div>;
+    return (
+      <div style={{ padding: 20, fontFamily: 'Segoe UI, sans-serif' }}>폼을 찾을 수 없습니다.</div>
+    );
   }
 
   return (
@@ -208,7 +232,14 @@ function MessageDialog() {
         </div>
 
         {/* Body */}
-        <div style={{ padding: '16px 16px 20px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div
+          style={{
+            padding: '16px 16px 20px',
+            display: 'flex',
+            gap: 12,
+            alignItems: 'flex-start',
+          }}
+        >
           <span style={{ fontSize: 22, color: config.color, lineHeight: 1, flexShrink: 0 }}>
             {config.icon}
           </span>
