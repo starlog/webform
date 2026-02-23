@@ -17,6 +17,7 @@ import { TabControlControl } from './TabControlControl';
 import { SpreadsheetViewControl } from './SpreadsheetViewControl';
 import { JsonEditorControl } from './JsonEditorControl';
 import { MongoDBViewControl } from './MongoDBViewControl';
+import { GraphViewControl } from './GraphViewControl';
 
 export interface DesignerControlProps {
   properties: Record<string, unknown>;
@@ -44,6 +45,7 @@ export const designerControlRegistry: Partial<
   SpreadsheetView: SpreadsheetViewControl,
   JsonEditor: JsonEditorControl,
   MongoDBView: MongoDBViewControl,
+  GraphView: GraphViewControl,
 };
 
 export interface ControlMeta {
@@ -74,6 +76,7 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'SpreadsheetView', displayName: 'SpreadsheetView', icon: '\u25A8',  category: 'data' },
   { type: 'JsonEditor',     displayName: 'JsonEditor',     icon: '{}', category: 'data' },
   { type: 'MongoDBView',   displayName: 'MongoDBView',   icon: '\u25A7', category: 'data' },
+  { type: 'GraphView',    displayName: 'GraphView',    icon: '\uD83D\uDCCA', category: 'data' },
 ];
 
 export const TOOLBOX_CATEGORIES = [

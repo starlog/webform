@@ -224,7 +224,7 @@ export function App() {
         <div
           className="properties-panel"
           style={{
-            width: 280,
+            width: 308,
             borderLeft: '1px solid #ccc',
             backgroundColor: '#f5f5f5',
             overflow: 'hidden',

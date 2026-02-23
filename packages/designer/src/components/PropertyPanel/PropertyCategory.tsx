@@ -11,6 +11,7 @@ import { AnchorEditor } from './editors/AnchorEditor';
 import { CollectionEditor } from './editors/CollectionEditor';
 import { MongoColumnsEditor } from './editors/MongoColumnsEditor';
 import { MongoConnectionStringEditor } from './editors/MongoConnectionStringEditor';
+import { SampleDataEditor } from './editors/SampleDataEditor';
 
 interface PropertyCategoryProps {
   category: string;
@@ -60,6 +61,14 @@ interface PropertyRowProps {
 }
 
 function PropertyRow({ meta, value, onChange }: PropertyRowProps) {
+  if (meta.editorType === 'graphSample') {
+    return (
+      <div style={{ padding: '4px 6px', borderBottom: '1px solid #f0f0f0', fontSize: 12 }}>
+        <PropertyEditor meta={meta} value={value} onChange={onChange} />
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -112,6 +121,8 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
       return <MongoColumnsEditor value={value as string ?? ''} onChange={onChange} />;
     case 'mongoConnectionString':
       return <MongoConnectionStringEditor value={value as string ?? ''} onChange={onChange} />;
+    case 'graphSample':
+      return <SampleDataEditor value={value as string ?? 'Bar'} />;
     default:
       return <TextEditor value={String(value ?? '')} onChange={onChange} />;
   }

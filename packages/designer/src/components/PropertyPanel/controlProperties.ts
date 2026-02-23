@@ -11,9 +11,10 @@ export type EditorType =
   | 'anchor'
   | 'collection'
   | 'mongoColumns'
-  | 'mongoConnectionString';
+  | 'mongoConnectionString'
+  | 'graphSample';
 
-export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data';
+export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data' | 'Sample';
 
 export interface PropertyMeta {
   name: string;
@@ -122,6 +123,7 @@ const numericUpDownProps: PropertyMeta[] = withCommon(
 );
 
 const dateTimePickerProps: PropertyMeta[] = withCommon(
+  { name: 'properties.value',     label: 'Value',     category: 'Data',       editorType: 'text' },
   { name: 'properties.format',    label: 'Format',    category: 'Appearance', editorType: 'dropdown', options: ['Short', 'Long', 'Time', 'Custom'] },
   { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
   { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
@@ -161,16 +163,19 @@ const tabControlProps: PropertyMeta[] = withCommon(
 );
 
 const dataGridViewProps: PropertyMeta[] = withCommon(
-  { name: 'properties.columns',   label: 'Columns',   category: 'Data',       editorType: 'collection' },
-  { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.columns',    label: 'Columns',    category: 'Data',       editorType: 'collection' },
+  { name: 'properties.dataSource', label: 'DataSource', category: 'Data',       editorType: 'collection' },
+  { name: 'properties.backColor',  label: 'BackColor',  category: 'Appearance', editorType: 'color' },
   { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
   { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },
   { name: 'properties.readOnly',  label: 'ReadOnly',  category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'type',                 label: 'Data Format', category: 'Sample',   editorType: 'graphSample' },
 );
 
 const spreadsheetViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.columns',        label: 'Columns',        category: 'Data',       editorType: 'collection' },
   { name: 'properties.data',           label: 'Data',           category: 'Data',       editorType: 'collection' },
+  { name: 'properties.dataSource',     label: 'DataSource',     category: 'Data',       editorType: 'collection' },
   { name: 'properties.readOnly',       label: 'ReadOnly',       category: 'Behavior',   editorType: 'boolean', defaultValue: false },
   { name: 'properties.showToolbar',    label: 'ShowToolbar',    category: 'Behavior',   editorType: 'boolean', defaultValue: true },
   { name: 'properties.showFormulaBar', label: 'ShowFormulaBar', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
@@ -180,9 +185,11 @@ const spreadsheetViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.allowSort',      label: 'AllowSort',      category: 'Behavior',   editorType: 'boolean', defaultValue: true },
   { name: 'properties.allowFilter',    label: 'AllowFilter',    category: 'Behavior',   editorType: 'boolean', defaultValue: false },
   { name: 'properties.backColor',      label: 'BackColor',      category: 'Appearance', editorType: 'color' },
+  { name: 'type',                     label: 'Data Format',    category: 'Sample',     editorType: 'graphSample' },
 );
 
 const jsonEditorProps: PropertyMeta[] = withCommon(
+  { name: 'properties.value',       label: 'Value',       category: 'Data',       editorType: 'text' },
   { name: 'properties.font',        label: 'Font',        category: 'Appearance', editorType: 'font' },
   { name: 'properties.foreColor',   label: 'ForeColor',   category: 'Appearance', editorType: 'color' },
   { name: 'properties.readOnly',    label: 'ReadOnly',    category: 'Behavior',   editorType: 'boolean', defaultValue: false },
@@ -203,6 +210,21 @@ const mongoDBViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.font',             label: 'Font',             category: 'Appearance', editorType: 'font' },
   { name: 'properties.foreColor',        label: 'ForeColor',        category: 'Appearance', editorType: 'color' },
   { name: 'properties.backColor',        label: 'BackColor',        category: 'Appearance', editorType: 'color' },
+);
+
+const graphViewProps: PropertyMeta[] = withCommon(
+  { name: 'properties.graphType',  label: 'GraphType',  category: 'Appearance', editorType: 'dropdown', options: ['Line', 'Bar', 'HorizontalBar', 'Area', 'StackedBar', 'StackedArea', 'Pie', 'Donut', 'Scatter', 'Radar'] },
+  { name: 'properties.data',       label: 'Data',       category: 'Data',       editorType: 'collection' },
+  { name: 'properties.title',      label: 'Title',      category: 'Appearance', editorType: 'text' },
+  { name: 'properties.xAxisTitle', label: 'XAxisTitle', category: 'Appearance', editorType: 'text' },
+  { name: 'properties.yAxisTitle', label: 'YAxisTitle', category: 'Appearance', editorType: 'text' },
+  { name: 'properties.showLegend', label: 'ShowLegend', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.showGrid',   label: 'ShowGrid',   category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.colors',     label: 'Colors',     category: 'Appearance', editorType: 'text' },
+  { name: 'properties.font',       label: 'Font',       category: 'Appearance', editorType: 'font' },
+  { name: 'properties.foreColor',  label: 'ForeColor',  category: 'Appearance', editorType: 'color' },
+  { name: 'properties.backColor',  label: 'BackColor',  category: 'Appearance', editorType: 'color' },
+  { name: 'properties.graphType',  label: 'Data Format', category: 'Sample',     editorType: 'graphSample' },
 );
 
 const defaultProps: PropertyMeta[] = withCommon();
@@ -227,6 +249,7 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   SpreadsheetView: spreadsheetViewProps,
   JsonEditor:     jsonEditorProps,
   MongoDBView:    mongoDBViewProps,
+  GraphView:      graphViewProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {

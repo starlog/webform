@@ -162,7 +162,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       return [{ category: 'All', properties: sorted }];
     }
 
-    const categoryOrder: PropertyCategoryName[] = ['Design', 'Appearance', 'Behavior', 'Data', 'Layout'];
+    const categoryOrder: PropertyCategoryName[] = ['Design', 'Appearance', 'Behavior', 'Data', 'Sample', 'Layout'];
     const groups = new Map<string, PropertyMeta[]>();
 
     for (const meta of propertyMetas) {
