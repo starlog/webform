@@ -78,7 +78,6 @@ export interface ControlMeta {
   displayName: string;
   icon: string;
   category: 'basic' | 'container' | 'data' | 'database';
-  isNonVisual?: boolean;
 }
 
 export const controlMetadata: ControlMeta[] = [
@@ -116,7 +115,7 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'SplitContainer',   displayName: 'SplitContainer',   icon: '\u229F',  category: 'container' },
   { type: 'BindingNavigator', displayName: 'BindingNavigator', icon: '\u23E9', category: 'data' },
 
-  { type: 'MongoDBConnector', displayName: 'MongoDBConnector', icon: '\uD83D\uDDC4', category: 'database', isNonVisual: true },
+  { type: 'MongoDBConnector', displayName: 'MongoDBConnector', icon: '\uD83D\uDDC4', category: 'database' },
 ];
 
 export const TOOLBOX_CATEGORIES = [
@@ -132,9 +131,4 @@ export function getDesignerComponent(type: ControlType): ComponentType<DesignerC
 
 export function getControlsByCategory(categoryId: string): ControlMeta[] {
   return controlMetadata.filter((m) => m.category === categoryId);
-}
-
-export function isNonVisualControl(type: ControlType): boolean {
-  const meta = controlMetadata.find((m) => m.type === type);
-  return meta?.isNonVisual === true;
 }
