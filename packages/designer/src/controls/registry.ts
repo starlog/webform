@@ -15,6 +15,7 @@ import { PanelControl } from './PanelControl';
 import { GroupBoxControl } from './GroupBoxControl';
 import { TabControlControl } from './TabControlControl';
 import { SpreadsheetViewControl } from './SpreadsheetViewControl';
+import { JsonEditorControl } from './JsonEditorControl';
 
 export interface DesignerControlProps {
   properties: Record<string, unknown>;
@@ -40,6 +41,7 @@ export const designerControlRegistry: Partial<
   GroupBox: GroupBoxControl,
   TabControl: TabControlControl,
   SpreadsheetView: SpreadsheetViewControl,
+  JsonEditor: JsonEditorControl,
 };
 
 export interface ControlMeta {
@@ -68,6 +70,7 @@ export const controlMetadata: ControlMeta[] = [
 
   { type: 'DataGridView',    displayName: 'DataGridView',    icon: '\u25A6',  category: 'data' },
   { type: 'SpreadsheetView', displayName: 'SpreadsheetView', icon: '\u25A8',  category: 'data' },
+  { type: 'JsonEditor',     displayName: 'JsonEditor',     icon: '{}', category: 'data' },
 ];
 
 export const TOOLBOX_CATEGORIES = [

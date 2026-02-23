@@ -178,6 +178,12 @@ const spreadsheetViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.backColor',      label: 'BackColor',      category: 'Appearance', editorType: 'color' },
 );
 
+const jsonEditorProps: PropertyMeta[] = withCommon(
+  { name: 'properties.readOnly',    label: 'ReadOnly',    category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.expandDepth', label: 'ExpandDepth', category: 'Behavior',   editorType: 'number',  min: 0, max: 10, defaultValue: 1 },
+  { name: 'properties.backColor',   label: 'BackColor',   category: 'Appearance', editorType: 'color' },
+);
+
 const defaultProps: PropertyMeta[] = withCommon();
 
 // 현재 구현된 14개 + fallback
@@ -198,6 +204,7 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   TabControl:     tabControlProps,
   DataGridView:   dataGridViewProps,
   SpreadsheetView: spreadsheetViewProps,
+  JsonEditor:     jsonEditorProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {

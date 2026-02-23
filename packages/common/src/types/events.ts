@@ -33,6 +33,7 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   TreeView: ['AfterSelect', 'AfterExpand', 'AfterCollapse'],
   ListView: ['SelectedIndexChanged', 'ItemActivate'],
   SpreadsheetView: ['CellChanged', 'RowAdded', 'RowDeleted', 'SelectionChanged', 'DataLoaded'],
+  JsonEditor: ['ValueChanged'],
 };
 
 export const FORM_EVENTS = [
