@@ -404,7 +404,7 @@
       "description": "AppContainer, ShellRenderer 컴포넌트 및 앱 로딩 플로우 변경 계획",
       "phase": "phase3-runtime",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm runtime 패키지에 Shell UI 렌더링 컴포넌트와 앱 로딩 플로우를 구현하는 계획을 수립하세요.\n\n## 현재 코드 파악 (반드시 읽으세요)\n- packages/runtime/src/App.tsx — 현재 앱 초기화, 폼 로딩, URL 파라미터 처리 방식\n- packages/runtime/src/renderer/SDUIRenderer.tsx — SDUIRenderer 컴포넌트 구조\n- packages/runtime/src/controls/registry.ts — 컨트롤 레지스트리\n- packages/runtime/src/stores/runtimeStore.ts — 방금 구현한 Shell 상태 확인\n\n## 구현해야 할 내용\n\n### 신규: packages/runtime/src/renderer/AppContainer.tsx\n- 최상위 앱 컨테이너\n- projectId가 있으면 fetchApp()으로 Shell + startForm 로드\n- formId만 있으면 기존 방식으로 동작 (하위 호환)\n- Shell 있으면 ShellRenderer 사용, 없으면 기존 FormContainer 사용\n\n### 신규: packages/runtime/src/renderer/ShellRenderer.tsx\n```\n<ShellRenderer shell={shellDef}>\n  <ShellDockTop>  → MenuStrip, ToolStrip (dock: Top 컨트롤들)\n  <FormArea>      → 교체 가능한 폼 영역\n  <ShellDockBottom> → StatusStrip (dock: Bottom 컨트롤들)\n</ShellRenderer>\n```\n- Shell 컨트롤을 dock 위치에 따라 배치\n- FormArea에 현재 폼 SDUIRenderer 렌더링\n- Shell 컨트롤 이벤트 → postShellEvent API 호출\n\n### packages/runtime/src/App.tsx 수정\n- URL 파라미터 처리 변경:\n  - ?projectId=xxx → AppContainer (Shell 모드)\n  - ?formId=xxx → 기존 방식 (하위 호환)\n- Shell 폼 전환: navigateRequest 처리 시 Shell 모드에서 FormArea만 교체\n\n### packages/runtime/src/renderer/SDUIRenderer.tsx 수정 (최소)\n- Shell 모드와 독립 모드 공통으로 동작하도록 (변경 최소화)\n\n## 계획 작성\nplans/runtime-shell-ui-plan.md 파일 작성:\n1. 현재 App.tsx URL 파라미터 처리 및 폼 로딩 코드 분석\n2. AppContainer 컴포넌트 전체 코드 초안\n3. ShellRenderer 컴포넌트 전체 코드 초안\n4. App.tsx 변경 diff 초안\n5. 폼 전환 시 Shell 유지 로직 설계\n6. Shell 컨트롤 이벤트 처리 흐름",
       "dependsOn": [
         "runtime-shell-store-commit"
