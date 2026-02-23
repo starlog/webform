@@ -1,4 +1,4 @@
-import type { ControlDefinition, FontDefinition } from './form';
+import type { ControlDefinition, FontDefinition, FormDefinition } from './form';
 import type { EventHandlerDefinition, EventArgs } from './events';
 
 /**
@@ -47,6 +47,15 @@ export type ShellEventType = (typeof SHELL_EVENTS)[number];
  * EventRequest와 유사하지만 formId 대신 projectId를 사용하고
  * shellState, currentFormId 필드가 있다.
  */
+/**
+ * GET /api/runtime/app/:projectId 응답 타입.
+ * Shell이 없는 프로젝트의 경우 shell이 null이 된다.
+ */
+export interface AppLoadResponse {
+  shell: ApplicationShellDefinition | null;
+  startForm: FormDefinition;
+}
+
 export interface ShellEventRequest {
   projectId: string;
   controlId: string;

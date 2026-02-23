@@ -35,6 +35,7 @@ export type {
 // types/shell
 export type {
   ApplicationShellDefinition,
+  AppLoadResponse,
   ShellProperties,
   ShellEventRequest,
   ShellEventType,
