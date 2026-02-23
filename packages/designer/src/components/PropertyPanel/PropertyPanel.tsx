@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import type { ControlDefinition, FormProperties } from '@webform/common';
+import type { ControlDefinition, FormProperties, ShellProperties } from '@webform/common';
 import { FORM_EVENTS } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore } from '../../stores/historyStore';
-import { getPropertyMeta, getControlEvents } from './controlProperties';
+import { getPropertyMeta, getControlEvents, SHELL_PROPERTIES } from './controlProperties';
 import type { PropertyCategory as PropertyCategoryName, PropertyMeta } from './controlProperties';
 import { PropertyCategory } from './PropertyCategory';
 import { EventsTab } from './EventsTab';
@@ -41,6 +41,13 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const pushSnapshot = useHistoryStore((s) => s.pushSnapshot);
 
   const currentFormId = useDesignerStore((s) => s.currentFormId);
+
+  // Shell 상태
+  const editMode = useDesignerStore((s) => s.editMode);
+  const shellProperties = useDesignerStore((s) => s.shellProperties);
+  const setShellProperties = useDesignerStore((s) => s.setShellProperties);
+  const shellControls = useDesignerStore((s) => s.shellControls);
+  const updateShellControl = useDesignerStore((s) => s.updateShellControl);
 
   const selectedControl = useMemo(() => {
     if (selectedIds.size !== 1) return null;
@@ -217,6 +224,211 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     if (!onOpenEventEditor || !currentFormId) return;
     onOpenEventEditor('__form__', eventName, handlerName);
   }, [onOpenEventEditor, currentFormId]);
+
+  // Shell 컨트롤 선택 해결
+  const selectedShellControl = useMemo(() => {
+    if (editMode !== 'shell' || selectedIds.size !== 1) return null;
+    const id = [...selectedIds][0];
+    return shellControls.find((c) => c.id === id) ?? null;
+  }, [editMode, selectedIds, shellControls]);
+
+  // Shell 속성 getValue/handleValueChange
+  const getShellValue = useCallback(
+    (name: string): unknown => {
+      return (shellProperties as unknown as Record<string, unknown>)[name];
+    },
+    [shellProperties],
+  );
+
+  const handleShellValueChange = useCallback(
+    (name: string, value: unknown) => {
+      setShellProperties({ [name]: value } as Partial<ShellProperties>);
+    },
+    [setShellProperties],
+  );
+
+  // Shell 속성 그룹화
+  const shellGroupedProperties = useMemo(() => {
+    const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior'];
+    const groups = new Map<string, PropertyMeta[]>();
+    for (const meta of SHELL_PROPERTIES) {
+      const list = groups.get(meta.category) ?? [];
+      list.push(meta);
+      groups.set(meta.category, list);
+    }
+    return categoryOrder
+      .filter((cat) => groups.has(cat))
+      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
+  }, []);
+
+  // Shell 컨트롤 속성 getValue/handleValueChange
+  const getShellControlValue = useCallback(
+    (name: string): unknown => {
+      if (!selectedShellControl) return undefined;
+      const parts = name.split('.');
+      let current: unknown = selectedShellControl;
+      for (const part of parts) {
+        if (current == null || typeof current !== 'object') return undefined;
+        current = (current as Record<string, unknown>)[part];
+      }
+      return current;
+    },
+    [selectedShellControl],
+  );
+
+  const handleShellControlValueChange = useCallback(
+    (name: string, value: unknown) => {
+      if (!selectedShellControl) return;
+      const parts = name.split('.');
+
+      if (parts[0] === 'position' && parts.length === 2) {
+        const pos = { ...selectedShellControl.position, [parts[1]]: value };
+        updateShellControl(selectedShellControl.id, { position: pos });
+      } else if (parts[0] === 'size' && parts.length === 2) {
+        const size = { ...selectedShellControl.size, [parts[1]]: value };
+        updateShellControl(selectedShellControl.id, { size });
+      } else if (parts[0] === 'properties' && parts.length === 2) {
+        const props = { ...selectedShellControl.properties, [parts[1]]: value };
+        updateShellControl(selectedShellControl.id, { properties: props });
+      } else if (parts[0] === 'anchor') {
+        updateShellControl(selectedShellControl.id, {
+          anchor: value as ControlDefinition['anchor'],
+        });
+      } else if (parts[0] === 'dock') {
+        updateShellControl(selectedShellControl.id, {
+          dock: value as ControlDefinition['dock'],
+        });
+      } else {
+        updateShellControl(selectedShellControl.id, {
+          [name]: value,
+        } as Partial<ControlDefinition>);
+      }
+    },
+    [selectedShellControl, updateShellControl],
+  );
+
+  const shellControlPropertyMetas = useMemo(() => {
+    if (!selectedShellControl) return [];
+    return getPropertyMeta(selectedShellControl.type);
+  }, [selectedShellControl]);
+
+  const shellControlGroupedProperties = useMemo(() => {
+    if (sortMode === 'alphabetical') {
+      const sorted = [...shellControlPropertyMetas].sort((a, b) =>
+        a.label.localeCompare(b.label),
+      );
+      return [{ category: 'All', properties: sorted }];
+    }
+    const categoryOrder: PropertyCategoryName[] = [
+      'Design',
+      'Appearance',
+      'Behavior',
+      'Data',
+      'Sample',
+      'Layout',
+    ];
+    const groups = new Map<string, PropertyMeta[]>();
+    for (const meta of shellControlPropertyMetas) {
+      const list = groups.get(meta.category) ?? [];
+      list.push(meta);
+      groups.set(meta.category, list);
+    }
+    return categoryOrder
+      .filter((cat) => groups.has(cat))
+      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
+  }, [shellControlPropertyMetas, sortMode]);
+
+  // === Shell 모드: 컨트롤 미선택 → Shell 속성 ===
+  if (editMode === 'shell' && selectedIds.size === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div
+          style={{
+            padding: '4px 6px',
+            borderBottom: '1px solid #ccc',
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          {shellProperties.title} (Shell)
+        </div>
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {shellGroupedProperties.map(({ category, properties }) => (
+            <PropertyCategory
+              key={category}
+              category={category}
+              properties={properties}
+              getValue={getShellValue}
+              onValueChange={handleShellValueChange}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // === Shell 모드: Shell 컨트롤 선택 → 컨트롤 속성 ===
+  if (editMode === 'shell' && selectedShellControl) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div
+          style={{
+            padding: '4px 6px',
+            borderBottom: '1px solid #ccc',
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          {selectedShellControl.name} ({selectedShellControl.type})
+        </div>
+        <div
+          style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}
+        >
+          <TabButton
+            label="Properties"
+            icon="☰"
+            active={activeTab === 'properties'}
+            onClick={() => setActiveTab('properties')}
+          />
+          <div style={{ flex: 1 }} />
+          {activeTab === 'properties' && (
+            <button
+              type="button"
+              onClick={() =>
+                setSortMode(sortMode === 'category' ? 'alphabetical' : 'category')
+              }
+              title={sortMode === 'category' ? 'Sort alphabetically' : 'Sort by category'}
+              style={{
+                padding: '2px 4px',
+                margin: '0 4px',
+                border: '1px solid #ccc',
+                background: '#f5f5f5',
+                fontSize: 11,
+                cursor: 'pointer',
+              }}
+            >
+              {sortMode === 'category' ? 'A-Z' : '☰'}
+            </button>
+          )}
+        </div>
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {activeTab === 'properties' && (
+            <div key={selectedShellControl.id}>
+              {shellControlGroupedProperties.map(({ category, properties }) => (
+                <PropertyCategory
+                  key={category}
+                  category={category}
+                  properties={properties}
+                  getValue={getShellControlValue}
+                  onValueChange={handleShellControlValueChange}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // 선택 없는 경우 → 폼 속성 표시
   if (selectedIds.size === 0) {

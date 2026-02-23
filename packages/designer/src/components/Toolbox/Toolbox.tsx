@@ -2,8 +2,12 @@ import type { CSSProperties } from 'react';
 import { useState } from 'react';
 import { TOOLBOX_CATEGORIES, getControlsByCategory } from '../../controls/registry';
 import { ToolboxItem } from './ToolboxItem';
+import { useDesignerStore } from '../../stores/designerStore';
+
+const SHELL_ALLOWED_TYPES = new Set(['MenuStrip', 'ToolStrip', 'StatusStrip', 'Panel']);
 
 export function Toolbox() {
+  const editMode = useDesignerStore((s) => s.editMode);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
   const toggleCategory = (categoryId: string) => {
@@ -20,10 +24,16 @@ export function Toolbox() {
 
   return (
     <div className="toolbox" style={toolboxStyle}>
-      <div style={headerStyle}>{'\uB3C4\uAD6C \uC0C1\uC790'}</div>
+      <div style={headerStyle}>{editMode === 'shell' ? 'Shell 도구 상자' : '도구 상자'}</div>
       {TOOLBOX_CATEGORIES.map((category) => {
         const isCollapsed = collapsedCategories.has(category.id);
-        const controls = getControlsByCategory(category.id);
+        const allControls = getControlsByCategory(category.id);
+        const controls =
+          editMode === 'shell'
+            ? allControls.filter((m) => SHELL_ALLOWED_TYPES.has(m.type))
+            : allControls;
+
+        if (controls.length === 0) return null;
 
         return (
           <div key={category.id}>

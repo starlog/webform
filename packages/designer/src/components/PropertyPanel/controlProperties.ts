@@ -377,3 +377,27 @@ for (const [controlType, specificEvents] of Object.entries(CONTROL_EVENTS) as [s
 export function getControlEvents(type: ControlType): string[] {
   return CONTROL_EVENTS_META[type] ?? [...COMMON_EVENTS];
 }
+
+// Shell 속성 메타데이터
+export const SHELL_PROPERTIES: PropertyMeta[] = [
+  { name: 'width', label: 'Width', category: 'Layout', editorType: 'number', min: 400 },
+  { name: 'height', label: 'Height', category: 'Layout', editorType: 'number', min: 300 },
+  { name: 'title', label: 'Title', category: 'Appearance', editorType: 'text' },
+  { name: 'backgroundColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+  { name: 'font', label: 'Font', category: 'Appearance', editorType: 'font' },
+  {
+    name: 'showTitleBar',
+    label: 'ShowTitleBar',
+    category: 'Appearance',
+    editorType: 'boolean',
+  },
+  {
+    name: 'formBorderStyle',
+    label: 'FormBorderStyle',
+    category: 'Appearance',
+    editorType: 'dropdown',
+    options: ['None', 'FixedSingle', 'Fixed3D', 'Sizable'],
+  },
+  { name: 'maximizeBox', label: 'MaximizeBox', category: 'Behavior', editorType: 'boolean' },
+  { name: 'minimizeBox', label: 'MinimizeBox', category: 'Behavior', editorType: 'boolean' },
+];
