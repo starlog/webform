@@ -101,6 +101,9 @@ export function App() {
         // 컨트롤 레벨 이벤트: controlId별로 그룹핑
         const controlEventMap = new Map<string, { handlers: Record<string, string>; code: Record<string, string> }>();
 
+        // loadForm() 이후 새 상태에서 controls 참조
+        const freshControls = useDesignerStore.getState().controls;
+
         for (const eh of data.eventHandlers as Array<{ controlId: string; eventName: string; handlerCode: string }>) {
           if (eh.controlId === formId) {
             // 폼 레벨 이벤트
@@ -113,7 +116,7 @@ export function App() {
               controlEventMap.set(eh.controlId, { handlers: {}, code: {} });
             }
             const entry = controlEventMap.get(eh.controlId)!;
-            const ctrl = store.controls.find((c) => c.id === eh.controlId);
+            const ctrl = freshControls.find((c) => c.id === eh.controlId);
             const handlerName = ctrl
               ? `${ctrl.name}_${eh.eventName}`
               : `${eh.controlId}_${eh.eventName}`;
@@ -123,16 +126,17 @@ export function App() {
         }
 
         if (Object.keys(formHandlers).length > 0) {
-          store.loadFormEvents(formHandlers, formCode);
+          useDesignerStore.getState().loadFormEvents(formHandlers, formCode);
         }
 
         // 컨트롤 properties에 _eventHandlers/_eventCode가 없으면 복원
         for (const [controlId, { handlers, code }] of controlEventMap) {
-          const ctrl = store.controls.find((c) => c.id === controlId);
+          const freshState = useDesignerStore.getState();
+          const ctrl = freshState.controls.find((c) => c.id === controlId);
           if (!ctrl) continue;
           const existing = ctrl.properties._eventHandlers as Record<string, string> | undefined;
           if (!existing || Object.keys(existing).length === 0) {
-            store.updateControl(controlId, {
+            freshState.updateControl(controlId, {
               properties: {
                 ...ctrl.properties,
                 _eventHandlers: handlers,
@@ -143,7 +147,7 @@ export function App() {
         }
 
         // 복원은 변경이 아니므로 clean 상태 유지
-        store.markClean();
+        useDesignerStore.getState().markClean();
       }
 
       setFormStatus(data.status);
