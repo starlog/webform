@@ -466,7 +466,7 @@
       "description": "Runtime Shell UI 구현 커밋",
       "phase": "phase3-runtime",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Runtime Shell UI 구현을 git 커밋합니다.\n\n1. `git status`로 변경 파일 확인\n2. 스테이징:\n   - packages/runtime/src/renderer/AppContainer.tsx\n   - packages/runtime/src/renderer/ShellRenderer.tsx\n   - packages/runtime/src/App.tsx\n   - packages/runtime/src/__tests__/ShellRenderer.test.tsx\n   - packages/runtime/src/__tests__/AppContainer.test.tsx\n   - plans/runtime-shell-ui-plan.md\n3. 커밋 메시지 (한국어): 'feat(runtime): Shell MDI UI 렌더링 컴포넌트 구현\\n\\n- AppContainer 앱 수준 컨테이너 추가 (?projectId 라우팅)\\n- ShellRenderer dock 기반 Shell 컨트롤 렌더링 구현\\n- FormArea 폼 교체 영역 구현\\n- 기존 ?formId 방식 하위 호환 유지'\n4. 커밋 확인",
       "dependsOn": [
         "runtime-shell-ui-test"
