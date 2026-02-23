@@ -1471,6 +1471,433 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
       ],
       "eventHandlers": [],
       "dataBindings": []
+    },
+
+    {
+      "name": "6. 그래프/차트 데모",
+      "properties": {
+        "title": "다양한 그래프 데모",
+        "width": 900,
+        "height": 700,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblTitle",
+          "type": "Label",
+          "name": "lblTitle",
+          "position": { "x": 20, "y": 10 },
+          "size": { "width": 860, "height": 35 },
+          "properties": {
+            "text": "다양한 그래프 데모 (GraphView)",
+            "foreColor": "#AD1457",
+            "font": { "family": "Pretendard", "size": 18, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "gvBarChart",
+          "type": "GraphView",
+          "name": "gvBarChart",
+          "position": { "x": 20, "y": 55 },
+          "size": { "width": 420, "height": 300 },
+          "properties": {
+            "graphType": "Bar",
+            "title": "분기별 매출/이익",
+            "xAxisTitle": "분기",
+            "yAxisTitle": "금액 (백만원)",
+            "showLegend": true,
+            "showGrid": true,
+            "colors": "#1565C0,#43A047",
+            "data": [
+              { "x": "1분기", "매출": 4520, "이익": 1350 },
+              { "x": "2분기", "매출": 5180, "이익": 1620 },
+              { "x": "3분기", "매출": 4890, "이익": 1480 },
+              { "x": "4분기", "매출": 6230, "이익": 2010 }
+            ]
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+        },
+        {
+          "id": "gvLineChart",
+          "type": "GraphView",
+          "name": "gvLineChart",
+          "position": { "x": 460, "y": 55 },
+          "size": { "width": 420, "height": 300 },
+          "properties": {
+            "graphType": "Line",
+            "title": "월별 웹사이트 트래픽 추이",
+            "xAxisTitle": "월",
+            "yAxisTitle": "방문자 수 (천명)",
+            "showLegend": true,
+            "showGrid": true,
+            "colors": "#E65100,#6A1B9A,#00695C",
+            "data": [
+              { "x": "1월", "PC": 120, "모바일": 230, "태블릿": 45 },
+              { "x": "2월", "PC": 135, "모바일": 250, "태블릿": 48 },
+              { "x": "3월", "PC": 148, "모바일": 285, "태블릿": 52 },
+              { "x": "4월", "PC": 142, "모바일": 310, "태블릿": 55 },
+              { "x": "5월", "PC": 155, "모바일": 340, "태블릿": 60 },
+              { "x": "6월", "PC": 168, "모바일": 375, "태블릿": 58 }
+            ]
+          },
+          "anchor": { "top": true, "bottom": false, "left": false, "right": true },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+        },
+        {
+          "id": "gvPieChart",
+          "type": "GraphView",
+          "name": "gvPieChart",
+          "position": { "x": 20, "y": 365 },
+          "size": { "width": 420, "height": 300 },
+          "properties": {
+            "graphType": "Donut",
+            "title": "브라우저 점유율",
+            "showLegend": true,
+            "showGrid": false,
+            "colors": "#1565C0,#E65100,#F9A825,#43A047,#6A1B9A",
+            "data": [
+              { "name": "Chrome", "value": 64 },
+              { "name": "Safari", "value": 19 },
+              { "name": "Edge", "value": 5 },
+              { "name": "Firefox", "value": 3 },
+              { "name": "기타", "value": 9 }
+            ]
+          },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": false },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+        },
+        {
+          "id": "gvRadarChart",
+          "type": "GraphView",
+          "name": "gvRadarChart",
+          "position": { "x": 460, "y": 365 },
+          "size": { "width": 420, "height": 300 },
+          "properties": {
+            "graphType": "Radar",
+            "title": "팀 역량 비교",
+            "showLegend": true,
+            "showGrid": true,
+            "colors": "#1565C0,#E65100",
+            "data": [
+              { "subject": "기획력", "프론트엔드팀": 90, "백엔드팀": 75 },
+              { "subject": "개발속도", "프론트엔드팀": 85, "백엔드팀": 92 },
+              { "subject": "코드품질", "프론트엔드팀": 78, "백엔드팀": 88 },
+              { "subject": "커뮤니케이션", "프론트엔드팀": 92, "백엔드팀": 70 },
+              { "subject": "문서화", "프론트엔드팀": 65, "백엔드팀": 82 },
+              { "subject": "테스트", "프론트엔드팀": 72, "백엔드팀": 95 }
+            ]
+          },
+          "anchor": { "top": false, "bottom": true, "left": false, "right": true },
+          "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [],
+      "dataBindings": []
+    },
+
+    {
+      "name": "7. JSON 편집기 데모",
+      "properties": {
+        "title": "JSON 편집기 데모",
+        "width": 800,
+        "height": 650,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblTitle",
+          "type": "Label",
+          "name": "lblTitle",
+          "position": { "x": 20, "y": 10 },
+          "size": { "width": 760, "height": 35 },
+          "properties": {
+            "text": "JSON 편집기 데모 (JsonEditor)",
+            "foreColor": "#00695C",
+            "font": { "family": "Pretendard", "size": 18, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblEditableHeader",
+          "type": "Label",
+          "name": "lblEditableHeader",
+          "position": { "x": 20, "y": 50 },
+          "size": { "width": 370, "height": 23 },
+          "properties": {
+            "text": "서버 설정 (편집 가능)",
+            "foreColor": "#1565C0",
+            "font": { "family": "Pretendard", "size": 12, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+        },
+        {
+          "id": "jsonConfig",
+          "type": "JsonEditor",
+          "name": "jsonConfig",
+          "position": { "x": 20, "y": 78 },
+          "size": { "width": 370, "height": 480 },
+          "properties": {
+            "readOnly": false,
+            "expandDepth": 2,
+            "value": {
+              "server": {
+                "host": "0.0.0.0",
+                "port": 4000,
+                "cors": {
+                  "enabled": true,
+                  "origins": ["http://localhost:3000", "http://localhost:3001"]
+                }
+              },
+              "database": {
+                "type": "mongodb",
+                "host": "localhost",
+                "port": 27017,
+                "name": "webform",
+                "options": {
+                  "maxPoolSize": 10,
+                  "retryWrites": true
+                }
+              },
+              "auth": {
+                "jwtSecret": "my-secret-key",
+                "tokenExpiry": "24h",
+                "refreshEnabled": true
+              },
+              "logging": {
+                "level": "info",
+                "format": "json",
+                "file": "/var/log/webform.log"
+              }
+            }
+          },
+          "anchor": { "top": true, "bottom": true, "left": true, "right": false },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblReadOnlyHeader",
+          "type": "Label",
+          "name": "lblReadOnlyHeader",
+          "position": { "x": 410, "y": 50 },
+          "size": { "width": 370, "height": 23 },
+          "properties": {
+            "text": "API 응답 (읽기 전용)",
+            "foreColor": "#E65100",
+            "font": { "family": "Pretendard", "size": 12, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": false, "right": true },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+        },
+        {
+          "id": "jsonApiResponse",
+          "type": "JsonEditor",
+          "name": "jsonApiResponse",
+          "position": { "x": 410, "y": 78 },
+          "size": { "width": 370, "height": 480 },
+          "properties": {
+            "readOnly": true,
+            "expandDepth": 1,
+            "value": {
+              "status": 200,
+              "message": "요청이 성공적으로 처리되었습니다.",
+              "data": {
+                "users": [
+                  { "id": 1, "name": "김민수", "email": "minsu@example.com", "role": "admin" },
+                  { "id": 2, "name": "이서연", "email": "seoyeon@example.com", "role": "editor" },
+                  { "id": 3, "name": "박지훈", "email": "jihun@example.com", "role": "viewer" }
+                ],
+                "pagination": {
+                  "page": 1,
+                  "perPage": 20,
+                  "total": 3,
+                  "totalPages": 1
+                }
+              },
+              "meta": {
+                "requestId": "req-2026-0223-abc",
+                "responseTime": "42ms",
+                "apiVersion": "v2"
+              }
+            }
+          },
+          "anchor": { "top": true, "bottom": true, "left": false, "right": true },
+          "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblJsonInfo",
+          "type": "Label",
+          "name": "lblJsonInfo",
+          "position": { "x": 20, "y": 570 },
+          "size": { "width": 760, "height": 40 },
+          "properties": {
+            "text": "좌측은 편집 가능한 JsonEditor (expandDepth=2), 우측은 읽기 전용 JsonEditor (expandDepth=1)입니다. 값을 클릭하여 직접 편집해 보세요.",
+            "foreColor": "#9E9E9E"
+          },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 5, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [],
+      "dataBindings": []
+    },
+
+    {
+      "name": "8. 스프레드시트 데모",
+      "properties": {
+        "title": "스프레드시트 데모",
+        "width": 900,
+        "height": 650,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblTitle",
+          "type": "Label",
+          "name": "lblTitle",
+          "position": { "x": 20, "y": 10 },
+          "size": { "width": 860, "height": 35 },
+          "properties": {
+            "text": "스프레드시트 데모 (SpreadsheetView)",
+            "foreColor": "#4527A0",
+            "font": { "family": "Pretendard", "size": 18, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblEditableHeader",
+          "type": "Label",
+          "name": "lblEditableHeader",
+          "position": { "x": 20, "y": 48 },
+          "size": { "width": 400, "height": 23 },
+          "properties": {
+            "text": "직원 정보 (편집 가능, 행 추가/삭제 가능)",
+            "foreColor": "#1565C0",
+            "font": { "family": "Pretendard", "size": 11, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+        },
+        {
+          "id": "ssEmployees",
+          "type": "SpreadsheetView",
+          "name": "ssEmployees",
+          "position": { "x": 20, "y": 75 },
+          "size": { "width": 860, "height": 240 },
+          "properties": {
+            "readOnly": false,
+            "showToolbar": true,
+            "showFormulaBar": true,
+            "showRowNumbers": true,
+            "allowAddRows": true,
+            "allowDeleteRows": true,
+            "allowSort": true,
+            "columns": [
+              { "field": "name", "headerText": "이름", "width": 100 },
+              { "field": "dept", "headerText": "부서", "width": 100 },
+              { "field": "position", "headerText": "직급", "width": 80 },
+              { "field": "salary", "headerText": "급여(만원)", "width": 100 },
+              { "field": "joinDate", "headerText": "입사일", "width": 110 },
+              { "field": "email", "headerText": "이메일", "width": 180 },
+              { "field": "phone", "headerText": "연락처", "width": 140 }
+            ],
+            "data": [
+              { "name": "김민수", "dept": "개발팀", "position": "과장", "salary": 5800, "joinDate": "2019-03-02", "email": "minsu@company.com", "phone": "010-1234-5678" },
+              { "name": "이서연", "dept": "디자인팀", "position": "대리", "salary": 4200, "joinDate": "2021-07-15", "email": "seoyeon@company.com", "phone": "010-2345-6789" },
+              { "name": "박지훈", "dept": "개발팀", "position": "부장", "salary": 7200, "joinDate": "2015-01-10", "email": "jihun@company.com", "phone": "010-3456-7890" },
+              { "name": "최유진", "dept": "마케팅팀", "position": "사원", "salary": 3500, "joinDate": "2024-02-20", "email": "yujin@company.com", "phone": "010-4567-8901" },
+              { "name": "정하나", "dept": "인사팀", "position": "차장", "salary": 6500, "joinDate": "2017-09-01", "email": "hana@company.com", "phone": "010-5678-9012" },
+              { "name": "강도윤", "dept": "개발팀", "position": "대리", "salary": 4500, "joinDate": "2022-04-11", "email": "doyun@company.com", "phone": "010-6789-0123" }
+            ]
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblReadOnlyHeader",
+          "type": "Label",
+          "name": "lblReadOnlyHeader",
+          "position": { "x": 20, "y": 325 },
+          "size": { "width": 400, "height": 23 },
+          "properties": {
+            "text": "2026년 월별 재무 요약 (읽기 전용)",
+            "foreColor": "#E65100",
+            "font": { "family": "Pretendard", "size": 11, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+        },
+        {
+          "id": "ssFinancial",
+          "type": "SpreadsheetView",
+          "name": "ssFinancial",
+          "position": { "x": 20, "y": 352 },
+          "size": { "width": 860, "height": 230 },
+          "properties": {
+            "readOnly": true,
+            "showToolbar": false,
+            "showFormulaBar": false,
+            "showRowNumbers": true,
+            "allowAddRows": false,
+            "allowDeleteRows": false,
+            "allowSort": true,
+            "columns": [
+              { "field": "month", "headerText": "월", "width": 70 },
+              { "field": "revenue", "headerText": "매출(백만)", "width": 110 },
+              { "field": "cost", "headerText": "원가(백만)", "width": 110 },
+              { "field": "profit", "headerText": "이익(백만)", "width": 110 },
+              { "field": "margin", "headerText": "이익률", "width": 80 },
+              { "field": "orders", "headerText": "주문수", "width": 80 },
+              { "field": "customers", "headerText": "고객수", "width": 80 },
+              { "field": "avgOrder", "headerText": "객단가(만)", "width": 100 }
+            ],
+            "data": [
+              { "month": "1월", "revenue": 452, "cost": 317, "profit": 135, "margin": "29.9%", "orders": 1280, "customers": 845, "avgOrder": 35.3 },
+              { "month": "2월", "revenue": 518, "cost": 356, "profit": 162, "margin": "31.3%", "orders": 1560, "customers": 1020, "avgOrder": 33.2 },
+              { "month": "3월", "revenue": 489, "cost": 341, "profit": 148, "margin": "30.3%", "orders": 1420, "customers": 930, "avgOrder": 34.4 },
+              { "month": "4월", "revenue": 534, "cost": 364, "profit": 170, "margin": "31.8%", "orders": 1650, "customers": 1100, "avgOrder": 32.4 },
+              { "month": "5월", "revenue": 578, "cost": 387, "profit": 191, "margin": "33.0%", "orders": 1780, "customers": 1180, "avgOrder": 32.5 },
+              { "month": "6월", "revenue": 623, "cost": 412, "profit": 211, "margin": "33.9%", "orders": 1920, "customers": 1260, "avgOrder": 32.4 }
+            ]
+          },
+          "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblSpreadsheetInfo",
+          "type": "Label",
+          "name": "lblSpreadsheetInfo",
+          "position": { "x": 20, "y": 592 },
+          "size": { "width": 860, "height": 35 },
+          "properties": {
+            "text": "상단 시트는 편집/행 추가/삭제가 가능하고, 하단 시트는 읽기 전용입니다. 셀을 더블클릭하거나 F2를 눌러 편집하세요.",
+            "foreColor": "#9E9E9E"
+          },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 5, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [],
+      "dataBindings": []
     }
   ]
 }
@@ -1522,6 +1949,9 @@ echo -e "    2. 컨테이너/레이아웃 데모 - TabControl, Panel, GroupBox, 
 echo -e "    3. 데이터 뷰어 데모      - TreeView, ListView, DataGridView"
 echo -e "    4. 스크립트 고급 데모    - 계산기, HTTP 호출, 다이얼로그, 콘솔 로그"
 echo -e "    5. MongoDB 주문 관리    - MongoDBView (demo.orders 컬렉션)"
+echo -e "    6. 그래프/차트 데모      - GraphView (Bar, Line, Donut, Radar)"
+echo -e "    7. JSON 편집기 데모     - JsonEditor (편집/읽기 전용)"
+echo -e "    8. 스프레드시트 데모     - SpreadsheetView (편집/읽기 전용)"
 echo ""
 echo -e "  ${YELLOW}[MongoDB 샘플 데이터]${NC}"
 echo -e "    데이터베이스 : demo"
