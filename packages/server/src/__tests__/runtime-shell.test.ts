@@ -171,7 +171,7 @@ describe('Runtime Shell API', () => {
   // ─── POST /api/runtime/shells/:projectId/events ──────────────────
 
   describe('POST /api/runtime/shells/:projectId/events', () => {
-    it('스텁 응답(success, patches, logs)을 반환해야 한다', async () => {
+    it('Shell 이벤트 실행 후 updateShell 패치를 반환해야 한다', async () => {
       const projectId = 'rt-shell-evt-1';
       await shellService.createShell(projectId, shellInput, userId);
       await shellService.publishShell(projectId, userId);
@@ -189,8 +189,13 @@ describe('Runtime Shell API', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.patches).toEqual([]);
-      expect(res.body.logs).toEqual([]);
+      expect(res.body.patches).toEqual([
+        {
+          type: 'updateShell',
+          target: 'menuStrip1',
+          payload: { visible: false },
+        },
+      ]);
     });
 
     it('필수 필드가 누락되면 400을 반환해야 한다', async () => {
