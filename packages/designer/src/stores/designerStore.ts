@@ -43,7 +43,7 @@ interface DesignerState {
   sendToBack: (id: string) => void;
   setFormProperties: (props: Partial<FormProperties>) => void;
   setGridSize: (size: number) => void;
-  loadForm: (formId: string, controls: ControlDefinition[], properties: FormProperties) => void;
+  loadForm: (formId: string, controls: ControlDefinition[], properties: FormProperties, eventHandlers?: Array<{ controlId: string; eventName: string; handlerCode: string }>) => void;
   loadFormEvents: (eventHandlers: Record<string, string>, eventCode: Record<string, string>) => void;
   setFormEventHandler: (eventName: string, handlerName: string) => void;
   setFormEventCode: (handlerName: string, code: string) => void;
@@ -272,12 +272,38 @@ export const useDesignerStore = create<DesignerState>()(
       state.gridSize = size;
     }),
 
-    loadForm: (formId, controls, properties) => set((state) => {
+    loadForm: (formId, controls, properties, eventHandlers) => set((state) => {
       state.currentFormId = formId;
       state.controls = flattenControls(controls) as ControlDefinition[];
       state.formProperties = properties;
-      state.formEventHandlers = {};
-      state.formEventCode = {};
+
+      if (eventHandlers) {
+        // 서버에서 reload하는 경우: 이벤트 핸들러 복원
+        state.formEventHandlers = {};
+        state.formEventCode = {};
+
+        for (const eh of eventHandlers) {
+          if (eh.controlId === formId) {
+            // 폼 레벨 이벤트
+            const handlerName = `Form_${eh.eventName}`;
+            state.formEventHandlers[eh.eventName] = handlerName;
+            state.formEventCode[handlerName] = eh.handlerCode;
+          } else {
+            // 컨트롤 레벨 이벤트
+            const ctrl = state.controls.find((c) => c.id === eh.controlId);
+            if (!ctrl) continue;
+            const handlerName = `${ctrl.name}_${eh.eventName}`;
+            if (!ctrl.properties._eventHandlers) ctrl.properties._eventHandlers = {};
+            if (!ctrl.properties._eventCode) ctrl.properties._eventCode = {};
+            (ctrl.properties._eventHandlers as Record<string, string>)[eh.eventName] = handlerName;
+            (ctrl.properties._eventCode as Record<string, string>)[handlerName] = eh.handlerCode;
+          }
+        }
+      }
+      // eventHandlers가 undefined인 경우 (Undo/Redo):
+      // formEventHandlers/formEventCode를 리셋하지 않고 기존 값 보존
+      // 컨트롤 레벨 이벤트는 스냅샷의 properties._eventHandlers에 이미 포함됨
+
       state.isDirty = false;
     }),
 

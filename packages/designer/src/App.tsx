@@ -76,11 +76,7 @@ export function App() {
     try {
       const { data } = await apiService.loadForm(formId);
       const store = useDesignerStore.getState();
-      store.loadForm(
-        formId,
-        data.controls,
-        data.properties,
-      );
+      store.loadForm(formId, data.controls, data.properties, data.eventHandlers);
 
       // 프로젝트 정보 설정 (기본 폰트 포함)
       if (data.projectId) {
@@ -91,63 +87,6 @@ export function App() {
         } catch {
           store.setProjectDefaultFont(null);
         }
-      }
-
-      // 이벤트 핸들러 복원 (서버의 eventHandlers 배열 → 디자이너 형식)
-      if (Array.isArray(data.eventHandlers)) {
-        const formHandlers: Record<string, string> = {};
-        const formCode: Record<string, string> = {};
-
-        // 컨트롤 레벨 이벤트: controlId별로 그룹핑
-        const controlEventMap = new Map<string, { handlers: Record<string, string>; code: Record<string, string> }>();
-
-        // loadForm() 이후 새 상태에서 controls 참조
-        const freshControls = useDesignerStore.getState().controls;
-
-        for (const eh of data.eventHandlers as Array<{ controlId: string; eventName: string; handlerCode: string }>) {
-          if (eh.controlId === formId) {
-            // 폼 레벨 이벤트
-            const handlerName = `Form_${eh.eventName}`;
-            formHandlers[eh.eventName] = handlerName;
-            formCode[handlerName] = eh.handlerCode;
-          } else {
-            // 컨트롤 레벨 이벤트
-            if (!controlEventMap.has(eh.controlId)) {
-              controlEventMap.set(eh.controlId, { handlers: {}, code: {} });
-            }
-            const entry = controlEventMap.get(eh.controlId)!;
-            const ctrl = freshControls.find((c) => c.id === eh.controlId);
-            const handlerName = ctrl
-              ? `${ctrl.name}_${eh.eventName}`
-              : `${eh.controlId}_${eh.eventName}`;
-            entry.handlers[eh.eventName] = handlerName;
-            entry.code[handlerName] = eh.handlerCode;
-          }
-        }
-
-        if (Object.keys(formHandlers).length > 0) {
-          useDesignerStore.getState().loadFormEvents(formHandlers, formCode);
-        }
-
-        // 컨트롤 properties에 _eventHandlers/_eventCode가 없으면 복원
-        for (const [controlId, { handlers, code }] of controlEventMap) {
-          const freshState = useDesignerStore.getState();
-          const ctrl = freshState.controls.find((c) => c.id === controlId);
-          if (!ctrl) continue;
-          const existing = ctrl.properties._eventHandlers as Record<string, string> | undefined;
-          if (!existing || Object.keys(existing).length === 0) {
-            freshState.updateControl(controlId, {
-              properties: {
-                ...ctrl.properties,
-                _eventHandlers: handlers,
-                _eventCode: code,
-              },
-            });
-          }
-        }
-
-        // 복원은 변경이 아니므로 clean 상태 유지
-        useDesignerStore.getState().markClean();
       }
 
       setFormStatus(data.status);

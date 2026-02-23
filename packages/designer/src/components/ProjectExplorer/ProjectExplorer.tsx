@@ -138,7 +138,7 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
       if (currentFormId === formId) {
         const { data } = await apiService.loadForm(formId);
         const state = useDesignerStore.getState();
-        state.loadForm(formId, data.controls, data.properties);
+        state.loadForm(formId, data.controls, data.properties, data.eventHandlers);
       }
     } catch (error) {
       console.error('Failed to rename form:', error);
@@ -212,7 +212,7 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
       const state = useDesignerStore.getState();
       if (state.currentFormId && state.currentProjectId === fontDialog.projectId) {
         const { data } = await apiService.loadForm(state.currentFormId);
-        state.loadForm(state.currentFormId, data.controls, data.properties);
+        state.loadForm(state.currentFormId, data.controls, data.properties, data.eventHandlers);
       }
       setFontDialog(null);
     } catch (error) {
