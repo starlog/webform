@@ -366,7 +366,7 @@
       "description": "runtimeStore Shell 상태 및 API 클라이언트 테스트",
       "phase": "phase3-runtime",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm runtime Shell Store 구현을 테스트하세요.\n\n## 테스트\n1. packages/runtime/src/__tests__/ 디렉토리 확인\n2. packages/runtime/src/__tests__/runtimeStore-shell.test.ts 작성:\n   - setShellDef 동작 확인\n   - updateShellControlState 동작 확인\n   - applyShellPatches (updateShell, updateAppState, navigate 타입) 동작 확인\n   - pushFormHistory / popFormHistory 스택 동작 확인\n   - appState 업데이트 확인\n\n3. TypeScript 타입 체크:\n   `cd /home/felix/src/webform && pnpm --filter @webform/runtime typecheck`\n\n4. 테스트 실행:\n   `pnpm --filter @webform/runtime test`\n\n5. 실패 시 수정\n\n## 통과 기준\n- 타입 오류 없음\n- 모든 테스트 통과",
       "dependsOn": [
         "runtime-shell-store-impl"
