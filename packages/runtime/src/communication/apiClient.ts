@@ -1,4 +1,11 @@
-import type { FormDefinition, EventRequest, EventResponse } from '@webform/common';
+import type {
+  FormDefinition,
+  EventRequest,
+  EventResponse,
+  ApplicationShellDefinition,
+  ShellEventRequest,
+  AppLoadResponse,
+} from '@webform/common';
 
 class ApiClient {
   private baseUrl: string;
@@ -98,6 +105,29 @@ class ApiClient {
       body: JSON.stringify({ connectionString, database, collection, filter }),
     });
     if (!res.ok) throw new Error(`MongoDB delete failed: ${res.status}`);
+    return res.json();
+  }
+  async fetchApp(projectId: string, formId?: string): Promise<AppLoadResponse> {
+    const params = formId ? `?formId=${encodeURIComponent(formId)}` : '';
+    const res = await fetch(`${this.baseUrl}/runtime/app/${projectId}${params}`);
+    if (!res.ok) throw new Error(`Failed to fetch app: ${res.status}`);
+    return res.json();
+  }
+
+  async fetchShell(projectId: string): Promise<ApplicationShellDefinition | null> {
+    const res = await fetch(`${this.baseUrl}/runtime/shells/${projectId}`);
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Failed to fetch shell: ${res.status}`);
+    return res.json();
+  }
+
+  async postShellEvent(projectId: string, event: ShellEventRequest): Promise<EventResponse> {
+    const res = await fetch(`${this.baseUrl}/runtime/shells/${projectId}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(event),
+    });
+    if (!res.ok) throw new Error(`Shell event request failed: ${res.status}`);
     return res.json();
   }
 }

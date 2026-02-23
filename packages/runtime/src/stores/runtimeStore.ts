@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { FormDefinition, ControlDefinition, UIPatch } from '@webform/common';
+import type {
+  FormDefinition,
+  ControlDefinition,
+  UIPatch,
+  ApplicationShellDefinition,
+} from '@webform/common';
 
 export interface DialogMessage {
   text: string;
@@ -20,6 +25,13 @@ export interface RuntimeState {
   navigateRequest: NavigateRequest | null;
   pendingPatchGroups: UIPatch[][];
 
+  // Shell 관련 상태
+  shellDef: ApplicationShellDefinition | null;
+  shellControlStates: Record<string, Record<string, unknown>>;
+  appState: Record<string, unknown>;
+  formHistory: Array<{ formId: string; params?: Record<string, unknown> }>;
+  navigateParams: Record<string, unknown>;
+
   setFormDef: (def: FormDefinition) => void;
   updateControlState: (controlId: string, property: string, value: unknown) => void;
   getControlState: (controlId: string) => Record<string, unknown>;
@@ -28,6 +40,15 @@ export interface RuntimeState {
   dismissDialog: () => void;
   requestNavigate: (formId: string, params?: Record<string, unknown>) => void;
   clearNavigateRequest: () => void;
+
+  // Shell 관련 메서드
+  setShellDef: (def: ApplicationShellDefinition | null) => void;
+  updateShellControlState: (controlId: string, property: string, value: unknown) => void;
+  getShellControlState: (controlId: string) => Record<string, unknown>;
+  applyShellPatches: (patches: UIPatch[]) => void;
+  setAppState: (key: string, value: unknown) => void;
+  pushFormHistory: (formId: string, params?: Record<string, unknown>) => void;
+  popFormHistory: () => { formId: string; params?: Record<string, unknown> } | null;
 }
 
 function initControlStates(
@@ -150,6 +171,13 @@ export const useRuntimeStore = create<RuntimeState>()(
     navigateRequest: null,
     pendingPatchGroups: [],
 
+    // Shell 초기 상태
+    shellDef: null,
+    shellControlStates: {},
+    appState: {},
+    formHistory: [],
+    navigateParams: {},
+
     setFormDef: (def) =>
       set((state) => {
         state.currentFormDef = def;
@@ -226,5 +254,124 @@ export const useRuntimeStore = create<RuntimeState>()(
       set((state) => {
         state.navigateRequest = null;
       }),
+
+    // --- Shell 관련 메서드 ---
+
+    setShellDef: (def) =>
+      set((state) => {
+        state.shellDef = def;
+        state.shellControlStates = {};
+        if (def) {
+          initControlStates(def.controls, state.shellControlStates);
+        }
+      }),
+
+    updateShellControlState: (controlId, property, value) =>
+      set((state) => {
+        if (!state.shellControlStates[controlId]) {
+          state.shellControlStates[controlId] = {};
+        }
+        state.shellControlStates[controlId][property] = value;
+      }),
+
+    getShellControlState: (controlId) => {
+      return get().shellControlStates[controlId] ?? {};
+    },
+
+    applyShellPatches: (patches) =>
+      set((state) => {
+        for (const patch of patches) {
+          switch (patch.type) {
+            case 'updateShell': {
+              const controlState = state.shellControlStates[patch.target];
+              if (controlState) {
+                Object.assign(controlState, patch.payload);
+              }
+              break;
+            }
+            case 'updateAppState': {
+              for (const [key, value] of Object.entries(patch.payload)) {
+                if (value === undefined) {
+                  delete state.appState[key];
+                } else {
+                  state.appState[key] = value;
+                }
+              }
+              break;
+            }
+            case 'navigate': {
+              const navPayload = patch.payload as {
+                formId?: string;
+                params?: Record<string, unknown>;
+                back?: boolean;
+              };
+              if (navPayload.back) {
+                const prev =
+                  state.formHistory.length > 0
+                    ? state.formHistory[state.formHistory.length - 1]
+                    : null;
+                if (prev) {
+                  state.formHistory.pop();
+                  state.navigateRequest = {
+                    formId: prev.formId,
+                    params: prev.params ?? {},
+                  };
+                  state.navigateParams = prev.params ?? {};
+                }
+              } else {
+                state.navigateRequest = {
+                  formId: navPayload.formId ?? '',
+                  params: navPayload.params ?? {},
+                };
+                state.navigateParams = navPayload.params ?? {};
+              }
+              break;
+            }
+            case 'closeApp': {
+              try {
+                window.close();
+              } catch {
+                window.location.href = 'about:blank';
+              }
+              break;
+            }
+            case 'showDialog': {
+              const payload = patch.payload as {
+                text?: string;
+                title?: string;
+                dialogType?: string;
+              };
+              state.dialogQueue.push({
+                text: payload.text ?? '',
+                title: payload.title ?? '',
+                dialogType: (payload.dialogType as DialogMessage['dialogType']) ?? 'info',
+              });
+              break;
+            }
+            default:
+              break;
+          }
+        }
+      }),
+
+    setAppState: (key, value) =>
+      set((state) => {
+        state.appState[key] = value;
+      }),
+
+    pushFormHistory: (formId, params) =>
+      set((state) => {
+        state.formHistory.push({ formId, params });
+      }),
+
+    popFormHistory: () => {
+      const history = get().formHistory;
+      if (history.length === 0) return null;
+      const last = history[history.length - 1];
+      set((state) => {
+        state.formHistory.pop();
+      });
+      return last;
+    },
   })),
 );

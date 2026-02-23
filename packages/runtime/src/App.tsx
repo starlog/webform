@@ -14,6 +14,7 @@ export function App() {
   const formDefRef = useRef<FormDefinition | null>(null);
 
   const applyPatches = useRuntimeStore((s) => s.applyPatches);
+  const applyShellPatches = useRuntimeStore((s) => s.applyShellPatches);
   const setFormDef = useRuntimeStore((s) => s.setFormDef);
   const navigateRequest = useRuntimeStore((s) => s.navigateRequest);
   const clearNavigateRequest = useRuntimeStore((s) => s.clearNavigateRequest);
@@ -68,14 +69,14 @@ export function App() {
 
         // WebSocket 재연결
         wsClient.connect(formId);
-        setupPatchListener({ applyPatches }, wsClient);
+        setupPatchListener({ applyPatches, applyShellPatches }, wsClient);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }
     },
-    [applyPatches, setFormDef, fireBeforeLeaving],
+    [applyPatches, applyShellPatches, setFormDef, fireBeforeLeaving],
   );
 
   // 초기 폼 로드

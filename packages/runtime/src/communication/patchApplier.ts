@@ -4,25 +4,37 @@ import type { RuntimeState } from '../stores/runtimeStore';
 type WsClientType = { onMessage: (cb: (msg: RuntimeWsMessage) => void) => () => void };
 
 export function setupPatchListener(
-  runtimeStore: Pick<RuntimeState, 'applyPatches'>,
+  runtimeStore: Pick<RuntimeState, 'applyPatches' | 'applyShellPatches'>,
   wsClientInstance: WsClientType,
 ): () => void {
   return wsClientInstance.onMessage((message) => {
     switch (message.type) {
-      case 'uiPatch':
-        runtimeStore.applyPatches(message.payload);
+      case 'uiPatch': {
+        const scope = message.scope;
+        if (scope === 'shell') {
+          runtimeStore.applyShellPatches(message.payload);
+        } else {
+          runtimeStore.applyPatches(message.payload);
+        }
         break;
+      }
       case 'dataRefresh':
         console.log('dataRefresh received:', message.payload);
         break;
       case 'error':
         console.error('Server error:', message.payload);
         break;
-      case 'eventResult':
+      case 'eventResult': {
         if (message.payload.patches) {
-          runtimeStore.applyPatches(message.payload.patches);
+          const scope = (message as unknown as { scope?: string }).scope;
+          if (scope === 'shell') {
+            runtimeStore.applyShellPatches(message.payload.patches);
+          } else {
+            runtimeStore.applyPatches(message.payload.patches);
+          }
         }
         break;
+      }
     }
   });
 }
