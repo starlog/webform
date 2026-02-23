@@ -1,587 +1,285 @@
-# @webform/common 공통 타입 패키지 구현 계획
+# Application Shell 공통 타입 정의 계획
 
-## 1. 개요
-
-`@webform/common` 패키지는 WebForm 프로젝트의 모든 패키지(designer, runtime, server)가 공유하는 타입 정의와 유틸리티를 제공한다. PRD.md 섹션 3.3(폼 정의 스키마), 4.1.2(도구상자 컨트롤 25종), 4.2.2(UIPatch 프로토콜)을 기반으로 설계한다.
-
-## 2. 파일 구조
-
-```
-packages/common/src/
-├── types/
-│   ├── form.ts          # FormDefinition, ControlDefinition, ControlType 등
-│   ├── events.ts        # EventHandlerDefinition, FormContext, EventArgs
-│   ├── datasource.ts    # DataSourceDefinition, DataBindingDefinition
-│   └── protocol.ts      # UIPatch, WebSocket 메시지 타입
-├── utils/
-│   ├── validation.ts    # validateFormDefinition, sanitizeQueryInput
-│   └── serialization.ts # serialize/deserialize FormDefinition
-├── __tests__/
-│   ├── index.test.ts    # (기존) VERSION 확인
-│   ├── validation.test.ts
-│   ├── serialization.test.ts
-│   └── events.test.ts
-└── index.ts             # 모든 타입/유틸 re-export
-```
-
-## 3. 타입 상세 설계
-
-### 3.1 `types/form.ts` — 폼 정의 핵심 타입
-
-#### FontDefinition
-
-```typescript
-interface FontDefinition {
-  family: string;       // e.g., "Segoe UI", "맑은 고딕"
-  size: number;         // pt 단위
-  bold: boolean;
-  italic: boolean;
-  underline: boolean;
-  strikethrough: boolean;
-}
-```
-
-#### FormProperties
-
-PRD 3.3에서 정의된 폼 속성을 그대로 반영한다.
-
-```typescript
-interface FormProperties {
-  title: string;
-  width: number;
-  height: number;
-  backgroundColor: string;                                      // CSS 색상값
-  font: FontDefinition;
-  startPosition: 'CenterScreen' | 'Manual' | 'CenterParent';
-  formBorderStyle: 'None' | 'FixedSingle' | 'Fixed3D' | 'Sizable';
-  maximizeBox: boolean;
-  minimizeBox: boolean;
-}
-```
-
-#### ControlType (25종 유니언)
-
-PRD 4.1.2의 Phase 1~3 전체 컨트롤을 유니언 타입으로 정의한다.
-
-```typescript
-type ControlType =
-  // Phase 1 - 기본 컨트롤 (11종)
-  | 'Button'
-  | 'Label'
-  | 'TextBox'
-  | 'CheckBox'
-  | 'RadioButton'
-  | 'ComboBox'
-  | 'ListBox'
-  | 'NumericUpDown'
-  | 'DateTimePicker'
-  | 'ProgressBar'
-  | 'PictureBox'
-  // Phase 1 - 컨테이너 (4종)
-  | 'Panel'
-  | 'GroupBox'
-  | 'TabControl'
-  | 'SplitContainer'
-  // Phase 2 - 데이터 컨트롤 (5종)
-  | 'DataGridView'
-  | 'BindingNavigator'
-  | 'Chart'
-  | 'TreeView'
-  | 'ListView'
-  // Phase 3 - 고급 컨트롤 (5종)
-  | 'MenuStrip'
-  | 'ToolStrip'
-  | 'StatusStrip'
-  | 'RichTextBox'
-  | 'WebBrowser';
-```
-
-**설계 근거**: 각 Phase별로 주석을 달아 어떤 컨트롤이 어떤 단계에 해당하는지 코드에서 바로 확인할 수 있게 한다.
-
-#### CONTROL_TYPES 상수 배열
-
-타입과 별개로 런타임에서 순회 가능하도록 `as const` 배열도 함께 제공한다.
-
-```typescript
-const CONTROL_TYPES = [
-  'Button', 'Label', 'TextBox', 'CheckBox', 'RadioButton',
-  'ComboBox', 'ListBox', 'NumericUpDown', 'DateTimePicker',
-  'ProgressBar', 'PictureBox',
-  'Panel', 'GroupBox', 'TabControl', 'SplitContainer',
-  'DataGridView', 'BindingNavigator', 'Chart', 'TreeView', 'ListView',
-  'MenuStrip', 'ToolStrip', 'StatusStrip', 'RichTextBox', 'WebBrowser',
-] as const;
-```
-
-#### AnchorStyle, DockStyle
-
-PRD 4.1.3의 Anchor & Dock 레이아웃 시스템을 반영한다.
-
-```typescript
-// Anchor: 여러 방향 조합 가능 (비트 플래그 패턴 대신 객체 사용)
-interface AnchorStyle {
-  top: boolean;
-  bottom: boolean;
-  left: boolean;
-  right: boolean;
-}
-
-// Dock: 한 방향만 선택
-type DockStyle = 'None' | 'Top' | 'Bottom' | 'Left' | 'Right' | 'Fill';
-```
-
-**설계 근거**: WinForm의 `AnchorStyles`는 비트 플래그(enum)지만, TypeScript에서는 `{ top, bottom, left, right }` 객체가 더 직관적이고 JSON 직렬화에 유리하다.
-
-#### ControlDefinition
-
-PRD 3.3 그대로 구현하되, `properties`는 `Record<string, unknown>`으로 타입 안전성을 높인다.
-
-```typescript
-interface ControlDefinition {
-  id: string;                              // UUID
-  type: ControlType;
-  name: string;                            // e.g., "btnSubmit", "txtName"
-  properties: Record<string, unknown>;     // 컨트롤별 속성 (text, items 등)
-  position: { x: number; y: number };
-  size: { width: number; height: number };
-  children?: ControlDefinition[];          // 컨테이너 컨트롤 전용
-  anchor: AnchorStyle;
-  dock: DockStyle;
-  tabIndex: number;
-  visible: boolean;
-  enabled: boolean;
-}
-```
-
-**`properties: Record<string, unknown>` 선택 근거**:
-- PRD에서 `Record<string, any>`로 명시했으나, `unknown`이 더 타입 안전하다.
-- 각 ControlType별 상세 프로퍼티 타입은 designer/runtime에서 개별 정의한다 (이 패키지에서는 범용 타입만 제공).
-
-#### FormDefinition
-
-PRD 3.3 그대로 구현한다.
-
-```typescript
-interface FormDefinition {
-  id: string;
-  name: string;
-  version: number;
-  properties: FormProperties;
-  controls: ControlDefinition[];
-  eventHandlers: EventHandlerDefinition[];
-  dataBindings: DataBindingDefinition[];
-}
-```
+> Task ID: `common-types-plan`
+> Phase: phase1-foundation
+> 참조: MDI.md (Application Shell / MDI 시스템 구현 계획)
 
 ---
 
-### 3.2 `types/events.ts` — 이벤트 시스템
+## 1. 현재 타입 구조 분석
 
-#### EventHandlerDefinition
-
-PRD 3.3의 이벤트 핸들러 정의를 그대로 반영한다.
+### 1.1 UIPatch 타입 (protocol.ts:4-8)
 
 ```typescript
-interface EventHandlerDefinition {
-  controlId: string;
-  eventName: string;                       // e.g., "onClick", "onTextChanged"
-  handlerType: 'server' | 'client';
-  handlerCode: string;                     // TypeScript/JavaScript 코드
-}
-```
-
-#### EventArgs
-
-서버 이벤트 핸들러에 전달되는 이벤트 인자.
-
-```typescript
-interface EventArgs {
-  type: string;                            // 이벤트 타입명
-  timestamp: number;                       // 이벤트 발생 시각 (ms)
-  [key: string]: unknown;                  // 추가 데이터 (마우스 좌표, 키 코드 등)
-}
-```
-
-#### COMMON_EVENTS / CONTROL_EVENTS
-
-PRD 4.1.5에 정의된 이벤트 목록을 상수로 제공한다.
-
-```typescript
-const COMMON_EVENTS = [
-  'Click', 'DoubleClick',
-  'MouseEnter', 'MouseLeave', 'MouseDown', 'MouseUp', 'MouseMove',
-  'KeyDown', 'KeyUp', 'KeyPress',
-  'Enter', 'Leave',
-  'Validating', 'Validated',
-  'VisibleChanged', 'EnabledChanged',
-] as const;
-
-const CONTROL_EVENTS: Record<string, readonly string[]> = {
-  TextBox: ['TextChanged', 'KeyPress'],
-  ComboBox: ['SelectedIndexChanged', 'DropDown', 'DropDownClosed'],
-  CheckBox: ['CheckedChanged'],
-  RadioButton: ['CheckedChanged'],
-  DataGridView: ['CellClick', 'CellValueChanged', 'RowEnter', 'SelectionChanged'],
-  NumericUpDown: ['ValueChanged'],
-  DateTimePicker: ['ValueChanged'],
-  ListBox: ['SelectedIndexChanged'],
-  TabControl: ['SelectedIndexChanged'],
-  TreeView: ['AfterSelect', 'AfterExpand', 'AfterCollapse'],
-  ListView: ['SelectedIndexChanged', 'ItemActivate'],
-};
-
-// 폼 레벨 이벤트 (Form 자체에 바인딩)
-const FORM_EVENTS = [
-  'Load', 'Shown', 'FormClosing', 'FormClosed', 'Resize',
-] as const;
-```
-
-#### FormContext (서버 이벤트 핸들러용)
-
-PRD 4.1.5의 `ctx` 객체 인터페이스. 서버 이벤트 엔진이 핸들러에 주입하는 컨텍스트.
-
-```typescript
-interface ControlProxy {
-  [property: string]: unknown;             // 컨트롤 속성 접근 (text, foreColor 등)
-}
-
-interface DataSourceProxy {
-  collection(name: string): CollectionProxy;
-}
-
-interface CollectionProxy {
-  find(filter?: Record<string, unknown>): Promise<unknown[]>;
-  findOne(filter?: Record<string, unknown>): Promise<unknown | null>;
-  insertOne(doc: Record<string, unknown>): Promise<{ insertedId: string }>;
-  updateOne(filter: Record<string, unknown>, update: Record<string, unknown>): Promise<{ modifiedCount: number }>;
-  deleteOne(filter: Record<string, unknown>): Promise<{ deletedCount: number }>;
-}
-
-interface FormContext {
-  formId: string;
-  controls: Record<string, ControlProxy>;      // controlName → proxy
-  dataSources: Record<string, DataSourceProxy>; // dataSourceName → proxy
-  showDialog(formName: string, params?: Record<string, unknown>): Promise<DialogResult>;
-  navigate(formName: string, params?: Record<string, unknown>): void;
-  close(dialogResult?: 'OK' | 'Cancel'): void;
-}
-
-interface DialogResult {
-  dialogResult: 'OK' | 'Cancel';
-  data: Record<string, unknown>;
-}
-```
-
-**설계 근거**:
-- `ControlProxy`와 `DataSourceProxy`는 실제 구현은 서버 패키지에서 하고, 타입 정의만 여기서 제공한다.
-- `CollectionProxy`는 PRD 4.1.5 예시코드의 `ctx.dataSources.userDB.collection('users').insertOne(...)` 패턴을 반영한다.
-
----
-
-### 3.3 `types/datasource.ts` — 데이터소스 및 바인딩
-
-PRD 4.1.6의 데이터소스 정의를 그대로 구현한다.
-
-#### DataSourceDefinition
-
-```typescript
-interface DataSourceDefinition {
-  id: string;
-  name: string;                            // e.g., "userDB"
-  type: 'database' | 'restApi' | 'static';
-  config: DatabaseConfig | RestApiConfig | StaticConfig;
-}
-```
-
-#### DatabaseConfig
-
-```typescript
-interface DatabaseConfig {
-  dialect: 'mongodb' | 'mysql' | 'mssql' | 'sqlite';
-  connectionString: string;                // 암호화 저장
-  database: string;
-}
-```
-
-#### RestApiConfig / AuthConfig
-
-```typescript
-interface AuthConfig {
-  type: 'none' | 'basic' | 'bearer' | 'apiKey';
-  credentials?: Record<string, string>;    // username/password, token, apiKey 등
-}
-
-interface RestApiConfig {
-  baseUrl: string;
-  headers: Record<string, string>;
-  auth: AuthConfig;
-}
-```
-
-#### StaticConfig
-
-```typescript
-interface StaticConfig {
-  data: unknown[];
-}
-```
-
-#### DataBindingDefinition
-
-```typescript
-interface DataBindingDefinition {
-  controlId: string;
-  controlProperty: string;                 // e.g., "text", "items", "dataSource"
-  dataSourceId: string;
-  dataField: string;                       // 필드명 또는 복합 경로
-  bindingMode: 'oneWay' | 'twoWay' | 'oneTime';
-}
-```
-
----
-
-### 3.4 `types/protocol.ts` — SDUI 프로토콜
-
-#### UIPatch
-
-PRD 4.2.2의 UI 패치 프로토콜을 그대로 반영한다.
-
-```typescript
-interface UIPatch {
+export interface UIPatch {
   type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate';
-  target: string;                          // controlId 또는 formId
+  target: string;
   payload: Record<string, unknown>;
 }
 ```
 
-#### 이벤트 요청/응답 (서버 이벤트 실행 프로토콜)
+기존 union 멤버 5개:
+- `updateProperty` — 컨트롤 속성 변경
+- `addControl` — 컨트롤 추가
+- `removeControl` — 컨트롤 제거
+- `showDialog` — 다이얼로그 표시
+- `navigate` — 폼 전환
+
+### 1.2 EventRequest 타입 (protocol.ts:10-16)
 
 ```typescript
-// 클라이언트 → 서버: 이벤트 발생 전달
-interface EventRequest {
+export interface EventRequest {
   formId: string;
   controlId: string;
   eventName: string;
   eventArgs: EventArgs;
-  formState: Record<string, Record<string, unknown>>;  // controlId → properties 스냅샷
-}
-
-// 서버 → 클라이언트: 이벤트 처리 결과
-interface EventResponse {
-  success: boolean;
-  patches: UIPatch[];
-  error?: string;
+  formState: Record<string, Record<string, unknown>>;
 }
 ```
 
-#### WebSocket 메시지 타입
+필드 5개: `formId`, `controlId`, `eventName`, `eventArgs`, `formState`
 
-디자이너 실시간 동기화와 런타임 이벤트 통신에 사용되는 WebSocket 메시지를 유니언으로 정의한다.
+### 1.3 RuntimeWsMessage 타입 (protocol.ts:50-55)
 
 ```typescript
-// 디자이너 WebSocket 메시지
-type DesignerWsMessage =
-  | { type: 'controlAdded'; payload: ControlDefinition }
-  | { type: 'controlUpdated'; payload: { controlId: string; changes: Record<string, unknown> } }
-  | { type: 'controlRemoved'; payload: { controlId: string } }
-  | { type: 'formPropertiesUpdated'; payload: Partial<FormProperties> }
-  | { type: 'syncRequest'; payload: { formId: string } }
-  | { type: 'syncResponse'; payload: FormDefinition };
-
-// 런타임 WebSocket 메시지
-type RuntimeWsMessage =
+export type RuntimeWsMessage =
   | { type: 'event'; payload: EventRequest }
   | { type: 'eventResult'; payload: EventResponse }
   | { type: 'uiPatch'; payload: UIPatch[] }
   | { type: 'dataRefresh'; payload: { controlId: string; data: unknown[] } }
   | { type: 'error'; payload: { code: string; message: string } };
-
-// 통합 WebSocket 메시지 타입
-type WsMessage = DesignerWsMessage | RuntimeWsMessage;
 ```
 
-**설계 근거**:
-- 태그드 유니언(`type` 필드)을 사용하여 TypeScript의 narrowing 기능을 활용한다.
-- 디자이너와 런타임 메시지를 분리하되, 통합 타입도 제공한다.
+태그드 유니언 5개 variant. Shell 모드에서 `scope` 필드로 패치 대상(shell/form)을 구분해야 한다.
+
+### 1.4 관련 타입 (form.ts, events.ts)
+
+- `ControlDefinition` (form.ts:50-63) — Shell의 `controls` 필드에 재사용
+- `FontDefinition` (form.ts:4-11) — Shell의 `properties.font`에 재사용
+- `FormProperties` (form.ts:13-23) — Shell의 `ShellProperties`와 구조 유사 (title, width, height, formBorderStyle 등)
+- `EventHandlerDefinition` (events.ts:1-6) — Shell의 `eventHandlers`에 재사용
+- `EventArgs` (events.ts:8-12) — Shell 이벤트에도 동일하게 사용
+
+### 1.5 현재 index.ts export 구조 (index.ts:1-51)
+
+```
+VERSION, FontDefinition, FormProperties, ControlDefinition, FormDefinition,
+AnchorStyle, ControlType, DockStyle, CONTROL_TYPES,
+EventHandlerDefinition, EventArgs, ControlProxy, CollectionProxy,
+DataSourceProxy, FormContext, DialogResult, COMMON_EVENTS, CONTROL_EVENTS, FORM_EVENTS,
+DataSourceDefinition, DatabaseConfig, RestApiConfig, AuthConfig, StaticConfig, DataBindingDefinition,
+DebugLog, TraceEntry, UIPatch, EventRequest, EventResponse, DesignerWsMessage, RuntimeWsMessage, WsMessage,
+validateFormDefinition, validateControlDefinition, sanitizeQueryInput,
+serializeFormDefinition, deserializeFormDefinition,
+flattenControls, nestControls
+```
 
 ---
 
-## 4. 유틸리티 상세 설계
+## 2. 신규 파일: packages/common/src/types/shell.ts
 
-### 4.1 `utils/validation.ts`
-
-#### validateFormDefinition
-
-`FormDefinition` 객체의 구조적 유효성을 검증한다.
+### 2.1 전체 코드 초안
 
 ```typescript
-function validateFormDefinition(form: unknown): { valid: boolean; errors: string[] }
+import type { ControlDefinition, FontDefinition } from './form';
+import type { EventHandlerDefinition, EventArgs } from './events';
+
+/**
+ * Application Shell 속성.
+ * FormProperties와 유사하지만 startPosition이 없고 showTitleBar가 추가됨.
+ */
+export interface ShellProperties {
+  title: string;
+  width: number;
+  height: number;
+  backgroundColor: string;
+  font: FontDefinition;
+  showTitleBar: boolean;
+  formBorderStyle: 'None' | 'FixedSingle' | 'Fixed3D' | 'Sizable';
+  maximizeBox: boolean;
+  minimizeBox: boolean;
+}
+
+/**
+ * Application Shell 정의.
+ * 프로젝트 당 하나의 Shell이 존재하며, MenuStrip/ToolStrip/StatusStrip 등
+ * 앱 수준 UI 컨트롤을 포함한다.
+ */
+export interface ApplicationShellDefinition {
+  id: string;
+  projectId: string;
+  name: string;
+  version: number;
+  properties: ShellProperties;
+  controls: ControlDefinition[];
+  eventHandlers: EventHandlerDefinition[];
+  startFormId?: string;
+}
+
+/**
+ * Shell 전용 이벤트 목록.
+ * - Load: Shell 최초 로드
+ * - FormChanged: 활성 폼 변경 후
+ * - BeforeFormChange: 폼 변경 전 (취소 가능)
+ */
+export const SHELL_EVENTS = ['Load', 'FormChanged', 'BeforeFormChange'] as const;
+export type ShellEventType = (typeof SHELL_EVENTS)[number];
+
+/**
+ * Shell 이벤트 요청.
+ * EventRequest와 유사하지만 formId 대신 projectId를 사용하고
+ * shellState, currentFormId 필드가 있다.
+ */
+export interface ShellEventRequest {
+  projectId: string;
+  controlId: string;
+  eventName: string;
+  eventArgs: EventArgs;
+  shellState: Record<string, Record<string, unknown>>;
+  currentFormId: string;
+}
 ```
 
-**검증 항목**:
-1. `id`: 비어있지 않은 string
-2. `name`: 비어있지 않은 string
-3. `version`: 양의 정수
-4. `properties`: FormProperties 필수 필드 존재 (title, width, height)
-5. `controls`: 배열, 각 항목이 유효한 ControlDefinition
-6. `eventHandlers`: 배열, 각 항목이 유효한 EventHandlerDefinition
-7. `dataBindings`: 배열, 각 항목이 유효한 DataBindingDefinition
+### 2.2 설계 근거
 
-#### validateControlDefinition
+1. **`ShellProperties.formBorderStyle`**: 문자열 리터럴 유니언 타입 사용 (`FormProperties`와 동일 패턴). MDI.md에서는 `FormBorderStyle` enum을 언급했으나, 기존 코드베이스가 리터럴 유니언을 일관되게 사용하므로 동일 패턴 적용.
 
-```typescript
-function validateControlDefinition(control: unknown): { valid: boolean; errors: string[] }
-```
+2. **`ShellProperties`에 `startPosition` 없음**: Shell은 앱 전체 프레임이므로 startPosition 개념이 불필요. FormProperties와의 차이점.
 
-**검증 항목**:
-1. `id`: 비어있지 않은 string
-2. `type`: CONTROL_TYPES 배열에 포함
-3. `name`: 비어있지 않은 string
-4. `position`: `{ x: number, y: number }` (음수 허용 — 캔버스 밖 배치 가능)
-5. `size`: `{ width: number > 0, height: number > 0 }`
-6. `children`: 존재 시 배열, 각 항목 재귀 검증
-7. `anchor`: `{ top, bottom, left, right }` 모두 boolean
-8. `dock`: DockStyle 값 중 하나
-9. `tabIndex`: 0 이상 정수
-10. `visible`, `enabled`: boolean
+3. **`ShellEventRequest` 별도 정의**: 기존 `EventRequest`의 `formId`/`formState`와 의미가 다르므로 (`projectId`/`shellState`) 별도 인터페이스로 정의. 기존 EventRequest를 확장하지 않아 하위 호환성 유지.
 
-#### sanitizeQueryInput (NoSQL 인젝션 방지)
-
-PRD 5.2의 보안 요구사항에 따라, 사용자 입력에서 위험한 MongoDB 연산자를 제거한다.
-
-```typescript
-function sanitizeQueryInput(input: Record<string, unknown>): Record<string, unknown>
-```
-
-**차단 대상 연산자** (키 이름이 `$`로 시작):
-- `$where` — 임의 JavaScript 실행 가능
-- `$function` — 서버 사이드 JavaScript
-- `$accumulator` — 서버 사이드 JavaScript
-- `$expr` — 집계 표현식 (잠재적 위험)
-
-**처리 방식**:
-1. 입력 객체의 모든 키를 재귀적으로 순회
-2. 위험한 `$` 연산자 키를 발견하면 해당 키-값 쌍을 제거
-3. 중첩 객체/배열 내부도 재귀적으로 처리
-4. 안전한 `$` 연산자는 허용 (e.g., `$regex`, `$gt`, `$lt`, `$in`, `$and`, `$or`)
-5. 원본 객체를 변경하지 않고 새 객체를 반환 (불변성)
-
-**차단 리스트 접근 방식 선택 근거**:
-- 허용 리스트 방식은 정상적인 쿼리까지 차단할 위험이 있다.
-- 위험한 연산자만 차단하는 것이 유연하면서도 안전하다.
+4. **`ShellEventType` 타입 별칭 추가**: `SHELL_EVENTS` 배열에서 파생된 유니언 타입. eventName 검증 등에 활용 가능.
 
 ---
 
-### 4.2 `utils/serialization.ts`
+## 3. protocol.ts 변경 사항
 
-#### serializeFormDefinition
+### 3.1 UIPatch type 확장
 
-```typescript
-function serializeFormDefinition(form: FormDefinition): string
+```diff
+ export interface UIPatch {
+-  type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate';
++  type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate'
++    | 'updateShell' | 'updateAppState' | 'closeApp';
+   target: string;
+   payload: Record<string, unknown>;
+ }
 ```
 
-- `JSON.stringify`로 직렬화
-- 순환 참조 검사 없음 (FormDefinition은 트리 구조이므로 순환 없음)
+추가되는 3개 patch type:
+- `updateShell` — Shell 컨트롤 상태 업데이트 (target: shellControlId)
+- `updateAppState` — 앱 레벨 공유 상태 변경 (target: '_system')
+- `closeApp` — 앱 종료 (target: '_system')
 
-#### deserializeFormDefinition
+### 3.2 EventRequest 필드 추가
 
-```typescript
-function deserializeFormDefinition(json: string): FormDefinition
+```diff
+ export interface EventRequest {
+   formId: string;
+   controlId: string;
+   eventName: string;
+   eventArgs: EventArgs;
+   formState: Record<string, Record<string, unknown>>;
++  appState?: Record<string, unknown>;
++  scope?: 'shell' | 'form';
+ }
 ```
 
-- `JSON.parse` 후 `validateFormDefinition` 호출
-- 유효하지 않으면 상세 에러 메시지와 함께 Error throw
-- 유효하면 FormDefinition 타입으로 반환
+추가 필드 (모두 옵셔널 — 하위 호환):
+- `appState` — 앱 레벨 공유 상태. Shell과 폼 간 데이터 공유용
+- `scope` — 이벤트 발생 영역 구분 (`shell`: Shell 이벤트, `form`: 폼 이벤트, 미지정: 기존 방식)
+
+### 3.3 RuntimeWsMessage scope 필드 추가
+
+RuntimeWsMessage는 태그드 유니언이므로, 각 variant에 개별적으로 scope를 추가하기보다 별도 wrapper 접근이 필요하다. 기존 유니언 구조를 유지하면서 `uiPatch` variant에만 scope를 추가한다:
+
+```diff
+ export type RuntimeWsMessage =
+   | { type: 'event'; payload: EventRequest }
+   | { type: 'eventResult'; payload: EventResponse }
+-  | { type: 'uiPatch'; payload: UIPatch[] }
++  | { type: 'uiPatch'; payload: UIPatch[]; scope?: 'shell' | 'form' }
+   | { type: 'dataRefresh'; payload: { controlId: string; data: unknown[] } }
+   | { type: 'error'; payload: { code: string; message: string } };
+```
+
+scope가 필요한 것은 `uiPatch`와 `event` 메시지이므로, `event` variant의 payload인 `EventRequest`에 이미 `scope` 필드가 추가되었고, `uiPatch`에 직접 `scope` 옵셔널 필드를 추가한다.
 
 ---
 
-## 5. `index.ts` Re-export 구조
+## 4. index.ts 추가 export 목록
 
 ```typescript
-// types
+// types/shell
 export type {
-  FontDefinition,
-  FormProperties,
-  ControlDefinition,
-  FormDefinition,
-  AnchorStyle,
-  EventHandlerDefinition,
-  EventArgs,
-  ControlProxy,
-  DataSourceProxy,
-  CollectionProxy,
-  FormContext,
-  DialogResult,
-  DataSourceDefinition,
-  DatabaseConfig,
-  RestApiConfig,
-  AuthConfig,
-  StaticConfig,
-  DataBindingDefinition,
-  UIPatch,
-  EventRequest,
-  EventResponse,
-  DesignerWsMessage,
-  RuntimeWsMessage,
-  WsMessage,
-} from './types/...';
-
-// type unions & constants
-export {
-  type ControlType,
-  type DockStyle,
-  CONTROL_TYPES,
-  COMMON_EVENTS,
-  CONTROL_EVENTS,
-  FORM_EVENTS,
-} from './types/...';
-
-// utils
-export {
-  validateFormDefinition,
-  validateControlDefinition,
-  sanitizeQueryInput,
-  serializeFormDefinition,
-  deserializeFormDefinition,
-} from './utils/...';
-
-// version
-export { VERSION } from '...';
+  ApplicationShellDefinition,
+  ShellProperties,
+  ShellEventRequest,
+  ShellEventType,
+} from './types/shell';
+export { SHELL_EVENTS } from './types/shell';
 ```
 
----
-
-## 6. 구현 순서
-
-1. **`types/form.ts`** — 가장 기본이 되는 타입. 다른 모든 파일이 여기에 의존.
-2. **`types/events.ts`** — FormContext, EventArgs 등. form.ts에 의존.
-3. **`types/datasource.ts`** — DataSourceDefinition, DataBindingDefinition. 독립적.
-4. **`types/protocol.ts`** — UIPatch, WsMessage. form.ts, events.ts에 의존.
-5. **`utils/validation.ts`** — form.ts의 타입을 검증. form.ts에 의존.
-6. **`utils/serialization.ts`** — validation.ts에 의존.
-7. **`index.ts`** — 모든 모듈 re-export.
+추가되는 export 5개:
+- `ApplicationShellDefinition` (type)
+- `ShellProperties` (type)
+- `ShellEventRequest` (type)
+- `ShellEventType` (type)
+- `SHELL_EVENTS` (const)
 
 ---
 
-## 7. 의존성
+## 5. 타입 충돌 및 주의사항
 
-이 패키지는 **외부 런타임 의존성이 없다** (zero dependencies). 순수 TypeScript 타입과 유틸리티만 포함한다.
+### 5.1 FormProperties vs ShellProperties
 
-개발 의존성:
-- `vitest` (이미 루트에 설치됨)
-- `typescript` (이미 루트에 설치됨)
+두 인터페이스의 공통 필드: `title`, `width`, `height`, `backgroundColor`, `font`, `formBorderStyle`, `maximizeBox`, `minimizeBox`
+
+차이점:
+- `FormProperties`에만 있는 필드: `startPosition`
+- `ShellProperties`에만 있는 필드: `showTitleBar`
+
+공통 베이스 인터페이스 추출을 고려할 수 있으나, 현 시점에서는 불필요한 추상화. 향후 필요 시 리팩토링 가능.
+
+### 5.2 EventRequest vs ShellEventRequest
+
+서로 다른 인터페이스이며 이름 충돌 없음. EventRequest는 폼 이벤트용, ShellEventRequest는 Shell 전용 이벤트 요청.
+
+단, EventRequest에 `scope` 필드를 추가하므로, scope가 `'shell'`인 EventRequest와 별도의 ShellEventRequest가 공존한다. 이는 의도적 설계:
+- **EventRequest + scope**: 기존 런타임 이벤트 플로우에서 Shell/Form 구분이 필요한 경우
+- **ShellEventRequest**: Shell 전용 API (`POST /api/runtime/shells/:projectId/events`)에서 사용
+
+### 5.3 SHELL_EVENTS vs FORM_EVENTS
+
+`SHELL_EVENTS`에 `'Load'`가 포함되며 이는 `FORM_EVENTS`에도 존재한다. 하지만 배열 자체가 다른 상수이고, 사용 맥락이 다르므로 충돌 없음.
+
+### 5.4 하위 호환성
+
+모든 변경이 하위 호환:
+- `shell.ts`: 완전히 새 파일이므로 기존 코드에 영향 없음
+- `UIPatch.type`: 기존 union에 멤버 추가 → 기존 코드의 switch/if 문에 새 case가 없어도 default/else로 처리됨
+- `EventRequest`: 새 필드 모두 옵셔널(`?`) → 기존 사용처에서 무시 가능
+- `RuntimeWsMessage.uiPatch.scope`: 옵셔널 → 기존 코드 영향 없음
+
+### 5.5 formBorderStyle 타입 일관성
+
+`FormProperties`와 `ShellProperties` 모두 `formBorderStyle: 'None' | 'FixedSingle' | 'Fixed3D' | 'Sizable'` 동일 리터럴 유니언 사용. 향후 공통 타입 `FormBorderStyle`로 추출할 수 있으나 현 단계에서는 인라인 유지.
 
 ---
 
-## 8. 후속 패키지와의 연동
+## 6. 변경 파일 요약
 
-| 사용처 | 사용하는 타입 |
-|--------|-------------|
-| `@webform/server` - FormService | `FormDefinition`, `validateFormDefinition` |
-| `@webform/server` - EventEngine | `FormContext`, `EventArgs`, `EventHandlerDefinition` |
-| `@webform/server` - DataSourceService | `DataSourceDefinition`, `sanitizeQueryInput` |
-| `@webform/server` - WebSocket | `WsMessage`, `EventRequest`, `EventResponse` |
-| `@webform/designer` - Canvas/Store | `ControlDefinition`, `ControlType`, `FormProperties` |
-| `@webform/designer` - PropertyPanel | `AnchorStyle`, `DockStyle`, `COMMON_EVENTS` |
-| `@webform/runtime` - SDUIRenderer | `FormDefinition`, `ControlDefinition`, `UIPatch` |
-| `@webform/runtime` - DataBinder | `DataBindingDefinition` |
+| 파일 | 변경 유형 | 설명 |
+|------|----------|------|
+| `packages/common/src/types/shell.ts` | **신규** | ApplicationShellDefinition, ShellProperties, SHELL_EVENTS, ShellEventType, ShellEventRequest |
+| `packages/common/src/types/protocol.ts` | **수정** | UIPatch type 확장, EventRequest 필드 추가, RuntimeWsMessage scope 추가 |
+| `packages/common/src/index.ts` | **수정** | shell.ts export 5개 추가 |
+
+---
+
+## 7. 구현 순서
+
+1. `packages/common/src/types/shell.ts` 신규 파일 생성
+2. `packages/common/src/types/protocol.ts` UIPatch, EventRequest, RuntimeWsMessage 수정
+3. `packages/common/src/index.ts` export 추가
+4. `pnpm typecheck` 으로 타입 검증
