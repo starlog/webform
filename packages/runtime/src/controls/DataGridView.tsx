@@ -5,6 +5,8 @@ import { useBindingStore } from '../bindings/bindingStore';
 export interface ColumnDefinition {
   field: string;
   headerText: string;
+  /** @deprecated use headerText instead */
+  name?: string;
   width?: number;
   sortable?: boolean;
   editable?: boolean;
@@ -149,7 +151,7 @@ export function DataGridView({
       // headerText가 비어있으면 field 이름으로 폴백
       return columns.map((col, i) => ({
         ...col,
-        headerText: col.headerText || col.field || `Column${i + 1}`,
+        headerText: col.headerText || col.name || col.field || `Column${i + 1}`,
       }));
     }
     if (rows.length === 0) return [];

@@ -4,6 +4,8 @@ import type { DesignerControlProps } from './registry';
 interface ColumnDefinition {
   field: string;
   headerText: string;
+  /** @deprecated use headerText instead */
+  name?: string;
   width?: number;
 }
 
@@ -66,7 +68,7 @@ export function DataGridViewControl({ properties, size }: DesignerControlProps) 
           <tr>
             {resolvedColumns.map((col, i) => (
               <th key={col.field || i} style={{ ...styles.headerCell, width: col.width }}>
-                {col.headerText || col.field || `Column${i + 1}`}
+                {col.headerText || col.name || col.field || `Column${i + 1}`}
               </th>
             ))}
           </tr>

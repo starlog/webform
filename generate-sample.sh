@@ -531,13 +531,13 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
               "size": { "width": 680, "height": 258 },
               "properties": {
                 "columns": [
-                  { "name": "번호", "field": "no", "width": 60 },
-                  { "name": "고객명", "field": "name", "width": 100 },
-                  { "name": "분류", "field": "category", "width": 100 },
-                  { "name": "수량", "field": "qty", "width": 60 },
-                  { "name": "결제방법", "field": "payment", "width": 90 },
-                  { "name": "긴급", "field": "urgent", "width": 60 },
-                  { "name": "상태", "field": "status", "width": 80 }
+                  { "headerText": "번호", "field": "no", "width": 60 },
+                  { "headerText": "고객명", "field": "name", "width": 100 },
+                  { "headerText": "분류", "field": "category", "width": 100 },
+                  { "headerText": "수량", "field": "qty", "width": 60 },
+                  { "headerText": "결제방법", "field": "payment", "width": 90 },
+                  { "headerText": "긴급", "field": "urgent", "width": 60 },
+                  { "headerText": "상태", "field": "status", "width": 80 }
                 ],
                 "rows": [
                   { "no": 1, "name": "김민수", "category": "전자제품", "qty": 1, "payment": "카드결제", "urgent": "", "status": "접수완료" },
@@ -1070,12 +1070,12 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
               "size": { "width": 790, "height": 155 },
               "properties": {
                 "columns": [
-                  { "name": "월", "field": "month", "width": 80 },
-                  { "name": "매출액", "field": "revenue", "width": 120 },
-                  { "name": "주문수", "field": "orders", "width": 80 },
-                  { "name": "신규고객", "field": "newCustomers", "width": 90 },
-                  { "name": "반품률", "field": "returnRate", "width": 80 },
-                  { "name": "만족도", "field": "satisfaction", "width": 80 }
+                  { "headerText": "월", "field": "month", "width": 80 },
+                  { "headerText": "매출액", "field": "revenue", "width": 120 },
+                  { "headerText": "주문수", "field": "orders", "width": 80 },
+                  { "headerText": "신규고객", "field": "newCustomers", "width": 90 },
+                  { "headerText": "반품률", "field": "returnRate", "width": 80 },
+                  { "headerText": "만족도", "field": "satisfaction", "width": 80 }
                 ],
                 "rows": [
                   { "month": "2026-01", "revenue": "45,230,000원", "orders": 128, "newCustomers": 34, "returnRate": "2.3%", "satisfaction": "4.6" },
