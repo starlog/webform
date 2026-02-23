@@ -68,7 +68,7 @@
       "description": "common 패키지 Shell 타입 변경사항 커밋",
       "phase": "phase1-foundation",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "WebForm common 패키지의 Shell 타입 추가 작업을 git 커밋합니다.\n\n1. `git status`로 변경된 파일 확인\n2. 다음 파일들을 스테이징:\n   - packages/common/src/types/shell.ts\n   - packages/common/src/types/protocol.ts\n   - packages/common/src/index.ts\n   - packages/common/src/__tests__/shell.test.ts (있다면)\n   - plans/common-types-plan.md\n3. 커밋 메시지 (한국어): 'feat(common): Application Shell MDI 시스템 타입 정의 추가\\n\\n- ApplicationShellDefinition, ShellProperties 인터페이스 추가\\n- SHELL_EVENTS 상수 정의\\n- UIPatch에 updateShell/updateAppState/closeApp 타입 확장\\n- EventRequest에 appState/scope 옵셔널 필드 추가'\n4. `git status`로 커밋 성공 확인",
       "dependsOn": [
         "common-types-test"
