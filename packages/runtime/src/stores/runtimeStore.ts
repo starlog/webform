@@ -89,6 +89,12 @@ function applyPatchToState(
       const controlState = state.controlStates[patch.target];
       if (controlState) {
         Object.assign(controlState, patch.payload);
+      } else {
+        console.warn(
+          `[UIPatch] controlStates에 "${patch.target}" 키가 없습니다. ` +
+          `패치가 무시됩니다. payload:`,
+          patch.payload,
+        );
       }
       break;
     }

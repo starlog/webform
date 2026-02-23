@@ -264,5 +264,112 @@ describe('runtimeStore', () => {
       expect(state.controlStates['btn1'].text).toBe('Batch1');
       expect(state.controlStates['lbl1'].text).toBe('Batch2');
     });
+
+    it('DataGridView의 dataSource 배열을 정상 적용한다', () => {
+      const formDef = createMockFormDef({
+        controls: [
+          {
+            id: 'grid1',
+            type: 'DataGridView',
+            name: 'dgvOrders',
+            properties: { columns: [] },
+            position: { x: 0, y: 0 },
+            size: { width: 400, height: 200 },
+            anchor: { top: true, left: true, bottom: false, right: false },
+            dock: 'None',
+            tabIndex: 0,
+            visible: true,
+            enabled: true,
+          },
+        ],
+      });
+      useRuntimeStore.getState().setFormDef(formDef);
+
+      // 초기 상태: dataSource 없음
+      expect(useRuntimeStore.getState().controlStates['grid1'].dataSource).toBeUndefined();
+
+      // dataSource 패치 적용
+      const patches: UIPatch[] = [
+        {
+          type: 'updateProperty',
+          target: 'grid1',
+          payload: {
+            dataSource: [
+              { orderNo: 1, customer: '홍길동', payment: '계좌이체' },
+              { orderNo: 2, customer: '김철수', payment: '카드결제' },
+            ],
+          },
+        },
+      ];
+
+      useRuntimeStore.getState().applyPatches(patches);
+
+      const state = useRuntimeStore.getState();
+      const dataSource = state.controlStates['grid1'].dataSource as unknown[];
+      expect(dataSource).toHaveLength(2);
+      expect(dataSource[0]).toEqual({ orderNo: 1, customer: '홍길동', payment: '계좌이체' });
+      expect(dataSource[1]).toEqual({ orderNo: 2, customer: '김철수', payment: '카드결제' });
+    });
+
+    it('showDialog 이후의 패치는 다이얼로그 닫힘 후 적용된다', () => {
+      const formDef = createMockFormDef({
+        controls: [
+          {
+            id: 'grid1',
+            type: 'DataGridView',
+            name: 'dgvOrders',
+            properties: { columns: [] },
+            position: { x: 0, y: 0 },
+            size: { width: 400, height: 200 },
+            anchor: { top: true, left: true, bottom: false, right: false },
+            dock: 'None',
+            tabIndex: 0,
+            visible: true,
+            enabled: true,
+          },
+          {
+            id: 'lbl1',
+            type: 'Label',
+            name: 'lblStatus',
+            properties: { text: '' },
+            position: { x: 0, y: 210 },
+            size: { width: 200, height: 20 },
+            anchor: { top: true, left: true, bottom: false, right: false },
+            dock: 'None',
+            tabIndex: 1,
+            visible: true,
+            enabled: true,
+          },
+        ],
+      });
+      useRuntimeStore.getState().setFormDef(formDef);
+
+      // showDialog 앞의 패치 + showDialog + 뒤의 패치
+      const patches: UIPatch[] = [
+        { type: 'updateProperty', target: 'lbl1', payload: { text: '처리 중...' } },
+        { type: 'showDialog', target: '_system', payload: { text: '완료!', title: '알림', dialogType: 'info' } },
+        {
+          type: 'updateProperty',
+          target: 'grid1',
+          payload: { dataSource: [{ orderNo: 1 }] },
+        },
+      ];
+
+      useRuntimeStore.getState().applyPatches(patches);
+
+      // 첫 번째 그룹 (라벨 + 다이얼로그)만 적용됨
+      let state = useRuntimeStore.getState();
+      expect(state.controlStates['lbl1'].text).toBe('처리 중...');
+      expect(state.dialogQueue).toHaveLength(1);
+      expect(state.controlStates['grid1'].dataSource).toBeUndefined(); // 아직 적용 안 됨
+
+      // 다이얼로그 닫기 → 두 번째 그룹 적용
+      useRuntimeStore.getState().dismissDialog();
+
+      state = useRuntimeStore.getState();
+      expect(state.dialogQueue).toHaveLength(0);
+      const dataSource = state.controlStates['grid1'].dataSource as unknown[];
+      expect(dataSource).toEqual([{ orderNo: 1 }]);
+    });
   });
 });

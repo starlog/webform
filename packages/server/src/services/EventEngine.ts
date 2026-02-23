@@ -126,9 +126,16 @@ export class EventEngine {
           const o = op as { type: string; target: string; payload: unknown };
           if (o.type === 'updateProperty') {
             // NAME 기반 target을 ID로 역변환 (런타임이 ID 키를 사용)
+            const resolvedId = nameToId.get(o.target);
+            if (!resolvedId) {
+              console.warn(
+                `[EventEngine] 컨트롤 이름 "${o.target}"에 대한 ID 매핑을 찾을 수 없습니다. ` +
+                `폼 정의에 해당 이름의 컨트롤이 있는지 확인하세요. 등록된 이름: [${[...nameToId.keys()].join(', ')}]`,
+              );
+            }
             patches.push({
               ...o,
-              target: nameToId.get(o.target) ?? o.target,
+              target: resolvedId ?? o.target,
             } as UIPatch);
           } else {
             patches.push(o as UIPatch);

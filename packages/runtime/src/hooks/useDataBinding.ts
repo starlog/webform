@@ -68,7 +68,10 @@ export function useDataBinding(
       }
     }
 
-    result[controlProperty] = value;
+    // 바인딩 데이터가 로드되지 않은 경우 undefined로 controlState를 덮어쓰지 않음
+    if (value !== undefined) {
+      result[controlProperty] = value;
+    }
 
     // twoWay: onChange 콜백 추가
     if (bindingMode === 'twoWay') {

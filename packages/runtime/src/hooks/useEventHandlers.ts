@@ -100,6 +100,12 @@ export function useEventHandlers(
             if (response.success && response.patches) {
               applyPatches(response.patches);
             }
+            if (!response.success) {
+              console.error(
+                `[EventHandler] 서버 핸들러 실행 실패 [${controlId}.${evt.eventName}]:`,
+                response.error,
+              );
+            }
           } catch (err) {
             console.error(`Server event handler error [${controlId}.${evt.eventName}]:`, err);
           }
