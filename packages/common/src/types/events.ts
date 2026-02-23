@@ -36,6 +36,11 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   JsonEditor: ['ValueChanged'],
   MongoDBView: ['DataLoaded', 'SelectionChanged', 'CellValueChanged', 'DocumentInserted', 'DocumentUpdated', 'DocumentDeleted', 'Error'],
   GraphView: ['DataLoaded'],
+  MenuStrip: ['ItemClicked'],
+  ToolStrip: ['ItemClicked'],
+  StatusStrip: ['ItemClicked'],
+  RichTextBox: ['TextChanged', 'SelectionChanged'],
+  WebBrowser: ['Navigated', 'DocumentCompleted'],
 };
 
 export const FORM_EVENTS = [

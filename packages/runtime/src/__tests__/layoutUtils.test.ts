@@ -39,11 +39,9 @@ describe('layoutUtils', () => {
       const style = computeLayoutStyle(ctrl);
 
       expect(style).toEqual({
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
+        width: '100%',
         height: 40,
+        flexShrink: 0,
       });
     });
   });
@@ -61,51 +59,43 @@ describe('layoutUtils', () => {
       });
     });
 
-    it('Top → 상단 고정, 높이 유지', () => {
+    it('Top → 전체 너비, 높이 유지, flexbox 흐름', () => {
       const style = computeDockStyle('Top', { width: 300, height: 60 });
 
       expect(style).toEqual({
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
+        width: '100%',
         height: 60,
+        flexShrink: 0,
       });
     });
 
-    it('Bottom → 하단 고정, 높이 유지', () => {
+    it('Bottom → 전체 너비, 높이 유지, flexbox 흐름', () => {
       const style = computeDockStyle('Bottom', { width: 300, height: 60 });
 
       expect(style).toEqual({
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        width: '100%',
         height: 60,
+        flexShrink: 0,
       });
     });
 
-    it('Left → 좌측 고정, 너비 유지', () => {
+    it('Left → 너비 유지, 전체 높이, flexbox 흐름', () => {
       const style = computeDockStyle('Left', { width: 200, height: 400 });
 
       expect(style).toEqual({
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        bottom: 0,
         width: 200,
+        height: '100%',
+        flexShrink: 0,
       });
     });
 
-    it('Right → 우측 고정, 너비 유지', () => {
+    it('Right → 너비 유지, 전체 높이, flexbox 흐름', () => {
       const style = computeDockStyle('Right', { width: 200, height: 400 });
 
       expect(style).toEqual({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
         width: 200,
+        height: '100%',
+        flexShrink: 0,
       });
     });
 

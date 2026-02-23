@@ -4,13 +4,13 @@ import type { ControlDefinition, FontDefinition, DockStyle } from '@webform/comm
 export function computeDockStyle(dock: DockStyle, size: { width: number; height: number }): CSSProperties {
   switch (dock) {
     case 'Top':
-      return { position: 'absolute', top: 0, left: 0, right: 0, height: size.height };
+      return { width: '100%', height: size.height, flexShrink: 0 };
     case 'Bottom':
-      return { position: 'absolute', bottom: 0, left: 0, right: 0, height: size.height };
+      return { width: '100%', height: size.height, flexShrink: 0 };
     case 'Left':
-      return { position: 'absolute', top: 0, left: 0, bottom: 0, width: size.width };
+      return { width: size.width, height: '100%', flexShrink: 0 };
     case 'Right':
-      return { position: 'absolute', top: 0, right: 0, bottom: 0, width: size.width };
+      return { width: size.width, height: '100%', flexShrink: 0 };
     case 'Fill':
       return { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 };
     default:

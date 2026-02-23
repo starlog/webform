@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import type { FormDefinition } from '@webform/common';
+import { useEffect, useMemo } from 'react';
+import type { FormDefinition, ControlDefinition } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { apiClient } from '../communication/apiClient';
 import { FormContainer } from './FormContainer';
@@ -7,6 +7,39 @@ import { ControlRenderer } from './ControlRenderer';
 
 interface SDUIRendererProps {
   formDefinition: FormDefinition;
+}
+
+function classifyControls(controls: ControlDefinition[]) {
+  const dockTop: ControlDefinition[] = [];
+  const dockBottom: ControlDefinition[] = [];
+  const dockLeft: ControlDefinition[] = [];
+  const dockRight: ControlDefinition[] = [];
+  const dockFill: ControlDefinition[] = [];
+  const rest: ControlDefinition[] = [];
+
+  for (const c of controls) {
+    switch (c.dock) {
+      case 'Top':
+        dockTop.push(c);
+        break;
+      case 'Bottom':
+        dockBottom.push(c);
+        break;
+      case 'Left':
+        dockLeft.push(c);
+        break;
+      case 'Right':
+        dockRight.push(c);
+        break;
+      case 'Fill':
+        dockFill.push(c);
+        break;
+      default:
+        rest.push(c);
+        break;
+    }
+  }
+  return { dockTop, dockBottom, dockLeft, dockRight, dockFill, rest };
 }
 
 export function SDUIRenderer({ formDefinition }: SDUIRendererProps) {
@@ -66,16 +99,28 @@ export function SDUIRenderer({ formDefinition }: SDUIRendererProps) {
     }
   }, [formDefinition.id, formDefinition.eventHandlers, applyPatches]);
 
+  const { dockTop, dockBottom, dockLeft, dockRight, dockFill, rest } = useMemo(
+    () => classifyControls(formDefinition.controls),
+    [formDefinition.controls],
+  );
+
+  const bindings = formDefinition.dataBindings;
+  const events = formDefinition.eventHandlers;
+
+  const renderControl = (control: ControlDefinition) => (
+    <ControlRenderer key={control.id} definition={control} bindings={bindings} events={events} />
+  );
+
   return (
-    <FormContainer properties={formDefinition.properties}>
-      {formDefinition.controls.map((control) => (
-        <ControlRenderer
-          key={control.id}
-          definition={control}
-          bindings={formDefinition.dataBindings}
-          events={formDefinition.eventHandlers}
-        />
-      ))}
+    <FormContainer
+      properties={formDefinition.properties}
+      dockTop={dockTop.length > 0 ? dockTop.map(renderControl) : undefined}
+      dockBottom={dockBottom.length > 0 ? dockBottom.map(renderControl) : undefined}
+      dockLeft={dockLeft.length > 0 ? dockLeft.map(renderControl) : undefined}
+      dockRight={dockRight.length > 0 ? dockRight.map(renderControl) : undefined}
+      dockFill={dockFill.length > 0 ? dockFill.map(renderControl) : undefined}
+    >
+      {rest.map(renderControl)}
     </FormContainer>
   );
 }

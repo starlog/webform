@@ -76,6 +76,11 @@ function getDefaultSize(type: ControlType): { width: number; height: number } {
     JsonEditor:      { width: 300, height: 250 },
     MongoDBView:     { width: 450, height: 350 },
     GraphView:       { width: 400, height: 300 },
+    MenuStrip:       { width: 800, height: 24 },
+    ToolStrip:       { width: 800, height: 25 },
+    StatusStrip:     { width: 800, height: 22 },
+    RichTextBox:     { width: 300, height: 150 },
+    WebBrowser:      { width: 400, height: 300 },
   };
   return sizes[type] ?? { width: 100, height: 23 };
 }
@@ -151,8 +156,52 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
         showLegend: true,
         showGrid: true,
       };
+    case 'StatusStrip':
+      return {
+        items: [{ type: 'label', text: 'Ready', spring: true }],
+        backColor: '#F0F0F0',
+      };
+    case 'ToolStrip':
+      return {
+        items: [
+          { type: 'button', text: 'New', icon: '📄' },
+          { type: 'button', text: 'Open', icon: '📂' },
+          { type: 'button', text: 'Save', icon: '💾' },
+          { type: 'separator' },
+          { type: 'button', text: 'Cut', icon: '✂' },
+          { type: 'button', text: 'Copy', icon: '📋' },
+          { type: 'button', text: 'Paste', icon: '📌' },
+        ],
+        backColor: '#F0F0F0',
+      };
+    case 'MenuStrip':
+      return {
+        items: [
+          { text: 'File', children: [{ text: 'New', shortcut: 'Ctrl+N' }, { text: 'Open', shortcut: 'Ctrl+O' }, { text: 'Save', shortcut: 'Ctrl+S' }, { text: '', separator: true }, { text: 'Exit' }] },
+          { text: 'Edit', children: [{ text: 'Undo', shortcut: 'Ctrl+Z' }, { text: 'Redo', shortcut: 'Ctrl+Y' }, { text: '', separator: true }, { text: 'Cut', shortcut: 'Ctrl+X' }, { text: 'Copy', shortcut: 'Ctrl+C' }, { text: 'Paste', shortcut: 'Ctrl+V' }] },
+          { text: 'View' },
+          { text: 'Help' },
+        ],
+      };
+    case 'RichTextBox':
+      return { text: '', readOnly: false, scrollBars: 'Both' };
+    case 'WebBrowser':
+      return { url: 'about:blank', allowNavigation: true };
     default:
       return {};
+  }
+}
+
+// 컨트롤 타입별 기본 dock 스타일
+function getDefaultDock(type: ControlType): 'None' | 'Top' | 'Bottom' {
+  switch (type) {
+    case 'MenuStrip':
+    case 'ToolStrip':
+      return 'Top';
+    case 'StatusStrip':
+      return 'Bottom';
+    default:
+      return 'None';
   }
 }
 
@@ -183,7 +232,7 @@ export function createDefaultControl(
     position,
     size: getDefaultSize(type),
     anchor: { top: true, bottom: false, left: true, right: false },
-    dock: 'None',
+    dock: getDefaultDock(type),
     tabIndex: 0,
     visible: true,
     enabled: true,

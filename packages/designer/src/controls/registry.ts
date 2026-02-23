@@ -21,6 +21,11 @@ import { GraphViewControl } from './GraphViewControl';
 import { DataGridViewControl } from './DataGridViewControl';
 import { TreeViewControl } from './TreeViewControl';
 import { ListViewControl } from './ListViewControl';
+import { MenuStripControl } from './MenuStripControl';
+import { ToolStripControl } from './ToolStripControl';
+import { StatusStripControl } from './StatusStripControl';
+import { RichTextBoxControl } from './RichTextBoxControl';
+import { WebBrowserControl } from './WebBrowserControl';
 
 export interface DesignerControlProps {
   id?: string;
@@ -53,6 +58,11 @@ export const designerControlRegistry: Partial<
   GraphView: GraphViewControl,
   TreeView: TreeViewControl,
   ListView: ListViewControl,
+  MenuStrip: MenuStripControl,
+  ToolStrip: ToolStripControl,
+  StatusStrip: StatusStripControl,
+  RichTextBox: RichTextBoxControl,
+  WebBrowser: WebBrowserControl,
 };
 
 export interface ControlMeta {
@@ -86,6 +96,12 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'GraphView',    displayName: 'GraphView',    icon: '\uD83D\uDCCA', category: 'data' },
   { type: 'TreeView',    displayName: 'TreeView',    icon: '\uD83C\uDF33', category: 'data' },
   { type: 'ListView',    displayName: 'ListView',    icon: '\uD83D\uDCCB', category: 'data' },
+
+  { type: 'MenuStrip',   displayName: 'MenuStrip',   icon: '\u2261',  category: 'container' },
+  { type: 'ToolStrip',   displayName: 'ToolStrip',   icon: '\uD83D\uDEE0', category: 'container' },
+  { type: 'StatusStrip', displayName: 'StatusStrip', icon: '\u2581',  category: 'container' },
+  { type: 'RichTextBox', displayName: 'RichTextBox', icon: '\uD83D\uDCDD', category: 'basic' },
+  { type: 'WebBrowser',  displayName: 'WebBrowser',  icon: '\uD83C\uDF10', category: 'data' },
 ];
 
 export const TOOLBOX_CATEGORIES = [

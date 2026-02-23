@@ -4,6 +4,11 @@ import { computeFontStyle } from './layoutUtils';
 
 interface FormContainerProps {
   properties: FormProperties;
+  dockTop?: ReactNode;
+  dockBottom?: ReactNode;
+  dockLeft?: ReactNode;
+  dockRight?: ReactNode;
+  dockFill?: ReactNode;
   children: ReactNode;
 }
 
@@ -19,6 +24,7 @@ const titleBarStyle: CSSProperties = {
   fontSize: '12px',
   fontFamily: 'Segoe UI, sans-serif',
   userSelect: 'none',
+  flexShrink: 0,
 };
 
 const titleTextStyle: CSSProperties = {
@@ -57,7 +63,15 @@ function getBorderStyle(formBorderStyle: FormProperties['formBorderStyle']): CSS
   }
 }
 
-export function FormContainer({ properties, children }: FormContainerProps) {
+export function FormContainer({
+  properties,
+  dockTop,
+  dockBottom,
+  dockLeft,
+  dockRight,
+  dockFill,
+  children,
+}: FormContainerProps) {
   const borderStyles = getBorderStyle(properties.formBorderStyle);
   const fontStyles = computeFontStyle(properties.font);
 
@@ -77,7 +91,25 @@ export function FormContainer({ properties, children }: FormContainerProps) {
     position: 'relative',
     backgroundColor: properties.backgroundColor || '#F0F0F0',
     overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
     ...fontStyles,
+  };
+
+  const middleStyle: CSSProperties = {
+    flex: 1,
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'row',
+    overflow: 'hidden',
+    minHeight: 0,
+  };
+
+  const centerStyle: CSSProperties = {
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+    minWidth: 0,
   };
 
   return (
@@ -100,7 +132,16 @@ export function FormContainer({ properties, children }: FormContainerProps) {
         </div>
       )}
       <div className="wf-content" style={contentStyle}>
-        {children}
+        {dockTop}
+        <div style={middleStyle}>
+          {dockLeft}
+          <div className="wf-center" style={centerStyle}>
+            {dockFill}
+            {children}
+          </div>
+          {dockRight}
+        </div>
+        {dockBottom}
       </div>
     </div>
   );

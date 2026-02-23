@@ -1,0 +1,86 @@
+import type { DesignerControlProps } from './registry';
+
+interface ToolStripItem {
+  type: 'button' | 'separator' | 'label' | 'dropdown';
+  text?: string;
+  tooltip?: string;
+  icon?: string;
+  enabled?: boolean;
+  checked?: boolean;
+  items?: ToolStripItem[];
+}
+
+const DEFAULT_ITEMS: ToolStripItem[] = [
+  { type: 'button', text: 'New', icon: '📄' },
+  { type: 'button', text: 'Open', icon: '📂' },
+  { type: 'button', text: 'Save', icon: '💾' },
+  { type: 'separator' },
+  { type: 'button', text: 'Cut', icon: '✂' },
+  { type: 'button', text: 'Copy', icon: '📋' },
+  { type: 'button', text: 'Paste', icon: '📌' },
+];
+
+export function ToolStripControl({ properties, size }: DesignerControlProps) {
+  const items = (properties.items as ToolStripItem[]) ?? [];
+  const backColor = (properties.backColor as string) ?? '#F0F0F0';
+
+  const displayItems = items.length > 0 ? items : DEFAULT_ITEMS;
+
+  return (
+    <div
+      style={{
+        width: size.width,
+        height: size.height,
+        backgroundColor: backColor,
+        borderBottom: '1px solid #D0D0D0',
+        display: 'flex',
+        alignItems: 'center',
+        fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+        fontSize: '12px',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        paddingLeft: 2,
+        paddingRight: 2,
+      }}
+    >
+      {displayItems.map((item, i) => {
+        if (item.type === 'separator') {
+          return (
+            <div
+              key={i}
+              style={{
+                width: 1,
+                height: 16,
+                backgroundColor: '#C0C0C0',
+                margin: '0 3px',
+              }}
+            />
+          );
+        }
+
+        const isDisabled = item.enabled === false;
+        const isDropdown = item.type === 'dropdown';
+
+        return (
+          <div
+            key={i}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              padding: '1px 4px',
+              borderRadius: 2,
+              opacity: isDisabled ? 0.5 : 1,
+              whiteSpace: 'nowrap',
+              ...(item.checked ? { backgroundColor: '#CCE4F7', border: '1px solid #99C9EF' } : {}),
+            }}
+          >
+            {item.icon && <span style={{ fontSize: '12px' }}>{item.icon}</span>}
+            {item.text && <span>{item.text}</span>}
+            {isDropdown && <span style={{ fontSize: '8px', marginLeft: 1 }}>&#9660;</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

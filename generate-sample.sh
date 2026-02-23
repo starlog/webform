@@ -1898,6 +1898,610 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
       ],
       "eventHandlers": [],
       "dataBindings": []
+    },
+
+    {
+      "name": "9. 메뉴/도구모음 데모",
+      "properties": {
+        "title": "메뉴/도구모음 데모",
+        "width": 850,
+        "height": 600,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "mnuMain",
+          "type": "MenuStrip",
+          "name": "mnuMain",
+          "position": { "x": 0, "y": 0 },
+          "size": { "width": 850, "height": 24 },
+          "properties": {
+            "items": [
+              {
+                "text": "파일",
+                "children": [
+                  { "text": "새 문서", "shortcut": "Ctrl+N" },
+                  { "text": "열기", "shortcut": "Ctrl+O" },
+                  { "text": "저장", "shortcut": "Ctrl+S" },
+                  { "text": "다른 이름으로 저장", "shortcut": "Ctrl+Shift+S" },
+                  { "text": "", "separator": true },
+                  { "text": "인쇄", "shortcut": "Ctrl+P" },
+                  { "text": "", "separator": true },
+                  { "text": "끝내기", "shortcut": "Alt+F4" }
+                ]
+              },
+              {
+                "text": "편집",
+                "children": [
+                  { "text": "실행 취소", "shortcut": "Ctrl+Z" },
+                  { "text": "다시 실행", "shortcut": "Ctrl+Y" },
+                  { "text": "", "separator": true },
+                  { "text": "잘라내기", "shortcut": "Ctrl+X" },
+                  { "text": "복사", "shortcut": "Ctrl+C" },
+                  { "text": "붙여넣기", "shortcut": "Ctrl+V" },
+                  { "text": "", "separator": true },
+                  { "text": "모두 선택", "shortcut": "Ctrl+A" }
+                ]
+              },
+              {
+                "text": "보기",
+                "children": [
+                  { "text": "도구 모음", "checked": true },
+                  { "text": "상태 표시줄", "checked": true },
+                  { "text": "", "separator": true },
+                  { "text": "확대", "shortcut": "Ctrl++" },
+                  { "text": "축소", "shortcut": "Ctrl+-" },
+                  { "text": "원래 크기", "shortcut": "Ctrl+0" }
+                ]
+              },
+              {
+                "text": "서식",
+                "children": [
+                  { "text": "글꼴..." },
+                  { "text": "단락..." },
+                  { "text": "", "separator": true },
+                  { "text": "굵게", "shortcut": "Ctrl+B", "checked": false },
+                  { "text": "기울임", "shortcut": "Ctrl+I", "checked": false },
+                  { "text": "밑줄", "shortcut": "Ctrl+U", "checked": false }
+                ]
+              },
+              {
+                "text": "도움말",
+                "children": [
+                  { "text": "도움말 보기", "shortcut": "F1" },
+                  { "text": "", "separator": true },
+                  { "text": "정보..." }
+                ]
+              }
+            ]
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "Top", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "tlsMain",
+          "type": "ToolStrip",
+          "name": "tlsMain",
+          "position": { "x": 0, "y": 24 },
+          "size": { "width": 850, "height": 25 },
+          "properties": {
+            "items": [
+              { "type": "button", "text": "새 문서", "icon": "📄", "tooltip": "새 문서 만들기 (Ctrl+N)" },
+              { "type": "button", "text": "열기", "icon": "📂", "tooltip": "파일 열기 (Ctrl+O)" },
+              { "type": "button", "text": "저장", "icon": "💾", "tooltip": "저장 (Ctrl+S)" },
+              { "type": "separator" },
+              { "type": "button", "text": "잘라내기", "icon": "✂", "tooltip": "잘라내기 (Ctrl+X)" },
+              { "type": "button", "text": "복사", "icon": "📋", "tooltip": "복사 (Ctrl+C)" },
+              { "type": "button", "text": "붙여넣기", "icon": "📌", "tooltip": "붙여넣기 (Ctrl+V)" },
+              { "type": "separator" },
+              { "type": "button", "text": "실행 취소", "icon": "↩", "tooltip": "실행 취소 (Ctrl+Z)" },
+              { "type": "button", "text": "다시 실행", "icon": "↪", "tooltip": "다시 실행 (Ctrl+Y)" },
+              { "type": "separator" },
+              { "type": "dropdown", "text": "글꼴 크기", "icon": "🔤", "items": [
+                { "type": "button", "text": "8pt" },
+                { "type": "button", "text": "10pt" },
+                { "type": "button", "text": "12pt" },
+                { "type": "button", "text": "14pt" },
+                { "type": "button", "text": "16pt" },
+                { "type": "button", "text": "20pt" }
+              ]},
+              { "type": "separator" },
+              { "type": "button", "text": "인쇄", "icon": "🖨", "tooltip": "인쇄 (Ctrl+P)" }
+            ],
+            "backColor": "#F0F0F0"
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "Top", "tabIndex": 1, "visible": true, "enabled": true
+        },
+        {
+          "id": "pnlContent",
+          "type": "Panel",
+          "name": "pnlContent",
+          "position": { "x": 0, "y": 49 },
+          "size": { "width": 850, "height": 507 },
+          "properties": { "backColor": "#FFFFFF", "borderStyle": "None" },
+          "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "lblDocTitle",
+              "type": "Label",
+              "name": "lblDocTitle",
+              "position": { "x": 20, "y": 15 },
+              "size": { "width": 800, "height": 30 },
+              "properties": {
+                "text": "메뉴/도구모음/상태표시줄 데모",
+                "foreColor": "#2E7D32",
+                "font": { "family": "Pretendard", "size": 16, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+              },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblDesc",
+              "type": "Label",
+              "name": "lblDesc",
+              "position": { "x": 20, "y": 50 },
+              "size": { "width": 800, "height": 40 },
+              "properties": {
+                "text": "이 폼은 MenuStrip, ToolStrip, StatusStrip 컨트롤을 시연합니다.\n메뉴 항목을 클릭하거나 도구 버튼을 클릭하면 상태 표시줄에 클릭된 항목이 표시됩니다.",
+                "foreColor": "#616161"
+              },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+            },
+            {
+              "id": "grpMenuLog",
+              "type": "GroupBox",
+              "name": "grpMenuLog",
+              "position": { "x": 20, "y": 100 },
+              "size": { "width": 400, "height": 250 },
+              "properties": { "text": "메뉴 클릭 로그" },
+              "anchor": { "top": true, "bottom": true, "left": true, "right": false },
+              "dock": "None", "tabIndex": 2, "visible": true, "enabled": true,
+              "children": [
+                {
+                  "id": "lstMenuLog",
+                  "type": "ListBox",
+                  "name": "lstMenuLog",
+                  "position": { "x": 10, "y": 22 },
+                  "size": { "width": 380, "height": 218 },
+                  "properties": { "items": ["(메뉴/도구 항목을 클릭하면 여기에 기록됩니다)"], "selectedIndex": -1 },
+                  "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+                  "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+                }
+              ]
+            },
+            {
+              "id": "grpToolLog",
+              "type": "GroupBox",
+              "name": "grpToolLog",
+              "position": { "x": 430, "y": 100 },
+              "size": { "width": 400, "height": 250 },
+              "properties": { "text": "도구 모음 클릭 로그" },
+              "anchor": { "top": true, "bottom": true, "left": false, "right": true },
+              "dock": "None", "tabIndex": 3, "visible": true, "enabled": true,
+              "children": [
+                {
+                  "id": "lstToolLog",
+                  "type": "ListBox",
+                  "name": "lstToolLog",
+                  "position": { "x": 10, "y": 22 },
+                  "size": { "width": 380, "height": 218 },
+                  "properties": { "items": ["(도구 버튼을 클릭하면 여기에 기록됩니다)"], "selectedIndex": -1 },
+                  "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+                  "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+                }
+              ]
+            },
+            {
+              "id": "btnClearLog",
+              "type": "Button",
+              "name": "btnClearLog",
+              "position": { "x": 20, "y": 360 },
+              "size": { "width": 120, "height": 30 },
+              "properties": { "text": "로그 초기화" },
+              "anchor": { "top": false, "bottom": true, "left": true, "right": false },
+              "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblLastAction",
+              "type": "Label",
+              "name": "lblLastAction",
+              "position": { "x": 150, "y": 365 },
+              "size": { "width": 680, "height": 23 },
+              "properties": { "text": "", "foreColor": "#1565C0" },
+              "anchor": { "top": false, "bottom": true, "left": true, "right": true },
+              "dock": "None", "tabIndex": 5, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "stsMain",
+          "type": "StatusStrip",
+          "name": "stsMain",
+          "position": { "x": 0, "y": 556 },
+          "size": { "width": 850, "height": 22 },
+          "properties": {
+            "items": [
+              { "type": "label", "text": "준비", "spring": true },
+              { "type": "label", "text": "줄 1, 열 1", "width": 100 },
+              { "type": "progressBar", "value": 0, "width": 120 }
+            ],
+            "backColor": "#F0F0F0"
+          },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": true },
+          "dock": "Bottom", "tabIndex": 3, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [
+        {
+          "controlId": "mnuMain",
+          "eventName": "ItemClicked",
+          "handlerType": "server",
+          "handlerCode": "var item = ctx.controls.mnuMain.clickedItem;\nif (item) {\n  var path = item.path || [];\n  var msg = '[메뉴] ' + item.text + (item.shortcut ? ' (' + item.shortcut + ')' : '');\n  var items = ctx.controls.lstMenuLog.items || [];\n  var newItems = [];\n  for (var i = 0; i < items.length; i++) { newItems.push(items[i]); }\n  newItems.push(msg);\n  ctx.controls.lstMenuLog.items = newItems;\n  ctx.controls.stsMain.items = [\n    { type: 'label', text: msg, spring: true },\n    { type: 'label', text: '줄 1, 열 1', width: 100 },\n    { type: 'progressBar', value: 50, width: 120 }\n  ];\n  ctx.controls.lblLastAction.text = '마지막 동작: ' + msg;\n}"
+        },
+        {
+          "controlId": "tlsMain",
+          "eventName": "ItemClicked",
+          "handlerType": "server",
+          "handlerCode": "var item = ctx.controls.tlsMain.clickedItem;\nif (item) {\n  var msg = '[도구] ' + (item.icon || '') + ' ' + item.text;\n  var items = ctx.controls.lstToolLog.items || [];\n  var newItems = [];\n  for (var i = 0; i < items.length; i++) { newItems.push(items[i]); }\n  newItems.push(msg);\n  ctx.controls.lstToolLog.items = newItems;\n  ctx.controls.stsMain.items = [\n    { type: 'label', text: msg, spring: true },\n    { type: 'label', text: '줄 1, 열 1', width: 100 },\n    { type: 'progressBar', value: 75, width: 120 }\n  ];\n  ctx.controls.lblLastAction.text = '마지막 동작: ' + msg;\n}"
+        },
+        {
+          "controlId": "btnClearLog",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.lstMenuLog.items = ['(로그가 초기화되었습니다)'];\nctx.controls.lstToolLog.items = ['(로그가 초기화되었습니다)'];\nctx.controls.stsMain.items = [\n  { type: 'label', text: '준비', spring: true },\n  { type: 'label', text: '줄 1, 열 1', width: 100 },\n  { type: 'progressBar', value: 0, width: 120 }\n];\nctx.controls.lblLastAction.text = '';\nctx.showMessage('모든 로그가 초기화되었습니다.', '초기화', 'info');"
+        }
+      ],
+      "dataBindings": []
+    },
+
+    {
+      "name": "10. 리치텍스트 편집기 데모",
+      "properties": {
+        "title": "리치텍스트 편집기 데모",
+        "width": 800,
+        "height": 650,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblTitle",
+          "type": "Label",
+          "name": "lblTitle",
+          "position": { "x": 20, "y": 10 },
+          "size": { "width": 760, "height": 35 },
+          "properties": {
+            "text": "리치텍스트 편집기 데모 (RichTextBox)",
+            "foreColor": "#AD1457",
+            "font": { "family": "Pretendard", "size": 18, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblEditableHeader",
+          "type": "Label",
+          "name": "lblEditableHeader",
+          "position": { "x": 20, "y": 50 },
+          "size": { "width": 300, "height": 23 },
+          "properties": {
+            "text": "편집 가능한 리치텍스트",
+            "foreColor": "#1565C0",
+            "font": { "family": "Pretendard", "size": 11, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+        },
+        {
+          "id": "rtbEditor",
+          "type": "RichTextBox",
+          "name": "rtbEditor",
+          "position": { "x": 20, "y": 78 },
+          "size": { "width": 760, "height": 220 },
+          "properties": {
+            "text": "<h3>WebForm 리치텍스트 편집기</h3><p>이 컨트롤은 <b>굵게</b>, <i>기울임</i>, <u>밑줄</u> 등의 서식을 지원합니다.</p><p>상단 도구바의 B, I, U 버튼을 클릭하여 서식을 적용할 수 있습니다.</p><ul><li>항목 1: 텍스트를 선택한 후 서식 적용</li><li>항목 2: 자유롭게 편집 가능</li></ul>",
+            "readOnly": false,
+            "scrollBars": "Vertical"
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblReadOnlyHeader",
+          "type": "Label",
+          "name": "lblReadOnlyHeader",
+          "position": { "x": 20, "y": 310 },
+          "size": { "width": 300, "height": 23 },
+          "properties": {
+            "text": "읽기 전용 리치텍스트",
+            "foreColor": "#E65100",
+            "font": { "family": "Pretendard", "size": 11, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+        },
+        {
+          "id": "rtbReadOnly",
+          "type": "RichTextBox",
+          "name": "rtbReadOnly",
+          "position": { "x": 20, "y": 338 },
+          "size": { "width": 760, "height": 150 },
+          "properties": {
+            "text": "<h4>공지사항</h4><p><b>2026년 2월 업데이트 안내</b></p><p>WebForm SDUI 플랫폼에 다음 컨트롤이 추가되었습니다:</p><ol><li><b>MenuStrip</b> - 메뉴 바 (드롭다운/서브메뉴 지원)</li><li><b>ToolStrip</b> - 도구 모음 (버튼/구분선/드롭다운)</li><li><b>StatusStrip</b> - 상태 표시줄 (라벨/프로그레스바)</li><li><b>RichTextBox</b> - 서식 있는 텍스트 편집기</li><li><b>WebBrowser</b> - 웹 브라우저 (iframe)</li></ol><p style='color:#888;'>이 텍스트는 읽기 전용이므로 편집할 수 없습니다.</p>",
+            "readOnly": true,
+            "scrollBars": "Vertical",
+            "backColor": "#FAFAFA"
+          },
+          "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+        },
+        {
+          "id": "btnGetText",
+          "type": "Button",
+          "name": "btnGetText",
+          "position": { "x": 20, "y": 500 },
+          "size": { "width": 140, "height": 32 },
+          "properties": { "text": "편집 내용 확인", "backgroundColor": "#AD1457", "foreColor": "#FFFFFF" },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": false },
+          "dock": "None", "tabIndex": 5, "visible": true, "enabled": true
+        },
+        {
+          "id": "btnClearEditor",
+          "type": "Button",
+          "name": "btnClearEditor",
+          "position": { "x": 170, "y": 500 },
+          "size": { "width": 120, "height": 32 },
+          "properties": { "text": "편집기 초기화" },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": false },
+          "dock": "None", "tabIndex": 6, "visible": true, "enabled": true
+        },
+        {
+          "id": "btnToggleReadOnly",
+          "type": "Button",
+          "name": "btnToggleReadOnly",
+          "position": { "x": 300, "y": 500 },
+          "size": { "width": 160, "height": 32 },
+          "properties": { "text": "읽기전용 토글" },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": false },
+          "dock": "None", "tabIndex": 7, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblCharCount",
+          "type": "Label",
+          "name": "lblCharCount",
+          "position": { "x": 20, "y": 545 },
+          "size": { "width": 760, "height": 23 },
+          "properties": { "text": "글자수: 0", "foreColor": "#616161" },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 8, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [
+        {
+          "controlId": "rtbEditor",
+          "eventName": "TextChanged",
+          "handlerType": "server",
+          "handlerCode": "var text = ctx.controls.rtbEditor.text || '';\nvar plainLen = text.replace(/<[^>]*>/g, '').length;\nctx.controls.lblCharCount.text = '글자수: ' + plainLen + ' (HTML 포함: ' + text.length + '자)';"
+        },
+        {
+          "controlId": "btnGetText",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var text = ctx.controls.rtbEditor.text || '';\nvar plainText = text.replace(/<[^>]*>/g, '');\nctx.showMessage('편집기 내용:\\n\\n' + plainText.substring(0, 500), '편집 내용 확인', 'info');"
+        },
+        {
+          "controlId": "btnClearEditor",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.rtbEditor.text = '';\nctx.controls.lblCharCount.text = '글자수: 0';\nctx.showMessage('편집기가 초기화되었습니다.', '초기화', 'info');"
+        },
+        {
+          "controlId": "btnToggleReadOnly",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var current = ctx.controls.rtbEditor.readOnly;\nctx.controls.rtbEditor.readOnly = !current;\nctx.showMessage(current ? '편집 모드로 변경되었습니다.' : '읽기 전용 모드로 변경되었습니다.', '모드 변경', 'info');"
+        }
+      ],
+      "dataBindings": []
+    },
+
+    {
+      "name": "11. 웹 브라우저 데모",
+      "properties": {
+        "title": "웹 브라우저 데모",
+        "width": 850,
+        "height": 700,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblTitle",
+          "type": "Label",
+          "name": "lblTitle",
+          "position": { "x": 20, "y": 10 },
+          "size": { "width": 810, "height": 35 },
+          "properties": {
+            "text": "웹 브라우저 데모 (WebBrowser)",
+            "foreColor": "#0277BD",
+            "font": { "family": "Pretendard", "size": 18, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "grpUrlInput",
+          "type": "GroupBox",
+          "name": "grpUrlInput",
+          "position": { "x": 20, "y": 50 },
+          "size": { "width": 810, "height": 65 },
+          "properties": { "text": "URL 입력" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "lblUrl",
+              "type": "Label",
+              "name": "lblUrl",
+              "position": { "x": 15, "y": 25 },
+              "size": { "width": 40, "height": 23 },
+              "properties": { "text": "URL:" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "txtUrl",
+              "type": "TextBox",
+              "name": "txtUrl",
+              "position": { "x": 60, "y": 22 },
+              "size": { "width": 570, "height": 26 },
+              "properties": { "text": "https://example.com", "placeholderText": "https://..." },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+            },
+            {
+              "id": "btnNavigate",
+              "type": "Button",
+              "name": "btnNavigate",
+              "position": { "x": 640, "y": 21 },
+              "size": { "width": 80, "height": 28 },
+              "properties": { "text": "이동", "backgroundColor": "#0277BD", "foreColor": "#FFFFFF" },
+              "anchor": { "top": true, "bottom": false, "left": false, "right": true },
+              "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+            },
+            {
+              "id": "btnToggleNav",
+              "type": "Button",
+              "name": "btnToggleNav",
+              "position": { "x": 725, "y": 21 },
+              "size": { "width": 75, "height": 28 },
+              "properties": { "text": "잠금" },
+              "anchor": { "top": true, "bottom": false, "left": false, "right": true },
+              "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "grpQuickLinks",
+          "type": "GroupBox",
+          "name": "grpQuickLinks",
+          "position": { "x": 20, "y": 120 },
+          "size": { "width": 810, "height": 55 },
+          "properties": { "text": "빠른 링크" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "btnExample",
+              "type": "Button",
+              "name": "btnExample",
+              "position": { "x": 15, "y": 22 },
+              "size": { "width": 110, "height": 25 },
+              "properties": { "text": "Example.com" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "btnWikipedia",
+              "type": "Button",
+              "name": "btnWikipedia",
+              "position": { "x": 130, "y": 22 },
+              "size": { "width": 110, "height": 25 },
+              "properties": { "text": "Wikipedia" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+            },
+            {
+              "id": "btnAboutBlank",
+              "type": "Button",
+              "name": "btnAboutBlank",
+              "position": { "x": 245, "y": 22 },
+              "size": { "width": 110, "height": 25 },
+              "properties": { "text": "빈 페이지" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "wbMain",
+          "type": "WebBrowser",
+          "name": "wbMain",
+          "position": { "x": 20, "y": 185 },
+          "size": { "width": 810, "height": 430 },
+          "properties": {
+            "url": "https://example.com",
+            "allowNavigation": true
+          },
+          "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblNavStatus",
+          "type": "Label",
+          "name": "lblNavStatus",
+          "position": { "x": 20, "y": 625 },
+          "size": { "width": 810, "height": 23 },
+          "properties": { "text": "현재 URL: https://example.com", "foreColor": "#616161" },
+          "anchor": { "top": false, "bottom": true, "left": true, "right": true },
+          "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [
+        {
+          "controlId": "btnNavigate",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var url = ctx.controls.txtUrl.text || '';\nif (url && !url.startsWith('javascript:')) {\n  ctx.controls.wbMain.url = url;\n  ctx.controls.lblNavStatus.text = '이동 중: ' + url;\n  ctx.controls.lblNavStatus.foreColor = '#0277BD';\n} else {\n  ctx.showMessage('올바른 URL을 입력하세요.', '오류', 'error');\n}"
+        },
+        {
+          "controlId": "btnToggleNav",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var current = ctx.controls.wbMain.allowNavigation;\nctx.controls.wbMain.allowNavigation = !current;\nctx.controls.btnToggleNav.text = current ? '잠금해제' : '잠금';\nctx.controls.lblNavStatus.text = current ? '탐색이 잠겨 있습니다.' : '탐색이 허용되었습니다.';\nctx.controls.lblNavStatus.foreColor = current ? '#E65100' : '#2E7D32';"
+        },
+        {
+          "controlId": "wbMain",
+          "eventName": "Navigated",
+          "handlerType": "server",
+          "handlerCode": "var url = ctx.controls.wbMain.url || 'about:blank';\nctx.controls.txtUrl.text = url;\nctx.controls.lblNavStatus.text = '현재 URL: ' + url;\nctx.controls.lblNavStatus.foreColor = '#2E7D32';"
+        },
+        {
+          "controlId": "btnExample",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.txtUrl.text = 'https://example.com';\nctx.controls.wbMain.url = 'https://example.com';\nctx.controls.lblNavStatus.text = '이동 중: https://example.com';\nctx.controls.lblNavStatus.foreColor = '#0277BD';"
+        },
+        {
+          "controlId": "btnWikipedia",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.txtUrl.text = 'https://ko.wikipedia.org';\nctx.controls.wbMain.url = 'https://ko.wikipedia.org';\nctx.controls.lblNavStatus.text = '이동 중: https://ko.wikipedia.org';\nctx.controls.lblNavStatus.foreColor = '#0277BD';"
+        },
+        {
+          "controlId": "btnAboutBlank",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.txtUrl.text = 'about:blank';\nctx.controls.wbMain.url = 'about:blank';\nctx.controls.lblNavStatus.text = '빈 페이지';\nctx.controls.lblNavStatus.foreColor = '#616161';"
+        }
+      ],
+      "dataBindings": []
     }
   ]
 }
@@ -1952,6 +2556,9 @@ echo -e "    5. MongoDB 주문 관리    - MongoDBView (demo.orders 컬렉션)"
 echo -e "    6. 그래프/차트 데모      - GraphView (Bar, Line, Donut, Radar)"
 echo -e "    7. JSON 편집기 데모     - JsonEditor (편집/읽기 전용)"
 echo -e "    8. 스프레드시트 데모     - SpreadsheetView (편집/읽기 전용)"
+echo -e "    9. 메뉴/도구모음 데모   - MenuStrip, ToolStrip, StatusStrip"
+echo -e "   10. 리치텍스트 편집기    - RichTextBox (편집/읽기 전용)"
+echo -e "   11. 웹 브라우저 데모     - WebBrowser (iframe, URL 탐색)"
 echo ""
 echo -e "  ${YELLOW}[MongoDB 샘플 데이터]${NC}"
 echo -e "    데이터베이스 : demo"
@@ -1969,5 +2576,9 @@ echo -e "    - ctx.getRadioGroupValue() (라디오 그룹)"
 echo -e "    - console.log/info/warn/error (디버그 로그)"
 echo -e "    - enabled/visible 동적 토글"
 echo -e "    - DataGridView 동적 행 추가"
+echo -e "    - MenuStrip/ToolStrip ItemClicked 이벤트 처리"
+echo -e "    - StatusStrip 동적 아이템 업데이트"
+echo -e "    - RichTextBox 서식 편집 (Bold/Italic/Underline)"
+echo -e "    - WebBrowser URL 탐색/잠금"
 echo -e "${GREEN}========================================${NC}"
 echo ""

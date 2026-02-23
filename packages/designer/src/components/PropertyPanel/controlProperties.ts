@@ -251,6 +251,40 @@ const listViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.font',         label: 'Font',          category: 'Appearance', editorType: 'font' },
 );
 
+const statusStripProps: PropertyMeta[] = withCommon(
+  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'collection' },
+  { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },
+);
+
+const toolStripProps: PropertyMeta[] = withCommon(
+  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'collection' },
+  { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },
+);
+
+const menuStripProps: PropertyMeta[] = withCommon(
+  { name: 'properties.items',     label: 'Items',     category: 'Data',       editorType: 'collection' },
+  { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.font',     label: 'Font',      category: 'Appearance', editorType: 'font' },
+);
+
+const richTextBoxProps: PropertyMeta[] = withCommon(
+  { name: 'properties.text',       label: 'Text',       category: 'Appearance', editorType: 'text' },
+  { name: 'properties.readOnly',   label: 'ReadOnly',   category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.scrollBars', label: 'ScrollBars', category: 'Behavior',   editorType: 'dropdown', options: ['None', 'Horizontal', 'Vertical', 'Both'] },
+  { name: 'properties.backColor',  label: 'BackColor',  category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor',  label: 'ForeColor',  category: 'Appearance', editorType: 'color' },
+  { name: 'properties.font',      label: 'Font',       category: 'Appearance', editorType: 'font' },
+);
+
+const webBrowserProps: PropertyMeta[] = withCommon(
+  { name: 'properties.url',             label: 'Url',             category: 'Data',       editorType: 'text' },
+  { name: 'properties.allowNavigation', label: 'AllowNavigation', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.backColor',       label: 'BackColor',       category: 'Appearance', editorType: 'color' },
+);
+
 const defaultProps: PropertyMeta[] = withCommon();
 
 // 현재 구현된 14개 + fallback
@@ -276,6 +310,11 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   GraphView:      graphViewProps,
   TreeView:       treeViewProps,
   ListView:       listViewProps,
+  MenuStrip:      menuStripProps,
+  ToolStrip:      toolStripProps,
+  StatusStrip:    statusStripProps,
+  RichTextBox:    richTextBoxProps,
+  WebBrowser:     webBrowserProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {

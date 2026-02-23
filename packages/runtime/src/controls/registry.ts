@@ -22,6 +22,11 @@ import { MongoDBView } from './MongoDBView';
 import { GraphView } from './GraphView';
 import { TreeView } from './TreeView';
 import { ListView } from './ListView';
+import { MenuStrip } from './MenuStrip';
+import { ToolStrip } from './ToolStrip';
+import { StatusStrip } from './StatusStrip';
+import { RichTextBox } from './RichTextBox';
+import { WebBrowser } from './WebBrowser';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<any>>> = {
@@ -46,4 +51,9 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   GraphView,
   TreeView,
   ListView,
+  MenuStrip,
+  ToolStrip,
+  StatusStrip,
+  RichTextBox,
+  WebBrowser,
 };
