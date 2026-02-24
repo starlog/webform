@@ -218,9 +218,15 @@ if [ -z "${JWT_SECRET:-}" ]; then
 fi
 
 TOKEN=$(node -e "
-  const jwt = require('${PWD}/packages/server/node_modules/jsonwebtoken/index.js');
-  const token = jwt.sign({ sub: 'form-gen', role: 'admin' }, '${JWT_SECRET}', { expiresIn: '1h' });
-  process.stdout.write(token);
+  const crypto = require('crypto');
+  function base64url(buf) {
+    return buf.toString('base64').replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');
+  }
+  const header = base64url(Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })));
+  const now = Math.floor(Date.now() / 1000);
+  const payload = base64url(Buffer.from(JSON.stringify({ sub: 'form-gen', role: 'admin', iat: now, exp: now + 3600 })));
+  const sig = base64url(crypto.createHmac('sha256', '${JWT_SECRET}').update(header + '.' + payload).digest());
+  process.stdout.write(header + '.' + payload + '.' + sig);
 ")
 
 if [ -z "$TOKEN" ]; then
