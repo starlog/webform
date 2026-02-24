@@ -1,0 +1,379 @@
+# FORM-GUIDE.md — WebForm 폼 JSON 생성 가이드 (AI용)
+
+## 1. JSON 구조
+
+```jsonc
+{
+  "project": { "name": "프로젝트명", "description": "설명" },
+  "forms": [
+    {
+      "name": "폼 이름",
+      "properties": { /* FormProperties */ },
+      "controls": [ /* ControlDefinition[] */ ],
+      "eventHandlers": [ /* EventHandlerDefinition[] */ ],
+      "dataBindings": []
+    }
+  ]
+}
+```
+
+- `id`, `version`은 서버가 자동 생성. 요청에 포함하지 않는다.
+- 임포트: `POST /api/projects/import` 또는 `./form-gen.sh my-form.json`
+
+---
+
+## 2. FormProperties
+
+```jsonc
+{
+  "title": "폼 제목",
+  "width": 800, "height": 600,
+  "backgroundColor": "#F0F0F0",
+  "font": { "family": "Segoe UI", "size": 9, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+  "startPosition": "CenterScreen",    // "CenterScreen" | "Manual" | "CenterParent"
+  "windowState": "Maximized",         // "Normal" | "Maximized" (Maximized면 부모 영역 100% 채움, 타이틀바 숨김)
+  "formBorderStyle": "Sizable",       // "None" | "FixedSingle" | "Fixed3D" | "Sizable"
+  "maximizeBox": true,
+  "minimizeBox": true
+}
+```
+
+> **font**: 6개 필드(`family`, `size`, `bold`, `italic`, `underline`, `strikethrough`) 모두 명시해야 한다.
+
+---
+
+## 3. ControlDefinition (공통 구조)
+
+```jsonc
+{
+  "id": "txtName",                          // 고유 식별자 (보통 name과 동일)
+  "type": "TextBox",                        // 컨트롤 타입 (아래 목록 참조)
+  "name": "txtName",                        // 이벤트에서 ctx.controls.<name>으로 접근
+  "position": { "x": 100, "y": 50 },
+  "size": { "width": 200, "height": 26 },
+  "properties": { /* 타입별 고유 속성 */ },
+  "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+  "dock": "None",                           // "None"|"Top"|"Bottom"|"Left"|"Right"|"Fill"
+  "tabIndex": 0,
+  "visible": true,
+  "enabled": true,
+  "children": []                            // 컨테이너만: Panel, GroupBox, TabControl, SplitContainer
+}
+```
+
+> **필수 필드**: `id`, `type`, `name`, `position`, `size`, `properties`, `anchor`(4방향 모두), `dock`, `tabIndex`, `visible`, `enabled`
+> **dock 우선**: dock이 `"None"`이 아니면 anchor는 무시된다.
+
+---
+
+## 4. 컨트롤 타입별 properties
+
+### Basic (12종)
+
+| 타입 | 주요 properties |
+|------|----------------|
+| **Button** | `text`, `backColor`, `foreColor`, `font`, `textAlign`("MiddleCenter" 등) |
+| **Label** | `text`, `backColor`, `foreColor`, `font`, `textAlign`("MiddleLeft" 등), `autoSize` |
+| **TextBox** | `text`, `multiline`, `readOnly`, `maxLength`, `passwordChar`, `textAlign`("Left"\|"Center"\|"Right"), `backColor`, `foreColor`, `font` |
+| **CheckBox** | `text`, `checked`, `backColor`, `foreColor`, `font` |
+| **RadioButton** | `text`, `checked`, `groupName`(같은 그룹 내 하나만 선택), `backColor`, `foreColor`, `font` |
+| **ComboBox** | `items`(문자열 배열), `selectedIndex`(-1=미선택), `dropDownStyle`("DropDown"\|"DropDownList"\|"Simple"), `backColor`, `foreColor`, `font` |
+| **ListBox** | `items`(문자열 배열), `selectedIndex`, `selectionMode`("None"\|"One"\|"MultiSimple"\|"MultiExtended"), `backColor`, `foreColor`, `font` |
+| **NumericUpDown** | `value`, `minimum`, `maximum`, `backColor`, `foreColor`, `font` |
+| **DateTimePicker** | `value`("2026-01-01"), `format`("Short"\|"Long"\|"Time"\|"Custom"), `backColor`, `foreColor`, `font` |
+| **ProgressBar** | `value`, `minimum`, `maximum`, `style`("Blocks"\|"Continuous"\|"Marquee") |
+| **PictureBox** | `imageUrl`, `sizeMode`("Normal"\|"StretchImage"\|"AutoSize"\|"CenterImage"\|"Zoom"), `backColor`, `borderStyle` |
+| **RichTextBox** | `text`, `readOnly`, `scrollBars`("None"\|"Horizontal"\|"Vertical"\|"Both"), `backColor`, `foreColor`, `font` |
+
+### Container (7종)
+
+| 타입 | 주요 properties | children 규칙 |
+|------|----------------|---------------|
+| **Panel** | `backColor`, `borderStyle`("None"\|"FixedSingle"\|"Fixed3D"), `autoScroll` | 자유 배치 |
+| **GroupBox** | `text`(그룹 제목), `backColor`, `foreColor`, `font` | 자유 배치 (내부 좌표) |
+| **TabControl** | `tabs`([{title, id}]), `selectedIndex` | Panel들 (각 Panel에 `properties.tabId` 필수) |
+| **SplitContainer** | `orientation`("Horizontal"\|"Vertical"), `splitterDistance`, `splitterWidth`, `fixedPanel`, `isSplitterFixed` | 정확히 Panel 2개 |
+| **MenuStrip** | `items`([{text, children, shortcut, enabled, checked, separator, formId}]), `backColor` | dock: "Top" |
+| **ToolStrip** | `items`([{type, text, icon, tooltip, enabled, checked, items}]), `backColor` | dock: "Top" |
+| **StatusStrip** | `items`([{type, text, spring, width, value}]), `backColor` | dock: "Bottom" |
+
+### Data (10종)
+
+| 타입 | 주요 properties |
+|------|----------------|
+| **DataGridView** | `columns`([{**field**, **headerText**, width}]), `dataSource`([]), `readOnly`, `backColor`, `foreColor`, `font` |
+| **TreeView** | `nodes`([{text, children}] 재귀), `showLines`, `showPlusMinus`, `checkBoxes`, `backColor`, `foreColor`, `font` |
+| **ListView** | `items`([{text, subItems}]), `columns`([{text, width}]), `view`("Details"등), `multiSelect`, `fullRowSelect`, `gridLines` |
+| **Chart** | `chartType`("Line"\|"Bar"\|"Column"\|"Pie"등), `series`, `title`, `xAxisTitle`, `yAxisTitle`, `showLegend`, `showGrid` |
+| **GraphView** | `graphType`("Line"\|"Bar"\|"Pie"등), `data`, `title`, `showLegend`, `showGrid`, `colors` |
+| **SpreadsheetView** | `columns`, `data`, `dataSource`, `readOnly`, `showToolbar`, `showFormulaBar`, `showRowNumbers` |
+| **JsonEditor** | `value`(JSON문자열), `readOnly`, `expandDepth` |
+| **MongoDBView** | `title`, `connectionString`, `database`, `collection`, `columns`, `filter`, `pageSize`, `readOnly` |
+| **WebBrowser** | `url`, `allowNavigation` |
+| **BindingNavigator** | `bindingSource`, `showAddButton`, `showDeleteButton` |
+
+### 비시각적 (1종)
+
+| 타입 | 주요 properties | 용도 |
+|------|----------------|------|
+| **MongoDBConnector** | `connectionString`, `database`, `defaultCollection`, `queryTimeout`, `maxResultCount` | ctx.controls.\<name\>.find/insertOne/updateOne/deleteOne/count |
+
+---
+
+## 5. 이벤트 시스템
+
+### EventHandlerDefinition
+
+```jsonc
+{
+  "controlId": "btnSubmit",      // 대상 컨트롤 id. 폼 이벤트는 반드시 "_form" 사용
+  "eventName": "Click",
+  "handlerType": "server",       // 항상 "server" (isolated-vm 실행)
+  "handlerCode": "ctx.controls.lblStatus.text = '클릭됨';"
+}
+```
+
+### 이벤트 목록
+
+**공통 (모든 컨트롤)**: Click, DoubleClick, MouseEnter, MouseLeave, MouseDown, MouseUp, MouseMove, KeyDown, KeyUp, KeyPress, Enter, Leave, Validating, Validated, VisibleChanged, EnabledChanged
+
+**폼 전용** (controlId: `"_form"`): Load(클라이언트), **OnLoading**(서버—폼 로드 시 데이터 조회용), BeforeLeaving, Shown, FormClosing, FormClosed, Resize
+
+**컨트롤 고유 이벤트**:
+
+| 컨트롤 | 이벤트 |
+|--------|--------|
+| TextBox, RichTextBox | TextChanged |
+| ComboBox, ListBox, TabControl | SelectedIndexChanged |
+| CheckBox, RadioButton | CheckedChanged |
+| NumericUpDown, DateTimePicker | ValueChanged |
+| DataGridView | CellClick, CellValueChanged, RowEnter, SelectionChanged |
+| TreeView | AfterSelect, AfterExpand, AfterCollapse |
+| ListView | SelectedIndexChanged, ItemActivate |
+| MenuStrip, ToolStrip, StatusStrip | ItemClicked |
+
+> **OnLoading vs Load**: 폼 로드 시 서버에서 데이터 조회하려면 반드시 `OnLoading` + `handlerType: "server"` + `controlId: "_form"` 사용.
+
+---
+
+## 6. ctx API (이벤트 핸들러 코드에서 사용)
+
+```javascript
+// 컨트롤 읽기/쓰기 — name으로 접근
+ctx.controls.txtName.text;
+ctx.controls.lblStatus.text = "완료";
+ctx.controls.btnSubmit.enabled = false;
+ctx.controls.pnlDetail.visible = true;
+ctx.controls.cmbCategory.selectedIndex;
+ctx.controls.dgvList.dataSource = [...];
+
+// 메시지 다이얼로그
+ctx.showMessage("저장 완료", "알림", "info");   // type: "info"|"warning"|"error"
+
+// HTTP 요청 — 반환: { status, ok, data }
+ctx.http.get(url);
+ctx.http.post(url, body);
+ctx.http.put(url, body);
+ctx.http.patch(url, body);
+ctx.http.delete(url);
+
+// 네비게이션
+ctx.navigate("targetFormId", { key: "value" });
+
+// 라디오 그룹 값 조회
+ctx.getRadioGroupValue("groupName");  // 선택된 라디오의 text 반환
+
+// MongoDB (MongoDBConnector 컨트롤 필요)
+ctx.controls.myDb.find(collection, filter);       // → 문서 배열
+ctx.controls.myDb.findOne(collection, filter);    // → 문서 | null
+ctx.controls.myDb.insertOne(collection, doc);     // → { insertedId }
+ctx.controls.myDb.updateOne(collection, filter, update); // → { modifiedCount }
+ctx.controls.myDb.deleteOne(collection, filter);  // → { deletedCount }
+ctx.controls.myDb.count(collection, filter);      // → 숫자
+
+// 기타
+ctx.sender;       // 이벤트 발생 컨트롤
+ctx.eventArgs;    // 이벤트 인자
+console.log();    // 디버그 로그
+```
+
+### Shell 모드 전용 ctx API
+
+```javascript
+ctx.currentFormId;                    // 현재 활성 폼 ID
+ctx.params;                           // 네비게이션 파라미터 객체
+ctx.appState;                         // Shell 전역 상태 (읽기/쓰기, 모든 폼 공유)
+ctx.navigateBack();                   // 이전 폼으로
+ctx.navigateReplace(formId, params);  // 현재 폼 교체 (히스토리 없음)
+ctx.closeApp();                       // Shell 종료
+```
+
+---
+
+## 7. 컨테이너 패턴
+
+### TabControl
+
+```jsonc
+// properties.tabs[].id ↔ 자식 Panel의 properties.tabId 매칭 필수
+{
+  "type": "TabControl",
+  "properties": { "tabs": [{ "title": "탭1", "id": "tab1" }], "selectedIndex": 0 },
+  "children": [
+    { "type": "Panel", "properties": { "tabId": "tab1" }, "children": [...] }
+  ]
+}
+```
+
+### SplitContainer
+
+```jsonc
+// children에 정확히 Panel 2개
+{
+  "type": "SplitContainer",
+  "properties": { "orientation": "Vertical", "splitterDistance": 200 },
+  "children": [
+    { "type": "Panel", "children": [...] },   // Panel1
+    { "type": "Panel", "children": [...] }    // Panel2
+  ]
+}
+```
+
+### MenuStrip 아이템 (formId로 선언적 네비게이션)
+
+```jsonc
+{
+  "text": "대시보드",
+  "formId": "targetFormObjectId",  // 클릭 시 자동으로 해당 폼으로 네비게이션
+  "shortcut": "Ctrl+D"
+}
+```
+
+---
+
+## 8. 체크리스트
+
+- [ ] `{ "project": { "name": "..." }, "forms": [...] }` 래퍼 구조
+- [ ] 폼에 `id`/`version` 미포함
+- [ ] 모든 컨트롤에 필수 11개 필드 (`id`, `type`, `name`, `position`, `size`, `properties`, `anchor`(4방향), `dock`, `tabIndex`, `visible`, `enabled`)
+- [ ] `id`와 `name` 동일, 프로젝트 내 유니크
+- [ ] anchor 4방향 모두 명시 / dock 미사용 시 `"None"`
+- [ ] 이벤트 핸들러 코드에서 `ctx.controls.<name>`으로 접근 (id 아님)
+- [ ] 폼 이벤트의 controlId는 `"_form"` 사용
+- [ ] 폼 로드 시 서버 로직은 `OnLoading` 이벤트 사용 (`Load`는 클라이언트 전용)
+- [ ] `handlerType`은 `"server"`
+- [ ] font 객체 6개 필드 모두 명시
+- [ ] FormProperties 모두 명시 (`title`, `width`, `height`, `backgroundColor`, `font`, `startPosition`, `windowState`, `formBorderStyle`, `maximizeBox`, `minimizeBox`)
+- [ ] DataGridView columns는 `field`/`headerText` 형식
+- [ ] TabControl: `tabs[].id` ↔ 자식 Panel `tabId` 매칭
+- [ ] JSON 유효성 (trailing comma 없음, 줄바꿈은 `\n`)
+
+---
+
+## 9. form-gen.sh 사용법
+
+JSON 파일을 작성한 후 `form-gen.sh`로 서버에 임포트한다.
+
+### 사전 조건
+
+- API 서버(`localhost:4000`)가 실행 중이어야 한다.
+- **현재 디렉토리**의 `.env` 파일에 `JWT_SECRET`이 설정되어 있어야 한다.
+- 외부 npm 패키지 불필요 (Node.js 내장 `crypto`로 JWT 생성).
+
+### 기본 사용법
+
+```bash
+# JSON 파일로 임포트
+./form-gen.sh my-form.json
+
+# stdin으로 JSON 입력 (AI 파이프라인용)
+echo '{ ... }' | ./form-gen.sh -
+
+# 결과 JSON만 stdout으로 출력 (로그는 stderr)
+./form-gen.sh my-form.json > result.json
+
+# 도움말
+./form-gen.sh --help
+```
+
+### 동작 방식
+
+1. JSON 유효성 검사 (project.name, forms 배열 등)
+2. `.env`에서 `JWT_SECRET`을 읽어 JWT 토큰 생성
+3. 동일 이름의 프로젝트가 이미 존재하면 → 기존 프로젝트에 폼 추가
+4. 존재하지 않으면 → 새 프로젝트 생성 (`POST /api/projects/import`)
+5. 결과 출력: 프로젝트 ID, 폼/컨트롤/이벤트 수
+
+### 환경 변수
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `WEBFORM_API_URL` | `http://localhost:4000` | API 서버 URL |
+
+### .env 필수 항목
+
+```
+JWT_SECRET=your-secret-key-here
+```
+
+> **주의**: 같은 프로젝트명으로 반복 실행하면 폼이 중복 추가된다. 기존 폼을 교체하려면 Designer에서 삭제 후 재실행하거나, API로 프로젝트를 삭제(`DELETE /api/projects/:id`) 후 재실행한다.
+
+---
+
+## 10. 최소 예제
+
+```json
+{
+  "project": { "name": "예제", "description": "" },
+  "forms": [
+    {
+      "name": "회원 등록",
+      "properties": {
+        "title": "회원 등록", "width": 500, "height": 300, "backgroundColor": "#F0F0F0",
+        "font": { "family": "Segoe UI", "size": 9, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen", "windowState": "Maximized",
+        "formBorderStyle": "Sizable", "maximizeBox": true, "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblName", "type": "Label", "name": "lblName",
+          "position": { "x": 20, "y": 20 }, "size": { "width": 80, "height": 23 },
+          "properties": { "text": "이름" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "txtName", "type": "TextBox", "name": "txtName",
+          "position": { "x": 110, "y": 17 }, "size": { "width": 250, "height": 26 },
+          "properties": { "text": "" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+        },
+        {
+          "id": "btnSave", "type": "Button", "name": "btnSave",
+          "position": { "x": 110, "y": 60 }, "size": { "width": 100, "height": 32 },
+          "properties": { "text": "저장", "backColor": "#1565C0", "foreColor": "#FFFFFF" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblStatus", "type": "Label", "name": "lblStatus",
+          "position": { "x": 110, "y": 105 }, "size": { "width": 300, "height": 23 },
+          "properties": { "text": "" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [
+        {
+          "controlId": "btnSave",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var name = ctx.controls.txtName.text;\nif (!name) {\n  ctx.showMessage('이름을 입력하세요.', '오류', 'warning');\n  return;\n}\nctx.controls.lblStatus.text = name + ' 저장 완료';\nctx.controls.lblStatus.foreColor = '#2E7D32';"
+        }
+      ],
+      "dataBindings": []
+    }
+  ]
+}
+```

@@ -7,7 +7,7 @@ set -euo pipefail
 #
 # 사전 조건:
 #   - 서버(localhost:4000)가 실행 중이어야 합니다
-#   - packages/server/.env 에 JWT_SECRET이 설정되어 있어야 합니다
+#   - .env 또는 packages/server/.env 에 JWT_SECRET이 설정되어 있어야 합니다
 #
 # 사용법:
 #   ./form-gen.sh <json-file>          # JSON 파일로 임포트
@@ -191,12 +191,30 @@ FORM_NAMES=$(echo "$VALIDATE_RESULT" | node -e "const d=JSON.parse(require('fs')
 ok "JSON 유효 — 프로젝트: \"${PROJECT_NAME}\", 폼 ${FORM_COUNT}개, 컨트롤 ${TOTAL_CONTROLS}개, 이벤트 ${TOTAL_EVENTS}개"
 info "폼 목록: ${FORM_NAMES}"
 
+# ─── .env 로드 (현재 디렉토리 우선, packages/server/.env 폴백) ────────────
+load_env_var() {
+  local var_name="$1"
+  local value=""
+
+  # 1) 현재 디렉토리의 .env 에서 먼저 시도
+  if [ -f .env ]; then
+    value=$(grep "^${var_name}=" .env | cut -d= -f2-) || true
+  fi
+
+  # 2) 없으면 packages/server/.env 에서 폴백
+  if [ -z "$value" ] && [ -f packages/server/.env ]; then
+    value=$(grep "^${var_name}=" packages/server/.env | cut -d= -f2-) || true
+  fi
+
+  echo "$value"
+}
+
 # ─── JWT 토큰 생성 ─────────────────────────────────────────────────────────
 info "API 인증 토큰 생성 중..."
 
-JWT_SECRET=$(grep '^JWT_SECRET=' packages/server/.env | cut -d= -f2-) || true
+JWT_SECRET=$(load_env_var JWT_SECRET)
 if [ -z "${JWT_SECRET:-}" ]; then
-  fail "packages/server/.env 에서 JWT_SECRET을 찾을 수 없습니다. 먼저 ./run.sh를 실행하세요."
+  fail ".env 또는 packages/server/.env 에서 JWT_SECRET을 찾을 수 없습니다. 먼저 ./run.sh를 실행하세요."
 fi
 
 TOKEN=$(node -e "
