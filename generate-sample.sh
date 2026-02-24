@@ -15,11 +15,39 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-API_URL="http://localhost:4000"
-MONGO_CONTAINER="mongodb"
-MONGO_PORT=27017
+# ─── .env 로드 (현재 디렉토리 우선, packages/server/.env 폴백) ──────────────
+load_env_var() {
+  local var_name="$1"
+  local val=""
+  # 현재 디렉토리 .env 우선
+  if [ -f .env ]; then
+    val=$(grep "^${var_name}=" .env 2>/dev/null | head -1 | cut -d= -f2-)
+  fi
+  # 값이 없으면 packages/server/.env 폴백
+  if [ -z "$val" ] && [ -f packages/server/.env ]; then
+    val=$(grep "^${var_name}=" packages/server/.env 2>/dev/null | head -1 | cut -d= -f2-)
+  fi
+  echo "$val"
+}
+
+# PORT에서 API_URL 결정
+_PORT=$(load_env_var "PORT")
+API_URL="http://localhost:${_PORT:-4000}"
+
+MONGO_CONTAINER="${MONGO_CONTAINER:-mongodb}"
+MONGO_PORT="${MONGO_PORT:-27017}"
 DEMO_DB="demo"
 DEMO_COLLECTION="orders"
+
+# MONGODB_URI에서 컨테이너/포트 추출 시도
+_MONGO_URI=$(load_env_var "MONGODB_URI")
+if [ -n "$_MONGO_URI" ]; then
+  # mongodb://host:port/db 형태에서 포트 추출
+  _PARSED_PORT=$(echo "$_MONGO_URI" | sed -n 's|.*://[^:]*:\([0-9]*\).*|\1|p')
+  if [ -n "$_PARSED_PORT" ]; then
+    MONGO_PORT="$_PARSED_PORT"
+  fi
+fi
 
 # ─── 색상 ────────────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'
@@ -195,10 +223,10 @@ ok "샘플 주문 데이터 적재 완료"
 # ─── 3. JWT 토큰 생성 ─────────────────────────────────────────────────────────
 info "API 인증 토큰 생성 중..."
 
-# .env에서 JWT_SECRET 읽기
-JWT_SECRET=$(grep '^JWT_SECRET=' packages/server/.env | cut -d= -f2-)
+# .env에서 JWT_SECRET 읽기 (현재 디렉토리 우선, packages/server/.env 폴백)
+JWT_SECRET=$(load_env_var "JWT_SECRET")
 if [ -z "$JWT_SECRET" ]; then
-  fail "packages/server/.env 에서 JWT_SECRET을 찾을 수 없습니다. 먼저 ./run.sh를 실행하세요."
+  fail ".env 또는 packages/server/.env 에서 JWT_SECRET을 찾을 수 없습니다. 먼저 ./run.sh를 실행하세요."
 fi
 
 # Node.js로 JWT 토큰 생성

@@ -3,6 +3,8 @@ import type { DesignerControlProps } from './registry';
 export function TextBoxControl({ properties, size }: DesignerControlProps) {
   const text = (properties.text as string) ?? '';
   const multiline = (properties.multiline as boolean) ?? false;
+  const passwordChar = (properties.passwordChar as string) ?? '';
+  const displayText = passwordChar && text ? passwordChar.repeat(text.length) : text;
 
   return (
     <div style={{
@@ -18,7 +20,7 @@ export function TextBoxControl({ properties, size }: DesignerControlProps) {
       color: '#000',
       boxSizing: 'border-box',
     }}>
-      {text}
+      {displayText}
     </div>
   );
 }

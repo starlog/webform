@@ -7,6 +7,7 @@ interface TextBoxProps {
   text?: string;
   multiline?: boolean;
   readOnly?: boolean;
+  passwordChar?: string;
   style?: CSSProperties;
   enabled?: boolean;
   onTextChanged?: () => void;
@@ -28,6 +29,7 @@ export function TextBox({
   text = '',
   multiline = false,
   readOnly = false,
+  passwordChar,
   style,
   enabled = true,
   onTextChanged,
@@ -59,9 +61,11 @@ export function TextBox({
     );
   }
 
+  const inputType = passwordChar ? 'password' : 'text';
+
   return (
     <input
-      type="text"
+      type={inputType}
       className="wf-textbox"
       data-control-id={id}
       style={mergedStyle}
