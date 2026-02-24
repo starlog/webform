@@ -120,6 +120,271 @@
 
 ---
 
+## 4-1. 컨트롤별 데이터 구조 상세
+
+AI가 올바른 샘플 데이터를 생성하려면 각 컨트롤의 정확한 데이터 형식을 알아야 한다.
+
+### DataGridView — columns / dataSource
+
+```jsonc
+{
+  "columns": [
+    { "field": "name", "headerText": "이름", "width": 150, "sortable": true, "editable": false },
+    { "field": "email", "headerText": "이메일", "width": 200 },
+    { "field": "age", "headerText": "나이", "width": 80 }
+  ],
+  "dataSource": [
+    { "name": "홍길동", "email": "hong@example.com", "age": 30 },
+    { "name": "김철수", "email": "kim@example.com", "age": 25 }
+  ],
+  "readOnly": false
+}
+```
+
+> - `field`(필수): 데이터 객체의 키. `key`도 폴백으로 허용.
+> - `headerText`(필수): 열 헤더 텍스트. `name`도 폴백으로 허용.
+> - `width`, `sortable`, `editable`는 선택적.
+> - `dataSource`는 객체 배열. `_id`, `__v`, `createdAt`, `updatedAt` 필드는 자동 제외.
+
+### GraphView — data
+
+```jsonc
+{
+  "graphType": "Bar",
+  "data": [
+    { "x": "1월", "sales": 100, "revenue": 2000 },
+    { "x": "2월", "sales": 120, "revenue": 2400 },
+    { "x": "3월", "sales": 90, "revenue": 1800 }
+  ],
+  "title": "월별 매출",
+  "xAxisTitle": "월",
+  "yAxisTitle": "금액",
+  "showLegend": true,
+  "showGrid": true,
+  "colors": "#1565C0,#E91E63"
+}
+```
+
+> - **카테고리 키 자동 감지**: `x`, `name`, `subject` 순서로 탐색. 해당 키가 X축 라벨이 된다.
+> - **시리즈 키**: 카테고리 키를 제외한 **숫자 타입** 필드가 자동으로 시리즈가 된다.
+> - `data`는 객체 배열, JSON 문자열, CSV 문자열 모두 허용.
+> - `colors`는 쉼표 구분 hex 색상 문자열.
+> - Scatter 차트: `x`(숫자), `y`(숫자) 필드 필수.
+> - graphType: `"Line"` | `"Bar"` | `"HorizontalBar"` | `"Area"` | `"StackedBar"` | `"StackedArea"` | `"Pie"` | `"Donut"` | `"Scatter"` | `"Radar"`
+
+### Chart — series
+
+GraphView와 동일한 데이터 형식을 사용한다.
+
+```jsonc
+{
+  "chartType": "Column",
+  "series": [
+    { "name": "Q1", "sales": 100, "revenue": 5000 },
+    { "name": "Q2", "sales": 120, "revenue": 6000 }
+  ],
+  "title": "분기별 실적",
+  "showLegend": true,
+  "showGrid": true
+}
+```
+
+> - chartType: `"Line"` | `"Bar"` | `"Column"` | `"Area"` | `"Pie"` | `"Doughnut"` | `"Scatter"` | `"Radar"`
+> - `series` 형식은 GraphView의 `data`와 동일 (카테고리 키 + 숫자 시리즈).
+
+### SpreadsheetView — columns / data
+
+```jsonc
+{
+  "columns": [
+    { "field": "product", "headerText": "상품명", "width": 150 },
+    { "field": "price", "headerText": "가격", "width": 100 },
+    { "field": "qty", "headerText": "수량", "width": 80 }
+  ],
+  "data": [
+    { "product": "노트북", "price": 1500000, "qty": 5 },
+    { "product": "마우스", "price": 35000, "qty": 20 }
+  ],
+  "showToolbar": true,
+  "showFormulaBar": true,
+  "showRowNumbers": true,
+  "allowAddRows": true,
+  "allowDeleteRows": true,
+  "allowSort": true,
+  "allowFilter": false,
+  "readOnly": false
+}
+```
+
+> - `columns[].field`(필수), `columns[].headerText`(필수), `columns[].width`(선택).
+> - `data`는 객체 배열. `dataSource`도 폴백으로 허용.
+> - `data`는 JSON 문자열이나 CSV 문자열도 허용.
+
+### TreeView — nodes (재귀)
+
+```jsonc
+{
+  "nodes": [
+    {
+      "text": "본사",
+      "expanded": true,
+      "children": [
+        { "text": "개발팀", "children": [
+            { "text": "프론트엔드" },
+            { "text": "백엔드" }
+          ]
+        },
+        { "text": "디자인팀" }
+      ]
+    },
+    { "text": "지사", "expanded": false, "children": [
+        { "text": "영업팀" }
+      ]
+    }
+  ],
+  "showLines": false,
+  "showPlusMinus": true,
+  "checkBoxes": false
+}
+```
+
+> - `text`(필수): 노드 라벨.
+> - `children`(선택): 하위 노드 배열 (재귀).
+> - `expanded`(선택): 펼침 상태. 기본값 true (자식이 있을 때).
+> - `checked`(선택): `checkBoxes: true`일 때 체크 상태.
+> - `imageIndex`(선택): 아이콘 인덱스.
+
+### ListView — items / columns
+
+```jsonc
+{
+  "view": "Details",
+  "columns": [
+    { "text": "파일명", "width": 200 },
+    { "text": "크기", "width": 100 },
+    { "text": "수정일", "width": 150 }
+  ],
+  "items": [
+    { "text": "document.pdf", "subItems": ["1.2MB", "2026-01-15"] },
+    { "text": "photo.jpg", "subItems": ["3.5MB", "2026-02-01"] }
+  ],
+  "multiSelect": false,
+  "fullRowSelect": true,
+  "gridLines": false
+}
+```
+
+> - `columns[].text`(필수): 열 헤더. `columns[].width`(선택).
+> - `items[].text`(필수): 첫 번째 열 텍스트.
+> - `items[].subItems`(선택): 나머지 열의 문자열 배열 (Details 뷰에서 사용).
+> - `items[].imageIndex`(선택): 아이콘 인덱스.
+> - `view`: `"LargeIcon"` | `"SmallIcon"` | `"List"` | `"Details"` | `"Tile"`
+
+### MenuStrip — items (재귀)
+
+```jsonc
+{
+  "items": [
+    {
+      "text": "파일",
+      "children": [
+        { "text": "새로 만들기", "shortcut": "Ctrl+N" },
+        { "text": "열기", "shortcut": "Ctrl+O", "formId": "openFormId" },
+        { "text": "", "separator": true },
+        { "text": "저장", "shortcut": "Ctrl+S", "enabled": true },
+        { "text": "끝내기" }
+      ]
+    },
+    {
+      "text": "편집",
+      "children": [
+        { "text": "복사", "shortcut": "Ctrl+C" },
+        { "text": "붙여넣기", "shortcut": "Ctrl+V", "enabled": false }
+      ]
+    }
+  ],
+  "backColor": "#F0F0F0"
+}
+```
+
+> - `text`(필수): 메뉴 항목 텍스트. 구분선은 `""`.
+> - `children`(선택): 하위 메뉴 배열 (재귀).
+> - `shortcut`(선택): 단축키 표시 텍스트.
+> - `separator`(선택): `true`이면 구분선.
+> - `formId`(선택): 클릭 시 해당 폼으로 자동 네비게이션.
+> - `enabled`(선택): 비활성화 여부.
+> - `checked`(선택): 체크마크 표시.
+
+### ToolStrip — items
+
+```jsonc
+{
+  "items": [
+    { "type": "button", "text": "새로 만들기", "icon": "📄", "tooltip": "새 문서" },
+    { "type": "button", "text": "열기", "icon": "📂" },
+    { "type": "separator" },
+    { "type": "label", "text": "보기:" },
+    {
+      "type": "dropdown", "text": "확대",
+      "items": [
+        { "type": "button", "text": "50%" },
+        { "type": "button", "text": "100%" },
+        { "type": "button", "text": "150%" }
+      ]
+    }
+  ],
+  "backColor": "#F0F0F0"
+}
+```
+
+> - `type`(필수): `"button"` | `"separator"` | `"label"` | `"dropdown"`
+> - `text`(선택): 항목 텍스트.
+> - `icon`(선택): 이모지/아이콘.
+> - `tooltip`(선택): 마우스 오버 시 툴팁.
+> - `enabled`(선택): 활성화 여부.
+> - `checked`(선택): 눌림/활성 상태.
+> - `items`(선택): `dropdown` 타입의 하위 항목 배열.
+
+### StatusStrip — items
+
+```jsonc
+{
+  "items": [
+    { "type": "label", "text": "준비", "spring": true },
+    { "type": "progressBar", "value": 75, "width": 150 },
+    { "type": "label", "text": "행: 42", "width": 80 }
+  ],
+  "backColor": "#F0F0F0"
+}
+```
+
+> - `type`(필수): `"label"` | `"progressBar"` | `"dropDownButton"`
+> - `text`(선택): 표시 텍스트.
+> - `spring`(선택): `true`이면 남은 공간을 채움 (가변 폭).
+> - `width`(선택): 고정 너비 (px).
+> - `value`(선택): `progressBar`의 값 (0–100).
+
+### MongoDBView — columns
+
+```jsonc
+{
+  "connectionString": "mongodb://localhost:27017",
+  "database": "mydb",
+  "collection": "users",
+  "columns": "name,email,phone",
+  "filter": "{\"status\": \"active\"}",
+  "pageSize": 25,
+  "readOnly": false,
+  "showToolbar": true
+}
+```
+
+> - `columns`는 **쉼표 구분 문자열**: `"field1,field2,field3"`. 생략하면 첫 문서에서 자동 감지.
+> - `filter`는 MongoDB 쿼리 JSON **문자열**.
+> - `connectionString`은 서버의 MongoDBConnector를 통해 접속하므로 서버에서 접근 가능한 주소여야 한다.
+
+---
+
 ## 5. 이벤트 시스템
 
 ### EventHandlerDefinition
@@ -264,7 +529,14 @@ ctx.closeApp();                       // Shell 종료
 - [ ] `handlerType`은 `"server"`
 - [ ] font 객체 6개 필드 모두 명시
 - [ ] FormProperties 모두 명시 (`title`, `width`, `height`, `backgroundColor`, `font`, `startPosition`, `windowState`, `formBorderStyle`, `maximizeBox`, `minimizeBox`)
-- [ ] DataGridView columns는 `field`/`headerText` 형식
+- [ ] DataGridView columns는 `field`(필수)/`headerText`(필수) 형식
+- [ ] GraphView/Chart data는 카테고리 키(`x`/`name`/`subject`) + 숫자 시리즈 필드
+- [ ] SpreadsheetView columns는 `field`(필수)/`headerText`(필수) 형식
+- [ ] TreeView nodes는 `text`(필수) + `children`(선택, 재귀) 구조
+- [ ] ListView: Details 뷰 시 `columns[].text` + `items[].subItems` 개수 일치
+- [ ] ToolStrip items `type` 값: `"button"` | `"separator"` | `"label"` | `"dropdown"`
+- [ ] StatusStrip items `type` 값: `"label"` | `"progressBar"` | `"dropDownButton"`
+- [ ] MongoDBView `columns`는 쉼표 구분 문자열 (예: `"name,email,phone"`)
 - [ ] TabControl: `tabs[].id` ↔ 자식 Panel `tabId` 매칭
 - [ ] JSON 유효성 (trailing comma 없음, 줄바꿈은 `\n`)
 
