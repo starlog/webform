@@ -115,6 +115,13 @@ export function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSave]);
 
+  const handlePublishAll = useCallback((projectId: string) => {
+    if (currentProjectId === projectId && currentFormId) {
+      setFormStatus('published');
+    }
+    setExplorerRefreshKey((k) => k + 1);
+  }, [currentProjectId, currentFormId]);
+
   const handleFormSelect = async (formId: string) => {
     try {
       const { data } = await apiService.loadForm(formId);
@@ -254,7 +261,7 @@ export function App() {
           }}
         >
           <div style={{ flex: '0 0 auto', maxHeight: '30%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
-            <ProjectExplorer onFormSelect={handleFormSelect} refreshKey={explorerRefreshKey} />
+            <ProjectExplorer onFormSelect={handleFormSelect} onPublishAll={handlePublishAll} refreshKey={explorerRefreshKey} />
           </div>
           <div style={{ flex: '0 0 auto', maxHeight: '35%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
             <ElementList />
