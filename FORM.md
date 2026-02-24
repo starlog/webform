@@ -50,17 +50,20 @@ Authorization: Bearer <token>
 
 ```jsonc
 {
-  "title": "폼 제목",
-  "width": 800,                    // 숫자 (px)
-  "height": 600,                   // 숫자 (px)
-  "backgroundColor": "#F5F5F5",    // CSS 색상
-  "font": { /* FontDefinition */ },
+  "title": "폼 제목",              // 문자열 (기본값 "")
+  "width": 800,                    // 숫자 (px, 기본값 800)
+  "height": 600,                   // 숫자 (px, 기본값 600)
+  "backgroundColor": "#FFFFFF",    // CSS 색상 (기본값 "#FFFFFF")
+  "font": { /* FontDefinition */ },// 기본값: family "Segoe UI", size 9
   "startPosition": "CenterScreen", // "CenterScreen" | "Manual" | "CenterParent"
   "formBorderStyle": "Sizable",    // "None" | "FixedSingle" | "Fixed3D" | "Sizable"
   "maximizeBox": true,             // boolean
-  "minimizeBox": true              // boolean
+  "minimizeBox": true,             // boolean
+  "windowState": "Normal"          // "Normal" | "Maximized" (선택, 기본값 "Normal")
 }
 ```
+
+> **`windowState`**: `"Normal"`이면 기존 고정 크기 폼으로 렌더링된다. `"Maximized"`이면 타이틀바가 숨겨지고, 폼이 부모 영역(Shell의 FormArea 등)을 100% 채우며, border/shadow가 제거된다.
 
 ---
 
@@ -70,8 +73,8 @@ Authorization: Bearer <token>
 
 ```jsonc
 {
-  "family": "Pretendard",   // 폰트 이름 (문자열)
-  "size": 10,               // 폰트 크기 (숫자)
+  "family": "Segoe UI",     // 폰트 이름 (문자열, 기본값 "Segoe UI")
+  "size": 9,                // 폰트 크기 (숫자, 기본값 9)
   "bold": false,             // boolean
   "italic": false,           // boolean
   "underline": false,        // boolean
@@ -103,6 +106,8 @@ Authorization: Bearer <token>
 ```
 
 > **id와 name**: 보통 같은 값을 사용한다. `id`는 시스템 식별자, `name`은 이벤트 핸들러에서 `ctx.controls.<name>`으로 접근할 때 사용된다.
+
+> **`children` 지원 컨트롤**: `children` 배열은 컨테이너 타입에서만 사용한다: **Panel**, **GroupBox**, **TabControl** (자식은 tabId가 있는 Panel), **SplitContainer** (자식은 정확히 Panel 2개). 다른 컨트롤에는 `children`을 넣지 않는다.
 
 ---
 
@@ -258,7 +263,7 @@ Authorization: Bearer <token>
 
 ```jsonc
 {
-  "value": "2026-01-01",       // 날짜 값 (문자열)
+  "value": "2026-01-01",       // 날짜 값 (문자열, 선택 — 생략 시 현재 날짜)
   "format": "Short",           // "Short"|"Long"|"Time"|"Custom"
   "backColor": "#FFFFFF",
   "foreColor": "#000000",
@@ -788,7 +793,7 @@ ctx.navigate("targetFormId", { userId: 123 });
 
 ### ctx.close(dialogResult)
 
-현재 폼(다이얼로그)을 닫는다.
+> **미구현**: 현재 버전에서는 사용할 수 없다. 향후 다이얼로그 모드에서 지원 예정.
 
 ```javascript
 ctx.close("OK");
@@ -842,6 +847,66 @@ var buttonText = ctx.sender.text;
 ```javascript
 var eventType = ctx.eventArgs.type;
 ```
+
+### Shell 모드 전용 ctx API
+
+Application Shell 내에서 실행되는 이벤트 핸들러에서만 사용 가능한 API이다.
+
+#### ctx.currentFormId
+
+Shell 내에서 현재 활성화된 폼의 ID (문자열).
+
+```javascript
+var formId = ctx.currentFormId;
+```
+
+#### ctx.params
+
+현재 폼으로 네비게이션할 때 전달된 파라미터 객체.
+
+```javascript
+var userId = ctx.params.userId;
+var mode = ctx.params.mode;
+```
+
+#### ctx.appState
+
+Application Shell 전역 상태 객체. Shell 내 모든 폼에서 공유되며, 읽기/쓰기 가능하다. 이벤트 실행 후 변경된 appState가 클라이언트에 반영된다.
+
+```javascript
+// 읽기
+var token = ctx.appState.authToken;
+
+// 쓰기
+ctx.appState.authToken = "abc123";
+ctx.appState.userName = "홍길동";
+```
+
+#### ctx.navigateBack()
+
+Shell 내 네비게이션 히스토리에서 이전 폼으로 돌아간다.
+
+```javascript
+ctx.navigateBack();
+```
+
+#### ctx.navigateReplace(formId, params)
+
+현재 폼을 새 폼으로 교체한다. 히스토리에 기록을 남기지 않는다 (뒤로 가기 불가).
+
+```javascript
+ctx.navigateReplace("dashboardFormId", { refresh: true });
+```
+
+#### ctx.closeApp()
+
+Application Shell을 종료한다.
+
+```javascript
+ctx.closeApp();
+```
+
+---
 
 ### console
 
@@ -1049,7 +1114,7 @@ console.info("정보 메시지");
         "width": 500,
         "height": 350,
         "backgroundColor": "#FAFAFA",
-        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "font": { "family": "Segoe UI", "size": 9, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
@@ -1129,7 +1194,7 @@ console.info("정보 메시지");
         "width": 600,
         "height": 450,
         "backgroundColor": "#F5F5F5",
-        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "font": { "family": "Segoe UI", "size": 9, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
@@ -1232,7 +1297,7 @@ console.info("정보 메시지");
         "width": 700,
         "height": 500,
         "backgroundColor": "#FAFAFA",
-        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "font": { "family": "Segoe UI", "size": 9, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
@@ -1387,7 +1452,7 @@ AI가 폼 JSON을 생성할 때 확인해야 할 항목:
 - [ ] **handlerType**: `"server"`로 설정했는가?
 - [ ] **TabControl 패턴**: TabControl 사용 시 `properties.tabs[].id`와 자식 Panel의 `properties.tabId`가 매칭되는가?
 - [ ] **DataGridView columns**: `field`/`headerText` 형식을 사용했는가?
-- [ ] **FormProperties 완전성**: `title`, `width`, `height`, `backgroundColor`, `font`, `startPosition`, `formBorderStyle`, `maximizeBox`, `minimizeBox`를 모두 명시했는가?
+- [ ] **FormProperties 완전성**: `title`, `width`, `height`, `backgroundColor`, `font`, `startPosition`, `formBorderStyle`, `maximizeBox`, `minimizeBox`를 모두 명시했는가? Shell 내 전체 채움 폼이면 `windowState: "Maximized"`를 설정했는가?
 - [ ] **FontDefinition 완전성**: font 객체에 `family`, `size`, `bold`, `italic`, `underline`, `strikethrough` 6개 필드가 모두 있는가?
 - [ ] **JSON 유효성**: 유효한 JSON인가? (trailing comma 없음, 문자열 내 줄바꿈은 `\n` 사용)
 
@@ -1446,3 +1511,65 @@ claude -p "FORM.md를 참조하여 로그인 폼 JSON을 만들어줘" | ./form-
 
 - **stderr**: 진행 로그 (색상 포함)
 - **stdout**: 서버 응답 JSON (파이프라인 연동용)
+
+---
+
+## 16. Application Shell
+
+Application Shell은 프로젝트 단위의 최상위 컨테이너이다. MenuStrip, ToolStrip, StatusStrip 등 앱 수준 UI를 포함하며, 그 안의 FormArea에서 폼들이 네비게이션된다. 프로젝트당 하나의 Shell이 존재한다.
+
+### ShellProperties
+
+```jsonc
+{
+  "title": "Application",         // Shell 타이틀 (문자열)
+  "width": 1200,                  // 숫자 (px)
+  "height": 800,                  // 숫자 (px)
+  "backgroundColor": "#F0F0F0",   // CSS 색상
+  "font": { /* FontDefinition */ },
+  "showTitleBar": true,           // 타이틀바 표시 여부 (boolean)
+  "formBorderStyle": "Sizable",   // "None" | "FixedSingle" | "Fixed3D" | "Sizable"
+  "maximizeBox": true,            // boolean
+  "minimizeBox": true             // boolean
+}
+```
+
+> **FormProperties와의 차이**: Shell에는 `startPosition`이 없고, `showTitleBar`가 추가된다.
+
+### ApplicationShellDefinition
+
+```jsonc
+{
+  "id": "자동생성",
+  "projectId": "프로젝트ID",
+  "name": "Application Shell",
+  "version": 1,
+  "properties": { /* ShellProperties */ },
+  "controls": [ /* ControlDefinition[] — MenuStrip, ToolStrip, StatusStrip 등 */ ],
+  "eventHandlers": [ /* EventHandlerDefinition[] */ ],
+  "startFormId": "초기 폼 ID"     // Shell 로드 시 처음 표시할 폼 (선택)
+}
+```
+
+### SHELL_EVENTS (3개)
+
+```
+Load, FormChanged, BeforeFormChange
+```
+
+| 이벤트 | 설명 |
+|--------|------|
+| `Load` | Shell이 처음 로드될 때 발생 |
+| `FormChanged` | Shell 내에서 폼 네비게이션이 완료된 후 발생 |
+| `BeforeFormChange` | 폼 네비게이션 직전에 발생 |
+
+### Shell과 폼의 WindowState 관계
+
+Shell 내에서 폼이 렌더링될 때, `windowState` 속성에 따라 동작이 달라진다:
+
+| WindowState | 타이틀바 | 크기 | Border/Shadow |
+|-------------|---------|------|---------------|
+| `"Normal"` (기본) | 기존 규칙 따름 | 고정 width/height | 있음 |
+| `"Maximized"` | 숨김 | Shell FormArea 100% 채움 | 없음 |
+
+> Shell 내에서 전체 화면 폼을 만들려면 `"windowState": "Maximized"`를 설정한다. 이 경우 폼 `width`/`height`는 무시되고 Shell의 FormArea 크기에 맞춰 자동 조절된다.
