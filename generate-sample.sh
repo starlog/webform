@@ -244,6 +244,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -597,6 +598,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#FAFAFA",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -962,6 +964,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -1103,6 +1106,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -1395,6 +1399,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -1482,6 +1487,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -1612,6 +1618,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -1764,6 +1771,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -1909,6 +1917,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -2171,6 +2180,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -2326,6 +2336,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -2512,6 +2523,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -2689,6 +2701,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true
@@ -2869,6 +2882,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         "backgroundColor": "#F5F5F5",
         "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
         "startPosition": "CenterScreen",
+        "windowState": "Maximized",
         "formBorderStyle": "Sizable",
         "maximizeBox": true,
         "minimizeBox": true

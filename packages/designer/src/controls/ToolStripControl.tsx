@@ -11,13 +11,13 @@ interface ToolStripItem {
 }
 
 const DEFAULT_ITEMS: ToolStripItem[] = [
-  { type: 'button', text: 'New', icon: '📄' },
-  { type: 'button', text: 'Open', icon: '📂' },
-  { type: 'button', text: 'Save', icon: '💾' },
+  { type: 'button', text: '새로 만들기', icon: '📄' },
+  { type: 'button', text: '열기', icon: '📂' },
+  { type: 'button', text: '저장', icon: '💾' },
   { type: 'separator' },
-  { type: 'button', text: 'Cut', icon: '✂' },
-  { type: 'button', text: 'Copy', icon: '📋' },
-  { type: 'button', text: 'Paste', icon: '📌' },
+  { type: 'button', text: '잘라내기', icon: '✂' },
+  { type: 'button', text: '복사', icon: '📋' },
+  { type: 'button', text: '붙여넣기', icon: '📌' },
 ];
 
 export function ToolStripControl({ properties, size }: DesignerControlProps) {

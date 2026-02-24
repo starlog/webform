@@ -202,29 +202,29 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
       };
     case 'StatusStrip':
       return {
-        items: [{ type: 'label', text: 'Ready', spring: true }],
+        items: [{ type: 'label', text: '준비', spring: true }],
         backColor: '#F0F0F0',
       };
     case 'ToolStrip':
       return {
         items: [
-          { type: 'button', text: 'New', icon: '📄' },
-          { type: 'button', text: 'Open', icon: '📂' },
-          { type: 'button', text: 'Save', icon: '💾' },
+          { type: 'button', text: '새로 만들기', icon: '📄' },
+          { type: 'button', text: '열기', icon: '📂' },
+          { type: 'button', text: '저장', icon: '💾' },
           { type: 'separator' },
-          { type: 'button', text: 'Cut', icon: '✂' },
-          { type: 'button', text: 'Copy', icon: '📋' },
-          { type: 'button', text: 'Paste', icon: '📌' },
+          { type: 'button', text: '잘라내기', icon: '✂' },
+          { type: 'button', text: '복사', icon: '📋' },
+          { type: 'button', text: '붙여넣기', icon: '📌' },
         ],
         backColor: '#F0F0F0',
       };
     case 'MenuStrip':
       return {
         items: [
-          { text: 'File', children: [{ text: 'New', shortcut: 'Ctrl+N' }, { text: 'Open', shortcut: 'Ctrl+O' }, { text: 'Save', shortcut: 'Ctrl+S' }, { text: '', separator: true }, { text: 'Exit' }] },
-          { text: 'Edit', children: [{ text: 'Undo', shortcut: 'Ctrl+Z' }, { text: 'Redo', shortcut: 'Ctrl+Y' }, { text: '', separator: true }, { text: 'Cut', shortcut: 'Ctrl+X' }, { text: 'Copy', shortcut: 'Ctrl+C' }, { text: 'Paste', shortcut: 'Ctrl+V' }] },
-          { text: 'View' },
-          { text: 'Help' },
+          { text: '파일', children: [{ text: '새로 만들기', shortcut: 'Ctrl+N' }, { text: '열기', shortcut: 'Ctrl+O' }, { text: '저장', shortcut: 'Ctrl+S' }, { text: '', separator: true }, { text: '끝내기' }] },
+          { text: '편집', children: [{ text: '실행 취소', shortcut: 'Ctrl+Z' }, { text: '다시 실행', shortcut: 'Ctrl+Y' }, { text: '', separator: true }, { text: '잘라내기', shortcut: 'Ctrl+X' }, { text: '복사', shortcut: 'Ctrl+C' }, { text: '붙여넣기', shortcut: 'Ctrl+V' }] },
+          { text: '보기' },
+          { text: '도움말' },
         ],
       };
     case 'RichTextBox':

@@ -11,10 +11,10 @@ interface MenuItem {
 }
 
 const DEFAULT_ITEMS: MenuItem[] = [
-  { text: 'File', children: [{ text: 'New' }, { text: 'Open' }, { text: 'Save' }, { text: '', separator: true }, { text: 'Exit' }] },
-  { text: 'Edit', children: [{ text: 'Undo' }, { text: 'Redo' }, { text: '', separator: true }, { text: 'Cut' }, { text: 'Copy' }, { text: 'Paste' }] },
-  { text: 'View' },
-  { text: 'Help' },
+  { text: '파일', children: [{ text: '새로 만들기' }, { text: '열기' }, { text: '저장' }, { text: '', separator: true }, { text: '끝내기' }] },
+  { text: '편집', children: [{ text: '실행 취소' }, { text: '다시 실행' }, { text: '', separator: true }, { text: '잘라내기' }, { text: '복사' }, { text: '붙여넣기' }] },
+  { text: '보기' },
+  { text: '도움말' },
 ];
 
 export function MenuStripControl({ properties, size }: DesignerControlProps) {

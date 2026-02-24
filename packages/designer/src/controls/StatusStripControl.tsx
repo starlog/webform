@@ -9,7 +9,7 @@ interface StatusStripItem {
 }
 
 const DEFAULT_ITEMS: StatusStripItem[] = [
-  { type: 'label', text: 'Ready', spring: true },
+  { type: 'label', text: '준비', spring: true },
 ];
 
 export function StatusStripControl({ properties, size }: DesignerControlProps) {
