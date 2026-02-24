@@ -153,11 +153,13 @@ function LegacyFormApp({ formId: initialFormId }: { formId: string | null }) {
     );
   }
 
+  const isMaximized = formDefinition.properties.windowState === 'Maximized';
+
   return (
-    <>
+    <div style={isMaximized ? { width: '100vw', height: '100vh' } : undefined}>
       <SDUIRenderer formDefinition={formDefinition} />
       <MessageDialog />
-    </>
+    </div>
   );
 }
 
