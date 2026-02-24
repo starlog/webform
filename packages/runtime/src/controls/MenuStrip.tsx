@@ -9,6 +9,7 @@ interface MenuItem {
   enabled?: boolean;
   checked?: boolean;
   separator?: boolean;
+  formId?: string;
 }
 
 interface MenuStripProps {
@@ -269,8 +270,12 @@ export function MenuStrip({
       updateControlState(id, 'clickedItem', {
         text: item.text,
         shortcut: item.shortcut,
+        formId: item.formId,
         path: [topIndex, ...path],
       });
+      if (item.formId) {
+        useRuntimeStore.getState().requestNavigate(item.formId);
+      }
       onItemClicked?.();
     },
     [id, updateControlState, onItemClicked],

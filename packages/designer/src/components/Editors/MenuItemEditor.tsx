@@ -7,6 +7,7 @@ interface MenuItemData {
   enabled: boolean;
   checked: boolean;
   separator: boolean;
+  formId?: string;
   children?: MenuItemData[];
 }
 
@@ -28,6 +29,7 @@ function normalizeMenuItems(raw: unknown[]): MenuItemData[] {
         enabled: obj.enabled !== false,
         checked: obj.checked === true,
         separator: obj.separator === true,
+        formId: obj.formId as string | undefined,
         children: Array.isArray(obj.children)
           ? normalizeMenuItems(obj.children)
           : undefined,
@@ -53,6 +55,7 @@ function denormalizeMenuItems(
     if (!item.enabled) result.enabled = false;
     if (item.checked) result.checked = true;
     if (item.separator) result.separator = true;
+    if (item.formId) result.formId = item.formId;
     if (item.children && item.children.length > 0) {
       result.children = denormalizeMenuItems(item.children);
     }
@@ -468,6 +471,20 @@ function MenuItemModal({
                       onChange={(e) =>
                         handlePropertyChange('separator', e.target.checked)
                       }
+                    />
+                  </PropRow>
+                  <PropRow label="formId">
+                    <input
+                      type="text"
+                      value={selectedItem.formId ?? ''}
+                      onChange={(e) =>
+                        handlePropertyChange(
+                          'formId',
+                          e.target.value || undefined,
+                        )
+                      }
+                      placeholder="Form ID to navigate"
+                      style={inputStyle}
                     />
                   </PropRow>
                 </>

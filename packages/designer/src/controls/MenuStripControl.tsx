@@ -7,6 +7,7 @@ interface MenuItem {
   enabled?: boolean;
   checked?: boolean;
   separator?: boolean;
+  formId?: string;
 }
 
 const DEFAULT_ITEMS: MenuItem[] = [
