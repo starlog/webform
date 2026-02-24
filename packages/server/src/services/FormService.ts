@@ -139,4 +139,40 @@ export class FormService {
 
     return form.toObject() as FormDocument;
   }
+
+  async publishAllByProject(
+    projectId: string,
+    userId: string,
+  ): Promise<{ publishedCount: number; skippedCount: number; totalCount: number }> {
+    const forms = await Form.find(
+      { projectId, deletedAt: null },
+      { _id: 1, status: 1, version: 1 },
+    ).lean<Pick<FormDocument, '_id' | 'status' | 'version'>[]>();
+
+    const draftForms = forms.filter((f) => f.status === 'draft');
+    const skippedCount = forms.length - draftForms.length;
+
+    if (draftForms.length > 0) {
+      await Form.bulkWrite(
+        draftForms.map((f) => ({
+          updateOne: {
+            filter: { _id: f._id },
+            update: {
+              $set: {
+                status: 'published' as const,
+                publishedVersion: f.version,
+                updatedBy: userId,
+              },
+            },
+          },
+        })),
+      );
+    }
+
+    return {
+      publishedCount: draftForms.length,
+      skippedCount,
+      totalCount: forms.length,
+    };
+  }
 }
