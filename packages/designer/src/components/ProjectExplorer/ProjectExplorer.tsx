@@ -7,6 +7,7 @@ import { FontPicker } from '../PropertyPanel/editors/FontPicker';
 
 interface ProjectExplorerProps {
   onFormSelect: (formId: string) => void;
+  onPublishAll?: (projectId: string) => void;
   refreshKey?: number;
 }
 
@@ -24,7 +25,7 @@ interface ContextMenu {
   projectId: string;
 }
 
-export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerProps) {
+export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: ProjectExplorerProps) {
   const [projects, setProjects] = useState<ProjectWithForms[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -182,6 +183,32 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
     }
   };
 
+  const handlePublishAll = async (projectId: string) => {
+    try {
+      const { data: result } = await apiService.publishAll(projectId);
+      const { forms, shell } = result;
+
+      // 트리 새로고침 (폼 status 변경 반영)
+      await loadProjects();
+
+      // App.tsx에 알림 (formStatus 업데이트 등)
+      onPublishAll?.(projectId);
+
+      // 결과 메시지
+      let msg = `${forms.publishedCount}개 폼 퍼블리시 완료`;
+      if (forms.skippedCount > 0) {
+        msg += ` (${forms.skippedCount}개 스킵)`;
+      }
+      if (shell.published) {
+        msg += '\nShell 퍼블리시 완료';
+      }
+      alert(msg);
+    } catch (error) {
+      console.error('Failed to publish all:', error);
+      alert('전체 퍼블리시에 실패했습니다.');
+    }
+  };
+
   const handleNewProject = async () => {
     const name = prompt('새 프로젝트 이름:');
     if (!name) return;
@@ -335,6 +362,7 @@ export function ProjectExplorer({ onFormSelect, refreshKey }: ProjectExplorerPro
         const projName = proj?.project.name ?? '';
         return [
           { label: '새 폼', action: () => handleNewForm(contextMenu.projectId) },
+          { label: 'Publish All', action: () => handlePublishAll(contextMenu.projectId) },
           { label: '기본 폰트 설정', action: () => handleOpenDefaultFontDialog(contextMenu.projectId, projName) },
           { label: '폰트 일괄 적용', action: () => handleOpenFontDialog(contextMenu.projectId, projName) },
           { label: '내보내기', action: () => handleExportProject(contextMenu.projectId) },
