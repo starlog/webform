@@ -190,7 +190,7 @@
       "description": "POST /api/projects/:id/publish-all 엔드포인트 통합 테스트 작성 및 실행",
       "phase": "phase2-api",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "당신은 WebForm 프로젝트의 QA 엔지니어입니다. `POST /api/projects/:id/publish-all` 엔드포인트에 대한 통합 테스트를 작성하고 실행하세요.\n\n## 테스트 파일\n`packages/server/src/__tests__/projects.publishAll.integration.test.ts`\n\n## 테스트 케이스 (필수)\n1. **정상 퍼블리시**: draft 폼이 있는 프로젝트에 POST 요청 → 200 응답, data.forms.publishedCount > 0\n2. **빈 프로젝트**: 폼 없는 프로젝트에 POST 요청 → 200 응답, data.forms.totalCount: 0\n3. **존재하지 않는 프로젝트**: → 404 응답\n4. **인증 없는 요청**: → 401 응답\n5. **응답 형식 검증**: data.forms와 data.shell 필드 존재 및 올바른 타입 확인\n\n## 구현 지침\n- `packages/server/src/__tests__/` 디렉토리의 기존 통합 테스트 파일 패턴 먼저 확인\n- supertest를 활용한 HTTP 요청 테스트\n- 각 테스트 전 DB 초기화\n- 테스트 실행: `pnpm --filter @webform/server test`\n- 실패 시 `packages/server/src/routes/projects.ts` 또는 서비스 코드 수정하여 모든 테스트 통과 확인",
       "dependsOn": [
         "server-api-route-impl"
