@@ -4,11 +4,13 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import swaggerUi from 'swagger-ui-express';
 import { requestId } from './middleware/requestId.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { apiRouter } from './routes/index.js';
 import { getRedis } from './db/redis.js';
 import { env } from './config/index.js';
+import { swaggerDocument } from './swagger.js';
 
 export function createApp() {
   const app = express();
@@ -22,6 +24,9 @@ export function createApp() {
   }));
   app.use(express.json({ limit: '5mb' }));
   app.use(morgan('short'));
+
+  // --- Swagger UI (인증 불필요) ---
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   // --- 헬스체크 (인증 불필요) ---
   app.get('/health', async (_req, res) => {
