@@ -1,7 +1,11 @@
 import type { CSSProperties } from 'react';
 import type { ControlDefinition, FontDefinition, DockStyle } from '@webform/common';
 
-export function computeDockStyle(dock: DockStyle, size: { width: number; height: number }): CSSProperties {
+export function computeDockStyle(
+  dock: DockStyle,
+  size: { width: number; height: number },
+  position?: { x: number; y: number },
+): CSSProperties {
   switch (dock) {
     case 'Top':
       return { width: '100%', height: size.height, flexShrink: 0 };
@@ -12,7 +16,13 @@ export function computeDockStyle(dock: DockStyle, size: { width: number; height:
     case 'Right':
       return { width: size.width, height: '100%', flexShrink: 0 };
     case 'Fill':
-      return { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 };
+      return {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      };
     default:
       return {};
   }
@@ -58,7 +68,7 @@ export function computeAnchorStyle(
 export function computeLayoutStyle(def: ControlDefinition): CSSProperties {
   // Dock takes priority over absolute positioning
   if (def.dock !== 'None') {
-    return computeDockStyle(def.dock, def.size);
+    return computeDockStyle(def.dock, def.size, def.position);
   }
 
   // Default: absolute positioning
