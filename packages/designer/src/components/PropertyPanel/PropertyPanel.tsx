@@ -56,10 +56,29 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     return controls.find((c) => c.id === id) ?? null;
   }, [selectedIds, controls]);
 
+  // 다중 선택된 컨트롤 목록
+  const selectedControls = useMemo(() => {
+    if (selectedIds.size < 2) return [];
+    return controls.filter((c) => selectedIds.has(c.id));
+  }, [selectedIds, controls]);
+
   const propertyMetas = useMemo(() => {
     if (!selectedControl) return [];
     return getPropertyMeta(selectedControl.type);
   }, [selectedControl]);
+
+  // 다중 선택 시 공통 속성 메타 (교집합)
+  const multiPropertyMetas = useMemo(() => {
+    if (selectedControls.length < 2) return [];
+    const metaArrays = selectedControls.map((c) => getPropertyMeta(c.type));
+    const firstNames = new Set(metaArrays[0].map((m) => m.name));
+    const commonNames = new Set(
+      [...firstNames].filter((name) =>
+        metaArrays.every((metas) => metas.some((m) => m.name === name)),
+      ),
+    );
+    return metaArrays[0].filter((m) => commonNames.has(m.name));
+  }, [selectedControls]);
 
   const events = useMemo(() => {
     if (!selectedControl) return [];
@@ -76,46 +95,77 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     return handlers;
   }, [selectedControl]);
 
-  // 중첩 속성 값 읽기: 'position.x', 'properties.text' 등
-  const getValue = useCallback((name: string): unknown => {
-    if (!selectedControl) return undefined;
+  // 중첩 속성 값 읽기 헬퍼
+  const resolveValue = useCallback((ctrl: ControlDefinition, name: string): unknown => {
     const parts = name.split('.');
-    let current: unknown = selectedControl;
+    let current: unknown = ctrl;
     for (const part of parts) {
       if (current == null || typeof current !== 'object') return undefined;
       current = (current as Record<string, unknown>)[part];
     }
     return current;
-  }, [selectedControl]);
+  }, []);
 
-  // 속성 변경 핸들러
+  // 중첩 속성 값 읽기: 'position.x', 'properties.text' 등
+  const getValue = useCallback((name: string): unknown => {
+    if (!selectedControl) return undefined;
+    return resolveValue(selectedControl, name);
+  }, [selectedControl, resolveValue]);
+
+  // 다중 선택 시 공통 값 읽기 (모두 같으면 그 값, 다르면 undefined)
+  const getMultiValue = useCallback((name: string): unknown => {
+    if (selectedControls.length === 0) return undefined;
+    const first = resolveValue(selectedControls[0], name);
+    const firstJson = JSON.stringify(first);
+    for (let i = 1; i < selectedControls.length; i++) {
+      const v = resolveValue(selectedControls[i], name);
+      if (JSON.stringify(v) !== firstJson) return undefined;
+    }
+    return first;
+  }, [selectedControls, resolveValue]);
+
+  // 컨트롤 하나에 속성 변경 적용하는 헬퍼
+  const applyValueToControl = useCallback((ctrl: ControlDefinition, name: string, value: unknown) => {
+    const parts = name.split('.');
+    if (parts[0] === 'position' && parts.length === 2) {
+      const pos = { ...ctrl.position, [parts[1]]: value };
+      updateControl(ctrl.id, { position: pos });
+    } else if (parts[0] === 'size' && parts.length === 2) {
+      const size = { ...ctrl.size, [parts[1]]: value };
+      updateControl(ctrl.id, { size });
+    } else if (parts[0] === 'properties' && parts.length === 2) {
+      const props = { ...ctrl.properties, [parts[1]]: value };
+      updateControl(ctrl.id, { properties: props });
+    } else if (parts[0] === 'anchor') {
+      updateControl(ctrl.id, { anchor: value as ControlDefinition['anchor'] });
+    } else if (parts[0] === 'dock') {
+      updateControl(ctrl.id, { dock: value as ControlDefinition['dock'] });
+    } else {
+      updateControl(ctrl.id, { [name]: value } as Partial<ControlDefinition>);
+    }
+  }, [updateControl]);
+
+  // 속성 변경 핸들러 (단일 선택)
   const handleValueChange = useCallback((name: string, value: unknown) => {
     if (!selectedControl) return;
 
-    // 히스토리 스냅샷
     const allControls = useDesignerStore.getState().controls;
     pushSnapshot(JSON.stringify(allControls));
 
-    const parts = name.split('.');
+    applyValueToControl(selectedControl, name, value);
+  }, [selectedControl, pushSnapshot, applyValueToControl]);
 
-    if (parts[0] === 'position' && parts.length === 2) {
-      const pos = { ...selectedControl.position, [parts[1]]: value };
-      updateControl(selectedControl.id, { position: pos });
-    } else if (parts[0] === 'size' && parts.length === 2) {
-      const size = { ...selectedControl.size, [parts[1]]: value };
-      updateControl(selectedControl.id, { size });
-    } else if (parts[0] === 'properties' && parts.length === 2) {
-      const props = { ...selectedControl.properties, [parts[1]]: value };
-      updateControl(selectedControl.id, { properties: props });
-    } else if (parts[0] === 'anchor') {
-      updateControl(selectedControl.id, { anchor: value as ControlDefinition['anchor'] });
-    } else if (parts[0] === 'dock') {
-      updateControl(selectedControl.id, { dock: value as ControlDefinition['dock'] });
-    } else {
-      // 최상위 속성 (name, enabled, visible, tabIndex)
-      updateControl(selectedControl.id, { [name]: value } as Partial<ControlDefinition>);
+  // 다중 선택 속성 변경 핸들러
+  const handleMultiValueChange = useCallback((name: string, value: unknown) => {
+    if (selectedControls.length === 0) return;
+
+    const allControls = useDesignerStore.getState().controls;
+    pushSnapshot(JSON.stringify(allControls));
+
+    for (const ctrl of selectedControls) {
+      applyValueToControl(ctrl, name, value);
     }
-  }, [selectedControl, updateControl, pushSnapshot]);
+  }, [selectedControls, pushSnapshot, applyValueToControl]);
 
   // 이벤트 핸들러 이름 변경
   const handleEventHandlerChange = useCallback((eventName: string, handlerName: string) => {
@@ -183,6 +233,27 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       .filter((cat) => groups.has(cat))
       .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
   }, [propertyMetas, sortMode]);
+
+  // 다중 선택 카테고리별 그룹화
+  const multiGroupedProperties = useMemo(() => {
+    if (sortMode === 'alphabetical') {
+      const sorted = [...multiPropertyMetas].sort((a, b) => a.label.localeCompare(b.label));
+      return [{ category: 'All', properties: sorted }];
+    }
+
+    const categoryOrder: PropertyCategoryName[] = ['Design', 'Appearance', 'Behavior', 'Data', 'Sample', 'Layout'];
+    const groups = new Map<string, PropertyMeta[]>();
+
+    for (const meta of multiPropertyMetas) {
+      const list = groups.get(meta.category) ?? [];
+      list.push(meta);
+      groups.set(meta.category, list);
+    }
+
+    return categoryOrder
+      .filter((cat) => groups.has(cat))
+      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
+  }, [multiPropertyMetas, sortMode]);
 
   // --- 폼 속성 getValue / handleValueChange ---
   const getFormValue = useCallback((name: string): unknown => {
@@ -476,11 +547,47 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     );
   }
 
-  // 다중 선택
-  if (selectedIds.size > 1) {
+  // 다중 선택 → 공통 속성 표시
+  if (selectedIds.size > 1 && selectedControls.length > 1) {
+    const typeSet = new Set(selectedControls.map((c) => c.type));
+    const typeLabel = typeSet.size === 1 ? String([...typeSet][0]) : 'Mixed';
     return (
-      <div style={{ padding: 8, fontSize: 12, color: '#666' }}>
-        {selectedIds.size} controls selected.
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ padding: '4px 6px', borderBottom: '1px solid #ccc', fontSize: 12, fontWeight: 600 }}>
+          {selectedControls.length} controls ({typeLabel})
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
+          <TabButton label="Properties" icon="☰" active={true} onClick={() => {}} />
+          <div style={{ flex: 1 }} />
+          <button
+            type="button"
+            onClick={() => setSortMode(sortMode === 'category' ? 'alphabetical' : 'category')}
+            title={sortMode === 'category' ? 'Sort alphabetically' : 'Sort by category'}
+            style={{
+              padding: '2px 4px',
+              margin: '0 4px',
+              border: '1px solid #ccc',
+              background: '#f5f5f5',
+              fontSize: 11,
+              cursor: 'pointer',
+            }}
+          >
+            {sortMode === 'category' ? 'A-Z' : '☰'}
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {multiGroupedProperties.map(({ category, properties }) => (
+            <PropertyCategory
+              key={category}
+              category={category}
+              properties={properties}
+              getValue={getMultiValue}
+              onValueChange={handleMultiValueChange}
+            />
+          ))}
+        </div>
       </div>
     );
   }

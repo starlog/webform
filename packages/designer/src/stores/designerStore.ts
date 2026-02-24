@@ -72,6 +72,7 @@ interface DesignerState {
   removeControl: (id: string) => void;
   removeControls: (ids: string[]) => void;
   moveControl: (id: string, position: { x: number; y: number }) => void;
+  moveControls: (moves: Array<{ id: string; position: { x: number; y: number } }>) => void;
   resizeControl: (id: string, size: { width: number; height: number }, position?: { x: number; y: number }) => void;
   bringToFront: (id: string) => void;
   sendToBack: (id: string) => void;
@@ -342,6 +343,14 @@ export const useDesignerStore = create<DesignerState>()(
         control.position = position;
         state.isDirty = true;
       }
+    }),
+
+    moveControls: (moves) => set((state) => {
+      for (const { id, position } of moves) {
+        const control = state.controls.find((c) => c.id === id);
+        if (control) control.position = position;
+      }
+      state.isDirty = true;
     }),
 
     resizeControl: (id, size, position) => set((state) => {

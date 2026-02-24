@@ -12,15 +12,14 @@ interface ColumnDefinition {
 const styles = {
   container: {
     border: '1px solid #a0a0a0',
-    overflow: 'hidden',
+    overflow: 'auto',
     backgroundColor: '#ffffff',
     fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
     fontSize: '12px',
   } as CSSProperties,
   table: {
-    width: '100%',
+    minWidth: '100%',
     borderCollapse: 'collapse' as const,
-    tableLayout: 'fixed' as const,
   } as CSSProperties,
   headerCell: {
     backgroundColor: '#e0e0e0',

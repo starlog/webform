@@ -68,15 +68,32 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
     e.stopPropagation();
     e.preventDefault();
 
+    const hasModifier = e.ctrlKey || e.metaKey || e.shiftKey;
     const startX = e.clientX;
     const startY = e.clientY;
     let moved = false;
 
-    const { controls, gridSize, moveControl } = useDesignerStore.getState();
-    const ctrl = controls.find((c) => c.id === control.id);
-    if (!ctrl) return;
+    const { controls, gridSize, moveControls } = useDesignerStore.getState();
+    const { selectedIds } = useSelectionStore.getState();
+    const alreadySelected = selectedIds.has(control.id);
 
-    const startPos = { ...ctrl.position };
+    // mousedown 시 선택 상태 결정
+    if (!alreadySelected && hasModifier) {
+      // 미선택 컨트롤 + modifier → 선택에 추가
+      toggleSelect(control.id);
+    } else if (!alreadySelected && !hasModifier) {
+      // 미선택 컨트롤 + modifier 없음 → 단일 선택으로 교체
+      select(control.id);
+    }
+    // 이미 선택된 컨트롤 → 선택 유지 (다중 드래그 준비)
+
+    // 드래그 시작 시점의 선택된 컨트롤 ID와 시작 위치 기록
+    const dragSelectedIds = Array.from(useSelectionStore.getState().selectedIds);
+    const startPositions = new Map<string, { x: number; y: number }>();
+    for (const id of dragSelectedIds) {
+      const ctrl = controls.find((c) => c.id === id);
+      if (ctrl) startPositions.set(id, { ...ctrl.position });
+    }
 
     // 변경 전 스냅샷 저장
     const snapshot = JSON.stringify(controls);
@@ -92,19 +109,37 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
       }
 
       if (moved) {
-        const newPos = snapPositionToGrid(
-          { x: startPos.x + deltaX, y: startPos.y + deltaY },
+        // 드래그 중인 컨트롤(mousedown 대상) 기준으로 스냅 위치 계산
+        const primaryStart = startPositions.get(control.id);
+        if (!primaryStart) return;
+        const snappedPos = snapPositionToGrid(
+          { x: primaryStart.x + deltaX, y: primaryStart.y + deltaY },
           gridSize,
         );
-        moveControl(control.id, newPos);
+        const snappedDeltaX = snappedPos.x - primaryStart.x;
+        const snappedDeltaY = snappedPos.y - primaryStart.y;
 
-        // 스냅라인 계산
+        // 모든 선택된 컨트롤에 동일한 delta 적용
+        const moves = dragSelectedIds
+          .filter((id) => startPositions.has(id))
+          .map((id) => ({
+            id,
+            position: {
+              x: startPositions.get(id)!.x + snappedDeltaX,
+              y: startPositions.get(id)!.y + snappedDeltaY,
+            },
+          }));
+        moveControls(moves);
+
+        // 스냅라인은 드래그 중인 컨트롤 기준으로 계산
         const currentControls = useDesignerStore.getState().controls;
         const movingCtrl = currentControls.find((c) => c.id === control.id);
         if (movingCtrl) {
-          const others = currentControls.filter((c) => c.id !== control.id);
+          const others = currentControls.filter(
+            (c) => !dragSelectedIds.includes(c.id),
+          );
           const lines = getSnaplines(
-            { position: newPos, size: movingCtrl.size },
+            { position: snappedPos, size: movingCtrl.size },
             others,
           );
           onSnaplineChange(lines);
@@ -118,10 +153,12 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
       onSnaplineChange([]);
 
       if (!moved) {
-        // 이동하지 않았으면 선택 처리
-        if (e.ctrlKey || e.metaKey) {
+        // 이동하지 않았으면 mouseup에서 선택 처리
+        if (hasModifier && alreadySelected) {
+          // modifier + 이미 선택된 컨트롤 → 토글 (해제)
           toggleSelect(control.id);
-        } else {
+        } else if (!hasModifier && alreadySelected && selectedIds.size > 1) {
+          // modifier 없음 + 다중 선택 상태였으면 → 단일 선택으로 전환
           select(control.id);
         }
       }

@@ -122,11 +122,15 @@ describe('PropertyPanel', () => {
     expect(screen.getByText('Text')).toBeInTheDocument();
   });
 
-  it('다중 선택 시 선택 개수 메시지를 표시한다', () => {
+  it('다중 선택 시 공통 속성을 표시한다', () => {
     useDesignerStore.setState({ controls: [makeButton({ id: 'a' }), makeButton({ id: 'b' })] });
     useSelectionStore.setState({ selectedIds: new Set(['a', 'b']) });
 
     render(<PropertyPanel />);
-    expect(screen.getByText('2 controls selected.')).toBeInTheDocument();
+    // 헤더에 선택 개수와 타입 표시
+    expect(screen.getByText(/2 controls/)).toBeInTheDocument();
+    // 공통 속성이 표시됨
+    expect(screen.getByText('Text')).toBeInTheDocument();
+    expect(screen.getByText('BackColor')).toBeInTheDocument();
   });
 });

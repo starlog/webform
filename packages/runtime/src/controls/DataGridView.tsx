@@ -66,9 +66,8 @@ const styles = {
     fontSize: '12px',
   } as CSSProperties,
   table: {
-    width: '100%',
+    minWidth: '100%',
     borderCollapse: 'collapse' as const,
-    tableLayout: 'fixed' as const,
   } as CSSProperties,
   headerCell: {
     backgroundColor: '#e0e0e0',

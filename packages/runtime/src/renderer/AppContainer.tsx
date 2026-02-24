@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { FormDefinition, ApplicationShellDefinition } from '@webform/common';
 import { SDUIRenderer } from './SDUIRenderer';
 import { ShellRenderer } from './ShellRenderer';
@@ -143,6 +143,44 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
     }
   }, [navigateRequest, hasDialogs, clearNavigateRequest, loadFormInShell]);
 
+  // Shell 크기를 폼 크기 + 셸 크롬에 맞춰 자동 조정
+  const adjustedShellDef = useMemo(() => {
+    if (!shellDef || !formDefinition) return shellDef;
+
+    const formProps = formDefinition.properties;
+    // Maximized 폼은 shell을 채우므로 조정 불필요
+    if (formProps.windowState === 'Maximized') return shellDef;
+
+    const shellProps = shellDef.properties;
+
+    // 폼 필요 크기 (폼 타이틀바 포함)
+    const formTitleBarHeight = formProps.formBorderStyle !== 'None' ? 30 : 0;
+    const formNeededWidth = formProps.width;
+    const formNeededHeight = formProps.height + formTitleBarHeight;
+
+    // 독 컨트롤 높이 합산
+    let dockTopHeight = 0;
+    let dockBottomHeight = 0;
+    for (const ctrl of shellDef.controls) {
+      if (ctrl.dock === 'Top') dockTopHeight += ctrl.size.height;
+      else if (ctrl.dock === 'Bottom') dockBottomHeight += ctrl.size.height;
+    }
+
+    // Shell content 영역 >= dockTop + 폼 영역 + dockBottom
+    const minContentHeight = dockTopHeight + formNeededHeight + dockBottomHeight;
+    const newWidth = Math.max(shellProps.width, formNeededWidth);
+    const newHeight = Math.max(shellProps.height, minContentHeight);
+
+    if (newWidth === shellProps.width && newHeight === shellProps.height) {
+      return shellDef;
+    }
+
+    return {
+      ...shellDef,
+      properties: { ...shellProps, width: newWidth, height: newHeight },
+    };
+  }, [shellDef, formDefinition]);
+
   if (loading) {
     return <div style={{ padding: 20, fontFamily: 'Segoe UI, sans-serif' }}>로딩 중...</div>;
   }
@@ -162,9 +200,9 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
   }
 
   // Shell이 있으면 ShellRenderer로 감싸기
-  if (shellDef) {
+  if (adjustedShellDef) {
     return (
-      <ShellRenderer shellDef={shellDef} projectId={projectId}>
+      <ShellRenderer shellDef={adjustedShellDef} projectId={projectId}>
         <SDUIRenderer formDefinition={formDefinition} />
       </ShellRenderer>
     );
