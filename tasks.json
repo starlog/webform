@@ -210,7 +210,7 @@
       "description": "API 라우트 변경사항 및 통합 테스트 커밋",
       "phase": "phase2-api",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "다음 파일들을 검토하고 git commit을 수행하세요.\n\n## 스테이징할 파일\n- `packages/server/src/routes/projects.ts`\n- `packages/server/src/__tests__/projects.publishAll.integration.test.ts`\n- `plans/server-api-route-plan.md`\n\n## 커밋 메시지 (한국어)\n`기능추가: POST /api/projects/:id/publish-all 엔드포인트 추가 및 통합 테스트`\n\n## 절차\n1. `git status`로 변경사항 확인\n2. `git add` 로 위 파일들만 개별 스테이징 (git add -A 사용 금지)\n3. 커밋 생성\n\n## 주의사항\n- .env 파일이나 민감한 파일은 절대 포함하지 않음",
       "dependsOn": [
         "server-api-route-test"
