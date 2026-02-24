@@ -115,6 +115,11 @@ interface ExportProjectData {
   }>;
 }
 
+interface PublishAllResult {
+  forms: { publishedCount: number; skippedCount: number; totalCount: number };
+  shell: { published: boolean; skipped: boolean };
+}
+
 // --- HTTP 클라이언트 ---
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -290,6 +295,11 @@ export const apiService = {
   async publishShell(projectId: string): Promise<{ data: ShellDocument }> {
     return request(`/projects/${projectId}/shell/publish`, { method: 'POST' });
   },
+
+  // 프로젝트 전체 퍼블리시 (폼 + Shell)
+  async publishAll(projectId: string): Promise<{ data: PublishAllResult }> {
+    return request(`/projects/${projectId}/publish-all`, { method: 'POST' });
+  },
 };
 
 // --- 컨트롤에서 eventHandlers 배열 추출 ---
@@ -462,4 +472,5 @@ export type {
   ExportProjectData,
   ShellDocument,
   UpdateShellPayload,
+  PublishAllResult,
 };
