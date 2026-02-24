@@ -127,8 +127,8 @@ describe('ProjectExplorer', () => {
       expect(screen.getByText('Login Form')).toBeInTheDocument();
     });
 
-    // 폼 더블클릭
-    fireEvent.doubleClick(screen.getByText('Login Form'));
+    // 폼 클릭
+    fireEvent.click(screen.getByText('Login Form'));
 
     expect(onFormSelect).toHaveBeenCalledWith('form-1');
   });

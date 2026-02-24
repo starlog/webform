@@ -574,8 +574,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
                                 : 'transparent',
                             userSelect: 'none',
                           }}
-                          onClick={() => setSelectedNode(formNodeId)}
-                          onDoubleClick={() => onFormSelect(form._id)}
+                          onClick={() => onFormSelect(form._id)}
                           onContextMenu={(e) => handleContextMenu(e, 'form', form._id, project._id)}
                         >
                           <span

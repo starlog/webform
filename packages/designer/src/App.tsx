@@ -29,6 +29,7 @@ export function App() {
   const shellTitle = useDesignerStore((s) => s.shellProperties.title);
   const [formStatus, setFormStatus] = useState<'draft' | 'published'>('draft');
   const [explorerRefreshKey, setExplorerRefreshKey] = useState(0);
+  const [pendingFormId, setPendingFormId] = useState<string | null>(null);
 
   const handleOpenEventEditor = useCallback((controlId: string, eventName: string, handlerName: string) => {
     setEventEditor({ controlId, eventName, handlerName });
@@ -122,7 +123,7 @@ export function App() {
     setExplorerRefreshKey((k) => k + 1);
   }, [currentProjectId, currentFormId]);
 
-  const handleFormSelect = async (formId: string) => {
+  const loadForm = async (formId: string) => {
     try {
       const { data } = await apiService.loadForm(formId);
       const store = useDesignerStore.getState();
@@ -144,6 +145,29 @@ export function App() {
     } catch (error) {
       console.error('Failed to load form:', error);
     }
+  };
+
+  const handleFormSelect = async (formId: string) => {
+    if (isDirty) {
+      setPendingFormId(formId);
+      return;
+    }
+    await loadForm(formId);
+  };
+
+  const handleSaveAndSwitch = async () => {
+    const formId = pendingFormId;
+    setPendingFormId(null);
+    if (!formId) return;
+    try { await handleSave(); } catch { /* ignore */ }
+    await loadForm(formId);
+  };
+
+  const handleDiscardAndSwitch = async () => {
+    const formId = pendingFormId;
+    setPendingFormId(null);
+    if (!formId) return;
+    await loadForm(formId);
   };
 
   return (
@@ -309,6 +333,52 @@ export function App() {
           onClose={() => setEventEditor(null)}
           onSaveToServer={forceSave}
         />
+      )}
+
+      {/* 저장 확인 다이얼로그 */}
+      {pendingFormId && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 20000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 6,
+              padding: '24px 32px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+              minWidth: 320,
+              fontFamily: 'Segoe UI, sans-serif',
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
+              현재 폼을 저장하시겠습니까?
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                type="button"
+                onClick={handleDiscardAndSwitch}
+                style={{ ...menuBtnStyle, minWidth: 72 }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAndSwitch}
+                style={{ ...menuBtnStyle, minWidth: 72, backgroundColor: '#0078d4', color: '#fff', borderColor: '#0078d4' }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </DndProvider>
   );
