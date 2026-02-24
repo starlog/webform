@@ -20,6 +20,7 @@ const FORM_PROPERTY_METAS: PropertyMeta[] = [
   { name: 'startPosition',   label: 'StartPosition',   category: 'Behavior',   editorType: 'dropdown', options: ['CenterScreen', 'Manual', 'CenterParent'] },
   { name: 'maximizeBox',     label: 'MaximizeBox',     category: 'Behavior',   editorType: 'boolean' },
   { name: 'minimizeBox',     label: 'MinimizeBox',     category: 'Behavior',   editorType: 'boolean' },
+  { name: 'windowState',     label: 'WindowState',     category: 'Layout',     editorType: 'dropdown', options: ['Normal', 'Maximized'] },
 ];
 
 type TabType = 'properties' | 'events';

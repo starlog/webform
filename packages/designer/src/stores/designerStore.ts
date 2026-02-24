@@ -46,6 +46,7 @@ const DEFAULT_FORM_PROPERTIES: FormProperties = {
   formBorderStyle: 'Sizable',
   maximizeBox: true,
   minimizeBox: true,
+  windowState: 'Normal',
 };
 
 interface DesignerState {

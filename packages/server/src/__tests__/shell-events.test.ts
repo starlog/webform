@@ -300,6 +300,13 @@ describe('Shell Events - EventEngine', () => {
             name: 'statusLabel',
             type: 'StatusStrip',
             properties: { text: '대기 중' },
+            position: { x: 0, y: 0 },
+            size: { width: 800, height: 22 },
+            anchor: { top: true, bottom: false, left: true, right: false },
+            dock: 'Bottom',
+            tabIndex: 0,
+            visible: true,
+            enabled: true,
           },
         ],
       );

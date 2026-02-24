@@ -20,6 +20,7 @@ export interface FormProperties {
   formBorderStyle: 'None' | 'FixedSingle' | 'Fixed3D' | 'Sizable';
   maximizeBox: boolean;
   minimizeBox: boolean;
+  windowState?: 'Normal' | 'Maximized';
 }
 
 // Phase 1 - 기본 컨트롤 (11종), 컨테이너 (4종)

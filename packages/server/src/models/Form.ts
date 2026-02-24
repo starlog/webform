@@ -99,6 +99,7 @@ const formSchema = new Schema(
       formBorderStyle: { type: String, default: 'Sizable' },
       maximizeBox: { type: Boolean, default: true },
       minimizeBox: { type: Boolean, default: true },
+      windowState: { type: String, enum: ['Normal', 'Maximized'], default: 'Normal' },
     },
     controls: { type: [controlDefinitionSchema], default: [] },
     eventHandlers: { type: [Schema.Types.Mixed], default: [] },

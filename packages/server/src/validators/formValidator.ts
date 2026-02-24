@@ -21,6 +21,7 @@ const formPropertiesSchema = z.object({
   formBorderStyle: z.enum(['None', 'FixedSingle', 'Fixed3D', 'Sizable']).default('Sizable'),
   maximizeBox: z.boolean().default(true),
   minimizeBox: z.boolean().default(true),
+  windowState: z.enum(['Normal', 'Maximized']).default('Normal'),
 });
 
 const anchorStyleSchema = z.object({

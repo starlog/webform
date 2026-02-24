@@ -72,19 +72,27 @@ export function FormContainer({
   dockFill,
   children,
 }: FormContainerProps) {
+  const isMaximized = properties.windowState === 'Maximized';
   const borderStyles = getBorderStyle(properties.formBorderStyle);
   const fontStyles = computeFontStyle(properties.font);
 
-  const showTitleBar = properties.formBorderStyle !== 'None';
+  const showTitleBar = !isMaximized && properties.formBorderStyle !== 'None';
 
-  const containerStyle: CSSProperties = {
-    width: properties.width,
-    height: showTitleBar ? properties.height + TITLE_BAR_HEIGHT : properties.height,
-    display: 'flex',
-    flexDirection: 'column',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-    ...borderStyles,
-  };
+  const containerStyle: CSSProperties = isMaximized
+    ? {
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }
+    : {
+        width: properties.width,
+        height: showTitleBar ? properties.height + TITLE_BAR_HEIGHT : properties.height,
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+        ...borderStyles,
+      };
 
   const contentStyle: CSSProperties = {
     flex: 1,
