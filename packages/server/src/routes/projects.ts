@@ -110,3 +110,13 @@ projectsRouter.get('/:id/export', async (req, res, next) => {
     next(err);
   }
 });
+
+// POST /api/projects/:id/publish-all — 프로젝트 전체 퍼블리시
+projectsRouter.post('/:id/publish-all', async (req, res, next) => {
+  try {
+    const result = await projectService.publishAll(req.params.id, req.user!.sub);
+    res.json({ data: result });
+  } catch (err) {
+    next(err);
+  }
+});

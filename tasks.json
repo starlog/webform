@@ -171,7 +171,7 @@
       "description": "POST /api/projects/:id/publish-all 엔드포인트 구현",
       "phase": "phase2-api",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "당신은 WebForm 프로젝트의 시니어 백엔드 개발자입니다. `plans/server-api-route-plan.md`의 계획을 참고하여 다음을 구현하세요.\n\n## 구현 목표\n`packages/server/src/routes/projects.ts`에 `POST /:id/publish-all` 엔드포인트를 추가하세요.\n\n## 구현 요구사항\n```\nPOST /api/projects/:id/publish-all\n```\n\n### 엔드포인트 동작\n1. 인증된 사용자만 접근 가능 (기존 미들웨어 패턴 따름)\n2. `req.params.id`에서 projectId 추출\n3. 사용자 ID 추출 (기존 라우트 패턴 참고)\n4. `projectService.publishAll(projectId, userId)` 호출\n5. 성공 응답 (200):\n```json\n{\n  \"data\": {\n    \"forms\": { \"publishedCount\": 5, \"skippedCount\": 2, \"totalCount\": 7 },\n    \"shell\": { \"published\": true, \"skipped\": false }\n  }\n}\n```\n6. 프로젝트 없음: 404 응답\n7. 서버 에러: 500 응답\n\n## 주의사항\n- `packages/server/src/routes/projects.ts` 파일을 먼저 읽어 기존 패턴 파악\n- 기존 라우트와 일관된 코드 스타일 유지\n- TypeScript 타입 오류가 없어야 함",
       "dependsOn": [
         "server-api-route-plan"
