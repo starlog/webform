@@ -9,7 +9,21 @@ import type {
   ListProjectsQuery,
   ImportProjectInput,
 } from '../validators/projectValidator.js';
-import { NotFoundError } from '../middleware/errorHandler.js';
+import { NotFoundError, AppError } from '../middleware/errorHandler.js';
+import { FormService } from './FormService.js';
+import { ShellService } from './ShellService.js';
+
+export interface PublishAllResult {
+  forms: {
+    publishedCount: number;
+    skippedCount: number;
+    totalCount: number;
+  };
+  shell: {
+    published: boolean;
+    skipped: boolean;
+  };
+}
 
 export interface ExportProjectData {
   exportVersion: '1.0';
@@ -36,6 +50,9 @@ export interface ExportProjectData {
 }
 
 export class ProjectService {
+  private formService = new FormService();
+  private shellService = new ShellService();
+
   async createProject(input: CreateProjectInput, userId: string): Promise<ProjectDocument> {
     const project = await Project.create({
       ...input,
@@ -217,5 +234,31 @@ export class ProjectService {
     }
 
     return project;
+  }
+
+  async publishAll(projectId: string, userId: string): Promise<PublishAllResult> {
+    await this.getProject(projectId);
+
+    const formsResult = await this.formService.publishAllByProject(projectId, userId);
+
+    let shellResult: { published: boolean; skipped: boolean };
+    try {
+      await this.shellService.publishShell(projectId, userId);
+      shellResult = { published: true, skipped: false };
+    } catch (err) {
+      if (
+        err instanceof NotFoundError ||
+        (err instanceof AppError && err.statusCode === 409)
+      ) {
+        shellResult = { published: false, skipped: true };
+      } else {
+        throw err;
+      }
+    }
+
+    return {
+      forms: formsResult,
+      shell: shellResult,
+    };
   }
 }
