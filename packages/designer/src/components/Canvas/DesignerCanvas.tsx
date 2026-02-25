@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useDrop } from 'react-dnd';
 import type { ControlType, ControlDefinition } from '@webform/common';
 import { useDesignerStore, createDefaultControl } from '../../stores/designerStore';
@@ -151,6 +151,19 @@ export function DesignerCanvas() {
   } | null>(null);
 
   const canvasRef = useRef<HTMLDivElement | null>(null);
+  const activeFormResizeListeners = useRef<{
+    move: ((e: MouseEvent) => void) | null;
+    up: (() => void) | null;
+  }>({ move: null, up: null });
+
+  // 폼 리사이즈 드래그 중 언마운트 시 document 리스너 안전 정리
+  useEffect(() => {
+    return () => {
+      const { move, up } = activeFormResizeListeners.current;
+      if (move) document.removeEventListener('mousemove', move);
+      if (up) document.removeEventListener('mouseup', up);
+    };
+  }, []);
 
   // TabControl 탭 페이지 기반 숨김 컨트롤 계산
   const hiddenControlIds = useMemo(() => getHiddenControlIds(controls), [controls]);
@@ -335,8 +348,10 @@ export function DesignerCanvas() {
     const onMouseUp = () => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
+      activeFormResizeListeners.current = { move: null, up: null };
     };
 
+    activeFormResizeListeners.current = { move: onMouseMove, up: onMouseUp };
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   }, []);

@@ -375,7 +375,20 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
   // 드래그 이동 상태
   const [dialogPos, setDialogPos] = useState<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const activeDragListeners = useRef<{
+    move: ((e: MouseEvent) => void) | null;
+    up: (() => void) | null;
+  }>({ move: null, up: null });
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  // 드래그 중 언마운트 시 document 리스너 안전 정리
+  useEffect(() => {
+    return () => {
+      const { move, up } = activeDragListeners.current;
+      if (move) document.removeEventListener('mousemove', move);
+      if (up) document.removeEventListener('mouseup', up);
+    };
+  }, []);
 
   const [debugPanelHeight, setDebugPanelHeight] = useState(200);
   const [isDirty, setIsDirty] = useState(false);
@@ -1094,7 +1107,9 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
       dragRef.current = null;
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      activeDragListeners.current = { move: null, up: null };
     };
+    activeDragListeners.current = { move: handleMouseMove, up: handleMouseUp };
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   }, [dialogPos]);

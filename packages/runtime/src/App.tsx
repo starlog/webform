@@ -39,6 +39,7 @@ function LegacyFormApp({ formId: initialFormId }: { formId: string | null }) {
   const [error, setError] = useState<string | null>(null);
   const currentFormIdRef = useRef<string | null>(null);
   const formDefRef = useRef<FormDefinition | null>(null);
+  const unsubPatchRef = useRef<(() => void) | null>(null);
 
   const applyPatches = useRuntimeStore((s) => s.applyPatches);
   const applyShellPatches = useRuntimeStore((s) => s.applyShellPatches);
@@ -82,7 +83,8 @@ function LegacyFormApp({ formId: initialFormId }: { formId: string | null }) {
       // 폼 전환 시 바인딩 상태(에러, 로딩, 데이터) 초기화
       useBindingStore.getState().reset();
 
-      // 기존 WebSocket 연결 해제
+      // 기존 패치 구독 해제 및 WebSocket 연결 해제
+      unsubPatchRef.current?.();
       wsClient.disconnect();
 
       try {
@@ -102,7 +104,7 @@ function LegacyFormApp({ formId: initialFormId }: { formId: string | null }) {
 
         // WebSocket 재연결
         wsClient.connect(formId);
-        setupPatchListener({ applyPatches, applyShellPatches }, wsClient);
+        unsubPatchRef.current = setupPatchListener({ applyPatches, applyShellPatches }, wsClient);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
@@ -123,6 +125,7 @@ function LegacyFormApp({ formId: initialFormId }: { formId: string | null }) {
     loadForm(initialFormId);
 
     return () => {
+      unsubPatchRef.current?.();
       wsClient.disconnect();
     };
   }, [initialFormId, loadForm]);
