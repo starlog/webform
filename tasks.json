@@ -46,7 +46,7 @@
       "description": "TypeScript 타입 체크 및 기존 테스트 통과 확인",
       "phase": "phase1-setup",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "packages/common에 추가한 12개 신규 컨트롤 타입이 올바르게 등록되었는지 검증한다.\n\n## 테스트 절차\n\n1. 전체 TypeScript 타입 체크 실행:\n   ```\n   pnpm typecheck\n   ```\n   오류가 있으면 packages/common/src/types/form.ts 또는 events.ts를 수정한다.\n\n2. 패키지 단위 테스트 실행:\n   ```\n   pnpm --filter @webform/common test\n   ```\n   기존 테스트가 모두 통과하는지 확인한다.\n\n3. 검증 항목 확인:\n   - CONTROL_TYPES에 12개 신규 타입('Slider', 'Switch', 'Upload', 'Alert', 'Tag', 'Divider', 'Card', 'Badge', 'Avatar', 'Tooltip', 'Collapse', 'Statistic') 포함 여부\n   - CONTROL_EVENTS에 7개 이벤트 그룹(Slider, Switch, Upload, Alert, Tag, Tooltip, Collapse) 포함 여부\n   - TypeScript 자동완성에서 신규 타입이 올바르게 추론되는지 확인\n\n## 실패 시 대응\n- 타입 오류: 기존 코드 패턴 재확인 후 수정\n- 기존 테스트 실패: 변경사항이 기존 타입 구조를 파괴하지 않았는지 확인\n- 빌드 오류: 하위 패키지(designer, runtime)에서 타입 import가 올바른지 확인",
       "dependsOn": [
         "common-types-impl"
