@@ -423,7 +423,7 @@
       "description": "Step 2 Designer 컨트롤 변경사항 git 커밋",
       "phase": "phase3-step2",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Step 2 Designer 컨트롤 구현 내용을 git 커밋한다.\n\n## 커밋 절차\n1. 변경 파일 확인: `git status`\n2. 관련 파일 스테이징:\n   ```\n   git add packages/designer/src/controls/CardControl.tsx\n   git add packages/designer/src/controls/BadgeControl.tsx\n   git add packages/designer/src/controls/AvatarControl.tsx\n   git add packages/designer/src/controls/TooltipControl.tsx\n   git add packages/designer/src/controls/CollapseControl.tsx\n   git add packages/designer/src/controls/StatisticControl.tsx\n   git add packages/designer/src/controls/registry.ts\n   git add plans/step2-designer-plan.md\n   ```\n3. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: Step 2 Designer 컨트롤 6개 추가\n   \n   - CardControl: 헤더/바디 구조 카드 컨테이너 미리보기\n   - BadgeControl: 숫자/상태 뱃지 미리보기\n   - AvatarControl: 이미지/이니셜 아바타 미리보기\n   - TooltipControl: 툴팁 래퍼 컨테이너 미리보기\n   - CollapseControl: 아코디언 패널 미리보기\n   - StatisticControl: KPI 통계 수치 표시 미리보기\n   - registry.ts: 6개 컨트롤 Toolbox 등록 (총 12개 신규)\n   ```",
       "dependsOn": [
         "step2-designer-test"
@@ -502,7 +502,7 @@
       "description": "Step 2 PropertyMeta 변경사항 git 커밋",
       "phase": "phase3-step2",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Step 2 컨트롤 PropertyMeta 구현 내용을 git 커밋한다.\n\n## 커밋 절차\n1. 변경 파일 확인: `git status`\n2. 관련 파일 스테이징:\n   ```\n   git add packages/designer/src/components/PropertyPanel/controlProperties.ts\n   git add plans/step2-properties-plan.md\n   ```\n3. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: Step 2 컨트롤 6개 PropertyMeta 등록\n   \n   - Card: title/subtitle/showHeader/showBorder/hoverable/size/borderRadius\n   - Badge: count/overflowCount/showZero/dot/status/badgeColor\n   - Avatar: imageUrl/text/shape\n   - Tooltip: title/placement/trigger\n   - Collapse: panels(collection)/activeKeys/accordion/bordered/expandIconPosition\n   - Statistic: title/value/prefix/suffix/precision/showGroupSeparator/valueColor\n   ```",
       "dependsOn": [
         "step2-properties-test"
@@ -593,7 +593,7 @@
       "description": "Step 2 Runtime 컨트롤 변경사항 git 커밋",
       "phase": "phase3-step2",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Step 2 Runtime 컨트롤 구현 내용을 git 커밋한다.\n\n## 커밋 절차\n1. 변경 파일 확인: `git status`\n2. 관련 파일 스테이징:\n   ```\n   git add packages/runtime/src/controls/Card.tsx\n   git add packages/runtime/src/controls/Badge.tsx\n   git add packages/runtime/src/controls/Avatar.tsx\n   git add packages/runtime/src/controls/Tooltip.tsx\n   git add packages/runtime/src/controls/Collapse.tsx\n   git add packages/runtime/src/controls/Statistic.tsx\n   git add packages/runtime/src/controls/registry.ts\n   git add plans/step2-runtime-plan.md\n   ```\n3. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: Step 2 Runtime 컨트롤 6개 구현\n   \n   - Card: 자식 컨트롤 포함 카드 컨테이너, hoverable 효과\n   - Badge: 숫자/dot 뱃지, Processing 깜빡임 애니메이션\n   - Avatar: 이미지/이니셜, onError 폴백 처리\n   - Tooltip: 8방향 팝업, hover/click/focus 트리거, VisibleChanged\n   - Collapse: 아코디언/다중 패널, 높이 트랜지션, ActiveKeyChanged\n   - Statistic: 숫자 포맷(천단위/소수점), prefix/suffix 표시\n   - registry.ts: 6개 컨트롤 Runtime 등록 (신규 총 12개)\n   ```\n\n## 주의사항\n- .env 등 민감한 파일은 절대 포함하지 않는다\n- 개별 파일을 명시적으로 git add한다",
       "dependsOn": [
         "step2-runtime-test"
