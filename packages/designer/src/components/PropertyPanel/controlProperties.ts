@@ -327,6 +327,65 @@ const mongoDBConnectorProps: PropertyMeta[] = [
   { name: 'properties.maxResultCount',   label: 'MaxResultCount',   category: 'Behavior', editorType: 'number', min: 1, max: 100000, defaultValue: 1000 },
 ];
 
+const sliderProps: PropertyMeta[] = withCommon(
+  { name: 'properties.value',       label: 'Value',       category: 'Behavior',   editorType: 'number',   defaultValue: 0 },
+  { name: 'properties.minimum',     label: 'Minimum',     category: 'Behavior',   editorType: 'number',   defaultValue: 0 },
+  { name: 'properties.maximum',     label: 'Maximum',     category: 'Behavior',   editorType: 'number',   defaultValue: 100 },
+  { name: 'properties.step',        label: 'Step',        category: 'Behavior',   editorType: 'number',   defaultValue: 1, min: 1 },
+  { name: 'properties.orientation', label: 'Orientation', category: 'Appearance', editorType: 'dropdown', defaultValue: 'Horizontal', options: ['Horizontal', 'Vertical'] },
+  { name: 'properties.showValue',   label: 'ShowValue',   category: 'Appearance', editorType: 'boolean',  defaultValue: true },
+  { name: 'properties.trackColor',  label: 'TrackColor',  category: 'Appearance', editorType: 'color' },
+  { name: 'properties.fillColor',   label: 'FillColor',   category: 'Appearance', editorType: 'color' },
+);
+
+const switchProps: PropertyMeta[] = withCommon(
+  { name: 'properties.checked',  label: 'Checked',  category: 'Behavior',   editorType: 'boolean', defaultValue: false },
+  { name: 'properties.text',     label: 'Text',     category: 'Appearance', editorType: 'text',    defaultValue: '' },
+  { name: 'properties.onText',   label: 'OnText',   category: 'Appearance', editorType: 'text',    defaultValue: 'ON' },
+  { name: 'properties.offText',  label: 'OffText',  category: 'Appearance', editorType: 'text',    defaultValue: 'OFF' },
+  { name: 'properties.onColor',  label: 'OnColor',  category: 'Appearance', editorType: 'color' },
+  { name: 'properties.offColor', label: 'OffColor', category: 'Appearance', editorType: 'color' },
+);
+
+const uploadProps: PropertyMeta[] = withCommon(
+  { name: 'properties.uploadMode',  label: 'UploadMode',      category: 'Appearance', editorType: 'dropdown', defaultValue: 'DropZone', options: ['Button', 'DropZone'] },
+  { name: 'properties.text',        label: 'Text',            category: 'Appearance', editorType: 'text',     defaultValue: 'Click or drag file to upload' },
+  { name: 'properties.accept',      label: 'Accept',          category: 'Behavior',   editorType: 'text',     defaultValue: '' },
+  { name: 'properties.multiple',    label: 'Multiple',        category: 'Behavior',   editorType: 'boolean',  defaultValue: false },
+  { name: 'properties.maxFileSize', label: 'MaxFileSize(MB)', category: 'Behavior',   editorType: 'number',   defaultValue: 10, min: 1, max: 100 },
+  { name: 'properties.maxCount',    label: 'MaxCount',        category: 'Behavior',   editorType: 'number',   defaultValue: 1, min: 1, max: 20 },
+  { name: 'properties.backColor',   label: 'BackColor',       category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor',   label: 'ForeColor',       category: 'Appearance', editorType: 'color' },
+  { name: 'properties.borderStyle', label: 'BorderStyle',     category: 'Appearance', editorType: 'dropdown', defaultValue: 'Dashed', options: ['None', 'Solid', 'Dashed'] },
+);
+
+const alertProps: PropertyMeta[] = withCommon(
+  { name: 'properties.message',     label: 'Message',     category: 'Appearance', editorType: 'text',     defaultValue: 'Alert message' },
+  { name: 'properties.description', label: 'Description', category: 'Appearance', editorType: 'text',     defaultValue: '' },
+  { name: 'properties.alertType',   label: 'AlertType',   category: 'Appearance', editorType: 'dropdown', defaultValue: 'Info', options: ['Success', 'Info', 'Warning', 'Error'] },
+  { name: 'properties.showIcon',    label: 'ShowIcon',    category: 'Appearance', editorType: 'boolean',  defaultValue: true },
+  { name: 'properties.closable',    label: 'Closable',    category: 'Behavior',   editorType: 'boolean',  defaultValue: false },
+  { name: 'properties.banner',      label: 'Banner',      category: 'Appearance', editorType: 'boolean',  defaultValue: false },
+  { name: 'properties.foreColor',   label: 'ForeColor',   category: 'Appearance', editorType: 'color' },
+);
+
+const tagProps: PropertyMeta[] = withCommon(
+  { name: 'properties.tags',     label: 'Tags',     category: 'Data',       editorType: 'collection', defaultValue: ['Tag1', 'Tag2'] },
+  { name: 'properties.tagColor', label: 'TagColor', category: 'Appearance', editorType: 'dropdown',   defaultValue: 'Default', options: ['Default', 'Blue', 'Green', 'Red', 'Orange', 'Purple', 'Cyan', 'Gold'] },
+  { name: 'properties.closable', label: 'Closable', category: 'Behavior',   editorType: 'boolean',    defaultValue: false },
+  { name: 'properties.addable',  label: 'Addable',  category: 'Behavior',   editorType: 'boolean',    defaultValue: false },
+  { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
+);
+
+const dividerProps: PropertyMeta[] = withCommon(
+  { name: 'properties.text',        label: 'Text',        category: 'Appearance', editorType: 'text',     defaultValue: '' },
+  { name: 'properties.orientation', label: 'Orientation', category: 'Appearance', editorType: 'dropdown', defaultValue: 'Horizontal', options: ['Horizontal', 'Vertical'] },
+  { name: 'properties.textAlign',   label: 'TextAlign',   category: 'Appearance', editorType: 'dropdown', defaultValue: 'Center', options: ['Left', 'Center', 'Right'] },
+  { name: 'properties.lineStyle',   label: 'LineStyle',   category: 'Appearance', editorType: 'dropdown', defaultValue: 'Solid', options: ['Solid', 'Dashed', 'Dotted'] },
+  { name: 'properties.lineColor',   label: 'LineColor',   category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor',   label: 'ForeColor',   category: 'Appearance', editorType: 'color' },
+);
+
 const defaultProps: PropertyMeta[] = withCommon();
 
 // 현재 구현된 14개 + fallback
@@ -361,6 +420,12 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   SplitContainer: splitContainerProps,
   BindingNavigator: bindingNavigatorProps,
   MongoDBConnector: mongoDBConnectorProps,
+  Slider:  sliderProps,
+  Switch:  switchProps,
+  Upload:  uploadProps,
+  Alert:   alertProps,
+  Tag:     tagProps,
+  Divider: dividerProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {
