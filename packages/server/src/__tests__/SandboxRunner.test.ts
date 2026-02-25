@@ -99,6 +99,36 @@ describe('SandboxRunner', () => {
     }
   });
 
+  it('SSRF: 내부 URL 요청을 차단해야 한다', async () => {
+    const result = await runner.runCode(
+      'var res = ctx.http.get("http://localhost:4000/api/forms");',
+      {},
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Blocked');
+  });
+
+  it('SSRF: 메타데이터 서비스 접근을 차단해야 한다', async () => {
+    const result = await runner.runCode(
+      'var res = ctx.http.get("http://169.254.169.254/latest/meta-data/");',
+      {},
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Blocked');
+  });
+
+  it('SSRF: file:// 스킴을 차단해야 한다', async () => {
+    const result = await runner.runCode(
+      'var res = ctx.http.get("file:///etc/passwd");',
+      {},
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Blocked');
+  });
+
   it('showMessage가 operations에 showDialog로 추가되어야 한다', async () => {
     const result = await runner.runCode(
       'ctx.showMessage("hello", "title", "warning")',

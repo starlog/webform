@@ -4,6 +4,7 @@ import { MongoClient } from 'mongodb';
 import type { TraceEntry } from '@webform/common';
 import { env } from '../config/index.js';
 import { CodeInstrumenter } from './CodeInstrumenter.js';
+import { validateSandboxUrl } from './validateSandboxUrl.js';
 
 export interface MongoConnectorInfo {
   controlName: string;
@@ -143,6 +144,8 @@ export class SandboxRunner {
     await jail.set('__ctx__', new ivm.ExternalCopy(context).copyInto());
 
     const httpHandler = new ivm.Reference(async (method: string, url: string, body?: string) => {
+      await validateSandboxUrl(url);
+
       const res = await fetch(url, {
         method,
         headers: body ? { 'Content-Type': 'application/json' } : {},
