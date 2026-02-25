@@ -7,6 +7,11 @@ import { wsClient } from './communication/wsClient';
 import { setupPatchListener } from './communication/patchApplier';
 import { useRuntimeStore, type DialogMessage } from './stores/runtimeStore';
 
+import { ensureAuthToken, getAuthToken } from './communication/authToken';
+
+// WebSocket 인증 토큰 설정
+wsClient.setTokenProvider(() => getAuthToken());
+
 export function App() {
   const params = new URLSearchParams(window.location.search);
   const projectId = params.get('projectId');
@@ -77,6 +82,9 @@ function LegacyFormApp({ formId: initialFormId }: { formId: string | null }) {
       wsClient.disconnect();
 
       try {
+        // WebSocket 인증 토큰 확보
+        await ensureAuthToken();
+
         const def = await apiClient.fetchForm(formId);
         setFormDefinition(def);
         setFormDef(def);

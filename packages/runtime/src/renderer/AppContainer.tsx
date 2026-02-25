@@ -7,6 +7,7 @@ import { apiClient } from '../communication/apiClient';
 import { wsClient } from '../communication/wsClient';
 import { setupPatchListener } from '../communication/patchApplier';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { ensureAuthToken } from '../communication/authToken';
 
 interface AppContainerProps {
   projectId: string;
@@ -90,6 +91,9 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
       setLoading(true);
       setError(null);
       try {
+        // WebSocket 인증 토큰 확보
+        await ensureAuthToken();
+
         const response = await apiClient.fetchApp(projectId, initialFormId);
 
         if (cancelled) return;

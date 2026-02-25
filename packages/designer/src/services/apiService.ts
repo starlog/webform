@@ -157,6 +157,11 @@ async function ensureAuth(): Promise<void> {
   authToken = token;
 }
 
+/** 현재 인증 토큰 반환 (WebSocket 연결 등에서 사용) */
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   await ensureAuth();
 
