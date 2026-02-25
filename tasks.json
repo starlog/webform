@@ -44,7 +44,7 @@
       "description": "수정 후 forms.integration.test.ts 포함 모든 서버 테스트 통과 확인",
       "phase": "phase1-critical",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "테스트 실패 수정이 올바르게 완료되었는지 검증하세요.\n\n## 수행할 작업\n1. `packages/server` 디렉토리에서 전체 서버 테스트 실행:\n   ```bash\n   pnpm --filter @webform/server test\n   ```\n2. `forms.integration.test.ts`의 이전에 실패했던 테스트들이 모두 통과하는지 확인\n3. 기존에 통과하던 다른 테스트들(dataSource, eventEngine 등)이 여전히 통과하는지 확인\n4. 실패하는 테스트가 있으면:\n   a. 실패 원인 분석\n   b. `packages/server/src/services/FormService.ts` 추가 수정\n   c. 다시 테스트 실행\n5. 모든 테스트 통과 확인 후 완료\n\n## 성공 기준\n- `packages/server/src/__tests__/forms.integration.test.ts`의 모든 테스트 통과\n- 전체 서버 테스트 기존과 동일하게 통과",
       "dependsOn": [
         "test-fix-impl"
@@ -112,7 +112,7 @@
       "description": "URL 검증 로직에 대한 단위 테스트 작성 및 서버 전체 테스트 통과 확인",
       "phase": "phase1-critical",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "SSRF URL 필터링 구현에 대한 테스트를 작성하고 실행하세요.\n\n## 수행할 작업\n1. `packages/server/src/__tests__/` 디렉토리에 `ssrf.test.ts` 파일 생성\n2. 다음 케이스 모두 테스트:\n   - `http://localhost/api` → 차단 확인\n   - `http://127.0.0.1:4000` → 차단 확인\n   - `http://169.254.169.254/latest/meta-data` → 차단 확인 (AWS 메타데이터)\n   - `http://10.0.0.1` → 차단 확인 (내부망)\n   - `http://192.168.1.1` → 차단 확인\n   - `file:///etc/passwd` → 차단 확인\n   - `https://api.example.com/data` → 통과 확인\n   - `https://jsonplaceholder.typicode.com/todos/1` → 통과 확인\n3. `pnpm --filter @webform/server test` 실행하여 모든 서버 테스트 통과 확인\n4. 실패 시 SandboxRunner.ts 수정 후 재실행\n\n## 성공 기준\n- SSRF 관련 모든 테스트 통과\n- 기존 서버 테스트 통과 유지",
       "dependsOn": [
         "ssrf-filter-impl"
@@ -184,7 +184,7 @@
       "description": "WebSocket 인증 메커니즘에 대한 테스트 작성 및 서버 테스트 통과 확인",
       "phase": "phase1-critical",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebSocket 인증 구현에 대한 테스트를 작성하고 실행하세요.\n\n## 수행할 작업\n1. `packages/server/src/__tests__/websocket-auth.test.ts` 파일 생성\n2. 다음 케이스 테스트:\n   - 유효한 JWT 토큰으로 WebSocket 연결 성공 확인\n   - 토큰 없이 WebSocket 연결 시 1008 또는 연결 거부 확인\n   - 만료된 토큰으로 연결 시 거부 확인\n   - 서명이 잘못된 토큰으로 연결 시 거부 확인\n3. `pnpm --filter @webform/server test` 실행하여 모든 서버 테스트 통과 확인\n4. 실패 시 원인 분석 후 WebSocket 핸들러 수정 및 재실행\n\n## 성공 기준\n- WebSocket 인증 관련 테스트 모두 통과\n- 기존 서버 테스트 통과 유지",
       "dependsOn": [
         "ws-auth-impl"
