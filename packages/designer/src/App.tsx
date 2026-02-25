@@ -68,17 +68,15 @@ export function App() {
       showStatus('Saved');
     } catch (err) {
       const status = (err as Error & { status?: number }).status;
-      if (status === 409) {
-        const reload = window.confirm(
-          '다른 사용자가 이 폼을 수정했습니다.\n' +
-          '최신 버전을 다시 불러오시겠습니까?\n\n' +
-          '(취소하면 현재 변경사항을 유지하지만, 저장 시 다시 충돌이 발생할 수 있습니다.)',
-        );
-        if (reload && currentFormId) {
-          await loadForm(currentFormId);
-          showStatus('Reloaded latest version');
-        } else {
-          showStatus('Save conflict — please reload manually', 'error');
+      if (status === 409 && currentFormId) {
+        // 버전 충돌: 최신 버전을 자동으로 가져와서 재시도
+        try {
+          const { data: latest } = await apiService.loadForm(currentFormId);
+          useDesignerStore.getState().updateFormVersion(latest.version);
+          await save();
+          showStatus('Saved');
+        } catch {
+          showStatus('Save failed — please try again', 'error');
         }
       } else {
         const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -118,20 +116,26 @@ export function App() {
       showStatus('Published');
     } catch (err) {
       const status = (err as Error & { status?: number }).status;
-      if (status === 409) {
-        const reload = window.confirm(
-          '다른 사용자가 이 폼을 수정했습니다.\n' +
-          '최신 버전을 다시 불러오시겠습니까?',
-        );
-        if (reload) {
-          await loadForm(currentFormId);
-          showStatus('Reloaded latest version');
-        } else {
-          showStatus('Save conflict — please reload manually', 'error');
+      const message = err instanceof Error ? err.message : '';
+      if (status === 409 && message.includes('already published')) {
+        // 이미 published 상태 → 에러 아님
+        setFormStatus('published');
+        showStatus('Already published');
+      } else if (status === 409 && currentFormId) {
+        // 버전 충돌: 최신 버전을 자동으로 가져와서 재시도
+        try {
+          const { data: latest } = await apiService.loadForm(currentFormId);
+          useDesignerStore.getState().updateFormVersion(latest.version);
+          await save();
+          const { data } = await apiService.publishForm(currentFormId);
+          setFormStatus(data.status);
+          setExplorerRefreshKey((k) => k + 1);
+          showStatus('Published');
+        } catch {
+          showStatus('Publish failed — please try again', 'error');
         }
       } else {
-        const msg = err instanceof Error ? err.message : 'Unknown error';
-        showStatus(`Publish failed: ${msg}`, 'error');
+        showStatus(`Publish failed: ${message || 'Unknown error'}`, 'error');
       }
     }
   }, [currentFormId, save, editMode]);

@@ -344,7 +344,8 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
         });
       }
 
-      const shell = result.data;
+      const shell = result?.data;
+      if (!shell) return;
       store.setCurrentProject(projectId);
       store.loadShell({
         id: shell._id,

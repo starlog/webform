@@ -73,7 +73,7 @@ export function Card({
       onMouseLeave={handleMouseLeave}
     >
       {showHeader && (
-        <div style={{ padding: headerPadding, borderBottom: theme.controls.panel.border }}>
+        <div style={{ padding: headerPadding, borderBottom: theme.controls.panel.border, flexShrink: 0 }}>
           <div style={{ fontWeight: 600, fontSize: isSmall ? '14px' : '16px' }}>{title}</div>
           {subtitle && (
             <div style={{ fontSize: '13px', opacity: 0.6, marginTop: 2 }}>{subtitle}</div>

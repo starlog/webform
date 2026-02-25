@@ -141,7 +141,7 @@ export function getContainerClientSize(
   if (definition.type === 'Card') {
     const showHeader = definition.properties?.showHeader !== false;
     const showBorder = definition.properties?.showBorder !== false;
-    const isSmall = definition.size.width < 300;
+    const isSmall = definition.properties?.size === 'Small';
 
     const borderWidth = showBorder ? 1 : 0;
     // Header: padding-top + title-line-height + padding-bottom + border-bottom

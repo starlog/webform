@@ -24,6 +24,7 @@ function mockErrorResponse(message: string, status = 404) {
     statusText: 'Not Found',
   };
 }
+void mockErrorResponse;
 
 // ensureAuth()의 auth token을 사전 설정
 fetchMock.mockResolvedValueOnce(mockResponse({ token: 'test-token' }));
@@ -81,9 +82,9 @@ describe('apiService - Shell API', () => {
       expect(fetchMock).toHaveBeenCalledOnce();
       expect(fetchMock.mock.calls[0][0]).toContain('/projects/proj-1/shell');
       expect(result).not.toBeNull();
-      expect(result!.data.name).toBe('My App Shell');
-      expect(result!.data.projectId).toBe('proj-1');
-      expect(result!.data.properties.title).toBe('My Application');
+      expect(result!.data!.name).toBe('My App Shell');
+      expect(result!.data!.projectId).toBe('proj-1');
+      expect(result!.data!.properties.title).toBe('My Application');
     });
 
     it('Shell이 없으면 data: null을 반환해야 한다', async () => {

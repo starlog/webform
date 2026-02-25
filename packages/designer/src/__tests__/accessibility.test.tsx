@@ -184,10 +184,10 @@ describe('PropertyPanel 접근성', () => {
 
 describe('PropertyCategory 접근성', () => {
   const mockProps = {
-    category: 'Layout',
+    category: 'Layout' as const,
     properties: [
-      { name: 'x', label: 'X', editorType: 'number' as const, category: 'Layout' },
-      { name: 'y', label: 'Y', editorType: 'number' as const, category: 'Layout' },
+      { name: 'x', label: 'X', editorType: 'number' as const, category: 'Layout' as const },
+      { name: 'y', label: 'Y', editorType: 'number' as const, category: 'Layout' as const },
     ],
     getValue: () => 0,
     onValueChange: vi.fn(),
