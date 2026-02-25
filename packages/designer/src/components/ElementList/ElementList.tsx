@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
-import { useHistoryStore } from '../../stores/historyStore';
+import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
 import { controlMetadata } from '../../controls/registry';
 import { ElementTreeNode } from './ElementTreeNode';
 import type { TreeNode } from './ElementTreeNode';
@@ -136,8 +136,7 @@ export function ElementList() {
   const handleDelete = useCallback(() => {
     const ids = useSelectionStore.getState().selectedIds;
     if (ids.size === 0) return;
-    const snapshot = JSON.stringify(useDesignerStore.getState().controls);
-    useHistoryStore.getState().pushSnapshot(snapshot);
+    useHistoryStore.getState().pushSnapshot(createSnapshot());
     removeControls(Array.from(ids));
     clearSelection();
   }, [removeControls, clearSelection]);

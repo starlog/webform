@@ -5,15 +5,20 @@ import { useDesignerStore } from './designerStore';
 
 const MAX_HISTORY = 50;
 
+export interface Snapshot {
+  controls: ControlDefinition[];
+  formProperties: FormProperties;
+}
+
 interface HistoryState {
-  past: string[];
-  future: string[];
+  past: Snapshot[];
+  future: Snapshot[];
   canUndo: boolean;
   canRedo: boolean;
 
-  pushSnapshot: (snapshot: string) => void;
-  undo: (currentSnapshot: string) => string | null;
-  redo: (currentSnapshot: string) => string | null;
+  pushSnapshot: (snapshot: Snapshot) => void;
+  undo: (currentSnapshot: Snapshot) => Snapshot | null;
+  redo: (currentSnapshot: Snapshot) => Snapshot | null;
   clear: () => void;
 }
 
@@ -77,17 +82,20 @@ export const useHistoryStore = create<HistoryState>()(
 
 // --- 스냅샷 유틸리티 ---
 
-/** 현재 controls + formProperties를 JSON 스냅샷으로 생성 */
-export function createSnapshot(): string {
+/** 현재 controls + formProperties를 얕은 복사 스냅샷으로 생성 (구조적 공유) */
+export function createSnapshot(): Snapshot {
   const { controls, formProperties } = useDesignerStore.getState();
-  return JSON.stringify({ controls, formProperties });
+  return {
+    controls: [...controls],
+    formProperties: { ...formProperties },
+  };
 }
 
 /** 스냅샷을 복원하여 controls + formProperties를 교체 */
-export function restoreSnapshot(snapshot: string): void {
-  const { controls, formProperties } = JSON.parse(snapshot) as {
-    controls: ControlDefinition[];
-    formProperties: FormProperties;
-  };
-  useDesignerStore.setState({ controls, formProperties, isDirty: true });
+export function restoreSnapshot(snapshot: Snapshot): void {
+  useDesignerStore.setState({
+    controls: [...snapshot.controls],
+    formProperties: { ...snapshot.formProperties },
+    isDirty: true,
+  });
 }

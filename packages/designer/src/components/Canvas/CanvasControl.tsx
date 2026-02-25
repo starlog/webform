@@ -3,8 +3,8 @@ import type { ControlDefinition, ControlType } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
-import { snapPositionToGrid, getSnaplines } from '../../utils/snapGrid';
-import type { Snapline } from '../../utils/snapGrid';
+import { snapPositionToGrid, buildSnapEdgeIndex, getSnaplinesFromIndex } from '../../utils/snapGrid';
+import type { Snapline, SnapEdgeIndex } from '../../utils/snapGrid';
 import { ResizeHandle, RESIZE_DIRECTIONS } from './ResizeHandle';
 import { getDesignerComponent } from '../../controls/registry';
 
@@ -125,6 +125,10 @@ export function CanvasControl({ control, isSelected, onSnaplineChange, onContext
     // 변경 전 스냅샷 저장
     useHistoryStore.getState().pushSnapshot(createSnapshot());
 
+    // 드래그 시작 시 스냅 edge 인덱스를 1회 빌드 (이진 탐색 최적화)
+    const dragExcludeIds = new Set(dragSelectedIds);
+    const snapIndex: SnapEdgeIndex = buildSnapEdgeIndex(controls, dragExcludeIds);
+
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
@@ -157,16 +161,12 @@ export function CanvasControl({ control, isSelected, onSnaplineChange, onContext
           }));
         moveControls(moves);
 
-        // 스냅라인은 드래그 중인 컨트롤 기준으로 계산
-        const currentControls = useDesignerStore.getState().controls;
-        const movingCtrl = currentControls.find((c) => c.id === control.id);
+        // 스냅라인은 사전 빌드된 인덱스에서 이진 탐색으로 계산
+        const movingCtrl = useDesignerStore.getState().controls.find((c) => c.id === control.id);
         if (movingCtrl) {
-          const others = currentControls.filter(
-            (c) => !dragSelectedIds.includes(c.id),
-          );
-          const lines = getSnaplines(
+          const lines = getSnaplinesFromIndex(
             { position: snappedPos, size: movingCtrl.size },
-            others,
+            snapIndex,
           );
           onSnaplineChange(lines);
         }
