@@ -31,6 +31,12 @@ import { Chart } from './Chart';
 import { SplitContainer } from './SplitContainer';
 import { BindingNavigator } from './BindingNavigator';
 import { MongoDBConnector } from './MongoDBConnector';
+import { Slider } from './Slider';
+import { Switch } from './Switch';
+import { Upload } from './Upload';
+import { Alert } from './Alert';
+import { Tag } from './Tag';
+import { Divider } from './Divider';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<any>>> = {
@@ -64,4 +70,10 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   SplitContainer,
   BindingNavigator,
   MongoDBConnector,
+  Slider,
+  Switch,
+  Upload,
+  Alert,
+  Tag,
+  Divider,
 };
