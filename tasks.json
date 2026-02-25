@@ -25,7 +25,7 @@
       "description": "FormService의 버전 중복 생성 및 publish 409 미반환 버그 수정",
       "phase": "phase1-critical",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/test-fix-plan.md의 계획에 따라 테스트 실패 버그를 수정하세요.\n\n## 수행할 작업\n1. `plans/test-fix-plan.md`를 읽고 수정 계획 확인\n2. `packages/server/src/services/FormService.ts` 수정:\n   - 버전 중복 생성 버그 수정 (createForm/updateForm에서 버전이 두 번 저장되는 로직 제거)\n   - publish 메서드에서 이미 publish된 폼 재publish 시 409 Conflict 반환 로직 추가\n3. 필요한 경우 관련 Mongoose 모델 파일도 수정\n4. `packages/server/src/__tests__/forms.integration.test.ts` 내용 검토하여 모든 실패 케이스가 커버되는지 확인\n\n## 주의사항\n- 기존 통과 테스트가 깨지지 않도록 최소 변경 원칙 준수\n- FormService의 다른 기능(deleteForm, getForm 등)에 영향 없도록 주의\n- 프로젝트 코드 스타일 유지 (singleQuote, trailingComma: all, tabWidth: 2)",
       "dependsOn": [
         "test-fix-plan"
@@ -93,7 +93,7 @@
       "description": "SandboxRunner에 내부 IP 차단 URL 검증 로직 추가",
       "phase": "phase1-critical",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/ssrf-filter-plan.md의 계획에 따라 SSRF 취약점을 수정하세요.\n\n## 수행할 작업\n1. `plans/ssrf-filter-plan.md` 읽기\n2. `packages/server/src/services/SandboxRunner.ts` 파일 읽기\n3. URL 검증 함수 구현 (SandboxRunner.ts 내부 또는 별도 유틸리티):\n   ```typescript\n   // 차단 대상\n   // - 내부 IP: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, ::1\n   // - 호스트명: localhost, 0.0.0.0\n   // - 허용 스킴: http, https만\n   function validateSandboxUrl(url: string): void // 유효하지 않으면 에러 throw\n   ```\n4. ctx.http.get(), ctx.http.post() 등 모든 HTTP 메서드 앞에 URL 검증 호출 추가\n5. 차단 시 명확한 에러 메시지 반환 (예: 'SSRF 차단: 내부 IP 접근 불가')\n\n## 코드 스타일\n- 프로젝트의 Prettier 설정 따름 (singleQuote, trailingComma: all, tabWidth: 2)\n- TypeScript 타입 안전하게 작성\n- Node.js 내장 `url` 모듈 활용 가능",
       "dependsOn": [
         "ssrf-filter-plan"
@@ -163,7 +163,7 @@
       "description": "WebSocket 핸들러에 토큰 검증 로직 추가 및 클라이언트 연결 코드 업데이트",
       "phase": "phase1-critical",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/ws-auth-plan.md의 계획에 따라 WebSocket 인증을 구현하세요.\n\n## 수행할 작업\n1. `plans/ws-auth-plan.md` 읽기\n2. `packages/server/src/websocket/` 파일들 읽기\n3. 서버 WebSocket 핸들러에 토큰 검증 추가:\n   - WebSocket 업그레이드 요청에서 `?token=<jwt>` 쿼리 파라미터 추출\n   - 기존 JWT 검증 로직(미들웨어 등) 재사용하여 토큰 유효성 확인\n   - 검증 실패 시 `ws.close(1008, 'Unauthorized')` 또는 HTTP 401 응답\n4. 런타임 클라이언트 WebSocket 연결 업데이트:\n   - `packages/runtime/src/communication/wsClient.ts` 읽고 수정\n   - WebSocket URL에 현재 인증 토큰을 query string으로 포함\n5. 디자이너 클라이언트 WebSocket 연결 업데이트:\n   - Designer WebSocket 연결 코드 찾아 토큰 포함하도록 수정\n6. 개발 환경 토큰 획득 방법 확인 (로그인 응답에서 토큰 저장 방식)\n\n## 코드 스타일\n- 기존 코드 스타일 유지\n- TypeScript 타입 안전하게 작성",
       "dependsOn": [
         "ws-auth-plan"
