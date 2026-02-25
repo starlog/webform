@@ -36,6 +36,12 @@ import { UploadControl } from './UploadControl';
 import { AlertControl } from './AlertControl';
 import { TagControl } from './TagControl';
 import { DividerControl } from './DividerControl';
+import { CardControl } from './CardControl';
+import { BadgeControl } from './BadgeControl';
+import { AvatarControl } from './AvatarControl';
+import { TooltipControl } from './TooltipControl';
+import { CollapseControl } from './CollapseControl';
+import { StatisticControl } from './StatisticControl';
 
 export interface DesignerControlProps {
   id?: string;
@@ -83,6 +89,12 @@ export const designerControlRegistry: Partial<
   Alert: AlertControl,
   Tag: TagControl,
   Divider: DividerControl,
+  Card: CardControl,
+  Badge: BadgeControl,
+  Avatar: AvatarControl,
+  Tooltip: TooltipControl,
+  Collapse: CollapseControl,
+  Statistic: StatisticControl,
 };
 
 export interface ControlMeta {
@@ -135,6 +147,13 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'Alert',   displayName: 'Alert',   icon: '\u26A0', category: 'basic' },
   { type: 'Tag',     displayName: 'Tag',     icon: '\u2B21', category: 'basic' },
   { type: 'Divider', displayName: 'Divider', icon: '\u2014', category: 'basic' },
+  { type: 'Badge',     displayName: 'Badge',     icon: '●', category: 'basic' },
+  { type: 'Avatar',    displayName: 'Avatar',    icon: '⊙', category: 'basic' },
+  { type: 'Tooltip',   displayName: 'Tooltip',   icon: '💬', category: 'basic' },
+  { type: 'Statistic', displayName: 'Statistic', icon: '#', category: 'basic' },
+
+  { type: 'Card',     displayName: 'Card',     icon: '▢', category: 'container' },
+  { type: 'Collapse', displayName: 'Collapse', icon: '≡', category: 'container' },
 ];
 
 export const TOOLBOX_CATEGORIES = [

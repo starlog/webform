@@ -135,6 +135,12 @@ function getDefaultSize(type: ControlType): { width: number; height: number } {
     Alert:           { width: 300, height: 50 },
     Tag:             { width: 200, height: 30 },
     Divider:         { width: 300, height: 24 },
+    Card:            { width: 300, height: 200 },
+    Badge:           { width: 80,  height: 30 },
+    Avatar:          { width: 40,  height: 40 },
+    Tooltip:         { width: 100, height: 30 },
+    Collapse:        { width: 300, height: 200 },
+    Statistic:       { width: 150, height: 80 },
   };
   return sizes[type] ?? { width: 100, height: 23 };
 }
@@ -261,6 +267,18 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
       return { tags: ['Tag1', 'Tag2'], tagColor: 'Default', closable: false, addable: false };
     case 'Divider':
       return { text: '', orientation: 'Horizontal', textAlign: 'Center', lineStyle: 'Solid' };
+    case 'Card':
+      return { title: 'Card Title', subtitle: '', showHeader: true, showBorder: true, hoverable: false, size: 'Default', borderRadius: 8 };
+    case 'Badge':
+      return { count: 0, overflowCount: 99, showZero: false, dot: false, status: 'Default', text: '', badgeColor: '' };
+    case 'Avatar':
+      return { imageUrl: '', text: 'U', shape: 'Circle' };
+    case 'Tooltip':
+      return { title: 'Tooltip text', placement: 'Top', trigger: 'Hover' };
+    case 'Collapse':
+      return { panels: [{ title: 'Panel 1', key: '1' }, { title: 'Panel 2', key: '2' }], activeKeys: '1', accordion: false, bordered: true, expandIconPosition: 'Start' };
+    case 'Statistic':
+      return { title: 'Statistic', value: '0', prefix: '', suffix: '', precision: 0, showGroupSeparator: true, valueColor: '' };
     default:
       return {};
   }
