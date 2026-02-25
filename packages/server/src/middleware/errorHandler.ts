@@ -24,7 +24,7 @@ export class NotFoundError extends AppError {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({

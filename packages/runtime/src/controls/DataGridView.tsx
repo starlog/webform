@@ -130,7 +130,21 @@ function useDataGridStyles() {
   }), [theme]);
 }
 
-interface VirtualizedRowProps {
+interface DataGridRowExtraProps {
+  sortedRows: Record<string, unknown>[];
+  selectedRowIndex: number;
+  editingCell: EditingCell | null;
+  resolvedColumns: ResolvedColumn[];
+  styles: ReturnType<typeof useDataGridStyles>;
+  editInputRef: React.RefObject<HTMLInputElement>;
+  handleRowClick: (rowIndex: number) => void;
+  handleCellClick: (rowIndex: number, field: string) => void;
+  handleCellDoubleClick: (rowIndex: number, field: string, editable?: boolean) => void;
+  handleEditKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  commitEdit: (value: string) => void;
+}
+
+interface VirtualizedRowProps extends DataGridRowExtraProps {
   ariaAttributes: {
     'aria-posinset': number;
     'aria-setsize': number;
@@ -138,17 +152,6 @@ interface VirtualizedRowProps {
   };
   index: number;
   style: CSSProperties;
-  sortedRows: Record<string, unknown>[];
-  selectedRowIndex: number;
-  editingCell: EditingCell | null;
-  resolvedColumns: ResolvedColumn[];
-  styles: ReturnType<typeof useDataGridStyles>;
-  editInputRef: React.RefObject<HTMLInputElement | null>;
-  handleRowClick: (rowIndex: number) => void;
-  handleCellClick: (rowIndex: number, field: string) => void;
-  handleCellDoubleClick: (rowIndex: number, field: string, editable?: boolean) => void;
-  handleEditKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  commitEdit: (value: string) => void;
 }
 
 function VirtualizedRow({
@@ -388,6 +391,24 @@ export function DataGridView({
 
   const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, background: colors.background, color: colors.color, ...style };
 
+  // rowProps: 행 렌더러에 전달되는 추가 props (hooks는 early return 앞에서 호출)
+  const rowProps = useMemo<DataGridRowExtraProps>(() => ({
+    sortedRows,
+    selectedRowIndex,
+    editingCell,
+    resolvedColumns,
+    styles,
+    editInputRef,
+    handleRowClick,
+    handleCellClick,
+    handleCellDoubleClick,
+    handleEditKeyDown,
+    commitEdit,
+  }), [
+    sortedRows, selectedRowIndex, editingCell, resolvedColumns, styles,
+    handleRowClick, handleCellClick, handleCellDoubleClick, handleEditKeyDown, commitEdit,
+  ]);
+
   // 에러 상태 표시
   const errorMessage = rest['__error__'];
   if (errorMessage) {
@@ -441,28 +462,10 @@ export function DataGridView({
     );
   }
 
-  // rowProps: 행 렌더러에 전달되는 추가 props
-  const rowProps = useMemo(() => ({
-    sortedRows,
-    selectedRowIndex,
-    editingCell,
-    resolvedColumns,
-    styles,
-    editInputRef,
-    handleRowClick,
-    handleCellClick,
-    handleCellDoubleClick,
-    handleEditKeyDown,
-    commitEdit,
-  }), [
-    sortedRows, selectedRowIndex, editingCell, resolvedColumns, styles,
-    handleRowClick, handleCellClick, handleCellDoubleClick, handleEditKeyDown, commitEdit,
-  ]);
-
   return (
     <div className="wf-datagridview" data-control-id={id} style={mergedStyle}>
       {header}
-      <List
+      <List<DataGridRowExtraProps>
         rowComponent={VirtualizedRow}
         rowCount={sortedRows.length}
         rowHeight={ROW_HEIGHT}

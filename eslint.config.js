@@ -29,5 +29,13 @@ export default tseslint.config(
       globals: globals.node,
     },
   },
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" },
+      ],
+    },
+  },
   eslintConfigPrettier
 );
