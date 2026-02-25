@@ -83,6 +83,7 @@ export const updateFormSchema = z.object({
   controls: z.array(controlDefinitionSchema).optional(),
   eventHandlers: z.array(eventHandlerSchema).optional(),
   dataBindings: z.array(dataBindingSchema).optional(),
+  version: z.number().int().positive().optional(), // 낙관적 잠금용
 });
 
 export type UpdateFormInput = z.infer<typeof updateFormSchema>;

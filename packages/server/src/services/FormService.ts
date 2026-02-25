@@ -114,6 +114,11 @@ export class FormService {
   async updateForm(id: string, input: UpdateFormInput, userId: string): Promise<FormDocument> {
     const existing = await this.getForm(id);
 
+    // 낙관적 잠금: 클라이언트 version과 DB version 비교
+    if (input.version !== undefined && input.version !== existing.version) {
+      throw new AppError(409, 'Form has been modified by another user. Please reload and try again.');
+    }
+
     const snapshot: FormVersionSnapshot = {
       version: existing.version,
       snapshot: {
@@ -129,8 +134,9 @@ export class FormService {
     // 자동 note 생성
     const note = generateNote(existing, input);
 
+    const { version: _clientVersion, ...updateData } = input;
     const updateFields: Record<string, unknown> = {
-      ...input,
+      ...updateData,
       updatedBy: userId,
     };
 
@@ -139,8 +145,14 @@ export class FormService {
       updateFields.status = 'draft';
     }
 
+    // findOneAndUpdate 조건에 version 추가 (race condition 방지)
+    const filter: Record<string, unknown> = { _id: id, deletedAt: null };
+    if (input.version !== undefined) {
+      filter.version = input.version;
+    }
+
     const form = await Form.findOneAndUpdate(
-      { _id: id, deletedAt: null },
+      filter,
       {
         $set: updateFields,
         $inc: { version: 1 },
@@ -150,6 +162,9 @@ export class FormService {
     );
 
     if (!form) {
+      if (input.version !== undefined) {
+        throw new AppError(409, 'Form has been modified by another user. Please reload and try again.');
+      }
       throw new NotFoundError(`Form not found: ${id}`);
     }
 

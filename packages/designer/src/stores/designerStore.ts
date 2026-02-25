@@ -56,6 +56,7 @@ interface DesignerState {
   formProperties: FormProperties;
   isDirty: boolean;
   currentFormId: string | null;
+  formVersion: number | null; // 낙관적 잠금용
   currentProjectId: string | null;
   projectDefaultFont: FontDefinition | null;
   gridSize: number;
@@ -83,7 +84,8 @@ interface DesignerState {
   sendBackward: (id: string) => void;
   setFormProperties: (props: Partial<FormProperties>) => void;
   setGridSize: (size: number) => void;
-  loadForm: (formId: string, controls: ControlDefinition[], properties: FormProperties, eventHandlers?: Array<{ controlId: string; eventName: string; handlerCode: string }>) => void;
+  loadForm: (formId: string, controls: ControlDefinition[], properties: FormProperties, eventHandlers?: Array<{ controlId: string; eventName: string; handlerCode: string }>, version?: number) => void;
+  updateFormVersion: (version: number) => void;
   loadFormEvents: (eventHandlers: Record<string, string>, eventCode: Record<string, string>) => void;
   setFormEventHandler: (eventName: string, handlerName: string) => void;
   setFormEventCode: (handlerName: string, code: string) => void;
@@ -340,6 +342,7 @@ export const useDesignerStore = create<DesignerState>()(
     formProperties: DEFAULT_FORM_PROPERTIES,
     isDirty: false,
     currentFormId: null,
+    formVersion: null as number | null,
     currentProjectId: null,
     projectDefaultFont: null as FontDefinition | null,
     gridSize: 8,
@@ -448,8 +451,9 @@ export const useDesignerStore = create<DesignerState>()(
       state.gridSize = size;
     }),
 
-    loadForm: (formId, controls, properties, eventHandlers) => set((state) => {
+    loadForm: (formId, controls, properties, eventHandlers, version) => set((state) => {
       state.currentFormId = formId;
+      state.formVersion = version ?? null;
       state.controls = flattenControls(controls) as ControlDefinition[];
       state.formProperties = properties;
 
@@ -481,6 +485,10 @@ export const useDesignerStore = create<DesignerState>()(
       // 컨트롤 레벨 이벤트는 스냅샷의 properties._eventHandlers에 이미 포함됨
 
       state.isDirty = false;
+    }),
+
+    updateFormVersion: (version) => set((state) => {
+      state.formVersion = version;
     }),
 
     loadFormEvents: (eventHandlers, eventCode) => set((state) => {

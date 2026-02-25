@@ -67,10 +67,25 @@ export function App() {
       await save();
       showStatus('Saved');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      showStatus(`Save failed: ${msg}`, 'error');
+      const status = (err as Error & { status?: number }).status;
+      if (status === 409) {
+        const reload = window.confirm(
+          '다른 사용자가 이 폼을 수정했습니다.\n' +
+          '최신 버전을 다시 불러오시겠습니까?\n\n' +
+          '(취소하면 현재 변경사항을 유지하지만, 저장 시 다시 충돌이 발생할 수 있습니다.)',
+        );
+        if (reload && currentFormId) {
+          await loadForm(currentFormId);
+          showStatus('Reloaded latest version');
+        } else {
+          showStatus('Save conflict — please reload manually', 'error');
+        }
+      } else {
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        showStatus(`Save failed: ${msg}`, 'error');
+      }
     }
-  }, [save, editMode]);
+  }, [save, editMode, currentFormId]);
 
   const handlePublish = useCallback(async () => {
     if (editMode === 'shell') {
@@ -102,8 +117,22 @@ export function App() {
       setExplorerRefreshKey((k) => k + 1);
       showStatus('Published');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      showStatus(`Publish failed: ${msg}`, 'error');
+      const status = (err as Error & { status?: number }).status;
+      if (status === 409) {
+        const reload = window.confirm(
+          '다른 사용자가 이 폼을 수정했습니다.\n' +
+          '최신 버전을 다시 불러오시겠습니까?',
+        );
+        if (reload) {
+          await loadForm(currentFormId);
+          showStatus('Reloaded latest version');
+        } else {
+          showStatus('Save conflict — please reload manually', 'error');
+        }
+      } else {
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        showStatus(`Publish failed: ${msg}`, 'error');
+      }
     }
   }, [currentFormId, save, editMode]);
 
@@ -158,7 +187,7 @@ export function App() {
       const { data } = await apiService.loadForm(formId);
       const store = useDesignerStore.getState();
       store.setEditMode('form');
-      store.loadForm(formId, data.controls, data.properties, data.eventHandlers);
+      store.loadForm(formId, data.controls, data.properties, data.eventHandlers, data.version);
 
       // 프로젝트 정보 설정 (기본 폰트, Shell 테마 포함)
       if (data.projectId) {
