@@ -474,6 +474,7 @@ export function useAutoSave() {
         markClean();
       } catch (error) {
         console.error('Shell auto-save failed:', error);
+        throw error;
       }
       return;
     }
@@ -489,6 +490,7 @@ export function useAutoSave() {
       markClean();
     } catch (error) {
       console.error('Auto-save failed:', error);
+      throw error;
     }
   }, [currentFormId, isDirty, controls, formProperties, markClean, editMode]);
 
@@ -509,6 +511,7 @@ export function useAutoSave() {
         state.markClean();
       } catch (error) {
         console.error('Shell save failed:', error);
+        throw error;
       }
       return;
     }
@@ -524,6 +527,7 @@ export function useAutoSave() {
       state.markClean();
     } catch (error) {
       console.error('Save failed:', error);
+      throw error;
     }
   }, []);
 

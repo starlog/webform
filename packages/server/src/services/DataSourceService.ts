@@ -207,6 +207,12 @@ export class DataSourceService {
     const adapter = this.createAdapter(ds);
     try {
       return await adapter.testConnection();
+    } catch (err) {
+      console.error(
+        `[DataSourceService] testConnection failed — id=${id}, type=${ds.type}`,
+        err,
+      );
+      throw err;
     } finally {
       await adapter.disconnect();
     }
@@ -220,6 +226,12 @@ export class DataSourceService {
     const adapter = this.createAdapter(ds);
     try {
       return await adapter.executeQuery(query);
+    } catch (err) {
+      console.error(
+        `[DataSourceService] executeQuery failed — id=${id}, type=${ds.type}, query=${JSON.stringify(query)}`,
+        err,
+      );
+      throw err;
     } finally {
       await adapter.disconnect();
     }
