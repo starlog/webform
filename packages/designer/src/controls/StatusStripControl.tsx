@@ -16,7 +16,7 @@ const DEFAULT_ITEMS: StatusStripItem[] = [
 export function StatusStripControl({ properties, size }: DesignerControlProps) {
   const theme = useTheme();
   const items = (properties.items as StatusStripItem[]) ?? [];
-  const backColor = (properties.backColor as string) ?? theme.controls.statusStrip.background;
+  const backColor = theme.controls.statusStrip.background;
 
   const displayItems = items.length > 0 ? items : DEFAULT_ITEMS;
 
@@ -49,7 +49,7 @@ export function StatusStripControl({ properties, size }: DesignerControlProps) {
                 width: item.spring ? undefined : (item.width ?? 100),
                 flexGrow: item.spring ? 1 : undefined,
                 height: 14,
-                backgroundColor: '#E0E0E0',
+                backgroundColor: theme.controls.progressBar.background,
                 borderRadius: 1,
                 overflow: 'hidden',
               }}
@@ -58,7 +58,7 @@ export function StatusStripControl({ properties, size }: DesignerControlProps) {
                 style={{
                   width: `${Math.min(100, Math.max(0, val))}%`,
                   height: '100%',
-                  backgroundColor: '#06B025',
+                  backgroundColor: theme.controls.progressBar.fillBackground,
                 }}
               />
             </div>

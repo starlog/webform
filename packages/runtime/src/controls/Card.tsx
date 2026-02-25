@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
 interface CardProps {
@@ -33,6 +34,7 @@ export function Card({
   style,
   children,
 }: CardProps) {
+  const theme = useTheme();
   const colors = useControlColors('Card', { backColor, foreColor });
   const [isHovered, setIsHovered] = useState(false);
 
@@ -52,7 +54,7 @@ export function Card({
     backgroundColor: colors.backgroundColor,
     color: colors.color,
     borderRadius,
-    border: showBorder ? '1px solid rgba(0,0,0,0.1)' : 'none',
+    border: showBorder ? theme.controls.panel.border : 'none',
     boxShadow: hoverable && isHovered ? '0 4px 12px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.06)',
     transition: 'box-shadow 0.3s ease',
     display: 'flex',
@@ -71,7 +73,7 @@ export function Card({
       onMouseLeave={handleMouseLeave}
     >
       {showHeader && (
-        <div style={{ padding: headerPadding, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+        <div style={{ padding: headerPadding, borderBottom: theme.controls.panel.border }}>
           <div style={{ fontWeight: 600, fontSize: isSmall ? '14px' : '16px' }}>{title}</div>
           {subtitle && (
             <div style={{ fontSize: '13px', opacity: 0.6, marginTop: 2 }}>{subtitle}</div>

@@ -1,4 +1,5 @@
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 import { useDesignerStore } from '../stores/designerStore';
 import { useSelectionStore } from '../stores/selectionStore';
 import { getDesignerComponent } from './registry';
@@ -15,8 +16,11 @@ export function CardControl({ id, properties, size, position = { x: 0, y: 0 } }:
   const hoverable = (properties.hoverable as boolean) ?? false;
   const cardSize = (properties.size as string) ?? 'Default';
   const borderRadius = (properties.borderRadius as number) ?? 8;
-  const backColor = properties.backColor as string | undefined;
-  const foreColor = properties.foreColor as string | undefined;
+
+  const colors = useControlColors('Card', {
+    backColor: properties.backColor as string | undefined,
+    foreColor: properties.foreColor as string | undefined,
+  });
 
   const isSmall = cardSize === 'Small';
   const headerPadding = isSmall ? '8px 12px' : '12px 16px';
@@ -33,10 +37,9 @@ export function CardControl({ id, properties, size, position = { x: 0, y: 0 } }:
         width: size.width,
         height: size.height,
         borderRadius,
-        boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-        border: showBorder ? `1px solid ${theme.controls.panel.border}` : 'none',
-        backgroundColor: backColor ?? theme.form.backgroundColor,
-        color: foreColor ?? theme.form.foreground,
+        border: showBorder ? theme.controls.panel.border : 'none',
+        backgroundColor: colors.backgroundColor,
+        color: colors.color,
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
@@ -97,6 +100,7 @@ function CardChildPreview({
   };
   cardPosition: { x: number; y: number };
 }) {
+  const theme = useTheme();
   const select = useSelectionStore((s) => s.select);
   const selectedIds = useSelectionStore((s) => s.selectedIds);
   const isSelected = selectedIds.has(control.id);
@@ -136,7 +140,7 @@ function CardChildPreview({
         width: control.size.width,
         height: control.size.height,
         cursor: 'pointer',
-        outline: isSelected ? '2px solid #0078D7' : 'none',
+        outline: isSelected ? `2px solid ${theme.accent.primary}` : 'none',
         outlineOffset: 2,
         borderRadius: 2,
       }}

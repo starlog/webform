@@ -24,7 +24,7 @@ const DEFAULT_ITEMS: ToolStripItem[] = [
 export function ToolStripControl({ properties, size }: DesignerControlProps) {
   const theme = useTheme();
   const items = (properties.items as ToolStripItem[]) ?? [];
-  const backColor = (properties.backColor as string) ?? theme.controls.toolStrip.background;
+  const backColor = theme.controls.toolStrip.background;
 
   const displayItems = items.length > 0 ? items : DEFAULT_ITEMS;
 
@@ -75,7 +75,7 @@ export function ToolStripControl({ properties, size }: DesignerControlProps) {
               borderRadius: 2,
               opacity: isDisabled ? 0.5 : 1,
               whiteSpace: 'nowrap',
-              ...(item.checked ? { backgroundColor: '#CCE4F7', border: '1px solid #99C9EF' } : {}),
+              ...(item.checked ? { backgroundColor: theme.accent.primary, border: `1px solid ${theme.accent.primaryHover}` } : {}),
             }}
           >
             {item.icon && <span style={{ fontSize: '12px' }}>{item.icon}</span>}

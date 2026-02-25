@@ -219,7 +219,6 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
     case 'StatusStrip':
       return {
         items: [{ type: 'label', text: '준비', spring: true }],
-        backColor: '#F0F0F0',
       };
     case 'ToolStrip':
       return {
@@ -232,7 +231,6 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
           { type: 'button', text: '복사', icon: '📋' },
           { type: 'button', text: '붙여넣기', icon: '📌' },
         ],
-        backColor: '#F0F0F0',
       };
     case 'MenuStrip':
       return {

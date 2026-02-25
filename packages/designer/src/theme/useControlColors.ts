@@ -1,16 +1,6 @@
 import type { ControlType, ThemeTokens } from '@webform/common';
 import { useTheme } from './ThemeContext';
-import { useThemeColorMode } from './ThemeColorModeContext';
-
-interface ControlColorProps {
-  backColor?: string;
-  foreColor?: string;
-}
-
-interface ControlColors {
-  backgroundColor: string;
-  color: string;
-}
+import { useDesignerStore } from '../stores/designerStore';
 
 type ThemeColorResolver = (theme: ThemeTokens) => { background: string; foreground: string };
 
@@ -74,10 +64,10 @@ const chromeControlTypes = new Set<string>([
 
 export function useControlColors(
   controlType: ControlType,
-  props: ControlColorProps,
-): ControlColors {
+  props: { backColor?: string; foreColor?: string },
+): { backgroundColor: string; color: string } {
   const theme = useTheme();
-  const mode = useThemeColorMode();
+  const mode = useDesignerStore((s) => s.formProperties.themeColorMode ?? 'control');
   const themeColors = resolveThemeColors(controlType, theme);
 
   if (mode === 'theme' || chromeControlTypes.has(controlType)) {
