@@ -64,7 +64,7 @@
       "description": "packages/common 변경사항 git 커밋",
       "phase": "phase1-setup",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "packages/common에 추가한 12개 신규 컨트롤 타입 및 이벤트를 git 커밋한다.\n\n## 커밋 절차\n1. 변경 파일 확인: `git status` 및 `git diff packages/common/`\n2. 관련 파일 스테이징:\n   ```\n   git add packages/common/src/types/form.ts\n   git add packages/common/src/types/events.ts\n   git add plans/common-types-plan.md\n   ```\n3. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: 공통 타입에 12개 신규 컨트롤 타입 및 이벤트 등록\n   \n   - CONTROL_TYPES에 Slider, Switch, Upload, Alert, Tag, Divider,\n     Card, Badge, Avatar, Tooltip, Collapse, Statistic 추가\n   - CONTROL_EVENTS에 7개 이벤트 그룹 추가\n     (ValueChanged, CheckedChanged, FileSelected 등)\n   ```\n\n## 주의사항\n- .env 등 민감한 파일은 절대 스테이징하지 않는다\n- git add -A 대신 개별 파일을 명시적으로 추가한다",
       "dependsOn": [
         "common-types-test"
