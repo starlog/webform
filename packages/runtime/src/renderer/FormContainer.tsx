@@ -1,11 +1,13 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { useState, useCallback, useRef, type CSSProperties, type ReactNode } from 'react';
 import type { FormProperties } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import { computeFontStyle } from './layoutUtils';
 import { useFormResize } from './useFormResize';
+import { useFormDrag } from './useFormDrag';
 
 interface FormContainerProps {
   properties: FormProperties;
+  enableDrag?: boolean;
   dockTop?: ReactNode;
   dockBottom?: ReactNode;
   dockLeft?: ReactNode;
@@ -21,7 +23,7 @@ const titleTextStyle: CSSProperties = {
   textOverflow: 'ellipsis',
 };
 
-function TrafficLightButtons() {
+function TrafficLightButtons({ onMaximize }: { onMaximize?: () => void }) {
   const btnBase: CSSProperties = {
     width: 12,
     height: 12,
@@ -35,13 +37,14 @@ function TrafficLightButtons() {
     <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
       <button style={{ ...btnBase, backgroundColor: '#FF5F57' }} title="Close" />
       <button style={{ ...btnBase, backgroundColor: '#FEBC2E' }} title="Minimize" />
-      <button style={{ ...btnBase, backgroundColor: '#28C840' }} title="Maximize" />
+      <button style={{ ...btnBase, backgroundColor: '#28C840' }} title="Maximize" onClick={onMaximize} />
     </div>
   );
 }
 
 export function FormContainer({
   properties,
+  enableDrag = false,
   dockTop,
   dockBottom,
   dockLeft,
@@ -50,10 +53,25 @@ export function FormContainer({
   children,
 }: FormContainerProps) {
   const theme = useTheme();
-  const isMaximized = properties.windowState === 'Maximized';
+  const formRef = useRef<HTMLDivElement>(null);
+  const [maximized, setMaximized] = useState(properties.windowState === 'Maximized');
+  const isMaximized = maximized;
   const fontStyles = computeFontStyle(properties.font);
 
-  const showTitleBar = !isMaximized && properties.formBorderStyle !== 'None';
+  const { position, onTitleBarMouseDown, resetPosition } = useFormDrag({
+    enabled: enableDrag,
+    isMaximized,
+    formRef,
+  });
+
+  const toggleMaximize = useCallback(() => {
+    setMaximized((prev) => {
+      if (prev) resetPosition();
+      return !prev;
+    });
+  }, [resetPosition]);
+
+  const showTitleBar = properties.formBorderStyle !== 'None';
 
   const titleBarHeight = theme.window.titleBar.height;
   const isTrafficLight = theme.window.titleBar.controlButtonsPosition === 'left';
@@ -114,7 +132,8 @@ export function FormContainer({
         boxShadow: theme.window.shadow,
         borderRadius: theme.window.borderRadius,
         overflow: 'hidden',
-        position: 'relative' as const,
+        position: enableDrag ? ('absolute' as const) : ('relative' as const),
+        ...(enableDrag ? { left: position.x, top: position.y } : {}),
         ...borderStyle,
       };
 
@@ -148,11 +167,19 @@ export function FormContainer({
   };
 
   return (
-    <div className="wf-form" style={containerStyle}>
+    <div ref={formRef} className="wf-form" style={containerStyle}>
       {resizeHandles}
       {showTitleBar && (
-        <div className="wf-titlebar" style={titleBarStyle}>
-          {isTrafficLight && <TrafficLightButtons />}
+        <div
+          className="wf-titlebar"
+          style={{
+            ...titleBarStyle,
+            cursor: enableDrag && !isMaximized ? 'move' : 'default',
+          }}
+          onMouseDown={onTitleBarMouseDown}
+          onDoubleClick={properties.maximizeBox ? toggleMaximize : undefined}
+        >
+          {isTrafficLight && <TrafficLightButtons onMaximize={properties.maximizeBox ? toggleMaximize : undefined} />}
           <span style={titleTextStyle}>{properties.title}</span>
           {!isTrafficLight && (
             <>
@@ -160,7 +187,9 @@ export function FormContainer({
                 <button style={windowButtonStyle} title="Minimize">&#x2500;</button>
               )}
               {properties.maximizeBox && (
-                <button style={windowButtonStyle} title="Maximize">&#x25A1;</button>
+                <button style={windowButtonStyle} title={isMaximized ? 'Restore' : 'Maximize'} onClick={toggleMaximize}>
+                  {isMaximized ? '\u29C9' : '\u25A1'}
+                </button>
               )}
               <button
                 style={{ ...windowButtonStyle, fontWeight: 'bold' }}

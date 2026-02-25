@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useState, useCallback, useEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type {
   ApplicationShellDefinition,
   ControlDefinition,
@@ -53,10 +53,12 @@ function ShellControlRenderer({
   definition,
   projectId,
   shellDef,
+  parentSize,
 }: {
   definition: ControlDefinition;
   projectId: string;
   shellDef: ApplicationShellDefinition;
+  parentSize?: { width: number; height: number };
 }) {
   const controlState = useRuntimeStore(
     (s) => s.shellControlStates[definition.id] ?? EMPTY_STATE,
@@ -66,7 +68,7 @@ function ShellControlRenderer({
   const Component = runtimeControlRegistry[definition.type];
   if (!Component) return null;
 
-  const layoutStyle = computeLayoutStyle(definition);
+  const layoutStyle = computeLayoutStyle(definition, parentSize);
   if (controlState.visible === false) return null;
 
   // Shell 이벤트 핸들러 생성
@@ -112,13 +114,14 @@ function ShellControlRenderer({
           definition={child}
           projectId={projectId}
           shellDef={shellDef}
+          parentSize={definition.size}
         />
       ))}
     </Component>
   );
 }
 
-function TrafficLightButtons() {
+function TrafficLightButtons({ onMaximize }: { onMaximize?: () => void }) {
   const btnBase: CSSProperties = {
     width: 12,
     height: 12,
@@ -132,7 +135,7 @@ function TrafficLightButtons() {
     <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
       <button style={{ ...btnBase, backgroundColor: '#FF5F57' }} title="Close" />
       <button style={{ ...btnBase, backgroundColor: '#FEBC2E' }} title="Minimize" />
-      <button style={{ ...btnBase, backgroundColor: '#28C840' }} title="Maximize" />
+      <button style={{ ...btnBase, backgroundColor: '#28C840' }} title="Maximize" onClick={onMaximize} />
     </div>
   );
 }
@@ -146,6 +149,8 @@ const titleTextStyle: CSSProperties = {
 
 export function ShellRenderer({ shellDef, projectId, children }: ShellRendererProps) {
   const theme = useTheme();
+  const [maximized, setMaximized] = useState(false);
+  const toggleMaximize = useCallback(() => setMaximized((prev) => !prev), []);
   const applyShellPatches = useRuntimeStore((s) => s.applyShellPatches);
 
   // Shell.Load 이벤트 실행
@@ -214,7 +219,7 @@ export function ShellRenderer({ shellDef, projectId, children }: ShellRendererPr
     lineHeight: 1,
   };
 
-  const isSizable = properties.formBorderStyle === 'Sizable';
+  const isSizable = !maximized && properties.formBorderStyle === 'Sizable';
   const baseHeight = showTitleBar ? properties.height + titleBarHeight : properties.height;
 
   const { width, height, resizeHandles } = useFormResize({
@@ -228,17 +233,29 @@ export function ShellRenderer({ shellDef, projectId, children }: ShellRendererPr
       ? { border: 'none' }
       : { border: theme.window.border };
 
-  const containerStyle: CSSProperties = {
-    width,
-    height,
-    display: 'flex',
-    flexDirection: 'column',
-    boxShadow: theme.window.shadow,
-    borderRadius: theme.window.borderRadius,
-    overflow: 'hidden',
-    position: 'relative',
-    ...borderStyle,
-  };
+  const containerStyle: CSSProperties = maximized
+    ? {
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 9999,
+      }
+    : {
+        width,
+        height,
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: theme.window.shadow,
+        borderRadius: theme.window.borderRadius,
+        overflow: 'hidden',
+        position: 'relative',
+        ...borderStyle,
+      };
 
   const contentStyle: CSSProperties = {
     flex: 1,
@@ -259,12 +276,15 @@ export function ShellRenderer({ shellDef, projectId, children }: ShellRendererPr
     minHeight: 0,
   };
 
+  const shellSize = { width: properties.width, height: properties.height };
+
   const renderShellControl = (ctrl: ControlDefinition) => (
     <ShellControlRenderer
       key={ctrl.id}
       definition={ctrl}
       projectId={projectId}
       shellDef={shellDef}
+      parentSize={shellSize}
     />
   );
 
@@ -272,8 +292,12 @@ export function ShellRenderer({ shellDef, projectId, children }: ShellRendererPr
     <div className="wf-shell" style={containerStyle}>
       {resizeHandles}
       {showTitleBar && (
-        <div className="wf-titlebar" style={titleBarStyle}>
-          {isTrafficLight && <TrafficLightButtons />}
+        <div
+          className="wf-titlebar"
+          style={titleBarStyle}
+          onDoubleClick={properties.maximizeBox ? toggleMaximize : undefined}
+        >
+          {isTrafficLight && <TrafficLightButtons onMaximize={properties.maximizeBox ? toggleMaximize : undefined} />}
           <span style={titleTextStyle}>{properties.title}</span>
           {!isTrafficLight && (
             <>
@@ -283,8 +307,12 @@ export function ShellRenderer({ shellDef, projectId, children }: ShellRendererPr
                 </button>
               )}
               {properties.maximizeBox && (
-                <button style={windowButtonStyle} title="Maximize">
-                  &#x25A1;
+                <button
+                  style={windowButtonStyle}
+                  title={maximized ? 'Restore' : 'Maximize'}
+                  onClick={toggleMaximize}
+                >
+                  {maximized ? '\u29C9' : '\u25A1'}
                 </button>
               )}
               <button style={{ ...windowButtonStyle, fontWeight: 'bold' }} title="Close">

@@ -92,6 +92,7 @@ export {
   windowsXpTheme,
   ubuntu2004Theme,
   macosTahoeTheme,
+  vibrantNeonTheme,
 } from './themes/presets';
 
 // utils

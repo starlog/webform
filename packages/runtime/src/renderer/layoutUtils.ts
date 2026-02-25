@@ -35,40 +35,50 @@ export function computeAnchorStyle(
   const { anchor, position, size } = def;
   const style: CSSProperties = { position: 'absolute' };
 
-  if (anchor.left) {
-    style.left = position.x;
-  }
-  if (anchor.right) {
-    style.right = parentSize.width - position.x - size.width;
-  }
-  if (anchor.top) {
-    style.top = position.y;
-  }
-  if (anchor.bottom) {
-    style.bottom = parentSize.height - position.y - size.height;
-  }
+  const aLeft = anchor.left || (!anchor.left && !anchor.right);
+  const aRight = anchor.right;
+  const aTop = anchor.top || (!anchor.top && !anchor.bottom);
+  const aBottom = anchor.bottom;
 
-  // If both left and right anchored, width is auto
-  if (anchor.left && anchor.right) {
-    // width determined by left + right
+  // Horizontal
+  if (aLeft && aRight) {
+    style.left = position.x;
+    style.right = parentSize.width - position.x - size.width;
+  } else if (aRight) {
+    style.right = parentSize.width - position.x - size.width;
+    style.width = size.width;
   } else {
+    style.left = position.x;
     style.width = size.width;
   }
 
-  // If both top and bottom anchored, height is auto
-  if (anchor.top && anchor.bottom) {
-    // height determined by top + bottom
+  // Vertical
+  if (aTop && aBottom) {
+    style.top = position.y;
+    style.bottom = parentSize.height - position.y - size.height;
+  } else if (aBottom) {
+    style.bottom = parentSize.height - position.y - size.height;
+    style.height = size.height;
   } else {
+    style.top = position.y;
     style.height = size.height;
   }
 
   return style;
 }
 
-export function computeLayoutStyle(def: ControlDefinition): CSSProperties {
+export function computeLayoutStyle(
+  def: ControlDefinition,
+  parentSize?: { width: number; height: number },
+): CSSProperties {
   // Dock takes priority over absolute positioning
   if (def.dock !== 'None') {
     return computeDockStyle(def.dock, def.size, def.position);
+  }
+
+  // Anchor layout when parentSize is available
+  if (parentSize) {
+    return computeAnchorStyle(def, parentSize);
   }
 
   // Default: absolute positioning

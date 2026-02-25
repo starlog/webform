@@ -3,7 +3,7 @@
  * 각 테마는 ThemeTokens 인터페이스를 구현하여 UI 전체에 일관된 스타일을 적용한다.
  */
 
-export type PresetThemeId = 'windows-xp' | 'ubuntu-2004' | 'macos-tahoe';
+export type PresetThemeId = 'windows-xp' | 'ubuntu-2004' | 'macos-tahoe' | 'vibrant-neon';
 export type ThemeId = PresetThemeId | (string & {});
 
 export interface TitleBarTokens {

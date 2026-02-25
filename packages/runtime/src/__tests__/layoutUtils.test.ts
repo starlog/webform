@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeLayoutStyle, computeDockStyle } from '../renderer/layoutUtils';
+import { computeLayoutStyle, computeDockStyle, computeAnchorStyle } from '../renderer/layoutUtils';
 import type { ControlDefinition } from '@webform/common';
 
 function createMockControl(overrides?: Partial<ControlDefinition>): ControlDefinition {
@@ -102,6 +102,148 @@ describe('layoutUtils', () => {
     it('None → 빈 객체 반환', () => {
       const style = computeDockStyle('None', { width: 100, height: 100 });
       expect(style).toEqual({});
+    });
+  });
+
+  describe('computeLayoutStyle with parentSize (anchor)', () => {
+    const parentSize = { width: 800, height: 600 };
+
+    it('parentSize 없이 호출 → 기존 절대 위치 방식', () => {
+      const ctrl = createMockControl();
+      const style = computeLayoutStyle(ctrl);
+      expect(style).toEqual({
+        position: 'absolute',
+        left: 50,
+        top: 100,
+        width: 200,
+        height: 40,
+      });
+    });
+
+    it('parentSize 있고 dock이 설정된 경우 → dock 우선', () => {
+      const ctrl = createMockControl({ dock: 'Top' });
+      const style = computeLayoutStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        width: '100%',
+        height: 40,
+        flexShrink: 0,
+      });
+    });
+
+    it('Top+Left (기본) → left/top/width/height', () => {
+      const ctrl = createMockControl({
+        anchor: { top: true, left: true, bottom: false, right: false },
+      });
+      const style = computeLayoutStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        position: 'absolute',
+        left: 50,
+        top: 100,
+        width: 200,
+        height: 40,
+      });
+    });
+
+    it('Top+Left+Right → left/top/right/height (width 없음)', () => {
+      const ctrl = createMockControl({
+        anchor: { top: true, left: true, bottom: false, right: true },
+      });
+      const style = computeLayoutStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        position: 'absolute',
+        left: 50,
+        top: 100,
+        right: 550, // 800 - 50 - 200
+        height: 40,
+      });
+    });
+
+    it('Top+Bottom+Left → left/top/bottom/width (height 없음)', () => {
+      const ctrl = createMockControl({
+        anchor: { top: true, left: true, bottom: true, right: false },
+      });
+      const style = computeLayoutStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        position: 'absolute',
+        left: 50,
+        top: 100,
+        bottom: 460, // 600 - 100 - 40
+        width: 200,
+      });
+    });
+
+    it('All 4 → left/top/right/bottom (width/height 없음)', () => {
+      const ctrl = createMockControl({
+        anchor: { top: true, left: true, bottom: true, right: true },
+      });
+      const style = computeLayoutStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        position: 'absolute',
+        left: 50,
+        top: 100,
+        right: 550,
+        bottom: 460,
+      });
+    });
+
+    it('Bottom+Right → right/bottom/width/height', () => {
+      const ctrl = createMockControl({
+        anchor: { top: false, left: false, bottom: true, right: true },
+      });
+      const style = computeLayoutStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        position: 'absolute',
+        right: 550,
+        bottom: 460,
+        width: 200,
+        height: 40,
+      });
+    });
+
+    it('None (all false) → Top+Left와 동일 취급', () => {
+      const ctrl = createMockControl({
+        anchor: { top: false, left: false, bottom: false, right: false },
+      });
+      const style = computeLayoutStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        position: 'absolute',
+        left: 50,
+        top: 100,
+        width: 200,
+        height: 40,
+      });
+    });
+
+    it('Top+Right → right/top/width/height (우측 거리 유지)', () => {
+      const ctrl = createMockControl({
+        anchor: { top: true, left: false, bottom: false, right: true },
+      });
+      const style = computeLayoutStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        position: 'absolute',
+        right: 550,
+        top: 100,
+        width: 200,
+        height: 40,
+      });
+    });
+  });
+
+  describe('computeAnchorStyle', () => {
+    const parentSize = { width: 800, height: 600 };
+
+    it('Bottom만 → bottom/left/width/height', () => {
+      const ctrl = createMockControl({
+        anchor: { top: false, left: false, bottom: true, right: false },
+      });
+      const style = computeAnchorStyle(ctrl, parentSize);
+      expect(style).toEqual({
+        position: 'absolute',
+        left: 50,
+        bottom: 460,
+        width: 200,
+        height: 40,
+      });
     });
   });
 });

@@ -8,6 +8,7 @@ import { ControlRenderer } from './ControlRenderer';
 
 interface SDUIRendererProps {
   formDefinition: FormDefinition;
+  enableDrag?: boolean;
 }
 
 function classifyControls(controls: ControlDefinition[]) {
@@ -43,7 +44,7 @@ function classifyControls(controls: ControlDefinition[]) {
   return { dockTop, dockBottom, dockLeft, dockRight, dockFill, rest };
 }
 
-export function SDUIRenderer({ formDefinition }: SDUIRendererProps) {
+export function SDUIRenderer({ formDefinition, enableDrag }: SDUIRendererProps) {
   const setFormDef = useRuntimeStore((s) => s.setFormDef);
   const applyPatches = useRuntimeStore((s) => s.applyPatches);
 
@@ -107,15 +108,26 @@ export function SDUIRenderer({ formDefinition }: SDUIRendererProps) {
 
   const bindings = formDefinition.dataBindings;
   const events = formDefinition.eventHandlers;
+  const formSize = {
+    width: formDefinition.properties.width,
+    height: formDefinition.properties.height,
+  };
 
   const renderControl = (control: ControlDefinition) => (
-    <ControlRenderer key={control.id} definition={control} bindings={bindings} events={events} />
+    <ControlRenderer
+      key={control.id}
+      definition={control}
+      bindings={bindings}
+      events={events}
+      parentSize={formSize}
+    />
   );
 
   return (
     <ThemeProvider themeId={formDefinition.properties.theme}>
       <FormContainer
         properties={formDefinition.properties}
+        enableDrag={enableDrag}
         dockTop={dockTop.length > 0 ? dockTop.map(renderControl) : undefined}
         dockBottom={dockBottom.length > 0 ? dockBottom.map(renderControl) : undefined}
         dockLeft={dockLeft.length > 0 ? dockLeft.map(renderControl) : undefined}

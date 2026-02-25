@@ -396,13 +396,146 @@ export const macosTahoeTheme: ThemeTokens = {
   },
 };
 
+export const vibrantNeonTheme: ThemeTokens = {
+  id: 'vibrant-neon',
+  name: 'Vibrant Neon',
+  window: {
+    titleBar: {
+      background: 'linear-gradient(to right, #7C3AED, #DB2777)',
+      foreground: '#FFFFFF',
+      height: 34,
+      font: '13px "Inter", "Segoe UI", sans-serif',
+      borderRadius: '12px 12px 0 0',
+      controlButtonsPosition: 'right',
+    },
+    border: '1px solid rgba(139, 92, 246, 0.3)',
+    borderRadius: '12px',
+    shadow: '0 8px 32px rgba(124, 58, 237, 0.25), 0 0 16px rgba(219, 39, 119, 0.15)',
+  },
+  form: {
+    backgroundColor: '#1A1B2E',
+    foreground: '#E8E8F0',
+    fontFamily: '"Inter", "Segoe UI", sans-serif',
+    fontSize: '13px',
+  },
+  controls: {
+    button: {
+      background: 'linear-gradient(135deg, #7C3AED, #9333EA)',
+      border: '1px solid rgba(139, 92, 246, 0.4)',
+      borderRadius: '8px',
+      foreground: '#FFFFFF',
+      hoverBackground: 'linear-gradient(135deg, #8B5CF6, #A855F7)',
+      padding: '4px 16px',
+    },
+    textInput: {
+      background: '#252640',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      foreground: '#E8E8F0',
+      focusBorder: '2px solid #A855F7',
+      padding: '4px 8px',
+    },
+    select: {
+      background: '#252640',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      foreground: '#E8E8F0',
+      selectedBackground: '#7C3AED',
+      selectedForeground: '#FFFFFF',
+    },
+    checkRadio: {
+      border: '1px solid rgba(139, 92, 246, 0.4)',
+      background: '#252640',
+      checkedBackground: '#A855F7',
+      borderRadius: '4px',
+    },
+    panel: {
+      background: 'rgba(37, 38, 64, 0.6)',
+      border: '1px solid rgba(139, 92, 246, 0.2)',
+      borderRadius: '10px',
+    },
+    groupBox: {
+      border: '1px solid rgba(139, 92, 246, 0.25)',
+      borderRadius: '10px',
+      foreground: '#C4B5FD',
+    },
+    tabControl: {
+      tabBackground: '#1E1F33',
+      tabActiveBackground: '#2D2E4A',
+      tabBorder: '1px solid rgba(139, 92, 246, 0.2)',
+      tabBorderRadius: '8px 8px 0 0',
+      tabForeground: '#8B8BA3',
+      tabActiveForeground: '#C4B5FD',
+      contentBackground: '#2D2E4A',
+      contentBorder: '1px solid rgba(139, 92, 246, 0.2)',
+    },
+    dataGrid: {
+      headerBackground: '#252640',
+      headerForeground: '#C4B5FD',
+      headerBorder: '1px solid rgba(139, 92, 246, 0.2)',
+      rowBackground: '#1E1F33',
+      rowAlternateBackground: '#232442',
+      rowForeground: '#E8E8F0',
+      border: '1px solid rgba(139, 92, 246, 0.2)',
+      borderRadius: '10px',
+      selectedRowBackground: '#7C3AED',
+      selectedRowForeground: '#FFFFFF',
+    },
+    progressBar: {
+      background: '#252640',
+      fillBackground: 'linear-gradient(to right, #7C3AED, #EC4899)',
+      border: '1px solid rgba(139, 92, 246, 0.2)',
+      borderRadius: '6px',
+    },
+    menuStrip: {
+      background: '#16172B',
+      foreground: '#E8E8F0',
+      border: '1px solid rgba(139, 92, 246, 0.15)',
+      hoverBackground: 'rgba(124, 58, 237, 0.2)',
+      hoverForeground: '#FFFFFF',
+      activeBackground: '#7C3AED',
+    },
+    toolStrip: {
+      background: '#1E1F33',
+      foreground: '#C4B5FD',
+      border: '1px solid rgba(139, 92, 246, 0.15)',
+      buttonHoverBackground: 'rgba(124, 58, 237, 0.2)',
+      separator: 'rgba(139, 92, 246, 0.2)',
+    },
+    statusStrip: {
+      background: '#16172B',
+      foreground: '#8B8BA3',
+      border: '1px solid rgba(139, 92, 246, 0.15)',
+    },
+    scrollbar: {
+      trackBackground: 'transparent',
+      thumbBackground: 'rgba(139, 92, 246, 0.3)',
+      thumbHoverBackground: 'rgba(139, 92, 246, 0.5)',
+      width: 8,
+    },
+  },
+  accent: {
+    primary: '#A855F7',
+    primaryHover: '#7C3AED',
+    primaryForeground: '#FFFFFF',
+  },
+  popup: {
+    background: '#252640',
+    border: '1px solid rgba(139, 92, 246, 0.3)',
+    shadow: '0 8px 24px rgba(124, 58, 237, 0.2), 0 0 12px rgba(168, 85, 247, 0.1)',
+    borderRadius: '10px',
+    hoverBackground: 'rgba(124, 58, 237, 0.15)',
+  },
+};
+
 const themeMap: Record<PresetThemeId, ThemeTokens> = {
   'windows-xp': windowsXpTheme,
   'ubuntu-2004': ubuntu2004Theme,
   'macos-tahoe': macosTahoeTheme,
+  'vibrant-neon': vibrantNeonTheme,
 };
 
-export const PRESET_THEME_IDS: PresetThemeId[] = ['windows-xp', 'ubuntu-2004', 'macos-tahoe'];
+export const PRESET_THEME_IDS: PresetThemeId[] = ['windows-xp', 'ubuntu-2004', 'macos-tahoe', 'vibrant-neon'];
 
 /** @deprecated Use PRESET_THEME_IDS */
 export const THEME_IDS: PresetThemeId[] = PRESET_THEME_IDS;

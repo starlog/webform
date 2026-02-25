@@ -11,9 +11,10 @@ interface ControlRendererProps {
   definition: ControlDefinition;
   bindings: DataBindingDefinition[];
   events: EventHandlerDefinition[];
+  parentSize?: { width: number; height: number };
 }
 
-export function ControlRenderer({ definition, bindings, events }: ControlRendererProps) {
+export function ControlRenderer({ definition, bindings, events, parentSize }: ControlRendererProps) {
   const controlState = useRuntimeStore((s) => s.controlStates[definition.id] ?? EMPTY_STATE);
   const boundProps = useDataBinding(definition.id, bindings);
   const eventHandlers = useEventHandlers(definition.id, events);
@@ -24,7 +25,7 @@ export function ControlRenderer({ definition, bindings, events }: ControlRendere
     return null;
   }
 
-  const layoutStyle = computeLayoutStyle(definition);
+  const layoutStyle = computeLayoutStyle(definition, parentSize);
 
   if (controlState.visible === false) return null;
 
@@ -38,7 +39,13 @@ export function ControlRenderer({ definition, bindings, events }: ControlRendere
     definition.children.length > 0;
 
   const childElements = definition.children?.map((child) => (
-    <ControlRenderer key={child.id} definition={child} bindings={bindings} events={events} />
+    <ControlRenderer
+      key={child.id}
+      definition={child}
+      bindings={bindings}
+      events={events}
+      parentSize={definition.size}
+    />
   ));
 
   const wrappedChildren = needsChildOffset ? (

@@ -205,7 +205,7 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
     return (
       <ThemeProvider themeId={adjustedShellDef.properties.theme}>
         <ShellRenderer shellDef={adjustedShellDef} projectId={projectId}>
-          <SDUIRenderer formDefinition={formDefinition} />
+          <SDUIRenderer formDefinition={formDefinition} enableDrag />
         </ShellRenderer>
       </ThemeProvider>
     );

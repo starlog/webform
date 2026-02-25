@@ -5,15 +5,17 @@ import {
   windowsXpTheme,
   ubuntu2004Theme,
   macosTahoeTheme,
+  vibrantNeonTheme,
 } from '../themes/presets';
 import type { ThemeTokens } from '../types/theme';
 
 describe('Theme presets', () => {
-  it('THEME_IDS에 3개 테마가 정의되어 있다', () => {
-    expect(THEME_IDS).toHaveLength(3);
+  it('THEME_IDS에 4개 테마가 정의되어 있다', () => {
+    expect(THEME_IDS).toHaveLength(4);
     expect(THEME_IDS).toContain('windows-xp');
     expect(THEME_IDS).toContain('ubuntu-2004');
     expect(THEME_IDS).toContain('macos-tahoe');
+    expect(THEME_IDS).toContain('vibrant-neon');
   });
 
   it('각 프리셋의 id와 name이 올바르다', () => {
@@ -25,6 +27,9 @@ describe('Theme presets', () => {
 
     expect(macosTahoeTheme.id).toBe('macos-tahoe');
     expect(macosTahoeTheme.name).toBe('macOS Tahoe');
+
+    expect(vibrantNeonTheme.id).toBe('vibrant-neon');
+    expect(vibrantNeonTheme.name).toBe('Vibrant Neon');
   });
 
   it.each(THEME_IDS)('getThemeById("%s")가 올바른 테마를 반환한다', (id) => {
@@ -38,7 +43,7 @@ describe('Theme presets', () => {
   });
 
   describe('ThemeTokens 구조 유효성', () => {
-    const themes: ThemeTokens[] = [windowsXpTheme, ubuntu2004Theme, macosTahoeTheme];
+    const themes: ThemeTokens[] = [windowsXpTheme, ubuntu2004Theme, macosTahoeTheme, vibrantNeonTheme];
 
     it.each(themes.map((t) => [t.name, t] as const))(
       '%s 테마에 필수 토큰이 모두 존재한다',
@@ -95,13 +100,20 @@ describe('Theme presets', () => {
       expect(ubuntu2004Theme.window.titleBar.controlButtonsPosition).toBe('right');
     });
 
+    it('Vibrant Neon은 다크 배경과 둥근 모서리를 사용한다', () => {
+      expect(vibrantNeonTheme.form.backgroundColor).toBe('#1A1B2E');
+      expect(vibrantNeonTheme.window.borderRadius).toBe('12px');
+      expect(vibrantNeonTheme.controls.button.borderRadius).toBe('8px');
+    });
+
     it('각 테마의 accent 색상이 다르다', () => {
       const accents = new Set([
         windowsXpTheme.accent.primary,
         ubuntu2004Theme.accent.primary,
         macosTahoeTheme.accent.primary,
+        vibrantNeonTheme.accent.primary,
       ]);
-      expect(accents.size).toBe(3);
+      expect(accents.size).toBe(4);
     });
   });
 });
