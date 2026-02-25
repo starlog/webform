@@ -1,11 +1,76 @@
 #!/usr/bin/env bash
-# generate-themes.sh — 모든 프리셋 테마를 생성합니다.
-# 사용법: ./generate-themes.sh
-# 요구사항: Node.js 18+
+# generate-themes.sh — 프리셋 테마를 API를 통해 MongoDB에 시딩합니다.
+#
+# 사전 조건:
+#   - 서버(localhost:4000)가 실행 중이어야 합니다
+#
+# 사용법:
+#   ./generate-themes.sh
+###############################################################################
 set -euo pipefail
 cd "$(dirname "$0")"
 
-node --input-type=module <<'NODESCRIPT'
+# ─── .env 로드 (현재 디렉토리 우선, packages/server/.env 폴백) ──────────────
+load_env_var() {
+  local var_name="$1"
+  local val=""
+  if [ -f .env ]; then
+    val=$(grep "^${var_name}=" .env 2>/dev/null | head -1 | cut -d= -f2-)
+  fi
+  if [ -z "$val" ] && [ -f packages/server/.env ]; then
+    val=$(grep "^${var_name}=" packages/server/.env 2>/dev/null | head -1 | cut -d= -f2-)
+  fi
+  echo "$val"
+}
+
+# PORT에서 API_URL 결정
+_PORT=$(load_env_var "PORT")
+API_URL="http://localhost:${_PORT:-4000}"
+
+# ─── 색상 ────────────────────────────────────────────────────────────────────
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+info()  { echo -e "${CYAN}[INFO]${NC}  $*"; }
+ok()    { echo -e "${GREEN}[OK]${NC}    $*"; }
+warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
+fail()  { echo -e "${RED}[FAIL]${NC}  $*"; exit 1; }
+
+# ─── 1. JWT 토큰 생성 ─────────────────────────────────────────────────────────
+JWT_SECRET=$(load_env_var "JWT_SECRET")
+if [ -z "$JWT_SECRET" ]; then
+  fail ".env 또는 packages/server/.env 에서 JWT_SECRET을 찾을 수 없습니다. 먼저 ./run.sh를 실행하세요."
+fi
+
+TOKEN=$(node -e "
+  const jwt = require('${PWD}/packages/server/node_modules/jsonwebtoken/index.js');
+  const token = jwt.sign({ sub: 'theme-seeder', role: 'admin' }, '${JWT_SECRET}', { expiresIn: '1h' });
+  process.stdout.write(token);
+")
+
+if [ -z "$TOKEN" ]; then
+  fail "JWT 토큰 생성에 실패했습니다."
+fi
+ok "JWT 토큰 생성 완료"
+
+# ─── 2. API 서버 상태 확인 ─────────────────────────────────────────────────────
+info "API 서버 상태 확인 중..."
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${API_URL}/api/themes?limit=1" \
+  -H "Authorization: Bearer ${TOKEN}" 2>/dev/null || echo "000")
+if [ "$HTTP_CODE" = "000" ]; then
+  fail "API 서버(${API_URL})에 연결할 수 없습니다. 먼저 'pnpm dev' 또는 './run.sh'로 서버를 시작하세요."
+fi
+ok "API 서버 응답 확인 (HTTP ${HTTP_CODE})"
+
+# ─── 3. 테마 JSON 생성 (임시 파일) ─────────────────────────────────────────────
+info "프리셋 테마 JSON을 생성합니다..."
+TMP_FILE=$(mktemp /tmp/preset-themes-XXXXXX.json)
+trap 'rm -f "$TMP_FILE"' EXIT
+
+node --input-type=module <<NODESCRIPT
 import { writeFileSync } from 'fs';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -19,8 +84,8 @@ import { writeFileSync } from 'fs';
 function light(p) {
   const r = p.r ?? '0';
   const wr = p.wr ?? r;
-  const tr = p.tr ?? (wr === '0' ? '0' : `${wr} ${wr} 0 0`);
-  const tabR = p.tabR ?? (r === '0' ? '0' : `${r} ${r} 0 0`);
+  const tr = p.tr ?? (wr === '0' ? '0' : \`\${wr} \${wr} 0 0\`);
+  const tabR = p.tabR ?? (r === '0' ? '0' : \`\${r} \${r} 0 0\`);
   const pad = p.pad ?? '3px 10px';
   const ipad = p.ipad ?? '3px 5px';
   const bp = p.bp ?? 'right';
@@ -28,7 +93,7 @@ function light(p) {
   const th = p.th ?? 30;
   const fs = p.fs ?? '12px';
   const font = p.font ?? 'Segoe UI, sans-serif';
-  const titleFont = p.titleFont ?? `${fs} ${font}`;
+  const titleFont = p.titleFont ?? \`\${fs} \${font}\`;
   const pf = p.pf ?? '#FFFFFF';
   const ib = p.ib ?? '#FFFFFF';
 
@@ -43,7 +108,7 @@ function light(p) {
         borderRadius: tr,
         controlButtonsPosition: bp,
       },
-      border: p.wb ?? `1px solid ${p.b}`,
+      border: p.wb ?? \`1px solid \${p.b}\`,
       borderRadius: wr,
       shadow: p.ws ?? '0 2px 8px rgba(0,0,0,0.2)',
     },
@@ -56,7 +121,7 @@ function light(p) {
     controls: {
       button: {
         background: p.btnBg ?? p.cb,
-        border: p.btnBd ?? `1px solid ${p.b}`,
+        border: p.btnBd ?? \`1px solid \${p.b}\`,
         borderRadius: p.btnR ?? r,
         foreground: p.btnFg ?? p.fg,
         hoverBackground: p.hb,
@@ -64,54 +129,54 @@ function light(p) {
       },
       textInput: {
         background: ib,
-        border: p.iBd ?? `1px solid ${p.b}`,
+        border: p.iBd ?? \`1px solid \${p.b}\`,
         borderRadius: r,
         foreground: p.fg,
-        focusBorder: p.fb ?? `1px solid ${p.primary}`,
+        focusBorder: p.fb ?? \`1px solid \${p.primary}\`,
         padding: ipad,
       },
       select: {
         background: ib,
-        border: p.iBd ?? `1px solid ${p.b}`,
+        border: p.iBd ?? \`1px solid \${p.b}\`,
         borderRadius: r,
         foreground: p.fg,
         selectedBackground: p.primary,
         selectedForeground: pf,
       },
       checkRadio: {
-        border: p.chBd ?? `1px solid ${p.b}`,
+        border: p.chBd ?? \`1px solid \${p.b}\`,
         background: p.chBg ?? ib,
         checkedBackground: p.primary,
         borderRadius: p.chR ?? r,
       },
       panel: {
         background: p.panelBg ?? 'transparent',
-        border: p.panelBd ?? `1px solid ${p.lb ?? p.b}`,
+        border: p.panelBd ?? \`1px solid \${p.lb ?? p.b}\`,
         borderRadius: p.pnR ?? r,
       },
       groupBox: {
-        border: p.gbBd ?? `1px solid ${p.lb ?? p.b}`,
+        border: p.gbBd ?? \`1px solid \${p.lb ?? p.b}\`,
         borderRadius: p.gbR ?? r,
         foreground: p.gf ?? p.fg,
       },
       tabControl: {
         tabBackground: p.cb,
         tabActiveBackground: p.tabABg ?? ib,
-        tabBorder: `1px solid ${p.b}`,
+        tabBorder: \`1px solid \${p.b}\`,
         tabBorderRadius: tabR,
         tabForeground: p.tf ?? p.fg,
         tabActiveForeground: p.taf ?? p.fg,
         contentBackground: p.tabCBg ?? ib,
-        contentBorder: `1px solid ${p.b}`,
+        contentBorder: \`1px solid \${p.b}\`,
       },
       dataGrid: {
         headerBackground: p.gridHBg ?? p.cb,
         headerForeground: p.gridHFg ?? p.fg,
-        headerBorder: `1px solid ${p.b}`,
+        headerBorder: \`1px solid \${p.b}\`,
         rowBackground: p.gridRowBg ?? ib,
         rowAlternateBackground: p.ab,
         rowForeground: p.fg,
-        border: `1px solid ${p.b}`,
+        border: \`1px solid \${p.b}\`,
         borderRadius: p.gridR ?? r,
         selectedRowBackground: p.gridSelBg ?? p.primary,
         selectedRowForeground: p.gridSelFg ?? pf,
@@ -119,13 +184,13 @@ function light(p) {
       progressBar: {
         background: p.progBg ?? p.cb,
         fillBackground: p.progFill ?? p.primary,
-        border: p.progBd ?? `1px solid ${p.b}`,
+        border: p.progBd ?? \`1px solid \${p.b}\`,
         borderRadius: p.progR ?? r,
       },
       menuStrip: {
         background: p.mBg ?? p.cb,
         foreground: p.mFg ?? p.fg,
-        border: p.mBd ?? `1px solid ${p.lb ?? p.b}`,
+        border: p.mBd ?? \`1px solid \${p.lb ?? p.b}\`,
         hoverBackground: p.mHb ?? p.hb,
         hoverForeground: p.mHf ?? p.fg,
         activeBackground: p.mAb ?? p.primary,
@@ -133,14 +198,14 @@ function light(p) {
       toolStrip: {
         background: p.tsBg ?? p.cb,
         foreground: p.tsFg ?? p.fg,
-        border: p.tsBd ?? `1px solid ${p.lb ?? p.b}`,
+        border: p.tsBd ?? \`1px solid \${p.lb ?? p.b}\`,
         buttonHoverBackground: p.tsHb ?? p.hb,
         separator: p.tsSep ?? p.b,
       },
       statusStrip: {
         background: p.ssBg ?? p.cb,
         foreground: p.sf ?? p.fg,
-        border: p.ssBd ?? `1px solid ${p.lb ?? p.b}`,
+        border: p.ssBd ?? \`1px solid \${p.lb ?? p.b}\`,
       },
       scrollbar: {
         trackBackground: p.scTr ?? p.bg,
@@ -156,7 +221,7 @@ function light(p) {
     },
     popup: {
       background: p.popBg ?? ib,
-      border: `1px solid ${p.popBd ?? p.b}`,
+      border: \`1px solid \${p.popBd ?? p.b}\`,
       shadow: p.popSh ?? '0 2px 8px rgba(0,0,0,0.15)',
       borderRadius: p.popR ?? r,
       hoverBackground: p.popHb ?? p.hb,
@@ -847,17 +912,59 @@ const themes = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// JSON 생성 (preset-themes.json)
+// API seed 요청 JSON 생성
 // ─────────────────────────────────────────────────────────────────────────────
 
-const result = themes.map(t => ({
-  presetId: t.id,
-  name: t.name,
-  tokens: t,
-}));
+const result = {
+  themes: themes.map(t => ({
+    presetId: t.id,
+    name: t.name,
+    tokens: t,
+  })),
+};
 
-const outPath = 'packages/server/src/data/preset-themes.json';
-writeFileSync(outPath, JSON.stringify(result, null, 2));
-console.log(`✓ ${outPath} (${themes.length}개 프리셋 테마)`);
-console.log(`\n완료! ${themes.length}개 프리셋 테마가 JSON으로 생성되었습니다.`);
+const outPath = '${TMP_FILE}';
+writeFileSync(outPath, JSON.stringify(result));
+console.log(themes.length);
 NODESCRIPT
+
+THEME_COUNT=$(node --input-type=module <<NODESCRIPT
+import { readFileSync } from 'fs';
+const data = JSON.parse(readFileSync('${TMP_FILE}', 'utf8'));
+console.log(data.themes.length);
+NODESCRIPT
+)
+ok "${THEME_COUNT}개 프리셋 테마 JSON 생성 완료"
+
+# ─── 4. API 호출: 테마 시딩 ─────────────────────────────────────────────────
+info "프리셋 테마를 API를 통해 시딩합니다..."
+
+SEED_RESULT=$(curl -s -X POST "${API_URL}/api/themes/seed" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d @"${TMP_FILE}")
+
+# 결과 파싱
+UPSERTED=$(echo "$SEED_RESULT" | node -e "
+  let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+    try{const r=JSON.parse(d);console.log(r.upserted??'error')}catch{console.log('error')}
+  });
+")
+UNCHANGED=$(echo "$SEED_RESULT" | node -e "
+  let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+    try{const r=JSON.parse(d);console.log(r.unchanged??'error')}catch{console.log('error')}
+  });
+")
+TOTAL=$(echo "$SEED_RESULT" | node -e "
+  let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+    try{const r=JSON.parse(d);console.log(r.total??'error')}catch{console.log('error')}
+  });
+")
+
+if [ "$UPSERTED" = "error" ] || [ "$TOTAL" = "error" ]; then
+  fail "테마 시딩 API 호출 실패: ${SEED_RESULT}"
+fi
+
+echo ""
+ok "프리셋 테마 시딩 완료!"
+info "  upserted: ${UPSERTED}, unchanged: ${UNCHANGED}, total: ${TOTAL}"
