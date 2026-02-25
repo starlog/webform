@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import type { PresetThemeId, ThemeTokens } from '@webform/common';
+import { PRESET_THEME_IDS } from '@webform/common';
 
 export interface ThemeDocument {
   _id: mongoose.Types.ObjectId;
@@ -19,7 +20,7 @@ const themeSchema = new Schema(
     basePreset: {
       type: String,
       required: true,
-      enum: ['windows-xp', 'ubuntu-2004', 'macos-tahoe'],
+      enum: [...PRESET_THEME_IDS],
     },
     tokens: { type: Schema.Types.Mixed, required: true },
     createdBy: { type: String, required: true },

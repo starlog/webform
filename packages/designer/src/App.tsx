@@ -302,6 +302,8 @@ export function App() {
             )}
           </>
         )}
+
+        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#999' }}>Ver. 0.2</span>
       </div>
 
       <div

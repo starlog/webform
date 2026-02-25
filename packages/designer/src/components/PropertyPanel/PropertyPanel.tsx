@@ -11,7 +11,7 @@ import { PropertyCategory } from './PropertyCategory';
 import { EventsTab } from './EventsTab';
 
 // 프리셋 테마 ID 목록
-const BASE_THEME_OPTIONS = [...PRESET_THEME_IDS];
+const BASE_THEME_OPTIONS: (string | { label: string; value: string })[] = [...PRESET_THEME_IDS];
 
 type TabType = 'properties' | 'events';
 type SortMode = 'category' | 'alphabetical';
@@ -23,15 +23,15 @@ interface PropertyPanelProps {
 export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('properties');
   const [sortMode, setSortMode] = useState<SortMode>('category');
-  const [themeOptions, setThemeOptions] = useState<string[]>(BASE_THEME_OPTIONS);
+  const [themeOptions, setThemeOptions] = useState<(string | { label: string; value: string })[]>(BASE_THEME_OPTIONS);
 
   // 커스텀 테마 목록 동적 로드
   useEffect(() => {
     apiService
       .listThemes()
       .then((res) => {
-        const customIds = res.data.map((t) => t._id);
-        setThemeOptions([...BASE_THEME_OPTIONS, ...customIds]);
+        const customOptions = res.data.map((t) => ({ label: t.name, value: t._id }));
+        setThemeOptions([...BASE_THEME_OPTIONS, ...customOptions]);
       })
       .catch(() => {
         // ignore — 프리셋만 사용

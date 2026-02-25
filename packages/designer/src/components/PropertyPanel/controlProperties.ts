@@ -26,7 +26,7 @@ export interface PropertyMeta {
   category: PropertyCategory;
   editorType: EditorType;
   defaultValue?: unknown;
-  options?: string[];
+  options?: (string | { label: string; value: string })[];
   min?: number;
   max?: number;
 }
