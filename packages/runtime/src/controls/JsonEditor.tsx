@@ -130,6 +130,11 @@ function JsonNode({
   }
 
   // Leaf nodes
+  const isDisabled = readOnly || !enabled;
+  const inputStyle = isDisabled
+    ? { ...styles.input, ...styles.inputDisabled }
+    : styles.input;
+
   return (
     <div style={{ ...styles.row, paddingLeft: depth > 0 ? 14 : 0 }}>
       <span style={{ ...styles.toggle, visibility: 'hidden' }}>{'\u25B6'}</span>
@@ -139,7 +144,7 @@ function JsonNode({
         <input
           type="checkbox"
           checked={value as boolean}
-          disabled={readOnly || !enabled}
+          disabled={isDisabled}
           onChange={(e) => onChange(path, e.target.checked)}
           style={styles.checkbox}
         />
@@ -147,9 +152,9 @@ function JsonNode({
         <input
           type="number"
           value={value as number}
-          disabled={readOnly || !enabled}
+          disabled={isDisabled}
           onChange={(e) => onChange(path, e.target.value === '' ? 0 : Number(e.target.value))}
-          style={styles.input}
+          style={inputStyle}
         />
       ) : type === 'null' ? (
         <span style={styles.nullValue}>null</span>
@@ -157,9 +162,9 @@ function JsonNode({
         <input
           type="text"
           value={String(value)}
-          disabled={readOnly || !enabled}
+          disabled={isDisabled}
           onChange={(e) => onChange(path, e.target.value)}
-          style={styles.input}
+          style={inputStyle}
         />
       )}
       {onDelete && canEdit && (
@@ -405,9 +410,15 @@ const styles: Record<string, CSSProperties> = {
     padding: '1px 4px',
     fontSize: 'inherit',
     fontFamily: 'inherit',
+    color: 'inherit',
     minWidth: 60,
     flex: 1,
     maxWidth: 200,
+  },
+  inputDisabled: {
+    backgroundColor: 'transparent',
+    border: '1px solid transparent',
+    opacity: 0.7,
   },
   checkbox: {
     margin: 0,

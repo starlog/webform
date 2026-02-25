@@ -123,6 +123,26 @@ interface PublishAllResult {
   shell: { published: boolean; skipped: boolean };
 }
 
+interface VersionSummary {
+  version: number;
+  note: string;
+  savedAt: string;
+}
+
+interface FormVersionSnapshot {
+  formId: string;
+  version: number;
+  note: string;
+  snapshot: {
+    name: string;
+    properties: FormProperties;
+    controls: ControlDefinition[];
+    eventHandlers: EventHandlerDefinition[];
+    dataBindings: DataBindingDefinition[];
+  };
+  savedAt: string;
+}
+
 // --- HTTP 클라이언트 ---
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -338,6 +358,18 @@ export const apiService = {
   async deleteTheme(id: string): Promise<void> {
     return request(`/themes/${id}`, { method: 'DELETE' });
   },
+
+  // --- Version API ---
+
+  // 버전 목록 조회
+  async getVersions(formId: string): Promise<{ data: VersionSummary[] }> {
+    return request(`/forms/${formId}/versions`);
+  },
+
+  // 특정 버전 snapshot 로드
+  async loadVersion(formId: string, version: number): Promise<{ data: FormVersionSnapshot }> {
+    return request(`/forms/${formId}/versions/${version}`);
+  },
 };
 
 // --- 컨트롤에서 eventHandlers 배열 추출 ---
@@ -511,4 +543,6 @@ export type {
   ShellDocument,
   UpdateShellPayload,
   PublishAllResult,
+  VersionSummary,
+  FormVersionSnapshot,
 };

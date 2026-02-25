@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useControlColors } from '../theme/useControlColors';
+import { useTheme } from '../theme/ThemeContext';
 
 export interface SpreadsheetColumn {
   field: string;
@@ -115,6 +116,7 @@ export function SpreadsheetView({
 }: SpreadsheetViewProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const controlColors = useControlColors('SpreadsheetView', { backColor });
+  const theme = useTheme();
 
   // 데이터 파싱 — data prop 또는 dataSource 사용
   const rows = useMemo(() => {
@@ -364,9 +366,28 @@ export function SpreadsheetView({
     return String(val ?? '');
   }, [selectedCell, resolvedColumns, sortedRows]);
 
+  const dg = theme.controls.dataGrid;
+  const themedSS = useMemo(() => ({
+    toolbar: { ...SS.toolbar, backgroundColor: dg.headerBackground, borderColor: dg.headerBorder },
+    toolBtn: { ...SS.toolBtn, backgroundColor: dg.rowBackground, color: dg.rowForeground, borderColor: dg.border },
+    formulaBar: { ...SS.formulaBar, backgroundColor: dg.rowBackground, borderColor: dg.border, color: dg.rowForeground },
+    cellAddress: { ...SS.cellAddress, backgroundColor: dg.headerBackground, borderColor: dg.border, color: dg.headerForeground },
+    fxLabel: { ...SS.fxLabel, color: dg.headerForeground },
+    formulaValue: { ...SS.formulaValue, backgroundColor: dg.rowBackground, borderColor: dg.border, color: dg.rowForeground },
+    cornerCell: { ...SS.cornerCell, backgroundColor: dg.headerBackground, color: dg.headerForeground, borderColor: dg.headerBorder },
+    headerCell: { ...SS.headerCell, backgroundColor: dg.headerBackground, color: dg.headerForeground, borderRightColor: dg.border, borderBottomColor: dg.headerBorder },
+    rowNumber: { ...SS.rowNumber, backgroundColor: dg.headerBackground, color: dg.headerForeground, borderColor: dg.border },
+    cell: { ...SS.cell, borderColor: dg.border },
+    selectedCell: { ...SS.selectedCell, backgroundColor: dg.selectedRowBackground, color: dg.selectedRowForeground },
+    editInput: { ...SS.editInput, backgroundColor: dg.rowBackground, color: dg.rowForeground },
+    emptyMessage: { ...SS.emptyMessage, color: dg.headerForeground },
+  }), [dg]);
+
   const mergedStyle: CSSProperties = {
     ...SS.container,
     background: controlColors.background,
+    color: controlColors.color,
+    borderColor: dg.border,
     ...style,
   };
 
@@ -381,11 +402,11 @@ export function SpreadsheetView({
     >
       {/* Toolbar */}
       {showToolbar && (
-        <div style={SS.toolbar}>
+        <div style={themedSS.toolbar}>
           {allowAddRows && !readOnly && (
             <button
               type="button"
-              style={SS.toolBtn}
+              style={themedSS.toolBtn}
               onClick={addRow}
               disabled={!enabled}
             >
@@ -395,7 +416,7 @@ export function SpreadsheetView({
           {allowDeleteRows && !readOnly && (
             <button
               type="button"
-              style={SS.toolBtn}
+              style={themedSS.toolBtn}
               onClick={deleteRow}
               disabled={!enabled || !selectedCell}
             >
@@ -407,10 +428,10 @@ export function SpreadsheetView({
 
       {/* Formula Bar */}
       {showFormulaBar && (
-        <div style={SS.formulaBar}>
-          <span style={SS.cellAddress}>{cellAddress || '\u00A0'}</span>
-          <span style={SS.fxLabel}>fx</span>
-          <div style={SS.formulaValue}>{cellDisplayValue}</div>
+        <div style={themedSS.formulaBar}>
+          <span style={themedSS.cellAddress}>{cellAddress || '\u00A0'}</span>
+          <span style={themedSS.fxLabel}>fx</span>
+          <div style={themedSS.formulaValue}>{cellDisplayValue}</div>
         </div>
       )}
 
@@ -419,12 +440,12 @@ export function SpreadsheetView({
         <table style={SS.table}>
           <thead>
             <tr>
-              {showRowNumbers && <th style={{ ...SS.cornerCell, width: 40 }} />}
+              {showRowNumbers && <th style={{ ...themedSS.cornerCell, width: 40 }} />}
               {resolvedColumns.map((col, colIdx) => (
                 <th
                   key={col.field}
                   style={{
-                    ...SS.headerCell,
+                    ...themedSS.headerCell,
                     ...(col.width ? { width: col.width } : {}),
                     cursor: allowSort ? 'pointer' : 'default',
                   }}
@@ -445,7 +466,7 @@ export function SpreadsheetView({
               <tr>
                 <td
                   colSpan={(showRowNumbers ? 1 : 0) + resolvedColumns.length}
-                  style={SS.emptyMessage}
+                  style={themedSS.emptyMessage}
                 >
                   {'\uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.'}
                 </td>
@@ -454,7 +475,7 @@ export function SpreadsheetView({
               sortedRows.map((row, rowIdx) => (
                 <tr key={rowIdx}>
                   {showRowNumbers && (
-                    <td style={SS.rowNumber}>{rowIdx + 1}</td>
+                    <td style={themedSS.rowNumber}>{rowIdx + 1}</td>
                   )}
                   {resolvedColumns.map((col, colIdx) => {
                     const isSelected =
@@ -467,8 +488,8 @@ export function SpreadsheetView({
                       <td
                         key={col.field}
                         style={{
-                          ...SS.cell,
-                          ...(isSelected ? SS.selectedCell : {}),
+                          ...themedSS.cell,
+                          ...(isSelected ? themedSS.selectedCell : {}),
                           ...(col.width ? { width: col.width } : {}),
                         }}
                         onClick={() => selectCell(rowIdx, colIdx)}
@@ -477,7 +498,7 @@ export function SpreadsheetView({
                         {isEditing ? (
                           <input
                             ref={editInputRef}
-                            style={SS.editInput}
+                            style={themedSS.editInput}
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             onKeyDown={handleEditKeyDown}

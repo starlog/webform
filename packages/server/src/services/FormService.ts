@@ -1,8 +1,59 @@
 import { Types } from 'mongoose';
 import { Form } from '../models/Form.js';
 import type { FormDocument, FormVersionSnapshot } from '../models/Form.js';
+import { FormVersion } from '../models/FormVersion.js';
+import type { FormVersionDocument } from '../models/FormVersion.js';
 import type { CreateFormInput, UpdateFormInput, ListFormsQuery } from '../validators/formValidator.js';
 import { NotFoundError } from '../middleware/errorHandler.js';
+
+function generateNote(existing: FormDocument, input: UpdateFormInput): string {
+  const parts: string[] = [];
+
+  // 이름 변경
+  if (input.name && input.name !== existing.name) {
+    parts.push(`Renamed form to '${input.name}'`);
+  }
+
+  // 폼 크기 변경
+  if (input.properties) {
+    const oldW = existing.properties.width;
+    const oldH = existing.properties.height;
+    const newW = input.properties.width ?? oldW;
+    const newH = input.properties.height ?? oldH;
+    if (newW !== oldW || newH !== oldH) {
+      parts.push(`Changed form size (${oldW}×${oldH} → ${newW}×${newH})`);
+    }
+  }
+
+  // 컨트롤 추가/삭제
+  if (input.controls) {
+    const oldIds = new Set(existing.controls.map((c) => c.id));
+    const newIds = new Set(input.controls.map((c) => c.id));
+
+    const added = input.controls.filter((c) => !oldIds.has(c.id));
+    const removed = existing.controls.filter((c) => !newIds.has(c.id));
+
+    if (added.length > 0) {
+      const types = added.map((c) => c.type).join(', ');
+      parts.push(`Added ${added.length} control(s) (${types})`);
+    }
+    if (removed.length > 0) {
+      const types = removed.map((c) => c.type).join(', ');
+      parts.push(`Removed ${removed.length} control(s) (${types})`);
+    }
+  }
+
+  // 이벤트 핸들러 변경
+  if (input.eventHandlers) {
+    const oldCount = existing.eventHandlers.length;
+    const newCount = input.eventHandlers.length;
+    if (oldCount !== newCount || JSON.stringify(input.eventHandlers) !== JSON.stringify(existing.eventHandlers)) {
+      parts.push('Updated event handlers');
+    }
+  }
+
+  return parts.length > 0 ? parts.join(', ') : 'Auto-save';
+}
 
 export class FormService {
   async createForm(input: CreateFormInput, userId: string): Promise<FormDocument> {
@@ -75,6 +126,9 @@ export class FormService {
       savedAt: new Date(),
     };
 
+    // 자동 note 생성
+    const note = generateNote(existing, input);
+
     const updateFields: Record<string, unknown> = {
       ...input,
       updatedBy: userId,
@@ -99,7 +153,27 @@ export class FormService {
       throw new NotFoundError(`Form not found: ${id}`);
     }
 
-    return form.toObject() as FormDocument;
+    const saved = form.toObject() as FormDocument;
+
+    // FormVersion 컬렉션에 새 상태 저장 (업데이트 완료 후)
+    FormVersion.create({
+      formId: id,
+      version: saved.version,
+      note,
+      snapshot: {
+        name: saved.name,
+        properties: saved.properties,
+        controls: saved.controls,
+        eventHandlers: saved.eventHandlers,
+        dataBindings: saved.dataBindings,
+      },
+      savedAt: new Date(),
+      savedBy: userId,
+    }).catch((err) => {
+      console.error('Failed to save FormVersion:', err);
+    });
+
+    return saved;
   }
 
   async deleteForm(id: string): Promise<void> {
@@ -107,11 +181,27 @@ export class FormService {
     await Form.updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
   }
 
-  async getVersions(id: string): Promise<Omit<FormVersionSnapshot, 'snapshot'>[]> {
-    const form = await this.getForm(id);
-    return form.versions
-      .map(({ version, savedAt }) => ({ version, savedAt }))
-      .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
+  async getVersions(
+    id: string,
+  ): Promise<Array<{ version: number; note: string; savedAt: Date }>> {
+    await this.getForm(id); // 폼 존재 확인
+    const versions = await FormVersion.find({ formId: id })
+      .select('version note savedAt')
+      .sort({ version: -1 })
+      .limit(20)
+      .lean<Array<{ version: number; note: string; savedAt: Date }>>();
+    return versions;
+  }
+
+  async getVersionSnapshot(
+    formId: string,
+    version: number,
+  ): Promise<FormVersionDocument> {
+    const doc = await FormVersion.findOne({ formId, version }).lean<FormVersionDocument>();
+    if (!doc) {
+      throw new NotFoundError(`Version ${version} not found for form ${formId}`);
+    }
+    return doc;
   }
 
   async publishForm(id: string, userId: string): Promise<FormDocument> {

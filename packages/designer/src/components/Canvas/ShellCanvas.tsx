@@ -3,7 +3,7 @@ import { useDrop } from 'react-dnd';
 import type { ControlType, ControlDefinition } from '@webform/common';
 import { useDesignerStore, createDefaultControl } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
-import { ThemeProvider } from '../../theme/ThemeContext';
+import { ThemeProvider, useTheme } from '../../theme/ThemeContext';
 import { getDesignerComponent } from '../../controls/registry';
 import { DragItemTypes } from './CanvasControl';
 
@@ -85,6 +85,45 @@ export function ShellCanvas() {
 
   return (
     <ThemeProvider themeId={shellProperties.theme}>
+    <ShellCanvasInner
+      shellProperties={shellProperties}
+      topControls={topControls}
+      bottomControls={bottomControls}
+      topDropRef={topDropRef}
+      bottomDropRef={bottomDropRef}
+      isOverTop={isOverTop}
+      isOverBottom={isOverBottom}
+      handleKeyDown={handleKeyDown}
+      clearSelection={clearSelection}
+    />
+    </ThemeProvider>
+  );
+}
+
+function ShellCanvasInner({
+  shellProperties,
+  topControls,
+  bottomControls,
+  topDropRef,
+  bottomDropRef,
+  isOverTop,
+  isOverBottom,
+  handleKeyDown,
+  clearSelection,
+}: {
+  shellProperties: ReturnType<typeof useDesignerStore.getState>['shellProperties'];
+  topControls: ControlDefinition[];
+  bottomControls: ControlDefinition[];
+  topDropRef: unknown;
+  bottomDropRef: unknown;
+  isOverTop: boolean;
+  isOverBottom: boolean;
+  handleKeyDown: (e: React.KeyboardEvent) => void;
+  clearSelection: () => void;
+}) {
+  const theme = useTheme();
+
+  return (
     <div
       style={{
         width: shellProperties.width,
@@ -127,11 +166,12 @@ export function ShellCanvas() {
       <div
         style={{
           flex: 1,
-          backgroundColor: '#e0e0e0',
+          backgroundColor: theme.form.backgroundColor,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#888',
+          color: theme.form.foreground,
+          opacity: 0.5,
           fontSize: 14,
           userSelect: 'none',
         }}
@@ -159,7 +199,6 @@ export function ShellCanvas() {
         ))}
       </div>
     </div>
-    </ThemeProvider>
   );
 }
 

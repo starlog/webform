@@ -10,6 +10,7 @@ import { ProjectExplorer } from './components/ProjectExplorer';
 import { ElementList } from './components/ElementList';
 import { ThemeEditor } from './components/ThemeEditor/ThemeEditor';
 import { apiService, useAutoSave } from './services/apiService';
+import type { VersionSummary } from './services/apiService';
 import { useDesignerStore } from './stores/designerStore';
 import { useHistoryStore, createSnapshot, restoreSnapshot } from './stores/historyStore';
 
@@ -32,6 +33,8 @@ export function App() {
   const [formStatus, setFormStatus] = useState<'draft' | 'published'>('draft');
   const [explorerRefreshKey, setExplorerRefreshKey] = useState(0);
   const [pendingFormId, setPendingFormId] = useState<string | null>(null);
+  const [versions, setVersions] = useState<VersionSummary[]>([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
 
   const handleOpenEventEditor = useCallback((controlId: string, eventName: string, handlerName: string) => {
     setEventEditor({ controlId, eventName, handlerName });
@@ -113,7 +116,7 @@ export function App() {
 
       if (e.key === 's') {
         e.preventDefault();
-        handleSave();
+        handlePublish();
         return;
       }
 
@@ -135,7 +138,7 @@ export function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave]);
+  }, [handlePublish]);
 
   const handlePublishAll = useCallback((projectId: string) => {
     if (currentProjectId === projectId && currentFormId) {
@@ -197,6 +200,47 @@ export function App() {
     await loadForm(formId);
   };
 
+  const handleLoadVersions = useCallback(async () => {
+    if (!currentFormId || versionsLoading) return;
+    setVersionsLoading(true);
+    try {
+      const { data } = await apiService.getVersions(currentFormId);
+      setVersions(data);
+    } catch (error) {
+      console.error('Failed to load versions:', error);
+    } finally {
+      setVersionsLoading(false);
+    }
+  }, [currentFormId, versionsLoading]);
+
+  const handleVersionSelect = useCallback(async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const ver = parseInt(e.target.value, 10);
+    if (isNaN(ver) || !currentFormId) return;
+
+    // 현재 버전("current") 선택 시 무시
+    e.target.value = '';
+
+    const confirmed = window.confirm(
+      `v${ver} 버전으로 복원하시겠습니까?\n현재 변경 사항은 저장되지 않습니다.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      const { data } = await apiService.loadVersion(currentFormId, ver);
+      const store = useDesignerStore.getState();
+      store.loadForm(
+        currentFormId,
+        data.snapshot.controls,
+        data.snapshot.properties,
+        data.snapshot.eventHandlers,
+      );
+      showStatus(`Restored v${ver}`);
+    } catch (error) {
+      console.error('Failed to load version:', error);
+      showStatus('Restore failed');
+    }
+  }, [currentFormId]);
+
   return (
     <DndProvider backend={HTML5Backend}>
       {/* 메뉴바 */}
@@ -245,12 +289,38 @@ export function App() {
           <>
             <span style={{ color: '#aaa' }}>|</span>
 
-            <button type="button" onClick={handleSave} disabled={!isDirty} style={menuBtnStyle}>
-              Save
-            </button>
             <button type="button" onClick={handlePublish} style={menuBtnStyle}>
-              Publish
+              Save &amp; Publish
             </button>
+
+            {editMode === 'form' && currentFormId && (
+              <>
+                <select
+                  style={{
+                    fontSize: 11,
+                    padding: '1px 4px',
+                    border: '1px solid #bbb',
+                    borderRadius: 2,
+                    backgroundColor: '#fff',
+                    cursor: 'pointer',
+                    fontFamily: 'Segoe UI, sans-serif',
+                    maxWidth: 260,
+                  }}
+                  defaultValue=""
+                  onFocus={handleLoadVersions}
+                  onChange={handleVersionSelect}
+                >
+                  <option value="" disabled>
+                    {versionsLoading ? 'Loading...' : 'Version History'}
+                  </option>
+                  {versions.map((v) => (
+                    <option key={v.version} value={v.version}>
+                      v{v.version} — {v.note} ({new Date(v.savedAt).toLocaleString()})
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
 
             {editMode === 'form' && currentFormId && (
               <>

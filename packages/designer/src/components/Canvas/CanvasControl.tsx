@@ -84,6 +84,10 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
     e.stopPropagation();
     e.preventDefault();
 
+    // 캔버스에 포커스를 주어 키보드 이벤트(Delete 등)가 동작하도록 함
+    const canvas = (e.currentTarget as HTMLElement).closest('.designer-canvas') as HTMLElement;
+    canvas?.focus();
+
     const hasModifier = e.ctrlKey || e.metaKey || e.shiftKey;
     const startX = e.clientX;
     const startY = e.clientY;

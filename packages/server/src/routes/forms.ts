@@ -90,6 +90,21 @@ formsRouter.get('/:id/versions', async (req, res, next) => {
   }
 });
 
+// GET /api/forms/:id/versions/:version — 특정 버전 snapshot 로드
+formsRouter.get('/:id/versions/:version', async (req, res, next) => {
+  try {
+    const version = parseInt(req.params.version, 10);
+    if (isNaN(version)) {
+      res.status(400).json({ error: { message: 'Invalid version number' } });
+      return;
+    }
+    const doc = await formService.getVersionSnapshot(req.params.id, version);
+    res.json({ data: doc });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // POST /api/forms/:id/publish — 폼 퍼블리시
 formsRouter.post('/:id/publish', async (req, res, next) => {
   try {

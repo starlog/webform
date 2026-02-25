@@ -131,7 +131,7 @@ export function RichTextBox({
           style={{
             border: theme.controls.textInput.border,
             backgroundColor: boldActive ? theme.accent.primary : theme.controls.panel.background,
-            color: boldActive ? theme.accent.primaryForeground : undefined,
+            color: boldActive ? theme.accent.primaryForeground : theme.form.foreground,
             fontWeight: 'bold',
             width: 22,
             height: 20,
@@ -147,7 +147,7 @@ export function RichTextBox({
           style={{
             border: theme.controls.textInput.border,
             backgroundColor: italicActive ? theme.accent.primary : theme.controls.panel.background,
-            color: italicActive ? theme.accent.primaryForeground : undefined,
+            color: italicActive ? theme.accent.primaryForeground : theme.form.foreground,
             fontStyle: 'italic',
             width: 22,
             height: 20,
@@ -163,7 +163,7 @@ export function RichTextBox({
           style={{
             border: theme.controls.textInput.border,
             backgroundColor: underlineActive ? theme.accent.primary : theme.controls.panel.background,
-            color: underlineActive ? theme.accent.primaryForeground : undefined,
+            color: underlineActive ? theme.accent.primaryForeground : theme.form.foreground,
             textDecoration: 'underline',
             width: 22,
             height: 20,

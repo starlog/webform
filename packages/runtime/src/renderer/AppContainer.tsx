@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, type ReactNode } from 'react';
 import type { FormDefinition, ApplicationShellDefinition } from '@webform/common';
 import { SDUIRenderer } from './SDUIRenderer';
 import { ShellRenderer } from './ShellRenderer';
-import { ThemeProvider } from '../theme/ThemeContext';
+import { ThemeProvider, useTheme } from '../theme/ThemeContext';
 import { apiClient } from '../communication/apiClient';
 import { wsClient } from '../communication/wsClient';
 import { setupPatchListener } from '../communication/patchApplier';
@@ -204,17 +204,38 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
   if (adjustedShellDef) {
     return (
       <ThemeProvider themeId={adjustedShellDef.properties.theme}>
-        <ShellRenderer shellDef={adjustedShellDef} projectId={projectId}>
-          <SDUIRenderer
-            formDefinition={formDefinition}
-            enableDrag
-            themeIdOverride={adjustedShellDef.properties.theme}
-          />
-        </ShellRenderer>
+        <ShellPageBackground>
+          <ShellRenderer shellDef={adjustedShellDef} projectId={projectId}>
+            <SDUIRenderer
+              formDefinition={formDefinition}
+              enableDrag
+              themeIdOverride={adjustedShellDef.properties.theme}
+            />
+          </ShellRenderer>
+        </ShellPageBackground>
       </ThemeProvider>
     );
   }
 
   // Shell 없으면 기존과 동일
   return <SDUIRenderer formDefinition={formDefinition} />;
+}
+
+/** 셸 윈도우 외부 페이지 배경을 테마 색상으로 채우는 래퍼 */
+function ShellPageBackground({ children }: { children: ReactNode }) {
+  const theme = useTheme();
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: theme.form.backgroundColor,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {children}
+    </div>
+  );
 }
