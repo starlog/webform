@@ -367,6 +367,8 @@ export function DesignerCanvas() {
           canvasRef.current = node;
         }}
         className="designer-canvas"
+        role="application"
+        aria-label="폼 디자이너 캔버스"
         style={{
           width: formProperties.width,
           height: formProperties.height,
@@ -409,6 +411,8 @@ export function DesignerCanvas() {
 
       {/* 폼 리사이즈 핸들: 오른쪽(e) */}
       <div
+        role="separator"
+        aria-label="폼 너비 조절"
         style={{
           position: 'absolute',
           top: 0,
@@ -422,6 +426,8 @@ export function DesignerCanvas() {
       />
       {/* 폼 리사이즈 핸들: 아래(s) */}
       <div
+        role="separator"
+        aria-label="폼 높이 조절"
         style={{
           position: 'absolute',
           bottom: -4,
@@ -435,6 +441,8 @@ export function DesignerCanvas() {
       />
       {/* 폼 리사이즈 핸들: 우하단(se) */}
       <div
+        role="separator"
+        aria-label="폼 크기 조절"
         style={{
           position: 'absolute',
           bottom: -4,

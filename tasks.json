@@ -659,7 +659,7 @@
       "description": "Designer 주요 컴포넌트에 ARIA 속성, 키보드 네비게이션, 포커스 관리 추가",
       "phase": "phase4-infrastructure",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/accessibility-plan.md의 계획에 따라 접근성을 개선하세요.\n\n## 수행할 작업\n1. `plans/accessibility-plan.md` 읽기\n2. 계획에서 식별된 주요 컴포넌트에 접근성 개선 적용 (최소 5개 컴포넌트):\n   - 아이콘 버튼에 `aria-label` 추가\n   - 툴바 컨테이너에 `role=\"toolbar\"` 추가\n   - 모달/다이얼로그에 `role=\"dialog\"`, `aria-modal=\"true\"`, `aria-labelledby` 추가\n   - PropertyPanel 섹션에 `role=\"region\"`, `aria-label` 추가\n   - 인터랙티브 커스텀 요소에 `tabIndex={0}` 및 onKeyDown 핸들러 추가 (Enter/Space)\n   - 드롭다운/셀렉트에 `aria-expanded`, `aria-haspopup` 추가\n3. 포커스 트랩 구현 (모달이 열려있을 때 포커스가 모달 내에서만 순환)\n4. 기존 마우스 이벤트에 상응하는 키보드 이벤트 추가\n\n## 코드 스타일\n- 기존 코드 스타일 유지\n- React의 접근성 best practices 따름\n- 불필요한 div 추가 없이 기존 엘리먼트에 속성 추가",
       "dependsOn": [
         "accessibility-plan"

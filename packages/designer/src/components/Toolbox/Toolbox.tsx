@@ -23,7 +23,7 @@ export function Toolbox() {
   };
 
   return (
-    <div className="toolbox" style={toolboxStyle}>
+    <div className="toolbox" role="toolbar" aria-label={editMode === 'shell' ? 'Shell 도구 상자' : '도구 상자'} style={toolboxStyle}>
       <div style={headerStyle}>{editMode === 'shell' ? 'Shell 도구 상자' : '도구 상자'}</div>
       {TOOLBOX_CATEGORIES.map((category) => {
         const isCollapsed = collapsedCategories.has(category.id);
@@ -38,8 +38,17 @@ export function Toolbox() {
         return (
           <div key={category.id}>
             <div
+              role="button"
+              tabIndex={0}
+              aria-expanded={!isCollapsed}
               style={categoryHeaderStyle}
               onClick={() => toggleCategory(category.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleCategory(category.id);
+                }
+              }}
             >
               <span>{isCollapsed ? '\u25B6' : '\u25BC'}</span>
               <span>{category.name}</span>

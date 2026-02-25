@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { useDesignerStore } from '../stores/designerStore';
 import { useHistoryStore, createSnapshot } from '../stores/historyStore';
 
@@ -15,6 +15,7 @@ interface ZOrderContextMenuProps {
 
 export function ZOrderContextMenu({ menu, onClose }: ZOrderContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const controls = useDesignerStore((s) => s.controls);
   const bringToFront = useDesignerStore((s) => s.bringToFront);
   const sendToBack = useDesignerStore((s) => s.sendToBack);
@@ -50,9 +51,43 @@ export function ZOrderContextMenu({ menu, onClose }: ZOrderContextMenuProps) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [onClose]);
 
+  // 열릴 때 첫 항목 포커스
+  useEffect(() => {
+    const items = ref.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+    if (items && items.length > 0) items[0].focus();
+  }, []);
+
+  const menuItems: { label: string; disabled: boolean; action: 'bringToFront' | 'bringForward' | 'sendBackward' | 'sendToBack' }[] = [
+    { label: '맨 앞으로', disabled: indexInfo.isLast, action: 'bringToFront' },
+    { label: '앞으로', disabled: indexInfo.isLast, action: 'bringForward' },
+    { label: '뒤로', disabled: indexInfo.isFirst, action: 'sendBackward' },
+    { label: '맨 뒤로', disabled: indexInfo.isFirst, action: 'sendToBack' },
+  ];
+
+  const handleMenuKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const items = ref.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+    if (!items) return;
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex((prev) => { const next = (prev + 1) % items.length; items[next].focus(); return next; });
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex((prev) => { const next = (prev - 1 + items.length) % items.length; items[next].focus(); return next; });
+        break;
+      case 'Escape':
+        onClose();
+        break;
+    }
+  }, [onClose]);
+
   return (
     <div
       ref={ref}
+      role="menu"
+      aria-label="정렬 순서"
+      onKeyDown={handleMenuKeyDown}
       style={{
         position: 'fixed',
         left: menu.x,
@@ -67,17 +102,25 @@ export function ZOrderContextMenu({ menu, onClose }: ZOrderContextMenuProps) {
         fontSize: 12,
       }}
     >
-      <MenuItem label="맨 앞으로" disabled={indexInfo.isLast} onClick={() => handleAction('bringToFront')} />
-      <MenuItem label="앞으로" disabled={indexInfo.isLast} onClick={() => handleAction('bringForward')} />
-      <MenuItem label="뒤로" disabled={indexInfo.isFirst} onClick={() => handleAction('sendBackward')} />
-      <MenuItem label="맨 뒤로" disabled={indexInfo.isFirst} onClick={() => handleAction('sendToBack')} />
+      {menuItems.map((item, i) => (
+        <MenuItem
+          key={item.label}
+          label={item.label}
+          disabled={item.disabled}
+          focused={i === focusedIndex}
+          onClick={() => handleAction(item.action)}
+        />
+      ))}
     </div>
   );
 }
 
-function MenuItem({ label, disabled, onClick }: { label: string; disabled: boolean; onClick: () => void }) {
+function MenuItem({ label, disabled, focused, onClick }: { label: string; disabled: boolean; focused: boolean; onClick: () => void }) {
   return (
     <div
+      role="menuitem"
+      tabIndex={focused ? 0 : -1}
+      aria-disabled={disabled}
       style={{
         padding: '6px 12px',
         cursor: disabled ? 'default' : 'pointer',
@@ -92,6 +135,12 @@ function MenuItem({ label, disabled, onClick }: { label: string; disabled: boole
       }}
       onClick={() => {
         if (!disabled) onClick();
+      }}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+          e.preventDefault();
+          onClick();
+        }
       }}
     >
       {label}

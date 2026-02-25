@@ -22,6 +22,9 @@ export function ToolboxItem({ meta }: ToolboxItemProps) {
   return (
     <div
       ref={dragRef as unknown as React.Ref<HTMLDivElement>}
+      role="button"
+      tabIndex={0}
+      aria-label={meta.displayName}
       style={{
         ...itemStyle,
         opacity: isDragging ? 0.5 : 1,

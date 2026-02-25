@@ -31,6 +31,10 @@ export function ElementTreeNode({
   return (
     <>
       <div
+        role="treeitem"
+        aria-selected={isSelected}
+        aria-expanded={hasChildren ? isExpanded : undefined}
+        tabIndex={isSelected ? 0 : -1}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -41,6 +45,18 @@ export function ElementTreeNode({
           fontSize: 12,
         }}
         onClick={(e) => onSelect(node.id, e.ctrlKey || e.metaKey)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onSelect(node.id, e.ctrlKey || e.metaKey);
+          } else if (e.key === 'ArrowRight' && hasChildren && !isExpanded) {
+            e.preventDefault();
+            onToggleExpand(node.id);
+          } else if (e.key === 'ArrowLeft' && hasChildren && isExpanded) {
+            e.preventDefault();
+            onToggleExpand(node.id);
+          }
+        }}
         onContextMenu={(e) => onContextMenu?.(node.id, e)}
       >
         {hasChildren ? (

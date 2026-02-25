@@ -3,6 +3,7 @@ import Editor, { type OnMount } from '@monaco-editor/react';
 import { useDesignerStore } from '../../stores/designerStore';
 import type { ControlDefinition } from '@webform/common';
 import { CONTROL_PROPERTY_META, type PropertyMeta } from '../PropertyPanel/controlProperties';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 type MonacoInstance = Parameters<OnMount>[1];
 
@@ -380,6 +381,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
     up: (() => void) | null;
   }>({ move: null, up: null });
   const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, true);
 
   // 드래그 중 언마운트 시 document 리스너 안전 정리
   useEffect(() => {
@@ -1218,6 +1220,9 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
       `}</style>
       <div
         ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="event-editor-title"
         style={{
           width: '80vw',
           height: '70vh',
@@ -1255,7 +1260,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
             userSelect: 'none',
           }}
         >
-          <span>
+          <span id="event-editor-title">
             {handlerName} — {eventName} ({control?.name ?? controlId})
             {isDirty && <span style={{ color: '#e8ab53', marginLeft: 6 }} title="Unsaved changes">●</span>}
           </span>

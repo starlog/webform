@@ -172,6 +172,8 @@ export function ElementList() {
 
   return (
     <div
+      role="region"
+      aria-label="요소 목록"
       tabIndex={-1}
       onKeyDown={handleKeyDown}
       style={{ display: 'flex', flexDirection: 'column', height: '100%', outline: 'none' }}
@@ -193,7 +195,7 @@ export function ElementList() {
       </div>
 
       {/* 트리뷰 */}
-      <div style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
+      <div role="tree" aria-label="요소 트리" style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
         {!currentFormId && (
           <div style={{ padding: 8, color: '#888', fontSize: 11 }}>폼을 열어주세요</div>
         )}

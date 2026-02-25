@@ -28,9 +28,18 @@ export function PropertyCategory({ category, properties, getValue, onValueChange
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div style={{ borderBottom: '1px solid #e0e0e0' }}>
+    <div role="region" aria-label={category} style={{ borderBottom: '1px solid #e0e0e0' }}>
       <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={!collapsed}
         onClick={() => setCollapsed(!collapsed)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setCollapsed(!collapsed);
+          }
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',

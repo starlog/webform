@@ -4,6 +4,7 @@ import { apiService } from '../../services/apiService';
 import type { ProjectDocument, FormSummary } from '../../services/apiService';
 import { useDesignerStore } from '../../stores/designerStore';
 import { FontPicker } from '../PropertyPanel/editors/FontPicker';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface ProjectExplorerProps {
   onFormSelect: (formId: string) => void;
@@ -34,6 +35,8 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
   const [renamingFormId, setRenamingFormId] = useState<string | null>(null);
   const [renamingValue, setRenamingValue] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const defaultFontDialogRef = useRef<HTMLDivElement>(null);
+  const fontDialogRef = useRef<HTMLDivElement>(null);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
   const editMode = useDesignerStore((s) => s.editMode);
   const currentShellId = useDesignerStore((s) => s.currentShellId);
@@ -51,6 +54,9 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
     family: 'Segoe UI', size: 9, bold: false, italic: false, underline: false, strikethrough: false,
   });
   const [defaultFontSaving, setDefaultFontSaving] = useState(false);
+
+  useFocusTrap(defaultFontDialogRef, !!defaultFontDialog);
+  useFocusTrap(fontDialogRef, !!fontDialog);
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -423,6 +429,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
           <button
             onClick={handleNewProject}
             title="새 프로젝트"
+            aria-label="새 프로젝트"
             style={{
               border: 'none',
               background: 'none',
@@ -437,6 +444,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
           <button
             onClick={handleImportProject}
             title="가져오기"
+            aria-label="가져오기"
             style={{
               border: 'none',
               background: 'none',
@@ -451,6 +459,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
           <button
             onClick={loadProjects}
             title="새로고침"
+            aria-label="새로고침"
             style={{
               border: 'none',
               background: 'none',
@@ -466,7 +475,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
       </div>
 
       {/* 트리뷰 */}
-      <div style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
+      <div role="tree" aria-label="프로젝트 탐색기" style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
         {loading && <div style={{ padding: 8, color: '#888' }}>로딩 중...</div>}
 
         {!loading && projects.length === 0 && (
@@ -483,6 +492,10 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
             <div key={project._id}>
               {/* 프로젝트 노드 */}
               <div
+                role="treeitem"
+                aria-expanded={isProjectExpanded}
+                aria-selected={selectedNode === projectNodeId}
+                tabIndex={0}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -494,6 +507,13 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
                 onClick={() => {
                   toggleNode(projectNodeId);
                   setSelectedNode(projectNodeId);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleNode(projectNodeId);
+                    setSelectedNode(projectNodeId);
+                  }
                 }}
                 onContextMenu={(e) => handleContextMenu(e, 'project', project._id, project._id)}
               >
@@ -632,6 +652,8 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
       {/* 컨텍스트 메뉴 */}
       {contextMenu?.visible && (
         <div
+          role="menu"
+          aria-label="컨텍스트 메뉴"
           style={{
             position: 'fixed',
             left: contextMenu.x,
@@ -643,10 +665,15 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
             minWidth: 120,
             fontSize: 12,
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setContextMenu(null);
+          }}
         >
           {getContextMenuItems().map((item) => (
             <div
               key={item.label}
+              role="menuitem"
+              tabIndex={0}
               style={{
                 padding: '6px 12px',
                 cursor: 'pointer',
@@ -660,6 +687,13 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
               onClick={() => {
                 item.action();
                 setContextMenu(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  item.action();
+                  setContextMenu(null);
+                }
               }}
             >
               {item.label}
@@ -681,8 +715,13 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
             zIndex: 20000,
           }}
           onClick={() => setDefaultFontDialog(null)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setDefaultFontDialog(null); }}
         >
           <div
+            ref={defaultFontDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="default-font-dialog-title"
             style={{
               backgroundColor: '#fff',
               border: '1px solid #999',
@@ -703,10 +742,11 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-              <span>기본 폰트 설정</span>
+              <span id="default-font-dialog-title">기본 폰트 설정</span>
               <button
                 type="button"
                 onClick={() => setDefaultFontDialog(null)}
+                aria-label="닫기"
                 style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#666' }}
               >
                 ×
@@ -768,8 +808,13 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
             zIndex: 20000,
           }}
           onClick={() => setFontDialog(null)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setFontDialog(null); }}
         >
           <div
+            ref={fontDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="font-batch-dialog-title"
             style={{
               backgroundColor: '#fff',
               border: '1px solid #999',
@@ -791,10 +836,11 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-              <span>폰트 일괄 적용</span>
+              <span id="font-batch-dialog-title">폰트 일괄 적용</span>
               <button
                 type="button"
                 onClick={() => setFontDialog(null)}
+                aria-label="닫기"
                 style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#666' }}
               >
                 ×

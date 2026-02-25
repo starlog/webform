@@ -217,6 +217,8 @@ export function CanvasControl({ control, isSelected, onSnaplineChange, onContext
   return (
     <div
       className={`canvas-control ${isSelected ? 'selected' : ''}`}
+      aria-selected={isSelected}
+      aria-label={`${control.name} (${control.type})`}
       style={{
         position: 'absolute',
         left: control.position.x,

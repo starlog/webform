@@ -491,6 +491,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
           {selectedShellControl.name} ({selectedShellControl.type})
         </div>
         <div
+          role="tablist"
           style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}
         >
           <TabButton
@@ -507,6 +508,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
                 setSortMode(sortMode === 'category' ? 'alphabetical' : 'category')
               }
               title={sortMode === 'category' ? 'Sort alphabetically' : 'Sort by category'}
+              aria-label="정렬 방식 변경"
               style={{
                 padding: '2px 4px',
                 margin: '0 4px',
@@ -548,12 +550,12 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
         </div>
 
         {/* 탭 바 */}
-        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
+        <div role="tablist" style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
           <TabButton label="Properties" icon="☰" active={activeTab === 'properties'} onClick={() => setActiveTab('properties')} />
           <TabButton label="Events" icon="⚡" active={activeTab === 'events'} onClick={() => setActiveTab('events')} />
         </div>
 
-        <div style={{ flex: 1, overflow: 'auto' }}>
+        <div role="tabpanel" style={{ flex: 1, overflow: 'auto' }}>
           {activeTab === 'properties' && (
             <>
               {currentFormId && <FormIdRow formId={currentFormId} />}
@@ -594,13 +596,14 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
           {selectedControls.length} controls ({typeLabel})
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
+        <div role="tablist" style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
           <TabButton label="Properties" icon="☰" active={true} onClick={() => {}} />
           <div style={{ flex: 1 }} />
           <button
             type="button"
             onClick={() => setSortMode(sortMode === 'category' ? 'alphabetical' : 'category')}
             title={sortMode === 'category' ? 'Sort alphabetically' : 'Sort by category'}
+            aria-label="정렬 방식 변경"
             style={{
               padding: '2px 4px',
               margin: '0 4px',
@@ -637,7 +640,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       </div>
 
       {/* 탭 바 + 정렬 토글 */}
-      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
+      <div role="tablist" style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
         <TabButton label="Properties" icon="☰" active={activeTab === 'properties'} onClick={() => setActiveTab('properties')} />
         <TabButton label="Events" icon="⚡" active={activeTab === 'events'} onClick={() => setActiveTab('events')} />
         <div style={{ flex: 1 }} />
@@ -646,6 +649,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
             type="button"
             onClick={() => setSortMode(sortMode === 'category' ? 'alphabetical' : 'category')}
             title={sortMode === 'category' ? 'Sort alphabetically' : 'Sort by category'}
+            aria-label="정렬 방식 변경"
             style={{
               padding: '2px 4px',
               margin: '0 4px',
@@ -661,7 +665,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       </div>
 
       {/* 탭 내용 */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div role="tabpanel" style={{ flex: 1, overflow: 'auto' }}>
         {activeTab === 'properties' && (
           <div key={selectedControl?.id}>
             {groupedProperties.map(({ category, properties }) => (
@@ -732,6 +736,7 @@ function FormIdRow({ formId }: { formId: string }) {
         type="button"
         onClick={handleCopy}
         title="Copy FormId"
+        aria-label="FormId 복사"
         style={{
           marginLeft: 4,
           padding: '1px 6px',
@@ -755,6 +760,8 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: stri
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
       style={{
         padding: '4px 8px',
