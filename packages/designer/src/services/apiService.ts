@@ -177,8 +177,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: { message: res.statusText } }));
-    const err = new Error(error.error?.message ?? `API Error: ${res.status}`);
-    (err as Error & { status: number }).status = res.status;
+    const details = error.error?.details;
+    const message = error.error?.message ?? `API Error: ${res.status}`;
+    const err = new Error(details ? `${message}: ${JSON.stringify(details)}` : message);
+    (err as Error & { status: number; details?: unknown }).status = res.status;
+    (err as Error & { status: number; details?: unknown }).details = details;
     throw err;
   }
 
@@ -284,14 +287,9 @@ export const apiService = {
     });
   },
 
-  // Shell 조회
-  async getShell(projectId: string): Promise<{ data: ShellDocument } | null> {
-    try {
-      return await request(`/projects/${projectId}/shell`);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) return null;
-      throw error;
-    }
+  // Shell 조회 (없으면 { data: null } 반환)
+  async getShell(projectId: string): Promise<{ data: ShellDocument | null }> {
+    return request(`/projects/${projectId}/shell`);
   },
 
   // Shell 생성
@@ -388,6 +386,21 @@ export const apiService = {
   },
 };
 
+// --- 저장 전 컨트롤 데이터 보정 (size/position 유효성) ---
+
+const MIN_SIZE = 1;
+
+function sanitizeControls(controls: ControlDefinition[]): ControlDefinition[] {
+  return controls.map((ctrl) => ({
+    ...ctrl,
+    size: {
+      width: Math.max(ctrl.size.width, MIN_SIZE),
+      height: Math.max(ctrl.size.height, MIN_SIZE),
+    },
+    children: ctrl.children ? sanitizeControls(ctrl.children) : undefined,
+  }));
+}
+
 // --- 컨트롤에서 eventHandlers 배열 추출 ---
 
 function extractEventHandlers(controls: ControlDefinition[]): Array<{
@@ -453,6 +466,7 @@ const AUTO_SAVE_INTERVAL = 30_000; // 30초
 
 export function useAutoSave() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const savingRef = useRef(false);
   const currentFormId = useDesignerStore((s) => s.currentFormId);
   const isDirty = useDesignerStore((s) => s.isDirty);
   const controls = useDesignerStore((s) => s.controls);
@@ -461,12 +475,12 @@ export function useAutoSave() {
   const editMode = useDesignerStore((s) => s.editMode);
 
   const save = useCallback(async () => {
-    if (!isDirty) return;
-
-    if (editMode === 'shell') {
-      const state = useDesignerStore.getState();
-      if (!state.currentProjectId) return;
-      try {
+    if (!isDirty || savingRef.current) return;
+    savingRef.current = true;
+    try {
+      if (editMode === 'shell') {
+        const state = useDesignerStore.getState();
+        if (!state.currentProjectId) return;
         const shellDef = state.getShellDefinition();
         await apiService.updateShell(state.currentProjectId, {
           name: shellDef.name,
@@ -475,38 +489,51 @@ export function useAutoSave() {
           eventHandlers: shellDef.eventHandlers,
         });
         markClean();
-      } catch (error) {
-        console.error('Shell auto-save failed:', error);
-        throw error;
+        return;
       }
-      return;
-    }
 
-    if (!currentFormId) return;
-    try {
+      if (!currentFormId) return;
       const state = useDesignerStore.getState();
-      const nestedControls = nestControls(controls);
-      const result = await apiService.saveForm(currentFormId, {
+      const nestedControls = sanitizeControls(nestControls(controls));
+      const payload = {
         controls: nestedControls,
         properties: formProperties,
         eventHandlers: extractEventHandlers(controls),
         version: state.formVersion ?? undefined,
-      });
-      state.updateFormVersion(result.data.version);
-      markClean();
+      };
+      try {
+        const result = await apiService.saveForm(currentFormId, payload);
+        state.updateFormVersion(result.data.version);
+        markClean();
+      } catch (error) {
+        // 버전 충돌 시 최신 version을 가져와 한 번 재시도
+        if ((error as Error & { status?: number }).status === 409) {
+          const { data: latest } = await apiService.loadForm(currentFormId);
+          payload.version = latest.version;
+          const result = await apiService.saveForm(currentFormId, payload);
+          state.updateFormVersion(result.data.version);
+          markClean();
+        } else {
+          throw error;
+        }
+      }
     } catch (error) {
-      console.error('Auto-save failed:', error);
+      console.error('Save failed:', error);
       throw error;
+    } finally {
+      savingRef.current = false;
     }
   }, [currentFormId, isDirty, controls, formProperties, markClean, editMode]);
 
   // store에서 직접 읽어 클로저 문제 없이 즉시 저장 (EventEditor 등에서 사용)
   const forceSave = useCallback(async () => {
-    const state = useDesignerStore.getState();
+    if (savingRef.current) return;
+    savingRef.current = true;
+    try {
+      const state = useDesignerStore.getState();
 
-    if (state.editMode === 'shell') {
-      if (!state.currentProjectId) return;
-      try {
+      if (state.editMode === 'shell') {
+        if (!state.currentProjectId) return;
         const shellDef = state.getShellDefinition();
         await apiService.updateShell(state.currentProjectId, {
           name: shellDef.name,
@@ -515,27 +542,38 @@ export function useAutoSave() {
           eventHandlers: shellDef.eventHandlers,
         });
         state.markClean();
-      } catch (error) {
-        console.error('Shell save failed:', error);
-        throw error;
+        return;
       }
-      return;
-    }
 
-    if (!state.currentFormId) return;
-    try {
-      const nestedControls = nestControls(state.controls);
-      const result = await apiService.saveForm(state.currentFormId, {
+      if (!state.currentFormId) return;
+      const nestedControls = sanitizeControls(nestControls(state.controls));
+      const payload = {
         controls: nestedControls,
         properties: state.formProperties,
         eventHandlers: extractEventHandlers(state.controls),
         version: state.formVersion ?? undefined,
-      });
-      state.updateFormVersion(result.data.version);
-      state.markClean();
+      };
+      try {
+        const result = await apiService.saveForm(state.currentFormId, payload);
+        state.updateFormVersion(result.data.version);
+        state.markClean();
+      } catch (error) {
+        // 버전 충돌 시 최신 version을 가져와 한 번 재시도
+        if ((error as Error & { status?: number }).status === 409) {
+          const { data: latest } = await apiService.loadForm(state.currentFormId);
+          payload.version = latest.version;
+          const result = await apiService.saveForm(state.currentFormId, payload);
+          state.updateFormVersion(result.data.version);
+          state.markClean();
+        } else {
+          throw error;
+        }
+      }
     } catch (error) {
       console.error('Save failed:', error);
       throw error;
+    } finally {
+      savingRef.current = false;
     }
   }, []);
 

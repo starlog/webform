@@ -75,6 +75,11 @@ function isStretchAnchor(def: ControlDefinition): boolean {
   return hStretch || vStretch;
 }
 
+/** Controls with non-default anchors (bottom or right) need anchor-based layout, not scaling */
+function hasExplicitAnchor(def: ControlDefinition): boolean {
+  return def.anchor.bottom || def.anchor.right;
+}
+
 export function computeScaledStyle(
   def: ControlDefinition,
   scaleX: number,
@@ -99,8 +104,15 @@ export function computeLayoutStyle(
     return computeDockStyle(def.dock, def.size, def.position);
   }
 
-  // Proportional scaling for non-stretch controls when scale differs from 1:1
-  if (scale && (scale.scaleX !== 1 || scale.scaleY !== 1) && !isStretchAnchor(def)) {
+  // Proportional scaling only for controls with default anchors (top-left only).
+  // Controls with explicit bottom/right anchors must use anchor-based layout
+  // so they stay correctly positioned relative to their parent's edges.
+  if (
+    scale &&
+    (scale.scaleX !== 1 || scale.scaleY !== 1) &&
+    !isStretchAnchor(def) &&
+    !hasExplicitAnchor(def)
+  ) {
     return computeScaledStyle(def, scale.scaleX, scale.scaleY);
   }
 
@@ -117,6 +129,32 @@ export function computeLayoutStyle(
     width: def.size.width,
     height: def.size.height,
   };
+}
+
+/**
+ * Card 등 컨테이너 컨트롤의 CSS containing block 크기를 계산한다.
+ * 헤더/보더 등으로 인해 CSS containing block이 컨트롤 디자인 크기보다 작아지는 경우를 보정한다.
+ */
+export function getContainerClientSize(
+  definition: ControlDefinition,
+): { width: number; height: number } {
+  if (definition.type === 'Card') {
+    const showHeader = definition.properties?.showHeader !== false;
+    const showBorder = definition.properties?.showBorder !== false;
+    const isSmall = definition.size.width < 300;
+
+    const borderWidth = showBorder ? 1 : 0;
+    // Header: padding-top + title-line-height + padding-bottom + border-bottom
+    // Normal: 12 + 20 + 12 + 1 = 45, Small: 8 + 17 + 8 + 1 = 34
+    const headerHeight = showHeader ? (isSmall ? 34 : 45) : 0;
+
+    return {
+      width: definition.size.width - 2 * borderWidth,
+      height: definition.size.height - headerHeight - 2 * borderWidth,
+    };
+  }
+
+  return definition.size;
 }
 
 const DEFAULT_FONT: FontDefinition = {

@@ -64,6 +64,23 @@ describe('ShellService', () => {
     });
   });
 
+  describe('findShellByProjectId', () => {
+    it('생성된 Shell을 조회할 수 있어야 한다', async () => {
+      await shellService.createShell('project-find', baseInput, userId);
+
+      const shell = await shellService.findShellByProjectId('project-find');
+
+      expect(shell).not.toBeNull();
+      expect(shell!.name).toBe('Test Shell');
+      expect(shell!.projectId).toBe('project-find');
+    });
+
+    it('존재하지 않는 프로젝트 조회 시 null을 반환해야 한다', async () => {
+      const shell = await shellService.findShellByProjectId('nonexistent');
+      expect(shell).toBeNull();
+    });
+  });
+
   describe('getShellByProjectId', () => {
     it('생성된 Shell을 조회할 수 있어야 한다', async () => {
       await shellService.createShell('project-get', baseInput, userId);
@@ -283,12 +300,13 @@ describe('Shell API Integration', () => {
       expect(res.body.data.projectId).toBe('project-get-api');
     });
 
-    it('존재하지 않는 프로젝트로 요청하면 404를 반환해야 한다', async () => {
+    it('존재하지 않는 프로젝트로 요청하면 data: null을 반환해야 한다', async () => {
       const res = await request(app)
         .get(shellBase('nonexistent-project'))
         .set('Authorization', auth);
 
-      expect(res.status).toBe(404);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeNull();
     });
   });
 
@@ -336,7 +354,8 @@ describe('Shell API Integration', () => {
         .get(shellBase('project-del-api'))
         .set('Authorization', auth);
 
-      expect(getRes.status).toBe(404);
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.data).toBeNull();
     });
 
     it('존재하지 않는 프로젝트 삭제 시 404를 반환해야 한다', async () => {

@@ -20,7 +20,16 @@ export interface UpdateShellInput {
 
 export class ShellService {
   /**
-   * 프로젝트의 Shell 조회 (soft delete 제외)
+   * 프로젝트의 Shell 조회 (soft delete 제외) — 없으면 null 반환
+   */
+  async findShellByProjectId(projectId: string): Promise<ShellDocument | null> {
+    const shell = await Shell.findOne({ projectId, deletedAt: null });
+    if (!shell) return null;
+    return shell.toObject() as ShellDocument;
+  }
+
+  /**
+   * 프로젝트의 Shell 조회 (soft delete 제외) — 없으면 NotFoundError
    */
   async getShellByProjectId(projectId: string): Promise<ShellDocument> {
     const shell = await Shell.findOne({ projectId, deletedAt: null });

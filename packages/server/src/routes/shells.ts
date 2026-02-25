@@ -47,10 +47,10 @@ const updateShellSchema = z.object({
   startFormId: z.string().optional().nullable(),
 });
 
-// GET /api/projects/:projectId/shell — Shell 조회
+// GET /api/projects/:projectId/shell — Shell 조회 (없으면 data: null)
 shellsRouter.get('/', async (req: Request<ShellParams>, res, next) => {
   try {
-    const shell = await shellService.getShellByProjectId(req.params.projectId);
+    const shell = await shellService.findShellByProjectId(req.params.projectId);
     res.json({ data: shell });
   } catch (err) {
     next(err);

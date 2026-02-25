@@ -3,7 +3,7 @@ import { runtimeControlRegistry } from '../controls/registry';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useDataBinding } from '../hooks/useDataBinding';
 import { useEventHandlers } from '../hooks/useEventHandlers';
-import { computeLayoutStyle } from './layoutUtils';
+import { computeLayoutStyle, getContainerClientSize } from './layoutUtils';
 import { useFormScale } from './FormScaleContext';
 
 const EMPTY_STATE: Record<string, unknown> = {};
@@ -40,13 +40,16 @@ export function ControlRenderer({ definition, bindings, events, parentSize }: Co
     definition.children &&
     definition.children.length > 0;
 
+  // Card 등 컨테이너 컨트롤은 헤더/보더로 CSS containing block이 디자인 크기보다 작으므로 보정
+  const childParentSize = getContainerClientSize(definition);
+
   const childElements = definition.children?.map((child) => (
     <ControlRenderer
       key={child.id}
       definition={child}
       bindings={bindings}
       events={events}
-      parentSize={definition.size}
+      parentSize={childParentSize}
     />
   ));
 

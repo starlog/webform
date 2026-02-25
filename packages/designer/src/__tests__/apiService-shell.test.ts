@@ -86,13 +86,13 @@ describe('apiService - Shell API', () => {
       expect(result!.data.properties.title).toBe('My Application');
     });
 
-    it('404 응답 시 null을 반환해야 한다', async () => {
-      fetchMock.mockResolvedValueOnce(mockErrorResponse('Shell not found', 404));
+    it('Shell이 없으면 data: null을 반환해야 한다', async () => {
+      fetchMock.mockResolvedValueOnce(mockResponse({ data: null }));
 
       const result = await apiService.getShell('proj-nonexistent');
 
       expect(fetchMock).toHaveBeenCalledOnce();
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
     });
   });
 
