@@ -63,13 +63,26 @@ cd webform
 2. 의존성 설치 (`pnpm install`)
 3. Redis Docker 컨테이너 시작
 4. 서버 `.env` 파일 생성 (JWT_SECRET, ENCRYPTION_KEY 랜덤 생성)
-5. 모든 서비스 시작
+5. 모든 서비스 시작 (Designer :3000, Runtime :3001, Server :4000)
 
-샘플 데이터를 함께 생성하려면:
+### 초기 데이터 설정
+
+서버가 실행된 상태에서 **별도 터미널**에서 다음 스크립트를 실행합니다.
 
 ```bash
-./run.sh --seed
+# 프리셋 테마 시딩 (24개 테마 → MongoDB)
+./generate-themes.sh
+
+# 데모 프로젝트 + 샘플 데이터 생성 (선택)
+./generate-sample.sh
 ```
+
+| 스크립트 | 용도 | 사전 조건 |
+|----------|------|-----------|
+| `generate-themes.sh` | 24개 프리셋 테마를 API로 MongoDB에 시딩 | 서버 실행 중, `.env`에 JWT_SECRET |
+| `generate-sample.sh` | 데모 프로젝트 + 샘플 폼 + MongoDB 주문 데이터 생성 | 서버 실행 중, Docker(MongoDB 컨테이너), `.env`에 JWT_SECRET |
+
+> **참고**: `generate-themes.sh`는 upsert 방식이므로 반복 실행해도 안전합니다. 최초 실행 시 `24 upserted`, 재실행 시 `24 unchanged`가 출력됩니다.
 
 ### 수동 설치
 
@@ -86,6 +99,10 @@ cp packages/server/.env.example packages/server/.env
 
 # 4. 실행
 pnpm dev
+
+# 5. 별도 터미널에서 초기 데이터 설정
+./generate-themes.sh       # 프리셋 테마 시딩
+./generate-sample.sh       # 데모 데이터 (선택)
 ```
 
 ### 개별 서비스 실행
