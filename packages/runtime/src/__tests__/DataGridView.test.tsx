@@ -72,25 +72,24 @@ describe('DataGridView', () => {
 
       // 첫 클릭: asc 정렬
       fireEvent.click(nameHeader);
-      const rows1 = screen.getAllByRole('row');
-      // rows[0]은 헤더, rows[1]~[3]은 데이터 행
-      expect(rows1[1]).toHaveTextContent('Alice');
-      expect(rows1[2]).toHaveTextContent('Bob');
-      expect(rows1[3]).toHaveTextContent('Charlie');
+      const rows1 = screen.getAllByRole('listitem');
+      expect(rows1[0]).toHaveTextContent('Alice');
+      expect(rows1[1]).toHaveTextContent('Bob');
+      expect(rows1[2]).toHaveTextContent('Charlie');
 
       // 두번째 클릭: desc 정렬
       fireEvent.click(nameHeader);
-      const rows2 = screen.getAllByRole('row');
-      expect(rows2[1]).toHaveTextContent('Charlie');
-      expect(rows2[2]).toHaveTextContent('Bob');
-      expect(rows2[3]).toHaveTextContent('Alice');
+      const rows2 = screen.getAllByRole('listitem');
+      expect(rows2[0]).toHaveTextContent('Charlie');
+      expect(rows2[1]).toHaveTextContent('Bob');
+      expect(rows2[2]).toHaveTextContent('Alice');
 
       // 세번째 클릭: 정렬 해제 (원본 순서)
       fireEvent.click(nameHeader);
-      const rows3 = screen.getAllByRole('row');
-      expect(rows3[1]).toHaveTextContent('Charlie');
-      expect(rows3[2]).toHaveTextContent('Alice');
-      expect(rows3[3]).toHaveTextContent('Bob');
+      const rows3 = screen.getAllByRole('listitem');
+      expect(rows3[0]).toHaveTextContent('Charlie');
+      expect(rows3[1]).toHaveTextContent('Alice');
+      expect(rows3[2]).toHaveTextContent('Bob');
     });
   });
 

@@ -18,23 +18,41 @@ const FORM_MIN_WIDTH = 200;
 const FORM_MIN_HEIGHT = 150;
 
 /**
+ * parentId → children 맵을 사전 구축한다 (O(n) 1회).
+ * getHiddenControlIds에서 반복적인 controls.filter() 호출을 제거.
+ */
+function buildChildrenMap(controls: ControlDefinition[]): Map<string, ControlDefinition[]> {
+  const map = new Map<string, ControlDefinition[]>();
+  for (const c of controls) {
+    const parentId = c.properties._parentId as string;
+    if (parentId) {
+      let list = map.get(parentId);
+      if (!list) {
+        list = [];
+        map.set(parentId, list);
+      }
+      list.push(c);
+    }
+  }
+  return map;
+}
+
+/**
  * TabControl/Collapse의 숨김 컨트롤 ID를 계산한다.
  * - TabControl: 탭 페이지 Panel 자체는 항상 숨김, 비선택 탭의 자식 숨김
  * - Collapse: 비활성 패널의 자식 컨트롤 숨김
  */
 function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
   const hidden = new Set<string>();
+  const childrenMap = buildChildrenMap(controls);
 
   // --- TabControl ---
-  const tabControls = controls.filter((c) => c.type === 'TabControl');
-
-  for (const tc of tabControls) {
+  for (const tc of controls) {
+    if (tc.type !== 'TabControl') continue;
     const selectedIndex = (tc.properties.selectedIndex as number) ?? 0;
 
-    // TabControl의 직접 자식 Panel(탭 페이지)을 순서대로 찾기
-    const tabPagePanels = controls.filter(
-      (c) => (c.properties._parentId as string) === tc.id,
-    );
+    // TabControl의 직접 자식 Panel(탭 페이지)
+    const tabPagePanels = childrenMap.get(tc.id) ?? [];
 
     // tabs 속성에서 선택된 탭의 id를 가져옴 (tabId 기반 매칭)
     const tabs = tc.properties.tabs as Array<{ title: string; id: string }> | undefined;
@@ -50,42 +68,33 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
       const panel = tabPagePanels[i];
       const panelTabId = panel.properties.tabId as string | undefined;
 
-      // tabId 기반 매칭 (tabs 속성이 있는 경우), 없으면 인덱스 기반
       const isSelected = selectedTabId && panelTabId
         ? panelTabId === selectedTabId
         : i === selectedIndex;
 
       if (!isSelected) {
-        collectDescendants(controls, panel.id, hidden);
+        collectDescendants(childrenMap, panel.id, hidden);
       }
     }
   }
 
   // --- Collapse ---
-  const collapseControls = controls.filter((c) => c.type === 'Collapse');
-
-  for (const cc of collapseControls) {
-    // Collapse의 직접 자식을 찾기
-    const children = controls.filter(
-      (c) => (c.properties._parentId as string) === cc.id,
-    );
-
-    // Collapse 자식은 모두 캔버스에서 숨기고 CollapseControl 내부에서 인라인 렌더링
+  for (const cc of controls) {
+    if (cc.type !== 'Collapse') continue;
+    const children = childrenMap.get(cc.id) ?? [];
     for (const child of children) {
       hidden.add(child.id);
-      collectDescendants(controls, child.id, hidden);
+      collectDescendants(childrenMap, child.id, hidden);
     }
   }
 
   // --- Card ---
-  const cardControls = controls.filter((c) => c.type === 'Card');
-  for (const card of cardControls) {
-    const children = controls.filter(
-      (c) => (c.properties._parentId as string) === card.id,
-    );
+  for (const card of controls) {
+    if (card.type !== 'Card') continue;
+    const children = childrenMap.get(card.id) ?? [];
     for (const child of children) {
       hidden.add(child.id);
-      collectDescendants(controls, child.id, hidden);
+      collectDescendants(childrenMap, child.id, hidden);
     }
   }
 
@@ -93,15 +102,15 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
 }
 
 function collectDescendants(
-  controls: ControlDefinition[],
+  childrenMap: Map<string, ControlDefinition[]>,
   parentId: string,
   hidden: Set<string>,
 ) {
-  for (const c of controls) {
-    if ((c.properties._parentId as string) === parentId) {
-      hidden.add(c.id);
-      collectDescendants(controls, c.id, hidden);
-    }
+  const children = childrenMap.get(parentId);
+  if (!children) return;
+  for (const c of children) {
+    hidden.add(c.id);
+    collectDescendants(childrenMap, c.id, hidden);
   }
 }
 

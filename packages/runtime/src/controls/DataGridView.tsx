@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { List } from 'react-window';
 import { useBindingStore } from '../bindings/bindingStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -59,6 +60,8 @@ interface EditingCell {
 }
 
 const INTERNAL_FIELDS = ['_id', '__v', 'createdAt', 'updatedAt'];
+const ROW_HEIGHT = 22;
+const HEADER_HEIGHT = 22;
 
 function useDataGridStyles() {
   const theme = useTheme();
@@ -66,40 +69,44 @@ function useDataGridStyles() {
     container: {
       border: theme.controls.dataGrid.border,
       borderRadius: theme.controls.dataGrid.borderRadius,
-      overflow: 'auto',
+      overflow: 'hidden',
       backgroundColor: theme.controls.dataGrid.rowBackground,
       fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
       fontSize: '12px',
     } as CSSProperties,
-    table: {
-      minWidth: '100%',
-      borderCollapse: 'collapse' as const,
-      tableLayout: 'fixed' as const,
-    } as CSSProperties,
-    headerCell: {
+    headerRow: {
+      display: 'flex',
       backgroundColor: theme.controls.dataGrid.headerBackground,
       color: theme.controls.dataGrid.headerForeground,
-      borderRight: theme.controls.dataGrid.headerBorder,
+      fontWeight: 600,
+      height: `${HEADER_HEIGHT}px`,
       borderBottom: theme.controls.dataGrid.headerBorder,
+    } as CSSProperties,
+    headerCell: {
+      borderRight: theme.controls.dataGrid.headerBorder,
       padding: '3px 6px',
       textAlign: 'left' as const,
-      fontWeight: 600,
-      height: '22px',
+      height: `${HEADER_HEIGHT}px`,
       cursor: 'pointer',
       userSelect: 'none' as const,
       whiteSpace: 'nowrap' as const,
       overflow: 'hidden',
       textOverflow: 'ellipsis',
+      boxSizing: 'border-box' as const,
+      display: 'flex',
+      alignItems: 'center',
     } as CSSProperties,
     cell: {
       borderRight: theme.controls.dataGrid.headerBorder,
       borderBottom: theme.controls.dataGrid.headerBorder,
       padding: '2px 6px',
-      height: '22px',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap' as const,
       color: theme.controls.dataGrid.rowForeground,
+      boxSizing: 'border-box' as const,
+      display: 'flex',
+      alignItems: 'center',
     } as CSSProperties,
     selectedRow: {
       backgroundColor: theme.controls.dataGrid.selectedRowBackground,
@@ -121,6 +128,93 @@ function useDataGridStyles() {
       outline: 'none',
     } as CSSProperties,
   }), [theme]);
+}
+
+interface VirtualizedRowProps {
+  ariaAttributes: {
+    'aria-posinset': number;
+    'aria-setsize': number;
+    role: 'listitem';
+  };
+  index: number;
+  style: CSSProperties;
+  sortedRows: Record<string, unknown>[];
+  selectedRowIndex: number;
+  editingCell: EditingCell | null;
+  resolvedColumns: ResolvedColumn[];
+  styles: ReturnType<typeof useDataGridStyles>;
+  editInputRef: React.RefObject<HTMLInputElement | null>;
+  handleRowClick: (rowIndex: number) => void;
+  handleCellClick: (rowIndex: number, field: string) => void;
+  handleCellDoubleClick: (rowIndex: number, field: string, editable?: boolean) => void;
+  handleEditKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  commitEdit: (value: string) => void;
+}
+
+function VirtualizedRow({
+  ariaAttributes,
+  index,
+  style: rowStyle,
+  sortedRows,
+  selectedRowIndex,
+  editingCell,
+  resolvedColumns,
+  styles,
+  editInputRef,
+  handleRowClick,
+  handleCellClick,
+  handleCellDoubleClick,
+  handleEditKeyDown,
+  commitEdit,
+}: VirtualizedRowProps) {
+  const row = sortedRows[index];
+  const isSelected = index === selectedRowIndex;
+  return (
+    <div
+      {...ariaAttributes}
+      style={{
+        ...rowStyle,
+        display: 'flex',
+        ...(isSelected ? styles.selectedRow : {}),
+      }}
+      onClick={() => handleRowClick(index)}
+    >
+      {resolvedColumns.map((col) => {
+        const isEditing =
+          editingCell?.rowIndex === index && editingCell?.field === col.field;
+        const cellValue = row[col.field];
+
+        return (
+          <div
+            key={col.field}
+            style={{
+              ...styles.cell,
+              width: col.width,
+              flex: col.width ? undefined : 1,
+              height: `${ROW_HEIGHT}px`,
+              ...(isSelected ? styles.selectedRow : {}),
+            }}
+            onClick={() => handleCellClick(index, col.field)}
+            onDoubleClick={() =>
+              handleCellDoubleClick(index, col.field, col.editable)
+            }
+          >
+            {isEditing ? (
+              <input
+                ref={editInputRef}
+                style={styles.editInput}
+                defaultValue={String(cellValue ?? '')}
+                onKeyDown={handleEditKeyDown}
+                onBlur={(e) => commitEdit(e.target.value)}
+              />
+            ) : (
+              String(cellValue ?? '')
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function DataGridView({
@@ -287,97 +381,70 @@ export function DataGridView({
     [commitEdit, cancelEdit],
   );
 
+  // 컨테이너 높이 계산
+  const containerHeight = (style?.height as number) ?? 200;
+  const listHeight = Math.max(containerHeight - HEADER_HEIGHT, 0);
+
   const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, background: colors.background, color: colors.color, ...style };
+
+  // 헤더 렌더링
+  const header = (
+    <div style={styles.headerRow}>
+      {resolvedColumns.map((col) => (
+        <div
+          key={col.field}
+          style={{ ...styles.headerCell, width: col.width, flex: col.width ? undefined : 1 }}
+          onClick={() => handleSort(col.field, col.sortable)}
+        >
+          {col.headerText}
+          {sortConfig?.field === col.field && (
+            <span style={{ marginLeft: 4 }}>
+              {sortConfig.direction === 'asc' ? '\u25B2' : '\u25BC'}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 
   // 빈 데이터 처리
   if (rows.length === 0) {
     return (
       <div className="wf-datagridview" data-control-id={id} style={mergedStyle}>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              {resolvedColumns.map((col) => (
-                <th key={col.field} style={{ ...styles.headerCell, width: col.width }}>
-                  {col.headerText}
-                </th>
-              ))}
-            </tr>
-          </thead>
-        </table>
+        {header}
         <div style={styles.emptyMessage}>데이터가 없습니다.</div>
       </div>
     );
   }
 
+  // rowProps: 행 렌더러에 전달되는 추가 props
+  const rowProps = useMemo(() => ({
+    sortedRows,
+    selectedRowIndex,
+    editingCell,
+    resolvedColumns,
+    styles,
+    editInputRef,
+    handleRowClick,
+    handleCellClick,
+    handleCellDoubleClick,
+    handleEditKeyDown,
+    commitEdit,
+  }), [
+    sortedRows, selectedRowIndex, editingCell, resolvedColumns, styles,
+    handleRowClick, handleCellClick, handleCellDoubleClick, handleEditKeyDown, commitEdit,
+  ]);
+
   return (
     <div className="wf-datagridview" data-control-id={id} style={mergedStyle}>
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            {resolvedColumns.map((col) => (
-              <th
-                key={col.field}
-                style={{ ...styles.headerCell, width: col.width }}
-                onClick={() => handleSort(col.field, col.sortable)}
-              >
-                {col.headerText}
-                {sortConfig?.field === col.field && (
-                  <span style={{ marginLeft: 4 }}>
-                    {sortConfig.direction === 'asc' ? '\u25B2' : '\u25BC'}
-                  </span>
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sortedRows.map((row, rowIndex) => {
-            const isSelected = rowIndex === selectedRowIndex;
-            return (
-              <tr
-                key={rowIndex}
-                onClick={() => {
-                  handleRowClick(rowIndex);
-                }}
-                style={isSelected ? styles.selectedRow : undefined}
-              >
-                {resolvedColumns.map((col) => {
-                  const isEditing =
-                    editingCell?.rowIndex === rowIndex && editingCell?.field === col.field;
-                  const cellValue = row[col.field];
-
-                  return (
-                    <td
-                      key={col.field}
-                      style={{
-                        ...styles.cell,
-                        width: col.width,
-                        ...(isSelected ? styles.selectedRow : {}),
-                      }}
-                      onClick={() => handleCellClick(rowIndex, col.field)}
-                      onDoubleClick={() =>
-                        handleCellDoubleClick(rowIndex, col.field, col.editable)
-                      }
-                    >
-                      {isEditing ? (
-                        <input
-                          ref={editInputRef}
-                          style={styles.editInput}
-                          defaultValue={String(cellValue ?? '')}
-                          onKeyDown={handleEditKeyDown}
-                          onBlur={(e) => commitEdit(e.target.value)}
-                        />
-                      ) : (
-                        String(cellValue ?? '')
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {header}
+      <List
+        rowComponent={VirtualizedRow}
+        rowCount={sortedRows.length}
+        rowHeight={ROW_HEIGHT}
+        rowProps={rowProps}
+        style={{ height: listHeight, overflow: 'auto' }}
+      />
     </div>
   );
 }

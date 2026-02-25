@@ -83,3 +83,96 @@ export function getSnaplines(
 
   return Array.from(unique.values());
 }
+
+// --- 이진 탐색 기반 스냅라인 (대규모 컨트롤 최적화) ---
+
+interface SnapEdge {
+  position: number;
+  controlId: string;
+}
+
+export interface SnapEdgeIndex {
+  xEdges: SnapEdge[];
+  yEdges: SnapEdge[];
+}
+
+/** 컨트롤 edge 좌표를 정렬된 배열로 사전 빌드 (드래그 시작 시 1회 호출) */
+export function buildSnapEdgeIndex(
+  controls: Array<{ id: string; position: { x: number; y: number }; size: { width: number; height: number } }>,
+  excludeIds?: Set<string>,
+): SnapEdgeIndex {
+  const xEdges: SnapEdge[] = [];
+  const yEdges: SnapEdge[] = [];
+
+  for (const c of controls) {
+    if (excludeIds?.has(c.id)) continue;
+    const { x, y } = c.position;
+    const { width, height } = c.size;
+    xEdges.push(
+      { position: x, controlId: c.id },
+      { position: x + width, controlId: c.id },
+      { position: x + Math.floor(width / 2), controlId: c.id },
+    );
+    yEdges.push(
+      { position: y, controlId: c.id },
+      { position: y + height, controlId: c.id },
+      { position: y + Math.floor(height / 2), controlId: c.id },
+    );
+  }
+
+  xEdges.sort((a, b) => a.position - b.position);
+  yEdges.sort((a, b) => a.position - b.position);
+  return { xEdges, yEdges };
+}
+
+/** 정렬된 edge 배열에서 threshold 범위 내 position들을 이진 탐색으로 추출 */
+function searchEdgesInRange(edges: SnapEdge[], target: number, threshold: number): number[] {
+  const results: number[] = [];
+  const lo = target - threshold;
+  const hi = target + threshold;
+
+  // lower bound: lo 이상인 첫 인덱스 찾기
+  let left = 0;
+  let right = edges.length;
+  while (left < right) {
+    const mid = (left + right) >> 1;
+    if (edges[mid].position < lo) left = mid + 1;
+    else right = mid;
+  }
+
+  // lo..hi 범위 내 edge 수집
+  for (let i = left; i < edges.length && edges[i].position <= hi; i++) {
+    results.push(edges[i].position);
+  }
+  return results;
+}
+
+/** 이진 탐색 기반 getSnaplines (SnapEdgeIndex 사용) */
+export function getSnaplinesFromIndex(
+  movingControl: { position: { x: number; y: number }; size: { width: number; height: number } },
+  index: SnapEdgeIndex,
+  threshold: number = 4,
+): Snapline[] {
+  const unique = new Map<string, Snapline>();
+  const { x, y } = movingControl.position;
+  const { width, height } = movingControl.size;
+
+  const movingXEdges = [x, x + width, x + Math.floor(width / 2)];
+  const movingYEdges = [y, y + height, y + Math.floor(height / 2)];
+
+  for (const mx of movingXEdges) {
+    for (const pos of searchEdgesInRange(index.xEdges, mx, threshold)) {
+      const key = `vertical-${pos}`;
+      if (!unique.has(key)) unique.set(key, { type: 'vertical', position: pos });
+    }
+  }
+
+  for (const my of movingYEdges) {
+    for (const pos of searchEdgesInRange(index.yEdges, my, threshold)) {
+      const key = `horizontal-${pos}`;
+      if (!unique.has(key)) unique.set(key, { type: 'horizontal', position: pos });
+    }
+  }
+
+  return Array.from(unique.values());
+}
