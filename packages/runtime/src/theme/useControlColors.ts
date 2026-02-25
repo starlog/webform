@@ -50,6 +50,12 @@ const controlThemeMap: Record<string, ThemeColorResolver> = {
   Alert: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   Tag: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   Divider: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
+  Card: (t) => ({ background: t.controls.panel.background, foreground: t.form.foreground }),
+  Badge: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
+  Avatar: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
+  Tooltip: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
+  Collapse: (t) => ({ background: t.controls.panel.background, foreground: t.form.foreground }),
+  Statistic: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
 };
 
 function resolveThemeColors(controlType: ControlType, theme: ThemeTokens) {

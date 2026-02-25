@@ -37,6 +37,12 @@ import { Upload } from './Upload';
 import { Alert } from './Alert';
 import { Tag } from './Tag';
 import { Divider } from './Divider';
+import { Card } from './Card';
+import { Badge } from './Badge';
+import { Avatar } from './Avatar';
+import { Tooltip } from './Tooltip';
+import { Collapse } from './Collapse';
+import { Statistic } from './Statistic';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<any>>> = {
@@ -76,4 +82,10 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   Alert,
   Tag,
   Divider,
+  Card,
+  Badge,
+  Avatar,
+  Tooltip,
+  Collapse,
+  Statistic,
 };

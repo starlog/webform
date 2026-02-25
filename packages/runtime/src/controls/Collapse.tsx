@@ -1,0 +1,139 @@
+import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useControlColors } from '../theme/useControlColors';
+import { useRuntimeStore } from '../stores/runtimeStore';
+
+interface CollapsePanel {
+  title: string;
+  key: string;
+}
+
+interface CollapseProps {
+  id: string;
+  name: string;
+  panels?: CollapsePanel[];
+  activeKeys?: string;
+  accordion?: boolean;
+  bordered?: boolean;
+  expandIconPosition?: 'Start' | 'End';
+  backColor?: string;
+  foreColor?: string;
+  style?: CSSProperties;
+  enabled?: boolean;
+  onActiveKeyChanged?: () => void;
+  children?: ReactNode;
+  [key: string]: unknown;
+}
+
+export function Collapse({
+  id,
+  panels = [
+    { title: 'Panel 1', key: '1' },
+    { title: 'Panel 2', key: '2' },
+  ],
+  activeKeys = '1',
+  accordion = false,
+  bordered = true,
+  expandIconPosition = 'Start',
+  backColor,
+  foreColor,
+  style,
+  enabled = true,
+  onActiveKeyChanged,
+  children,
+}: CollapseProps) {
+  const colors = useControlColors('Collapse', { backColor, foreColor });
+  const updateControlState = useRuntimeStore((s) => s.updateControlState);
+
+  const [activeKeyArray, setActiveKeyArray] = useState<string[]>(() =>
+    activeKeys
+      ? activeKeys
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+  );
+
+  const activeKeySet = new Set(activeKeyArray);
+  const childArray = Array.isArray(children) ? children : children ? [children] : [];
+
+  const handleToggle = (key: string) => {
+    if (!enabled) return;
+    let newKeys: string[];
+    if (accordion) {
+      newKeys = activeKeySet.has(key) ? [] : [key];
+    } else {
+      newKeys = activeKeySet.has(key)
+        ? activeKeyArray.filter((k) => k !== key)
+        : [...activeKeyArray, key];
+    }
+    setActiveKeyArray(newKeys);
+    updateControlState(id, 'activeKeys', newKeys.join(','));
+    onActiveKeyChanged?.();
+  };
+
+  const containerStyle: CSSProperties = {
+    boxSizing: 'border-box',
+    backgroundColor: colors.backgroundColor,
+    color: colors.color,
+    border: bordered ? '1px solid rgba(0,0,0,0.1)' : 'none',
+    borderRadius: 8,
+    overflow: 'hidden',
+    ...style,
+  };
+
+  const icon = (isActive: boolean) => (
+    <span
+      style={{
+        fontSize: '0.7em',
+        transition: 'transform 0.3s',
+        display: 'inline-block',
+        transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)',
+      }}
+    >
+      ▶
+    </span>
+  );
+
+  return (
+    <div className="wf-collapse" data-control-id={id} style={containerStyle}>
+      {panels.map((panel, index) => {
+        const isActive = activeKeySet.has(panel.key);
+        return (
+          <div
+            key={panel.key}
+            style={{
+              borderBottom:
+                bordered && index < panels.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
+            }}
+          >
+            <div
+              style={{
+                padding: '8px 12px',
+                backgroundColor: 'rgba(0,0,0,0.02)',
+                cursor: enabled ? 'pointer' : 'default',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                userSelect: 'none',
+              }}
+              onClick={() => handleToggle(panel.key)}
+            >
+              {expandIconPosition === 'Start' && icon(isActive)}
+              <span style={{ flex: 1 }}>{panel.title}</span>
+              {expandIconPosition === 'End' && icon(isActive)}
+            </div>
+            <div
+              style={{
+                overflow: 'hidden',
+                maxHeight: isActive ? '9999px' : '0px',
+                transition: 'max-height 0.3s ease',
+              }}
+            >
+              <div style={{ position: 'relative', padding: 12 }}>{childArray[index]}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
