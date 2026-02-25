@@ -269,7 +269,7 @@ describe('에러 처리 개선', () => {
       });
     });
 
-    it('폼 전환 시 dialogQueue와 navigateRequest가 유지된다', () => {
+    it('폼 전환 시 dialogQueue가 초기화된다 (메모리 누수 방지)', () => {
       // 다이얼로그가 있는 상태에서 폼 전환
       useRuntimeStore.getState().applyPatch({
         type: 'showDialog',
@@ -280,9 +280,9 @@ describe('에러 처리 개선', () => {
       const newForm = createMockFormDef({ id: 'form2', name: 'Form2' });
       useRuntimeStore.getState().setFormDef(newForm);
 
-      // dialogQueue는 setFormDef에서 초기화하지 않으므로 유지됨
+      // dialogQueue는 setFormDef에서 초기화됨 (이전 폼의 다이얼로그가 새 폼에 남지 않도록)
       const state = useRuntimeStore.getState();
-      expect(state.dialogQueue).toHaveLength(1);
+      expect(state.dialogQueue).toHaveLength(0);
     });
   });
 
