@@ -269,7 +269,7 @@
       "description": "MongoDB 연결 풀링 관련 파일 스테이징 및 한국어 커밋",
       "phase": "phase1-critical",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "MongoDB 연결 풀링 구현 작업을 커밋하세요.\n\n## 수행할 작업\n1. `git status`로 변경된 파일 확인\n2. `git diff`로 변경 내용 검토\n3. 관련 파일 스테이징:\n   - `packages/server/src/services/adapters/MongoDBAdapter.ts`\n   - `plans/mongo-pool-plan.md`\n4. 한국어 커밋 메시지로 커밋:\n   ```\n   perf: MongoDBAdapter에 싱글톤 연결 풀 캐시 적용으로 DB 쿼리 성능 개선\n   ```\n\n## 주의사항\n- .env 파일 등 민감한 파일은 절대 커밋하지 않음",
       "dependsOn": [
         "mongo-pool-test"
@@ -339,7 +339,7 @@
       "description": "에러 처리 관련 수정 파일 스테이징 및 한국어 커밋",
       "phase": "phase2-improvements",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "에러 처리 개선 작업을 커밋하세요.\n\n## 수행할 작업\n1. `git status`로 변경된 파일 확인\n2. `git diff`로 변경 내용 검토\n3. 관련 파일 스테이징:\n   - `packages/designer/src/App.tsx`\n   - `packages/runtime/src/stores/runtimeStore.ts`\n   - `packages/server/src/services/DataSourceService.ts`\n   - `plans/error-handling-plan.md`\n4. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: Designer/Runtime/Server 에러 처리 및 사용자 피드백 개선 - 상세 에러 메시지 및 로깅 추가\n   ```\n\n## 주의사항\n- .env 파일 등 민감한 파일은 절대 커밋하지 않음",
       "dependsOn": [
         "error-handling-test"
@@ -555,7 +555,7 @@
       "description": "성능 개선 관련 파일 스테이징 및 한국어 커밋",
       "phase": "phase3-stability",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "성능 개선 작업을 커밋하세요.\n\n## 수행할 작업\n1. `git status`로 변경된 파일 확인\n2. `git diff`로 변경 내용 검토\n3. 관련 파일 스테이징:\n   - `packages/runtime/src/controls/DataGridView.tsx`\n   - `packages/designer/src/components/Canvas/DesignerCanvas.tsx`\n   - `packages/designer/src/stores/historyStore.ts`\n   - `packages/runtime/package.json` (react-window 추가된 경우)\n   - `pnpm-lock.yaml` (의존성 변경된 경우)\n   - `plans/performance-plan.md`\n4. 한국어 커밋 메시지로 커밋:\n   ```\n   perf: DataGridView 가상화, 스냅라인 O(n²) 개선, historyStore 스냅샷 최적화\n   ```\n\n## 주의사항\n- .env 파일 등 민감한 파일은 절대 커밋하지 않음",
       "dependsOn": [
         "performance-test"
