@@ -412,7 +412,7 @@
       "description": "낙관적 잠금 관련 파일 스테이징 및 한국어 커밋",
       "phase": "phase2-improvements",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "낙관적 잠금 구현 작업을 커밋하세요.\n\n## 수행할 작업\n1. `git status`로 변경된 파일 확인\n2. `git diff`로 변경 내용 검토\n3. 관련 파일 스테이징:\n   - `packages/server/src/services/FormService.ts`\n   - Form 모델 파일 (수정된 경우)\n   - `packages/designer/src/App.tsx`\n   - `packages/server/src/__tests__/forms.integration.test.ts`\n   - `plans/optimistic-lock-plan.md`\n4. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: FormService에 버전 기반 낙관적 잠금 추가 - 동시 편집 충돌 감지 및 409 응답\n   ```\n\n## 주의사항\n- .env 파일 등 민감한 파일은 절대 커밋하지 않음",
       "dependsOn": [
         "optimistic-lock-test"
@@ -485,7 +485,7 @@
       "description": "메모리 누수 관련 수정 파일 스테이징 및 한국어 커밋",
       "phase": "phase3-stability",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "메모리 누수 수정 작업을 커밋하세요.\n\n## 수행할 작업\n1. `git status`로 변경된 파일 확인\n2. `git diff`로 변경 내용 검토\n3. 관련 파일 스테이징:\n   - `packages/designer/src/components/Canvas/CanvasControl.tsx`\n   - `packages/runtime/src/stores/runtimeStore.ts`\n   - `packages/runtime/src/communication/wsClient.ts`\n   - `plans/memory-leak-plan.md`\n4. 한국어 커밋 메시지로 커밋:\n   ```\n   fix: CanvasControl useEffect cleanup 및 Runtime WebSocket/상태 메모리 누수 수정\n   ```\n\n## 주의사항\n- .env 파일 등 민감한 파일은 절대 커밋하지 않음",
       "dependsOn": [
         "memory-leak-test"
@@ -627,7 +627,7 @@
       "description": "CI/CD 관련 파일 스테이징 및 한국어 커밋",
       "phase": "phase4-infrastructure",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "CI/CD 인프라 구축 작업을 커밋하세요.\n\n## 수행할 작업\n1. `git status`로 변경된 파일 확인\n2. `git diff`로 변경 내용 검토\n3. 관련 파일 스테이징:\n   - `.env.example`\n   - `Dockerfile`\n   - `.dockerignore`\n   - `.github/workflows/ci.yml`\n   - vitest.config 수정 파일들 (있는 경우)\n   - `plans/cicd-plan.md`\n4. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: Dockerfile, GitHub Actions CI 파이프라인, .env.example 추가로 배포 인프라 구축\n   ```\n\n## 주의사항\n- 실제 `.env` 파일 (민감한 정보 포함)은 절대 커밋하지 않음\n- `.env.example`만 커밋 (민감한 실제 값 없음)",
       "dependsOn": [
         "cicd-test"
