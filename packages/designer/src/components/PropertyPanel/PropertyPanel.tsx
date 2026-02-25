@@ -38,25 +38,6 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       });
   }, []);
 
-  // 동적 FORM_PROPERTY_METAS 생성
-  const FORM_PROPERTY_METAS: PropertyMeta[] = useMemo(
-    () => [
-      { name: 'width', label: 'Width', category: 'Layout', editorType: 'number', min: 200 },
-      { name: 'height', label: 'Height', category: 'Layout', editorType: 'number', min: 150 },
-      { name: 'title', label: 'Title', category: 'Appearance', editorType: 'text' },
-      { name: 'theme', label: 'Theme', category: 'Appearance', editorType: 'dropdown', options: themeOptions },
-      { name: 'themeColorMode', label: 'ThemeColorMode', category: 'Appearance', editorType: 'dropdown', options: ['control', 'theme'] },
-      { name: 'backgroundColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
-      { name: 'font', label: 'Font', category: 'Appearance', editorType: 'font' },
-      { name: 'formBorderStyle', label: 'FormBorderStyle', category: 'Behavior', editorType: 'dropdown', options: ['None', 'FixedSingle', 'Fixed3D', 'Sizable'] },
-      { name: 'startPosition', label: 'StartPosition', category: 'Behavior', editorType: 'dropdown', options: ['CenterScreen', 'Manual', 'CenterParent'] },
-      { name: 'maximizeBox', label: 'MaximizeBox', category: 'Behavior', editorType: 'boolean' },
-      { name: 'minimizeBox', label: 'MinimizeBox', category: 'Behavior', editorType: 'boolean' },
-      { name: 'windowState', label: 'WindowState', category: 'Layout', editorType: 'dropdown', options: ['Normal', 'Maximized'] },
-    ],
-    [themeOptions],
-  );
-
   const selectedIds = useSelectionStore((s) => s.selectedIds);
   const controls = useDesignerStore((s) => s.controls);
   const updateControl = useDesignerStore((s) => s.updateControl);
@@ -72,6 +53,26 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const setShellProperties = useDesignerStore((s) => s.setShellProperties);
   const shellControls = useDesignerStore((s) => s.shellControls);
   const updateShellControl = useDesignerStore((s) => s.updateShellControl);
+  const projectShellTheme = useDesignerStore((s) => s.projectShellTheme);
+
+  // 동적 FORM_PROPERTY_METAS 생성
+  const FORM_PROPERTY_METAS: PropertyMeta[] = useMemo(
+    () => [
+      { name: 'width', label: 'Width', category: 'Layout', editorType: 'number', min: 200 },
+      { name: 'height', label: 'Height', category: 'Layout', editorType: 'number', min: 150 },
+      { name: 'title', label: 'Title', category: 'Appearance', editorType: 'text' },
+      { name: 'theme', label: projectShellTheme ? 'Theme (Shell)' : 'Theme', category: 'Appearance', editorType: 'dropdown', options: themeOptions },
+      { name: 'themeColorMode', label: 'ThemeColorMode', category: 'Appearance', editorType: 'dropdown', options: ['control', 'theme'] },
+      { name: 'backgroundColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+      { name: 'font', label: 'Font', category: 'Appearance', editorType: 'font' },
+      { name: 'formBorderStyle', label: 'FormBorderStyle', category: 'Behavior', editorType: 'dropdown', options: ['None', 'FixedSingle', 'Fixed3D', 'Sizable'] },
+      { name: 'startPosition', label: 'StartPosition', category: 'Behavior', editorType: 'dropdown', options: ['CenterScreen', 'Manual', 'CenterParent'] },
+      { name: 'maximizeBox', label: 'MaximizeBox', category: 'Behavior', editorType: 'boolean' },
+      { name: 'minimizeBox', label: 'MinimizeBox', category: 'Behavior', editorType: 'boolean' },
+      { name: 'windowState', label: 'WindowState', category: 'Layout', editorType: 'dropdown', options: ['Normal', 'Maximized'] },
+    ],
+    [themeOptions, projectShellTheme],
+  );
 
   const selectedControl = useMemo(() => {
     if (selectedIds.size !== 1) return null;
@@ -277,13 +278,17 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
 
   // --- 폼 속성 getValue / handleValueChange ---
   const getFormValue = useCallback((name: string): unknown => {
+    if (name === 'theme' && projectShellTheme) {
+      return projectShellTheme;
+    }
     return (formProperties as unknown as Record<string, unknown>)[name];
-  }, [formProperties]);
+  }, [formProperties, projectShellTheme]);
 
   const handleFormValueChange = useCallback((name: string, value: unknown) => {
+    if (name === 'theme' && projectShellTheme) return; // Shell 테마가 우선
     pushSnapshot(createSnapshot());
     setFormProperties({ [name]: value } as Partial<FormProperties>);
-  }, [setFormProperties, pushSnapshot]);
+  }, [setFormProperties, pushSnapshot, projectShellTheme]);
 
   const formGroupedProperties = useMemo(() => {
     const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior'];

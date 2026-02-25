@@ -291,8 +291,10 @@ export function DesignerCanvas() {
     document.addEventListener('mouseup', onMouseUp);
   }, []);
 
+  const projectShellTheme = useDesignerStore((s) => s.projectShellTheme);
+
   return (
-    <ThemeProvider themeId={formProperties.theme}>
+    <ThemeProvider themeId={projectShellTheme ?? formProperties.theme}>
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <div
         ref={(node) => {

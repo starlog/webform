@@ -91,19 +91,29 @@ export function computeLayoutStyle(
   };
 }
 
-export function computeFontStyle(font: FontDefinition): CSSProperties {
+const DEFAULT_FONT: FontDefinition = {
+  family: 'Segoe UI',
+  size: 9,
+  bold: false,
+  italic: false,
+  underline: false,
+  strikethrough: false,
+};
+
+export function computeFontStyle(font: FontDefinition | undefined): CSSProperties {
+  const f = font ?? DEFAULT_FONT;
   const textDecoration = [
-    font.underline ? 'underline' : '',
-    font.strikethrough ? 'line-through' : '',
+    f.underline ? 'underline' : '',
+    f.strikethrough ? 'line-through' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return {
-    fontFamily: font.family,
-    fontSize: `${font.size}pt`,
-    fontWeight: font.bold ? 'bold' : 'normal',
-    fontStyle: font.italic ? 'italic' : 'normal',
+    fontFamily: f.family,
+    fontSize: `${f.size}pt`,
+    fontWeight: f.bold ? 'bold' : 'normal',
+    fontStyle: f.italic ? 'italic' : 'normal',
     textDecoration: textDecoration || 'none',
   };
 }

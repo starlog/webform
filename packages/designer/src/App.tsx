@@ -151,7 +151,7 @@ export function App() {
       store.setEditMode('form');
       store.loadForm(formId, data.controls, data.properties, data.eventHandlers);
 
-      // 프로젝트 정보 설정 (기본 폰트 포함)
+      // 프로젝트 정보 설정 (기본 폰트, Shell 테마 포함)
       if (data.projectId) {
         store.setCurrentProject(data.projectId);
         try {
@@ -159,6 +159,12 @@ export function App() {
           store.setProjectDefaultFont(projectDetail.project.defaultFont ?? null);
         } catch {
           store.setProjectDefaultFont(null);
+        }
+        try {
+          const shellResult = await apiService.getShell(data.projectId);
+          store.setProjectShellTheme(shellResult?.data?.properties?.theme);
+        } catch {
+          store.setProjectShellTheme(undefined);
         }
       }
 

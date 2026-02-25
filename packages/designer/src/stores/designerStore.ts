@@ -67,6 +67,7 @@ interface DesignerState {
   shellProperties: ShellProperties;
   shellName: string;
   currentShellId: string | null;
+  projectShellTheme: string | undefined;
 
   addControl: (control: ControlDefinition) => void;
   updateControl: (id: string, changes: Partial<ControlDefinition>) => void;
@@ -95,6 +96,7 @@ interface DesignerState {
   updateShellControl: (id: string, changes: Partial<ControlDefinition>) => void;
   removeShellControl: (id: string) => void;
   setShellProperties: (props: Partial<ShellProperties>) => void;
+  setProjectShellTheme: (theme: string | undefined) => void;
   getShellDefinition: () => ApplicationShellDefinition;
 }
 
@@ -313,6 +315,7 @@ export const useDesignerStore = create<DesignerState>()(
     shellProperties: DEFAULT_SHELL_PROPERTIES,
     shellName: 'Application Shell',
     currentShellId: null as string | null,
+    projectShellTheme: undefined as string | undefined,
 
     addControl: (control) => set((state) => {
       state.controls.push(control);
@@ -476,6 +479,7 @@ export const useDesignerStore = create<DesignerState>()(
       state.shellName = shellDef.name;
       state.shellControls = shellDef.controls as ControlDefinition[];
       state.shellProperties = shellDef.properties;
+      state.projectShellTheme = shellDef.properties.theme;
       state.editMode = 'shell';
       state.isDirty = false;
     }),
@@ -500,7 +504,14 @@ export const useDesignerStore = create<DesignerState>()(
 
     setShellProperties: (props) => set((state) => {
       Object.assign(state.shellProperties, props);
+      if ('theme' in props) {
+        state.projectShellTheme = state.shellProperties.theme;
+      }
       state.isDirty = true;
+    }),
+
+    setProjectShellTheme: (theme) => set((state) => {
+      state.projectShellTheme = theme;
     }),
 
     getShellDefinition: (): ApplicationShellDefinition => {
