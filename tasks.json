@@ -642,7 +642,7 @@
       "description": "Designer 주요 UI 컴포넌트에 ARIA 속성 및 키보드 네비게이션 추가 계획",
       "phase": "phase4-infrastructure",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm Designer의 접근성 개선을 위한 계획을 작성하세요.\n\n## 문제 설명\nDesigner 전체에 ARIA 속성 0개, 키보드 네비게이션 미지원, 스크린 리더 지원 없음.\n\n## 수행할 작업\n1. `packages/designer/src/components/` 디렉토리 구조 파악\n2. 주요 UI 컴포넌트 파일들 읽고 접근성 현황 분석:\n   - 툴바/메뉴 컴포넌트 (버튼에 aria-label 없음 여부)\n   - `PropertyPanel.tsx` (role 속성 없음 여부)\n   - Canvas 관련 컴포넌트\n   - 모달/다이얼로그 컴포넌트\n3. 접근성 개선 우선순위 결정 (WCAG 2.1 AA 기준):\n   - 이미지/아이콘 버튼에 aria-label 추가\n   - 인터랙티브 컨테이너에 role 속성 추가 (toolbar, listbox, dialog 등)\n   - 탭/포커스 가능한 요소에 tabIndex 설정\n   - 키보드 이벤트 핸들러 추가 (Enter/Space로 클릭, Arrow키 네비게이션)\n   - 모달 포커스 트랩\n4. 컴포넌트별 구체적 수정 목록 작성\n5. 수정 계획을 `plans/accessibility-plan.md`에 작성\n\n## 출력\n`plans/accessibility-plan.md` 파일 생성",
       "dependsOn": null,
       "outputFiles": [
