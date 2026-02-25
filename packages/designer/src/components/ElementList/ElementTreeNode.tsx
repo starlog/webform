@@ -12,6 +12,7 @@ interface ElementTreeNodeProps {
   selectedIds: Set<string>;
   onToggleExpand: (id: string) => void;
   onSelect: (id: string, ctrlKey: boolean) => void;
+  onContextMenu?: (id: string, e: React.MouseEvent) => void;
 }
 
 export function ElementTreeNode({
@@ -21,6 +22,7 @@ export function ElementTreeNode({
   selectedIds,
   onToggleExpand,
   onSelect,
+  onContextMenu,
 }: ElementTreeNodeProps) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedNodes.has(node.id);
@@ -39,6 +41,7 @@ export function ElementTreeNode({
           fontSize: 12,
         }}
         onClick={(e) => onSelect(node.id, e.ctrlKey || e.metaKey)}
+        onContextMenu={(e) => onContextMenu?.(node.id, e)}
       >
         {hasChildren ? (
           <span
@@ -69,6 +72,7 @@ export function ElementTreeNode({
             selectedIds={selectedIds}
             onToggleExpand={onToggleExpand}
             onSelect={onSelect}
+            onContextMenu={onContextMenu}
           />
         ))}
     </>

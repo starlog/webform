@@ -5,6 +5,8 @@ import { useHistoryStore } from '../../stores/historyStore';
 import { controlMetadata } from '../../controls/registry';
 import { ElementTreeNode } from './ElementTreeNode';
 import type { TreeNode } from './ElementTreeNode';
+import { ZOrderContextMenu } from '../ZOrderContextMenu';
+import type { ZOrderContextMenuState } from '../ZOrderContextMenu';
 
 const FORM_NODE_ID = '__form__';
 
@@ -26,6 +28,7 @@ export function ElementList() {
   const removeControls = useDesignerStore((s) => s.removeControls);
 
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set([FORM_NODE_ID]));
+  const [contextMenu, setContextMenu] = useState<ZOrderContextMenuState | null>(null);
 
   // 트리 구축
   const tree = useMemo<TreeNode | null>(() => {
@@ -149,6 +152,17 @@ export function ElementList() {
     [handleDelete],
   );
 
+  // 컨텍스트 메뉴 핸들러
+  const handleContextMenu = useCallback(
+    (id: string, e: React.MouseEvent) => {
+      if (id === FORM_NODE_ID) return;
+      e.preventDefault();
+      select(id);
+      setContextMenu({ x: e.clientX, y: e.clientY, controlId: id });
+    },
+    [select],
+  );
+
   // 선택 ID에 __form__ 포함 여부 (폼 노드 하이라이트용)
   const displaySelectedIds = useMemo(() => {
     if (selectedIds.size === 0) {
@@ -192,9 +206,14 @@ export function ElementList() {
             selectedIds={displaySelectedIds}
             onToggleExpand={handleToggleExpand}
             onSelect={handleSelect}
+            onContextMenu={handleContextMenu}
           />
         )}
       </div>
+
+      {contextMenu && (
+        <ZOrderContextMenu menu={contextMenu} onClose={() => setContextMenu(null)} />
+      )}
     </div>
   );
 }

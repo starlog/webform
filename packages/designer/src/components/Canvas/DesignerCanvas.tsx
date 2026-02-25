@@ -9,6 +9,8 @@ import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';
 import type { Snapline as SnaplineType } from '../../utils/snapGrid';
 import { CanvasControl, DragItemTypes } from './CanvasControl';
 import { Snapline } from './Snapline';
+import { ZOrderContextMenu } from '../ZOrderContextMenu';
+import type { ZOrderContextMenuState } from '../ZOrderContextMenu';
 
 type FormResizeDirection = 'e' | 's' | 'se';
 
@@ -133,6 +135,7 @@ export function DesignerCanvas() {
   const selectMultiple = useSelectionStore((s) => s.selectMultiple);
 
   const [snaplines, setSnaplines] = useState<SnaplineType[]>([]);
+  const [contextMenu, setContextMenu] = useState<ZOrderContextMenuState | null>(null);
   const [selectionBox, setSelectionBox] = useState<{
     startX: number; startY: number;
     endX: number; endY: number;
@@ -233,6 +236,14 @@ export function DesignerCanvas() {
       e.preventDefault();
     }
   }, [handleCopy, handlePaste, handleDelete]);
+
+  // --- 컨트롤 우클릭 컨텍스트 메뉴 ---
+  const handleControlContextMenu = useCallback((controlId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    useSelectionStore.getState().select(controlId);
+    setContextMenu({ x: e.clientX, y: e.clientY, controlId });
+  }, []);
 
   // --- 드래그 선택 박스 ---
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -359,6 +370,7 @@ export function DesignerCanvas() {
               control={control}
               isSelected={selectedIds.has(control.id)}
               onSnaplineChange={setSnaplines}
+              onContextMenu={handleControlContextMenu}
             />
           ))}
 
@@ -411,6 +423,9 @@ export function DesignerCanvas() {
         onMouseDown={(e) => handleFormResizeMouseDown('se', e)}
       />
     </div>
+    {contextMenu && (
+      <ZOrderContextMenu menu={contextMenu} onClose={() => setContextMenu(null)} />
+    )}
     </ThemeProvider>
   );
 }

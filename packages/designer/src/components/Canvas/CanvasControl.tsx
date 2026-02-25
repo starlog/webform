@@ -30,6 +30,7 @@ interface CanvasControlProps {
   control: ControlDefinition;
   isSelected: boolean;
   onSnaplineChange: (snaplines: Snapline[]) => void;
+  onContextMenu?: (controlId: string, e: React.MouseEvent) => void;
 }
 
 function ControlPreview({
@@ -72,7 +73,7 @@ function ControlPreview({
   );
 }
 
-export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasControlProps) {
+export function CanvasControl({ control, isSelected, onSnaplineChange, onContextMenu }: CanvasControlProps) {
   const select = useSelectionStore((s) => s.select);
   const toggleSelect = useSelectionStore((s) => s.toggleSelect);
   const isDragging = useRef(false);
@@ -214,6 +215,7 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
         boxSizing: 'border-box',
       }}
       onMouseDown={handleMouseDown}
+      onContextMenu={(e) => onContextMenu?.(control.id, e)}
     >
       <ControlPreview id={control.id} type={control.type} properties={control.properties} size={control.size} position={control.position} />
 

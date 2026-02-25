@@ -79,6 +79,8 @@ interface DesignerState {
   resizeControl: (id: string, size: { width: number; height: number }, position?: { x: number; y: number }) => void;
   bringToFront: (id: string) => void;
   sendToBack: (id: string) => void;
+  bringForward: (id: string) => void;
+  sendBackward: (id: string) => void;
   setFormProperties: (props: Partial<FormProperties>) => void;
   setGridSize: (size: number) => void;
   loadForm: (formId: string, controls: ControlDefinition[], properties: FormProperties, eventHandlers?: Array<{ controlId: string; eventName: string; handlerCode: string }>) => void;
@@ -415,6 +417,24 @@ export const useDesignerStore = create<DesignerState>()(
       if (index !== -1) {
         const [control] = state.controls.splice(index, 1);
         state.controls.unshift(control);
+        state.isDirty = true;
+      }
+    }),
+
+    bringForward: (id) => set((state) => {
+      const index = state.controls.findIndex((c) => c.id === id);
+      if (index !== -1 && index < state.controls.length - 1) {
+        const [control] = state.controls.splice(index, 1);
+        state.controls.splice(index + 1, 0, control);
+        state.isDirty = true;
+      }
+    }),
+
+    sendBackward: (id) => set((state) => {
+      const index = state.controls.findIndex((c) => c.id === id);
+      if (index > 0) {
+        const [control] = state.controls.splice(index, 1);
+        state.controls.splice(index - 1, 0, control);
         state.isDirty = true;
       }
     }),
