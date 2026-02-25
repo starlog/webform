@@ -105,6 +105,9 @@ export function Collapse({
         width: 100% !important;
         height: auto !important;
         min-height: 0 !important;
+        white-space: normal !important;
+        overflow-wrap: break-word !important;
+        text-overflow: clip !important;
       }`}</style>
       {panels.map((panel, index) => {
         const isActive = activeKeySet.has(panel.key);
@@ -139,7 +142,7 @@ export function Collapse({
                 transition: 'max-height 0.3s ease',
               }}
             >
-              <div className="wf-collapse-panel-content" style={{ padding: '8px 12px' }}>
+              <div className="wf-collapse-panel-content" style={{ padding: '8px 12px', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                 {childArray[index]}
               </div>
             </div>

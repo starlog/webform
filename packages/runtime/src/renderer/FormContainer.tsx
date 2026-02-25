@@ -26,7 +26,7 @@ const titleTextStyle: CSSProperties = {
   textOverflow: 'ellipsis',
 };
 
-function TrafficLightButtons({ onMaximize }: { onMaximize?: () => void }) {
+function TrafficLightButtons({ onMaximize, showMinimize = true, showMaximize = true }: { onMaximize?: () => void; showMinimize?: boolean; showMaximize?: boolean }) {
   const btnBase: CSSProperties = {
     width: 12,
     height: 12,
@@ -36,11 +36,24 @@ function TrafficLightButtons({ onMaximize }: { onMaximize?: () => void }) {
     padding: 0,
     marginRight: 8,
   };
+  const disabledBtn: CSSProperties = {
+    ...btnBase,
+    backgroundColor: '#ccc',
+    cursor: 'default',
+  };
   return (
     <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
       <button style={{ ...btnBase, backgroundColor: '#FF5F57' }} title="Close" />
-      <button style={{ ...btnBase, backgroundColor: '#FEBC2E' }} title="Minimize" />
-      <button style={{ ...btnBase, backgroundColor: '#28C840' }} title="Maximize" onClick={onMaximize} />
+      {showMinimize ? (
+        <button style={{ ...btnBase, backgroundColor: '#FEBC2E' }} title="Minimize" />
+      ) : (
+        <button style={disabledBtn} disabled />
+      )}
+      {showMaximize ? (
+        <button style={{ ...btnBase, backgroundColor: '#28C840' }} title="Maximize" onClick={onMaximize} />
+      ) : (
+        <button style={disabledBtn} disabled />
+      )}
     </div>
   );
 }
@@ -212,7 +225,7 @@ export function FormContainer({
           onMouseDown={onTitleBarMouseDown}
           onDoubleClick={properties.maximizeBox ? toggleMaximize : undefined}
         >
-          {isTrafficLight && <TrafficLightButtons onMaximize={properties.maximizeBox ? toggleMaximize : undefined} />}
+          {isTrafficLight && <TrafficLightButtons onMaximize={properties.maximizeBox ? toggleMaximize : undefined} showMinimize={properties.minimizeBox} showMaximize={properties.maximizeBox} />}
           <span style={titleTextStyle}>{properties.title}</span>
           {!isTrafficLight && (
             <>
