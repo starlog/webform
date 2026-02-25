@@ -400,7 +400,7 @@
       "description": "6개 Step 2 Designer 컨트롤의 TypeScript 타입 검사 및 테스트 실행",
       "phase": "phase3-step2",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Step 2 Designer 컨트롤(Card, Badge, Avatar, Tooltip, Collapse, Statistic) 구현의 정확성을 검증한다.\n\n## 테스트 절차\n\n1. TypeScript 타입 체크:\n   ```\n   pnpm --filter @webform/designer typecheck\n   ```\n\n2. Designer 패키지 테스트:\n   ```\n   pnpm --filter @webform/designer test\n   ```\n\n3. 전체 타입 체크:\n   ```\n   pnpm typecheck\n   ```\n\n4. 린트 검사:\n   ```\n   pnpm --filter @webform/designer lint\n   ```\n\n5. 검증 항목:\n   - 6개 컨트롤 파일 생성 확인\n   - registry.ts에 Step 1(6개) + Step 2(6개) = 총 12개 신규 컨트롤 등록 확인\n   - Card/Collapse의 category가 'container'인지 확인\n   - Tooltip의 category가 'basic'인지 확인\n   - 나머지(Badge, Avatar, Statistic)의 category가 'basic'인지 확인\n   - Container 컨트롤(Card, Tooltip, Collapse)이 children 렌더링을 지원하는지 확인\n\n## 실패 시 대응\n- Container 패턴 오류: 기존 Panel/GroupBox 컨트롤 패턴 재확인\n- 타입 오류: Props 인터페이스 재확인\n- import 오류: 파일 경로 확인",
       "dependsOn": [
         "step2-designer-impl"
@@ -485,7 +485,7 @@
       "description": "Step 2 컨트롤 PropertyMeta 등록 검증",
       "phase": "phase3-step2",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Step 2 컨트롤의 PropertyMeta 등록이 올바른지 검증한다.\n\n## 테스트 절차\n\n1. TypeScript 타입 체크:\n   ```\n   pnpm --filter @webform/designer typecheck\n   ```\n\n2. 전체 테스트 실행:\n   ```\n   pnpm --filter @webform/designer test\n   ```\n\n3. 린트 검사:\n   ```\n   pnpm --filter @webform/designer lint\n   ```\n\n4. 검증 항목:\n   - CONTROL_PROPERTY_META에 Step 1(6개) + Step 2(6개) = 총 12개 신규 컨트롤 키 존재 확인\n   - Card/Badge/Avatar/Tooltip/Collapse/Statistic 각각의 PropertyMeta 배열 확인\n   - Collapse의 panels(collection)과 Tag의 tags(collection) defaultValue 구조 확인\n   - 모든 withCommon() 합성이 올바르게 적용되는지 확인\n\n## 실패 시 대응\n- collection 타입 오류: 기존 컨트롤의 collection 타입 사용 예시 재확인\n- 타입 오류: PropertyMeta 인터페이스 필수/선택 필드 재확인",
       "dependsOn": [
         "step2-properties-impl"
@@ -570,7 +570,7 @@
       "description": "6개 Step 2 Runtime 컨트롤의 TypeScript 타입 검사 및 테스트 실행",
       "phase": "phase3-step2",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Step 2 Runtime 컨트롤(Card, Badge, Avatar, Tooltip, Collapse, Statistic) 구현의 정확성을 검증한다.\n\n## 테스트 절차\n\n1. TypeScript 타입 체크:\n   ```\n   pnpm --filter @webform/runtime typecheck\n   ```\n\n2. Runtime 패키지 테스트:\n   ```\n   pnpm --filter @webform/runtime test\n   ```\n\n3. 전체 타입 체크:\n   ```\n   pnpm typecheck\n   ```\n\n4. 린트 검사:\n   ```\n   pnpm --filter @webform/runtime lint\n   ```\n\n5. 검증 항목:\n   - 6개 컨트롤 파일 생성 확인\n   - registry.ts에 Step 1(6개) + Step 2(6개) = 총 12개 신규 Runtime 컨트롤 등록 확인\n   - Tooltip의 onVisibleChanged 이벤트 연결 확인\n   - Collapse의 onActiveKeyChanged 이벤트 연결 확인\n   - Avatar의 imageUrl 에러 폴백(이니셜 표시) 로직 확인\n   - Badge의 Processing 상태 애니메이션 CSS 확인\n   - Statistic의 숫자 포맷(천 단위 콤마, 소수점) 로직 확인\n   - Card/Tooltip/Collapse의 자식 컨트롤 렌더링 지원 확인\n\n## 실패 시 대응\n- Container 렌더링 오류: 기존 Container 컨트롤 패턴 재확인\n- 애니메이션 오류: CSS animation 적용 방식 수정\n- 이벤트 타입 오류: packages/common 이벤트 타입 재확인",
       "dependsOn": [
         "step2-runtime-impl"
