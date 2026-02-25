@@ -4,7 +4,7 @@ import type { FormDocument, FormVersionSnapshot } from '../models/Form.js';
 import { FormVersion } from '../models/FormVersion.js';
 import type { FormVersionDocument } from '../models/FormVersion.js';
 import type { CreateFormInput, UpdateFormInput, ListFormsQuery } from '../validators/formValidator.js';
-import { NotFoundError } from '../middleware/errorHandler.js';
+import { AppError, NotFoundError } from '../middleware/errorHandler.js';
 
 function generateNote(existing: FormDocument, input: UpdateFormInput): string {
   const parts: string[] = [];
@@ -155,18 +155,12 @@ export class FormService {
 
     const saved = form.toObject() as FormDocument;
 
-    // FormVersion 컬렉션에 새 상태 저장 (업데이트 완료 후)
+    // FormVersion 컬렉션에 이전 상태 저장
     FormVersion.create({
       formId: id,
-      version: saved.version,
+      version: snapshot.version,
       note,
-      snapshot: {
-        name: saved.name,
-        properties: saved.properties,
-        controls: saved.controls,
-        eventHandlers: saved.eventHandlers,
-        dataBindings: saved.dataBindings,
-      },
+      snapshot: snapshot.snapshot,
       savedAt: new Date(),
       savedBy: userId,
     }).catch((err) => {
@@ -206,6 +200,10 @@ export class FormService {
 
   async publishForm(id: string, userId: string): Promise<FormDocument> {
     const existing = await this.getForm(id);
+
+    if (existing.status === 'published') {
+      throw new AppError(409, 'Form is already published');
+    }
 
     const form = await Form.findByIdAndUpdate(
       id,
