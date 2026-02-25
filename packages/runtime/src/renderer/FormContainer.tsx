@@ -81,6 +81,7 @@ export function FormContainer({
 
   const formScale = (() => {
     if (!designSize || !centerSize) return { scaleX: 1, scaleY: 1 };
+    if (centerSize.width <= 0 || centerSize.height <= 0) return { scaleX: 1, scaleY: 1 };
     const sx = designSize.width > 0 ? centerSize.width / designSize.width : 1;
     const sy = designSize.height > 0 ? centerSize.height / designSize.height : 1;
     // Only scale if actual size differs meaningfully from design size
