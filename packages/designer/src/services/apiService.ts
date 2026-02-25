@@ -10,7 +10,6 @@ import type {
   ShellProperties,
   CustomThemeDocument,
   ThemeTokens,
-  PresetThemeId,
 } from '@webform/common';
 
 // --- 타입 정의 ---
@@ -336,13 +335,22 @@ export const apiService = {
 
   async createTheme(input: {
     name: string;
-    basePreset: PresetThemeId;
+    basePreset?: string;
     tokens: ThemeTokens;
   }): Promise<{ data: CustomThemeDocument }> {
     return request('/themes', {
       method: 'POST',
       body: JSON.stringify(input),
     });
+  },
+
+  /** themeId가 ObjectId이면 _id로, 아니면 presetId로 테마를 조회한다 */
+  async getThemeByIdOrPresetId(themeId: string): Promise<{ data: CustomThemeDocument }> {
+    const isObjectId = /^[a-f\d]{24}$/i.test(themeId);
+    if (isObjectId) {
+      return request(`/runtime/themes/${themeId}`);
+    }
+    return request(`/runtime/themes/preset/${themeId}`);
   },
 
   async updateTheme(

@@ -4,11 +4,15 @@ import { env } from './config/index.js';
 import { connectMongo, disconnectMongo } from './db/mongodb.js';
 import { connectRedis, disconnectRedis } from './db/redis.js';
 import { initWebSocket } from './websocket/index.js';
+import { seedThemes } from './seed/seedThemes.js';
 
 async function main() {
   // 1. DB 연결
   await connectMongo();
   await connectRedis();
+
+  // 1.5. 프리셋 테마 시딩
+  await seedThemes();
 
   // 2. HTTP 서버 생성
   const app = createApp();

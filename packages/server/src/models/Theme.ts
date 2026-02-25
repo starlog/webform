@@ -1,12 +1,13 @@
 import mongoose, { Schema } from 'mongoose';
-import type { PresetThemeId, ThemeTokens } from '@webform/common';
-import { PRESET_THEME_IDS } from '@webform/common';
+import type { ThemeTokens } from '@webform/common';
 
 export interface ThemeDocument {
   _id: mongoose.Types.ObjectId;
   name: string;
-  basePreset: PresetThemeId;
+  basePreset?: string;
   tokens: ThemeTokens;
+  isPreset: boolean;
+  presetId?: string;
   createdBy: string;
   updatedBy: string;
   deletedAt?: Date | null;
@@ -17,12 +18,10 @@ export interface ThemeDocument {
 const themeSchema = new Schema(
   {
     name: { type: String, required: true },
-    basePreset: {
-      type: String,
-      required: true,
-      enum: [...PRESET_THEME_IDS],
-    },
+    basePreset: { type: String },
     tokens: { type: Schema.Types.Mixed, required: true },
+    isPreset: { type: Boolean, default: false },
+    presetId: { type: String, unique: true, sparse: true },
     createdBy: { type: String, required: true },
     updatedBy: { type: String, required: true },
     deletedAt: { type: Date, default: null },
@@ -31,5 +30,6 @@ const themeSchema = new Schema(
 );
 
 themeSchema.index({ deletedAt: 1 });
+themeSchema.index({ isPreset: 1 });
 
 export const Theme = mongoose.model<ThemeDocument>('Theme', themeSchema);

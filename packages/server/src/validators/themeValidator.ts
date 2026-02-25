@@ -2,22 +2,7 @@ import { z } from 'zod';
 
 export const createThemeSchema = z.object({
   name: z.string().min(1).max(200),
-  basePreset: z.enum([
-    'arctic-frost',
-    'autumn-harvest',
-    'cherry-blossom',
-    'dark-monokai',
-    'forest-green',
-    'macos-tahoe',
-    'material-blue',
-    'ocean-breeze',
-    'retro-terminal',
-    'solarized-light',
-    'sunset-glow',
-    'ubuntu-2004',
-    'vibrant-neon',
-    'windows-xp',
-  ]),
+  basePreset: z.string().optional(),
   tokens: z.record(z.unknown()),
 });
 
@@ -32,7 +17,7 @@ export type UpdateThemeInput = z.infer<typeof updateThemeSchema>;
 
 export const listThemesQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(50),
+  limit: z.coerce.number().int().positive().max(200).default(100),
 });
 
 export type ListThemesQuery = z.infer<typeof listThemesQuerySchema>;

@@ -1,11 +1,23 @@
 import { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react';
 import type { ThemeId, ThemeTokens } from '@webform/common';
-import { getThemeById, isPresetTheme, getDefaultTheme } from '@webform/common';
+import { getDefaultTheme } from '@webform/common';
 
 const ThemeContext = createContext<ThemeTokens>(getDefaultTheme());
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const API_BASE = ((import.meta as any).env?.VITE_API_URL as string | undefined) ?? '/api';
+
+async function fetchTheme(themeId: string): Promise<ThemeTokens> {
+  // MongoDB ObjectId 패턴이면 _id로, 아니면 presetId로 조회
+  const isObjectId = /^[a-f\d]{24}$/i.test(themeId);
+  const url = isObjectId
+    ? `${API_BASE}/runtime/themes/${themeId}`
+    : `${API_BASE}/runtime/themes/preset/${themeId}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch theme');
+  const json = await res.json();
+  return json.data.tokens;
+}
 
 export function ThemeProvider({
   themeId,
@@ -14,37 +26,30 @@ export function ThemeProvider({
   themeId: ThemeId | undefined;
   children: ReactNode;
 }) {
-  const [customTheme, setCustomTheme] = useState<ThemeTokens | null>(null);
-
-  const isCustom = themeId != null && !isPresetTheme(themeId);
+  const [loadedTheme, setLoadedTheme] = useState<ThemeTokens | null>(null);
 
   useEffect(() => {
-    if (!isCustom || !themeId) {
-      setCustomTheme(null);
+    if (!themeId) {
+      setLoadedTheme(null);
       return;
     }
 
     let cancelled = false;
-    fetch(`${API_BASE}/runtime/themes/${themeId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch theme');
-        return res.json();
-      })
-      .then((json) => {
-        if (!cancelled) setCustomTheme(json.data.tokens);
+    fetchTheme(themeId)
+      .then((tokens) => {
+        if (!cancelled) setLoadedTheme(tokens);
       })
       .catch(() => {
-        if (!cancelled) setCustomTheme(null);
+        if (!cancelled) setLoadedTheme(null);
       });
     return () => {
       cancelled = true;
     };
-  }, [themeId, isCustom]);
+  }, [themeId]);
 
   const theme = useMemo(() => {
-    if (isCustom) return customTheme ?? getDefaultTheme();
-    return getThemeById(themeId);
-  }, [themeId, isCustom, customTheme]);
+    return loadedTheme ?? getDefaultTheme();
+  }, [loadedTheme]);
 
   return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }

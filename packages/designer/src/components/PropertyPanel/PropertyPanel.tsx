@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { ControlDefinition, FormProperties, ShellProperties } from '@webform/common';
-import { FORM_EVENTS, PRESET_THEME_IDS } from '@webform/common';
+import { FORM_EVENTS } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
@@ -9,9 +9,6 @@ import { getPropertyMeta, getControlEvents, SHELL_PROPERTIES } from './controlPr
 import type { PropertyCategory as PropertyCategoryName, PropertyMeta } from './controlProperties';
 import { PropertyCategory } from './PropertyCategory';
 import { EventsTab } from './EventsTab';
-
-// 프리셋 테마 ID 목록
-const BASE_THEME_OPTIONS: (string | { label: string; value: string })[] = [...PRESET_THEME_IDS];
 
 type TabType = 'properties' | 'events';
 type SortMode = 'category' | 'alphabetical';
@@ -23,18 +20,25 @@ interface PropertyPanelProps {
 export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('properties');
   const [sortMode, setSortMode] = useState<SortMode>('category');
-  const [themeOptions, setThemeOptions] = useState<(string | { label: string; value: string })[]>(BASE_THEME_OPTIONS);
+  const [themeOptions, setThemeOptions] = useState<(string | { label: string; value: string })[]>([]);
 
-  // 커스텀 테마 목록 동적 로드
+  // 테마 목록 동적 로드 (프리셋 + 커스텀 모두 API에서)
   useEffect(() => {
     apiService
       .listThemes()
       .then((res) => {
-        const customOptions = res.data.map((t) => ({ label: t.name, value: t._id }));
-        setThemeOptions([...BASE_THEME_OPTIONS, ...customOptions]);
+        const options: (string | { label: string; value: string })[] = [];
+        for (const t of res.data) {
+          if (t.isPreset && t.presetId) {
+            options.push(t.presetId);
+          } else {
+            options.push({ label: t.name, value: t._id });
+          }
+        }
+        setThemeOptions(options);
       })
       .catch(() => {
-        // ignore — 프리셋만 사용
+        // ignore
       });
   }, []);
 

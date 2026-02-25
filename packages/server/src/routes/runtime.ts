@@ -439,8 +439,21 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
 // ─── Theme Runtime API ────────────────────────────────────────────────────────
 
 /**
+ * GET /api/runtime/themes/preset/:presetId
+ * presetId로 프리셋 테마를 조회한다 (인증 불필요).
+ */
+runtimeRouter.get('/themes/preset/:presetId', async (req, res, next) => {
+  try {
+    const theme = await themeService.getByPresetId(req.params.presetId);
+    res.json({ data: theme });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * GET /api/runtime/themes/:id
- * 커스텀 테마 토큰을 반환한다 (인증 불필요).
+ * 테마를 _id로 조회한다 (인증 불필요).
  */
 runtimeRouter.get('/themes/:id', async (req, res, next) => {
   try {

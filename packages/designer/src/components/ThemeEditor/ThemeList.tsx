@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { PresetThemeId, CustomThemeDocument } from '@webform/common';
-import { PRESET_THEME_IDS, getPresetThemeById } from '@webform/common';
+import type { CustomThemeDocument } from '@webform/common';
 import { useThemeEditorStore } from '../../stores/themeEditorStore';
 import { apiService } from '../../services/apiService';
 
@@ -12,7 +11,6 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
   const themes = useThemeEditorStore((s) => s.themes);
   const currentThemeId = useThemeEditorStore((s) => s.currentThemeId);
   const selectTheme = useThemeEditorStore((s) => s.selectTheme);
-  const selectPreset = useThemeEditorStore((s) => s.selectPreset);
   const addTheme = useThemeEditorStore((s) => s.addTheme);
   const removeTheme = useThemeEditorStore((s) => s.removeTheme);
   const isDirty = useThemeEditorStore((s) => s.isDirty);
@@ -20,77 +18,45 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredPresets = useMemo(() => {
-    const sorted = [...PRESET_THEME_IDS].sort((a, b) => {
-      const nameA = getPresetThemeById(a).name;
-      const nameB = getPresetThemeById(b).name;
-      return nameA.localeCompare(nameB);
-    });
+  // 프리셋 테마와 커스텀 테마 분리 (API에서 isPreset 필드로 구분)
+  const presetThemes = useMemo(() => {
+    const presets = themes.filter((t) => t.isPreset);
+    const sorted = [...presets].sort((a, b) => a.name.localeCompare(b.name));
     if (!searchQuery) return sorted;
     const q = searchQuery.toLowerCase();
-    return sorted.filter((id) => getPresetThemeById(id).name.toLowerCase().includes(q));
-  }, [searchQuery]);
-
-  const filteredCustom = useMemo(() => {
-    if (!searchQuery) return themes;
-    const q = searchQuery.toLowerCase();
-    return themes.filter((t) => t.name.toLowerCase().includes(q));
+    return sorted.filter((t) => t.name.toLowerCase().includes(q));
   }, [themes, searchQuery]);
 
-  const handleSelectPreset = useCallback(
-    (id: PresetThemeId) => {
-      selectPreset(id);
-    },
-    [selectPreset],
-  );
+  const customThemes = useMemo(() => {
+    const custom = themes.filter((t) => !t.isPreset);
+    if (!searchQuery) return custom;
+    const q = searchQuery.toLowerCase();
+    return custom.filter((t) => t.name.toLowerCase().includes(q));
+  }, [themes, searchQuery]);
 
-  const handleSelectCustom = useCallback(
+  const handleSelectTheme = useCallback(
     (theme: CustomThemeDocument) => {
-      selectTheme(theme._id, theme.tokens);
+      selectTheme(theme._id, theme.tokens, theme.isPreset);
     },
     [selectTheme],
   );
 
   const handleDuplicate = useCallback(
-    async (presetId: PresetThemeId) => {
-      setDuplicatingId(presetId);
-      try {
-        const baseTheme = getPresetThemeById(presetId);
-        const name = `${baseTheme.name} Copy`;
-        const res = await apiService.createTheme({
-          name,
-          basePreset: presetId,
-          tokens: { ...baseTheme, id: '', name },
-        });
-        const newTheme = res.data;
-        addTheme(newTheme);
-        selectTheme(newTheme._id, newTheme.tokens);
-        onStatusMessage('Theme created');
-      } catch {
-        onStatusMessage('Failed to create theme');
-      } finally {
-        setDuplicatingId(null);
-      }
-    },
-    [addTheme, selectTheme, onStatusMessage],
-  );
-
-  const handleDuplicateCustom = useCallback(
     async (theme: CustomThemeDocument) => {
       setDuplicatingId(theme._id);
       try {
         const name = `${theme.name} Copy`;
         const res = await apiService.createTheme({
           name,
-          basePreset: theme.basePreset,
+          basePreset: theme.presetId,
           tokens: { ...theme.tokens, id: '', name },
         });
         const newTheme = res.data;
         addTheme(newTheme);
-        selectTheme(newTheme._id, newTheme.tokens);
-        onStatusMessage('Theme duplicated');
+        selectTheme(newTheme._id, newTheme.tokens, false);
+        onStatusMessage('Theme created');
       } catch {
-        onStatusMessage('Failed to duplicate theme');
+        onStatusMessage('Failed to create theme');
       } finally {
         setDuplicatingId(null);
       }
@@ -156,14 +122,13 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
               textTransform: 'uppercase',
             }}
           >
-            Presets
+            Presets ({presetThemes.length})
           </div>
-          {filteredPresets.map((id) => {
-            const theme = getPresetThemeById(id);
-            const isSelected = currentThemeId === id;
+          {presetThemes.map((theme) => {
+            const isSelected = currentThemeId === theme._id;
             return (
               <div
-                key={id}
+                key={theme._id}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -171,14 +136,14 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
                   cursor: 'pointer',
                   backgroundColor: isSelected ? '#d0e8ff' : 'transparent',
                 }}
-                onClick={() => handleSelectPreset(id)}
+                onClick={() => handleSelectTheme(theme)}
               >
                 <span
                   style={{
                     width: 12,
                     height: 12,
                     borderRadius: 2,
-                    backgroundColor: theme.accent.primary,
+                    backgroundColor: theme.tokens?.accent?.primary ?? '#ccc',
                     marginRight: 6,
                     flexShrink: 0,
                     border: '1px solid rgba(0,0,0,0.15)',
@@ -192,9 +157,9 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDuplicate(id);
+                    handleDuplicate(theme);
                   }}
-                  disabled={duplicatingId === id}
+                  disabled={duplicatingId === theme._id}
                   style={{
                     padding: '1px 4px',
                     border: '1px solid #ccc',
@@ -223,16 +188,15 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
               textTransform: 'uppercase',
             }}
           >
-            Custom ({themes.length})
+            Custom ({customThemes.length})
           </div>
-          {filteredCustom.length === 0 && (
+          {customThemes.length === 0 && (
             <div style={{ padding: '4px 8px', color: '#999', fontSize: 11 }}>
               {searchQuery ? 'No matching custom themes.' : 'No custom themes yet. Duplicate a preset to start.'}
             </div>
           )}
-          {filteredCustom.map((theme) => {
-            const isSelected =
-              currentThemeId === theme._id;
+          {customThemes.map((theme) => {
+            const isSelected = currentThemeId === theme._id;
             return (
               <div
                 key={theme._id}
@@ -243,7 +207,7 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
                   cursor: 'pointer',
                   backgroundColor: isSelected ? '#d0e8ff' : 'transparent',
                 }}
-                onClick={() => handleSelectCustom(theme)}
+                onClick={() => handleSelectTheme(theme)}
               >
                 <span
                   style={{
@@ -264,7 +228,7 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDuplicateCustom(theme);
+                    handleDuplicate(theme);
                   }}
                   disabled={duplicatingId === theme._id}
                   style={{

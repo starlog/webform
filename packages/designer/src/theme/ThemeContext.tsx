@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react';
 import type { ThemeId, ThemeTokens } from '@webform/common';
-import { getThemeById, isPresetTheme, getDefaultTheme } from '@webform/common';
+import { getDefaultTheme } from '@webform/common';
 import { apiService } from '../services/apiService';
 
 const ThemeContext = createContext<ThemeTokens>(getDefaultTheme());
@@ -12,34 +12,31 @@ export function ThemeProvider({
   themeId: ThemeId | undefined;
   children: ReactNode;
 }) {
-  const [customTheme, setCustomTheme] = useState<ThemeTokens | null>(null);
-
-  const isCustom = themeId != null && !isPresetTheme(themeId);
+  const [loadedTheme, setLoadedTheme] = useState<ThemeTokens | null>(null);
 
   useEffect(() => {
-    if (!isCustom || !themeId) {
-      setCustomTheme(null);
+    if (!themeId) {
+      setLoadedTheme(null);
       return;
     }
 
     let cancelled = false;
     apiService
-      .getTheme(themeId)
+      .getThemeByIdOrPresetId(themeId)
       .then((res) => {
-        if (!cancelled) setCustomTheme(res.data.tokens);
+        if (!cancelled) setLoadedTheme(res.data.tokens);
       })
       .catch(() => {
-        if (!cancelled) setCustomTheme(null);
+        if (!cancelled) setLoadedTheme(null);
       });
     return () => {
       cancelled = true;
     };
-  }, [themeId, isCustom]);
+  }, [themeId]);
 
   const theme = useMemo(() => {
-    if (isCustom) return customTheme ?? getDefaultTheme();
-    return getThemeById(themeId);
-  }, [themeId, isCustom, customTheme]);
+    return loadedTheme ?? getDefaultTheme();
+  }, [loadedTheme]);
 
   return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }

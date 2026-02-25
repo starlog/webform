@@ -56,7 +56,6 @@ export type {
 
 // types/theme
 export type {
-  PresetThemeId,
   ThemeId,
   ThemeTokens,
   TitleBarTokens,
@@ -83,25 +82,8 @@ export type {
 
 // themes
 export {
-  getThemeById,
-  getPresetThemeById,
+  FALLBACK_THEME,
   getDefaultTheme,
-  isPresetTheme,
-  THEME_IDS,
-  PRESET_THEME_IDS,
-  arcticFrostTheme,
-  autumnHarvestTheme,
-  cherryBlossomTheme,
-  darkMonokaiTheme,
-  forestGreenTheme,
-  macosTahoeTheme,
-  materialBlueTheme,
-  oceanBreezeTheme,
-  retroTerminalTheme,
-  solarizedLightTheme,
-  sunsetGlowTheme,
-  ubuntu2004Theme,
-  vibrantNeonTheme,
   windowsXpTheme,
 } from './themes/presets';
 

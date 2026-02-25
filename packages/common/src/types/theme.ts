@@ -3,22 +3,7 @@
  * 각 테마는 ThemeTokens 인터페이스를 구현하여 UI 전체에 일관된 스타일을 적용한다.
  */
 
-export type PresetThemeId =
-  | 'arctic-frost'
-  | 'autumn-harvest'
-  | 'cherry-blossom'
-  | 'dark-monokai'
-  | 'forest-green'
-  | 'macos-tahoe'
-  | 'material-blue'
-  | 'ocean-breeze'
-  | 'retro-terminal'
-  | 'solarized-light'
-  | 'sunset-glow'
-  | 'ubuntu-2004'
-  | 'vibrant-neon'
-  | 'windows-xp';
-export type ThemeId = PresetThemeId | (string & {});
+export type ThemeId = string;
 
 export interface TitleBarTokens {
   background: string;
@@ -191,12 +176,14 @@ export interface ThemeTokens {
   popup: PopupTokens;
 }
 
-/** 서버에 저장되는 커스텀 테마 문서 */
+/** 서버에 저장되는 테마 문서 */
 export interface CustomThemeDocument {
   _id: string;
   name: string;
-  basePreset: PresetThemeId;
+  basePreset?: string;
   tokens: ThemeTokens;
+  isPreset: boolean;
+  presetId?: string;
   createdBy: string;
   updatedBy: string;
   createdAt: string;

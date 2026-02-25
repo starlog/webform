@@ -1,18 +1,17 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { CustomThemeDocument, ThemeTokens, PresetThemeId } from '@webform/common';
-import { getPresetThemeById } from '@webform/common';
+import type { CustomThemeDocument, ThemeTokens } from '@webform/common';
 
 interface ThemeEditorState {
   themes: CustomThemeDocument[];
   currentThemeId: string | null;
   currentTheme: ThemeTokens | null;
+  isCurrentPreset: boolean;
   isDirty: boolean;
   loading: boolean;
 
   setThemes: (themes: CustomThemeDocument[]) => void;
-  selectTheme: (id: string, tokens: ThemeTokens) => void;
-  selectPreset: (id: PresetThemeId) => void;
+  selectTheme: (id: string, tokens: ThemeTokens, isPreset?: boolean) => void;
   clearSelection: () => void;
   updateToken: (path: string, value: unknown) => void;
   setCurrentThemeName: (name: string) => void;
@@ -41,6 +40,7 @@ export const useThemeEditorStore = create<ThemeEditorState>()(
     themes: [],
     currentThemeId: null,
     currentTheme: null,
+    isCurrentPreset: false,
     isDirty: false,
     loading: false,
 
@@ -49,17 +49,11 @@ export const useThemeEditorStore = create<ThemeEditorState>()(
         state.themes = themes;
       }),
 
-    selectTheme: (id, tokens) =>
+    selectTheme: (id, tokens, isPreset = false) =>
       set((state) => {
         state.currentThemeId = id;
         state.currentTheme = tokens;
-        state.isDirty = false;
-      }),
-
-    selectPreset: (id) =>
-      set((state) => {
-        state.currentThemeId = id;
-        state.currentTheme = getPresetThemeById(id);
+        state.isCurrentPreset = isPreset;
         state.isDirty = false;
       }),
 
@@ -67,6 +61,7 @@ export const useThemeEditorStore = create<ThemeEditorState>()(
       set((state) => {
         state.currentThemeId = null;
         state.currentTheme = null;
+        state.isCurrentPreset = false;
         state.isDirty = false;
       }),
 
@@ -105,6 +100,7 @@ export const useThemeEditorStore = create<ThemeEditorState>()(
         if (state.currentThemeId === id) {
           state.currentThemeId = null;
           state.currentTheme = null;
+          state.isCurrentPreset = false;
           state.isDirty = false;
         }
       }),

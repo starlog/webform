@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from 'react';
-import { isPresetTheme } from '@webform/common';
 import { useThemeEditorStore } from '../../stores/themeEditorStore';
 import { TOKEN_GROUPS, getTokensByGroup } from './tokenMeta';
 import type { TokenMeta } from './tokenMeta';
@@ -16,13 +15,13 @@ function resolveValue(obj: unknown, path: string): unknown {
 
 export function TokenEditor() {
   const currentTheme = useThemeEditorStore((s) => s.currentTheme);
-  const currentThemeId = useThemeEditorStore((s) => s.currentThemeId);
+  const isCurrentPreset = useThemeEditorStore((s) => s.isCurrentPreset);
   const updateToken = useThemeEditorStore((s) => s.updateToken);
   const setCurrentThemeName = useThemeEditorStore((s) => s.setCurrentThemeName);
 
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  const isReadOnly = currentThemeId ? isPresetTheme(currentThemeId) : true;
+  const isReadOnly = isCurrentPreset;
   const tokensByGroup = useMemo(() => getTokensByGroup(), []);
 
   const toggleGroup = useCallback((group: string) => {

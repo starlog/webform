@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { isPresetTheme } from '@webform/common';
 import { apiService } from '../../services/apiService';
 import { useThemeEditorStore } from '../../stores/themeEditorStore';
 import { ThemeList } from './ThemeList';
@@ -12,6 +11,7 @@ export function ThemeEditor() {
   const loading = useThemeEditorStore((s) => s.loading);
   const currentThemeId = useThemeEditorStore((s) => s.currentThemeId);
   const currentTheme = useThemeEditorStore((s) => s.currentTheme);
+  const isCurrentPreset = useThemeEditorStore((s) => s.isCurrentPreset);
   const isDirty = useThemeEditorStore((s) => s.isDirty);
   const markClean = useThemeEditorStore((s) => s.markClean);
   const updateThemeInList = useThemeEditorStore((s) => s.updateThemeInList);
@@ -22,7 +22,7 @@ export function ThemeEditor() {
     setTimeout(() => setStatusMsg(null), 3000);
   }, []);
 
-  // 초기 테마 목록 로드
+  // 초기 테마 목록 로드 (프리셋 + 커스텀 모두)
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -43,7 +43,7 @@ export function ThemeEditor() {
   }, [setThemes, setLoading, showStatus]);
 
   const handleSave = useCallback(async () => {
-    if (!currentThemeId || !currentTheme || isPresetTheme(currentThemeId)) return;
+    if (!currentThemeId || !currentTheme || isCurrentPreset) return;
     try {
       const res = await apiService.updateTheme(currentThemeId, {
         name: currentTheme.name,
@@ -55,9 +55,9 @@ export function ThemeEditor() {
     } catch {
       showStatus('Save failed');
     }
-  }, [currentThemeId, currentTheme, markClean, updateThemeInList, showStatus]);
+  }, [currentThemeId, currentTheme, isCurrentPreset, markClean, updateThemeInList, showStatus]);
 
-  const isEditable = currentThemeId ? !isPresetTheme(currentThemeId) : false;
+  const isEditable = currentThemeId ? !isCurrentPreset : false;
 
   return (
     <div style={{ display: 'flex', height: '100%', fontFamily: 'Segoe UI, sans-serif' }}>
