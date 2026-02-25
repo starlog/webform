@@ -659,7 +659,22 @@ ctx.closeApp();                       // Shell 종료
 
 ---
 
-## 9. form-gen.sh 사용법
+## 9. 유틸리티 스크립트
+
+### 9-1. generate-themes.sh — 프리셋 테마 시딩
+
+프리셋 테마(24개)를 API를 통해 MongoDB에 시딩한다. 서버 시작 시 자동 시딩되지 않으므로, 최초 환경 구성 시 반드시 실행해야 한다.
+
+```bash
+# 서버 실행 중 상태에서
+./generate-themes.sh
+```
+
+- `.env`에서 `PORT`, `JWT_SECRET`을 읽어 JWT 토큰 생성 후 `POST /api/themes/seed` 호출
+- 첫 실행: `24 upserted` / 재실행: `24 unchanged` 출력
+- 사전 조건: API 서버 실행 중, `.env`에 `JWT_SECRET` 설정
+
+### 9-2. form-gen.sh — 폼 JSON 임포트
 
 JSON 파일을 작성한 후 `form-gen.sh`로 서버에 임포트한다.
 
