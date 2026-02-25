@@ -47,6 +47,7 @@ const DEFAULT_FORM_PROPERTIES: FormProperties = {
   maximizeBox: true,
   minimizeBox: true,
   windowState: 'Normal',
+  themeColorMode: 'control',
 };
 
 interface DesignerState {

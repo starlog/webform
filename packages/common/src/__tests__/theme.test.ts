@@ -2,34 +2,84 @@ import { describe, it, expect } from 'vitest';
 import {
   getThemeById,
   THEME_IDS,
-  windowsXpTheme,
-  ubuntu2004Theme,
+  arcticFrostTheme,
+  autumnHarvestTheme,
+  cherryBlossomTheme,
+  darkMonokaiTheme,
+  forestGreenTheme,
   macosTahoeTheme,
+  materialBlueTheme,
+  oceanBreezeTheme,
+  retroTerminalTheme,
+  solarizedLightTheme,
+  sunsetGlowTheme,
+  ubuntu2004Theme,
   vibrantNeonTheme,
+  windowsXpTheme,
 } from '../themes/presets';
 import type { ThemeTokens } from '../types/theme';
 
 describe('Theme presets', () => {
-  it('THEME_IDS에 4개 테마가 정의되어 있다', () => {
-    expect(THEME_IDS).toHaveLength(4);
-    expect(THEME_IDS).toContain('windows-xp');
-    expect(THEME_IDS).toContain('ubuntu-2004');
+  it('THEME_IDS에 14개 테마가 정의되어 있다', () => {
+    expect(THEME_IDS).toHaveLength(14);
+    expect(THEME_IDS).toContain('arctic-frost');
+    expect(THEME_IDS).toContain('autumn-harvest');
+    expect(THEME_IDS).toContain('cherry-blossom');
+    expect(THEME_IDS).toContain('dark-monokai');
+    expect(THEME_IDS).toContain('forest-green');
     expect(THEME_IDS).toContain('macos-tahoe');
+    expect(THEME_IDS).toContain('material-blue');
+    expect(THEME_IDS).toContain('ocean-breeze');
+    expect(THEME_IDS).toContain('retro-terminal');
+    expect(THEME_IDS).toContain('solarized-light');
+    expect(THEME_IDS).toContain('sunset-glow');
+    expect(THEME_IDS).toContain('ubuntu-2004');
     expect(THEME_IDS).toContain('vibrant-neon');
+    expect(THEME_IDS).toContain('windows-xp');
   });
 
   it('각 프리셋의 id와 name이 올바르다', () => {
-    expect(windowsXpTheme.id).toBe('windows-xp');
-    expect(windowsXpTheme.name).toBe('Windows XP');
+    expect(arcticFrostTheme.id).toBe('arctic-frost');
+    expect(arcticFrostTheme.name).toBe('Arctic Frost');
 
-    expect(ubuntu2004Theme.id).toBe('ubuntu-2004');
-    expect(ubuntu2004Theme.name).toBe('Ubuntu 20.04');
+    expect(autumnHarvestTheme.id).toBe('autumn-harvest');
+    expect(autumnHarvestTheme.name).toBe('Autumn Harvest');
+
+    expect(cherryBlossomTheme.id).toBe('cherry-blossom');
+    expect(cherryBlossomTheme.name).toBe('Cherry Blossom');
+
+    expect(darkMonokaiTheme.id).toBe('dark-monokai');
+    expect(darkMonokaiTheme.name).toBe('Dark Monokai');
+
+    expect(forestGreenTheme.id).toBe('forest-green');
+    expect(forestGreenTheme.name).toBe('Forest Green');
 
     expect(macosTahoeTheme.id).toBe('macos-tahoe');
     expect(macosTahoeTheme.name).toBe('macOS Tahoe');
 
+    expect(materialBlueTheme.id).toBe('material-blue');
+    expect(materialBlueTheme.name).toBe('Material Blue');
+
+    expect(oceanBreezeTheme.id).toBe('ocean-breeze');
+    expect(oceanBreezeTheme.name).toBe('Ocean Breeze');
+
+    expect(retroTerminalTheme.id).toBe('retro-terminal');
+    expect(retroTerminalTheme.name).toBe('Retro Terminal');
+
+    expect(solarizedLightTheme.id).toBe('solarized-light');
+    expect(solarizedLightTheme.name).toBe('Solarized Light');
+
+    expect(sunsetGlowTheme.id).toBe('sunset-glow');
+    expect(sunsetGlowTheme.name).toBe('Sunset Glow');
+
+    expect(ubuntu2004Theme.id).toBe('ubuntu-2004');
+    expect(ubuntu2004Theme.name).toBe('Ubuntu 20.04');
+
     expect(vibrantNeonTheme.id).toBe('vibrant-neon');
     expect(vibrantNeonTheme.name).toBe('Vibrant Neon');
+
+    expect(windowsXpTheme.id).toBe('windows-xp');
+    expect(windowsXpTheme.name).toBe('Windows XP');
   });
 
   it.each(THEME_IDS)('getThemeById("%s")가 올바른 테마를 반환한다', (id) => {
@@ -43,7 +93,22 @@ describe('Theme presets', () => {
   });
 
   describe('ThemeTokens 구조 유효성', () => {
-    const themes: ThemeTokens[] = [windowsXpTheme, ubuntu2004Theme, macosTahoeTheme, vibrantNeonTheme];
+    const themes: ThemeTokens[] = [
+      arcticFrostTheme,
+      autumnHarvestTheme,
+      cherryBlossomTheme,
+      darkMonokaiTheme,
+      forestGreenTheme,
+      macosTahoeTheme,
+      materialBlueTheme,
+      oceanBreezeTheme,
+      retroTerminalTheme,
+      solarizedLightTheme,
+      sunsetGlowTheme,
+      ubuntu2004Theme,
+      vibrantNeonTheme,
+      windowsXpTheme,
+    ];
 
     it.each(themes.map((t) => [t.name, t] as const))(
       '%s 테마에 필수 토큰이 모두 존재한다',
@@ -106,14 +171,25 @@ describe('Theme presets', () => {
       expect(vibrantNeonTheme.controls.button.borderRadius).toBe('8px');
     });
 
-    it('각 테마의 accent 색상이 다르다', () => {
-      const accents = new Set([
-        windowsXpTheme.accent.primary,
-        ubuntu2004Theme.accent.primary,
-        macosTahoeTheme.accent.primary,
-        vibrantNeonTheme.accent.primary,
-      ]);
-      expect(accents.size).toBe(4);
+    it('각 테마의 accent 색상이 모두 고유하다 (14개)', () => {
+      const allThemes: ThemeTokens[] = [
+        arcticFrostTheme,
+        autumnHarvestTheme,
+        cherryBlossomTheme,
+        darkMonokaiTheme,
+        forestGreenTheme,
+        macosTahoeTheme,
+        materialBlueTheme,
+        oceanBreezeTheme,
+        retroTerminalTheme,
+        solarizedLightTheme,
+        sunsetGlowTheme,
+        ubuntu2004Theme,
+        vibrantNeonTheme,
+        windowsXpTheme,
+      ];
+      const accents = new Set(allThemes.map((t) => t.accent.primary));
+      expect(accents.size).toBe(14);
     });
   });
 });

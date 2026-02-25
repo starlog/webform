@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface ProgressBarProps {
   id: string;
@@ -7,6 +8,8 @@ interface ProgressBarProps {
   value?: number;
   minimum?: number;
   maximum?: number;
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   children?: ReactNode;
@@ -18,15 +21,18 @@ export function ProgressBar({
   value = 0,
   minimum = 0,
   maximum = 100,
+  backColor,
+  foreColor,
   style,
 }: ProgressBarProps) {
   const theme = useTheme();
+  const colors = useControlColors('ProgressBar', { backColor, foreColor });
 
   const containerStyle: CSSProperties = {
     boxSizing: 'border-box',
     border: theme.controls.progressBar.border,
     borderRadius: theme.controls.progressBar.borderRadius,
-    backgroundColor: theme.controls.progressBar.background,
+    backgroundColor: colors.backgroundColor,
     overflow: 'hidden',
   };
 

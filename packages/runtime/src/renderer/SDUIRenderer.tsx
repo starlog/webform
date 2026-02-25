@@ -3,12 +3,15 @@ import type { FormDefinition, ControlDefinition } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { apiClient } from '../communication/apiClient';
 import { ThemeProvider } from '../theme/ThemeContext';
+import { ThemeColorModeProvider } from '../theme/ThemeColorModeContext';
 import { FormContainer } from './FormContainer';
 import { ControlRenderer } from './ControlRenderer';
 
 interface SDUIRendererProps {
   formDefinition: FormDefinition;
   enableDrag?: boolean;
+  /** Shell 테마를 상속받을 때 사용. 지정 시 폼 자체 theme 대신 이 값을 사용 */
+  themeIdOverride?: string;
 }
 
 function classifyControls(controls: ControlDefinition[]) {
@@ -44,7 +47,7 @@ function classifyControls(controls: ControlDefinition[]) {
   return { dockTop, dockBottom, dockLeft, dockRight, dockFill, rest };
 }
 
-export function SDUIRenderer({ formDefinition, enableDrag }: SDUIRendererProps) {
+export function SDUIRenderer({ formDefinition, enableDrag, themeIdOverride }: SDUIRendererProps) {
   const setFormDef = useRuntimeStore((s) => s.setFormDef);
   const applyPatches = useRuntimeStore((s) => s.applyPatches);
 
@@ -124,18 +127,20 @@ export function SDUIRenderer({ formDefinition, enableDrag }: SDUIRendererProps) 
   );
 
   return (
-    <ThemeProvider themeId={formDefinition.properties.theme}>
-      <FormContainer
-        properties={formDefinition.properties}
-        enableDrag={enableDrag}
-        dockTop={dockTop.length > 0 ? dockTop.map(renderControl) : undefined}
-        dockBottom={dockBottom.length > 0 ? dockBottom.map(renderControl) : undefined}
-        dockLeft={dockLeft.length > 0 ? dockLeft.map(renderControl) : undefined}
-        dockRight={dockRight.length > 0 ? dockRight.map(renderControl) : undefined}
-        dockFill={dockFill.length > 0 ? dockFill.map(renderControl) : undefined}
-      >
-        {rest.map(renderControl)}
-      </FormContainer>
+    <ThemeProvider themeId={themeIdOverride ?? formDefinition.properties.theme}>
+      <ThemeColorModeProvider mode={formDefinition.properties.themeColorMode ?? 'control'}>
+        <FormContainer
+          properties={formDefinition.properties}
+          enableDrag={enableDrag}
+          dockTop={dockTop.length > 0 ? dockTop.map(renderControl) : undefined}
+          dockBottom={dockBottom.length > 0 ? dockBottom.map(renderControl) : undefined}
+          dockLeft={dockLeft.length > 0 ? dockLeft.map(renderControl) : undefined}
+          dockRight={dockRight.length > 0 ? dockRight.map(renderControl) : undefined}
+          dockFill={dockFill.length > 0 ? dockFill.map(renderControl) : undefined}
+        >
+          {rest.map(renderControl)}
+        </FormContainer>
+      </ThemeColorModeProvider>
     </ThemeProvider>
   );
 }

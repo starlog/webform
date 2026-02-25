@@ -81,9 +81,9 @@ function SampleWindow({ theme }: { theme: ThemeTokens }) {
         <span style={{ flex: 1, textAlign: 'center' }}>Sample Form</span>
         {t.window.titleBar.controlButtonsPosition === 'right' && (
           <div style={{ display: 'flex', gap: 4 }}>
-            <SquareBtn label="\u2013" />
-            <SquareBtn label="\u25A1" />
-            <SquareBtn label="\u2715" />
+            <SquareBtn label={'\u2013'} />
+            <SquareBtn label={'\u25A1'} />
+            <SquareBtn label={'\u2715'} />
           </div>
         )}
       </div>

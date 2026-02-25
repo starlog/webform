@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useControlColors } from '../theme/useControlColors';
 
 export interface SpreadsheetColumn {
   field: string;
@@ -105,7 +106,7 @@ export function SpreadsheetView({
   allowAddRows = true,
   allowDeleteRows = true,
   allowSort = true,
-  backColor = '#ffffff',
+  backColor,
   onCellChanged,
   onRowAdded,
   onRowDeleted,
@@ -113,6 +114,7 @@ export function SpreadsheetView({
   onDataLoaded,
 }: SpreadsheetViewProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const controlColors = useControlColors('SpreadsheetView', { backColor });
 
   // 데이터 파싱 — data prop 또는 dataSource 사용
   const rows = useMemo(() => {
@@ -364,7 +366,7 @@ export function SpreadsheetView({
 
   const mergedStyle: CSSProperties = {
     ...SS.container,
-    backgroundColor: backColor,
+    backgroundColor: controlColors.backgroundColor,
     ...style,
   };
 

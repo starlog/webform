@@ -2,11 +2,25 @@ import { useRef } from 'react';
 import type { ControlDefinition, ControlType } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
-import { useHistoryStore } from '../../stores/historyStore';
+import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
 import { snapPositionToGrid, getSnaplines } from '../../utils/snapGrid';
 import type { Snapline } from '../../utils/snapGrid';
 import { ResizeHandle, RESIZE_DIRECTIONS } from './ResizeHandle';
 import { getDesignerComponent } from '../../controls/registry';
+
+/** 주어진 parentId의 모든 자손 컨트롤 ID를 재귀적으로 수집한다 */
+function collectDescendantIds(
+  controls: ControlDefinition[],
+  parentId: string,
+  result: Set<string>,
+) {
+  for (const c of controls) {
+    if ((c.properties._parentId as string) === parentId && !result.has(c.id)) {
+      result.add(c.id);
+      collectDescendantIds(controls, c.id, result);
+    }
+  }
+}
 
 export const DragItemTypes = {
   TOOLBOX_CONTROL: 'TOOLBOX_CONTROL',
@@ -87,8 +101,14 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
     }
     // 이미 선택된 컨트롤 → 선택 유지 (다중 드래그 준비)
 
-    // 드래그 시작 시점의 선택된 컨트롤 ID와 시작 위치 기록
-    const dragSelectedIds = Array.from(useSelectionStore.getState().selectedIds);
+    // 드래그 시작 시점의 선택된 컨트롤 ID + 자손 ID 수집 및 시작 위치 기록
+    const selectedIdSet = new Set(useSelectionStore.getState().selectedIds);
+    const allDragIds = new Set<string>(selectedIdSet);
+    // 선택된 각 컨트롤의 모든 자손을 재귀적으로 수집
+    for (const id of selectedIdSet) {
+      collectDescendantIds(controls, id, allDragIds);
+    }
+    const dragSelectedIds = Array.from(allDragIds);
     const startPositions = new Map<string, { x: number; y: number }>();
     for (const id of dragSelectedIds) {
       const ctrl = controls.find((c) => c.id === id);
@@ -96,8 +116,7 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
     }
 
     // 변경 전 스냅샷 저장
-    const snapshot = JSON.stringify(controls);
-    useHistoryStore.getState().pushSnapshot(snapshot);
+    useHistoryStore.getState().pushSnapshot(createSnapshot());
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;

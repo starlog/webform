@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useControlColors } from '../theme/useControlColors';
 
 interface FontDef {
   family?: string;
@@ -230,6 +231,7 @@ export function JsonEditor({
   onValueChanged,
 }: JsonEditorProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const controlColors = useControlColors('JsonEditor', { backColor, foreColor });
   const parsed = useMemo(() => parseValue(rawValue), [rawValue]);
 
   const fontStyle = useMemo<CSSProperties>(() => {
@@ -311,9 +313,9 @@ export function JsonEditor({
       data-control-id={id}
       style={{
         ...baseStyle,
-        backgroundColor: backColor || '#ffffff',
+        backgroundColor: controlColors.backgroundColor,
+        color: controlColors.color,
         ...fontStyle,
-        ...(foreColor ? { color: foreColor } : {}),
         ...style,
       }}
     >

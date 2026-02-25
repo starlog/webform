@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useBindingStore } from '../bindings/bindingStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 export interface ColumnDefinition {
   field?: string;
@@ -36,6 +37,7 @@ interface DataGridViewProps {
   enabled?: boolean;
   readOnly?: boolean;
   font?: FontDef;
+  backColor?: string;
   foreColor?: string;
   children?: ReactNode;
   [key: string]: unknown;
@@ -133,6 +135,7 @@ export function DataGridView({
   enabled = true,
   readOnly = false,
   font,
+  backColor,
   foreColor,
 }: DataGridViewProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
@@ -141,6 +144,7 @@ export function DataGridView({
   const editInputRef = useRef<HTMLInputElement>(null);
   const setSelectedRow = useBindingStore((s) => s.setSelectedRow);
   const styles = useDataGridStyles();
+  const colors = useControlColors('DataGridView', { backColor, foreColor });
 
   const fontStyle = useMemo<CSSProperties>(() => {
     if (!font) return {};
@@ -283,7 +287,7 @@ export function DataGridView({
     [commitEdit, cancelEdit],
   );
 
-  const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, ...(foreColor ? { color: foreColor } : {}), ...style };
+  const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, backgroundColor: colors.backgroundColor, color: colors.color, ...style };
 
   // 빈 데이터 처리
   if (rows.length === 0) {

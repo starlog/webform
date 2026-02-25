@@ -101,6 +101,7 @@ const formSchema = new Schema(
       minimizeBox: { type: Boolean, default: true },
       windowState: { type: String, enum: ['Normal', 'Maximized'], default: 'Normal' },
       theme: { type: String },
+      themeColorMode: { type: String, enum: ['theme', 'control'] },
     },
     controls: { type: [controlDefinitionSchema], default: [] },
     eventHandlers: { type: [Schema.Types.Mixed], default: [] },

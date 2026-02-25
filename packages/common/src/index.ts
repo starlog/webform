@@ -89,10 +89,20 @@ export {
   isPresetTheme,
   THEME_IDS,
   PRESET_THEME_IDS,
-  windowsXpTheme,
-  ubuntu2004Theme,
+  arcticFrostTheme,
+  autumnHarvestTheme,
+  cherryBlossomTheme,
+  darkMonokaiTheme,
+  forestGreenTheme,
   macosTahoeTheme,
+  materialBlueTheme,
+  oceanBreezeTheme,
+  retroTerminalTheme,
+  solarizedLightTheme,
+  sunsetGlowTheme,
+  ubuntu2004Theme,
   vibrantNeonTheme,
+  windowsXpTheme,
 } from './themes/presets';
 
 // utils

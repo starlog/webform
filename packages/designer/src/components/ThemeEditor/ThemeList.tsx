@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { PresetThemeId, CustomThemeDocument } from '@webform/common';
 import { PRESET_THEME_IDS, getPresetThemeById } from '@webform/common';
 import { useThemeEditorStore } from '../../stores/themeEditorStore';
@@ -18,6 +18,24 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
   const isDirty = useThemeEditorStore((s) => s.isDirty);
 
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredPresets = useMemo(() => {
+    const sorted = [...PRESET_THEME_IDS].sort((a, b) => {
+      const nameA = getPresetThemeById(a).name;
+      const nameB = getPresetThemeById(b).name;
+      return nameA.localeCompare(nameB);
+    });
+    if (!searchQuery) return sorted;
+    const q = searchQuery.toLowerCase();
+    return sorted.filter((id) => getPresetThemeById(id).name.toLowerCase().includes(q));
+  }, [searchQuery]);
+
+  const filteredCustom = useMemo(() => {
+    if (!searchQuery) return themes;
+    const q = searchQuery.toLowerCase();
+    return themes.filter((t) => t.name.toLowerCase().includes(q));
+  }, [themes, searchQuery]);
 
   const handleSelectPreset = useCallback(
     (id: PresetThemeId) => {
@@ -108,6 +126,24 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
         Themes
       </div>
 
+      <div style={{ padding: '4px 6px', borderBottom: '1px solid #ddd' }}>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search themes..."
+          style={{
+            width: '100%',
+            padding: '3px 6px',
+            fontSize: 11,
+            border: '1px solid #ccc',
+            borderRadius: 3,
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
       <div style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
         {/* Preset Themes */}
         <div style={{ padding: '4px 0' }}>
@@ -122,7 +158,7 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
           >
             Presets
           </div>
-          {PRESET_THEME_IDS.map((id) => {
+          {filteredPresets.map((id) => {
             const theme = getPresetThemeById(id);
             const isSelected = currentThemeId === id;
             return (
@@ -189,12 +225,12 @@ export function ThemeList({ onStatusMessage }: ThemeListProps) {
           >
             Custom ({themes.length})
           </div>
-          {themes.length === 0 && (
+          {filteredCustom.length === 0 && (
             <div style={{ padding: '4px 8px', color: '#999', fontSize: 11 }}>
-              No custom themes yet. Duplicate a preset to start.
+              {searchQuery ? 'No matching custom themes.' : 'No custom themes yet. Duplicate a preset to start.'}
             </div>
           )}
-          {themes.map((theme) => {
+          {filteredCustom.map((theme) => {
             const isSelected =
               currentThemeId === theme._id;
             return (

@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 import type { ThemeTokens } from '@webform/common';
 
 interface TreeNode {
@@ -201,6 +202,7 @@ export function TreeView({
 }: TreeViewProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const theme = useTheme();
+  const colors = useControlColors('TreeView', { backColor, foreColor });
   const baseStyle = getBaseStyle(theme);
 
   const handleSelect = useCallback(
@@ -236,8 +238,8 @@ export function TreeView({
 
   const mergedStyle: CSSProperties = {
     ...baseStyle,
-    ...(backColor ? { backgroundColor: backColor } : {}),
-    ...(foreColor ? { color: foreColor } : {}),
+    backgroundColor: colors.backgroundColor,
+    color: colors.color,
     ...style,
     opacity: enabled ? 1 : 0.6,
   };

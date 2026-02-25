@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 type ScrollBars = 'None' | 'Horizontal' | 'Vertical' | 'Both';
 
@@ -51,6 +52,7 @@ export function RichTextBox({
 }: RichTextBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const theme = useTheme();
+  const colors = useControlColors('RichTextBox', { backColor, foreColor });
   const contentRef = useRef<HTMLDivElement>(null);
   const isComposing = useRef(false);
   const [boldActive, setBoldActive] = useState(false);
@@ -96,8 +98,8 @@ export function RichTextBox({
   const overflow = getOverflow(scrollBars);
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? theme.controls.textInput.background,
-    color: foreColor ?? theme.controls.textInput.foreground,
+    backgroundColor: colors.backgroundColor,
+    color: colors.color,
     border: theme.controls.textInput.border,
     borderRadius: theme.controls.textInput.borderRadius,
     display: 'flex',

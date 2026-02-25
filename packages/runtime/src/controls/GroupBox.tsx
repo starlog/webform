@@ -1,18 +1,22 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface GroupBoxProps {
   id: string;
   name: string;
   text?: string;
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   children?: ReactNode;
   [key: string]: unknown;
 }
 
-export function GroupBox({ id, text, style, children }: GroupBoxProps) {
+export function GroupBox({ id, text, backColor, foreColor, style, children }: GroupBoxProps) {
   const theme = useTheme();
+  const colors = useControlColors('GroupBox', { backColor, foreColor });
 
   return (
     <div
@@ -42,7 +46,7 @@ export function GroupBox({ id, text, style, children }: GroupBoxProps) {
           <legend style={{
             padding: '0 4px',
             fontSize: 'inherit',
-            color: theme.controls.groupBox.foreground,
+            color: colors.color,
             marginLeft: 8,
           }}>
             {text}

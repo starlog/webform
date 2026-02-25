@@ -3,7 +3,7 @@ import { useDrop } from 'react-dnd';
 import type { ControlType, ControlDefinition } from '@webform/common';
 import { useDesignerStore, createDefaultControl } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
-import { useHistoryStore } from '../../stores/historyStore';
+import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
 import { ThemeProvider } from '../../theme/ThemeContext';
 import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';
 import type { Snapline as SnaplineType } from '../../utils/snapGrid';
@@ -127,8 +127,7 @@ export function DesignerCanvas() {
       }, gridSize);
 
       // 변경 전 스냅샷 저장
-      const snapshot = JSON.stringify(useDesignerStore.getState().controls);
-      useHistoryStore.getState().pushSnapshot(snapshot);
+      useHistoryStore.getState().pushSnapshot(createSnapshot());
 
       const control = createDefaultControl(item.type, position);
       addControl(control);
@@ -158,31 +157,6 @@ export function DesignerCanvas() {
     collect: (monitor) => ({ isOver: monitor.isOver() }),
   }), [gridSize, addControl]);
 
-  // --- 히스토리 연동 ---
-  const handleUndo = useCallback(() => {
-    const snapshot = useHistoryStore.getState().undo();
-    if (snapshot) {
-      const restoredControls = JSON.parse(snapshot) as ControlDefinition[];
-      useDesignerStore.getState().loadForm(
-        useDesignerStore.getState().currentFormId ?? '',
-        restoredControls,
-        useDesignerStore.getState().formProperties,
-      );
-    }
-  }, []);
-
-  const handleRedo = useCallback(() => {
-    const snapshot = useHistoryStore.getState().redo();
-    if (snapshot) {
-      const restoredControls = JSON.parse(snapshot) as ControlDefinition[];
-      useDesignerStore.getState().loadForm(
-        useDesignerStore.getState().currentFormId ?? '',
-        restoredControls,
-        useDesignerStore.getState().formProperties,
-      );
-    }
-  }, []);
-
   const handleCopy = useCallback(() => {
     const currentControls = useDesignerStore.getState().controls;
     const currentSelectedIds = useSelectionStore.getState().selectedIds;
@@ -196,8 +170,7 @@ export function DesignerCanvas() {
     const pasted = useSelectionStore.getState().pasteControls();
     if (pasted.length > 0) {
       // 변경 전 스냅샷 저장
-      const snapshot = JSON.stringify(useDesignerStore.getState().controls);
-      useHistoryStore.getState().pushSnapshot(snapshot);
+      useHistoryStore.getState().pushSnapshot(createSnapshot());
 
       for (const control of pasted) {
         useDesignerStore.getState().addControl(control);
@@ -210,20 +183,17 @@ export function DesignerCanvas() {
     const currentSelectedIds = useSelectionStore.getState().selectedIds;
     if (currentSelectedIds.size > 0) {
       // 변경 전 스냅샷 저장
-      const snapshot = JSON.stringify(useDesignerStore.getState().controls);
-      useHistoryStore.getState().pushSnapshot(snapshot);
+      useHistoryStore.getState().pushSnapshot(createSnapshot());
 
       removeControls(Array.from(currentSelectedIds));
       clearSelection();
     }
   }, [removeControls, clearSelection]);
 
-  // --- 키보드 이벤트 ---
+  // --- 키보드 이벤트 (Ctrl+Z/Y는 App.tsx에서 글로벌 처리) ---
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.ctrlKey || e.metaKey) {
       switch (e.key) {
-        case 'z': handleUndo(); e.preventDefault(); break;
-        case 'y': handleRedo(); e.preventDefault(); break;
         case 'c': handleCopy(); e.preventDefault(); break;
         case 'v': handlePaste(); e.preventDefault(); break;
       }
@@ -232,7 +202,7 @@ export function DesignerCanvas() {
       handleDelete();
       e.preventDefault();
     }
-  }, [handleUndo, handleRedo, handleCopy, handlePaste, handleDelete]);
+  }, [handleCopy, handlePaste, handleDelete]);
 
   // --- 드래그 선택 박스 ---
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -286,6 +256,9 @@ export function DesignerCanvas() {
   const handleFormResizeMouseDown = useCallback((direction: FormResizeDirection, e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+
+    // 변경 전 스냅샷 저장
+    useHistoryStore.getState().pushSnapshot(createSnapshot());
 
     const startX = e.clientX;
     const startY = e.clientY;

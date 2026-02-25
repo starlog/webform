@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface BindingNavigatorProps {
   id: string;
@@ -33,6 +34,7 @@ export function BindingNavigator({
   const controlStates = useRuntimeStore((s) => s.controlStates);
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const theme = useTheme();
+  const colors = useControlColors('BindingNavigator', { backColor });
 
   // Get bound data from the binding source control
   const boundData = bindingSource ? (controlStates[bindingSource] as Record<string, unknown>) : null;
@@ -91,8 +93,8 @@ export function BindingNavigator({
   };
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? theme.controls.toolStrip.background,
-    color: theme.controls.toolStrip.foreground,
+    backgroundColor: colors.backgroundColor,
+    color: colors.color,
     borderBottom: theme.controls.toolStrip.border,
     display: 'flex',
     alignItems: 'center',

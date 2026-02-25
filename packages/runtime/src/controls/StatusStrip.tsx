@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface StatusStripItem {
   type: 'label' | 'progressBar' | 'dropDownButton';
@@ -36,6 +37,7 @@ export function StatusStrip({
   onItemClicked,
 }: StatusStripProps) {
   const theme = useTheme();
+  const colors = useControlColors('StatusStrip', { backColor, foreColor });
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
 
   const handleItemClick = useCallback(
@@ -48,8 +50,8 @@ export function StatusStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? theme.controls.statusStrip.background,
-    color: foreColor ?? theme.controls.statusStrip.foreground,
+    backgroundColor: colors.backgroundColor,
+    color: colors.color,
     borderTop: theme.controls.statusStrip.border,
     display: 'flex',
     alignItems: 'center',

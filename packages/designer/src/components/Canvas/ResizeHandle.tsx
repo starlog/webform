@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useDesignerStore } from '../../stores/designerStore';
-import { useHistoryStore } from '../../stores/historyStore';
+import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
 import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';
 
 export type ResizeDirection = 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw';
@@ -43,8 +43,7 @@ export function ResizeHandle({ direction, controlId }: ResizeHandleProps) {
     if (!control) return;
 
     // 변경 전 스냅샷 저장
-    const snapshot = JSON.stringify(useDesignerStore.getState().controls);
-    useHistoryStore.getState().pushSnapshot(snapshot);
+    useHistoryStore.getState().pushSnapshot(createSnapshot());
 
     const startPos = { ...control.position };
     const startSize = { ...control.size };

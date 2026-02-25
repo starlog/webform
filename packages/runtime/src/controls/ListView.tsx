@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface ListViewItem {
   text: string;
@@ -71,6 +72,7 @@ export function ListView({
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const controlStates = useRuntimeStore((s) => s.controlStates);
   const theme = useTheme();
+  const colors = useControlColors('ListView', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
     backgroundColor: theme.controls.select.background,
@@ -138,8 +140,8 @@ export function ListView({
 
   const mergedStyle: CSSProperties = {
     ...baseStyle,
-    ...(backColor ? { backgroundColor: backColor } : {}),
-    ...(foreColor ? { color: foreColor } : {}),
+    backgroundColor: colors.backgroundColor,
+    color: colors.color,
     ...style,
     opacity: enabled ? 1 : 0.6,
   };

@@ -1,11 +1,14 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useControlColors } from '../theme/useControlColors';
 
 interface CheckBoxProps {
   id: string;
   name: string;
   text?: string;
   checked?: boolean;
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   onCheckedChanged?: () => void;
@@ -13,24 +16,18 @@ interface CheckBoxProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4px',
-  boxSizing: 'border-box',
-  userSelect: 'none',
-  cursor: 'pointer',
-};
-
 export function CheckBox({
   id,
   text,
   checked = false,
+  backColor,
+  foreColor,
   style,
   enabled = true,
   onCheckedChanged,
 }: CheckBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const colors = useControlColors('CheckBox', { backColor, foreColor });
 
   const handleChange = () => {
     if (!enabled) return;
@@ -42,7 +39,16 @@ export function CheckBox({
     <label
       className="wf-checkbox"
       data-control-id={id}
-      style={{ ...baseStyle, ...style, cursor: enabled ? 'pointer' : 'default' }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        boxSizing: 'border-box',
+        userSelect: 'none',
+        color: colors.color,
+        ...style,
+        cursor: enabled ? 'pointer' : 'default',
+      }}
       onClick={handleChange}
     >
       <input

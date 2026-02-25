@@ -23,6 +23,7 @@ export interface FormProperties {
   minimizeBox: boolean;
   windowState?: 'Normal' | 'Maximized';
   theme?: ThemeId;
+  themeColorMode?: 'theme' | 'control';
 }
 
 // Phase 1 - 기본 컨트롤 (11종), 컨테이너 (4종)

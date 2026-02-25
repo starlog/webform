@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface WebBrowserProps {
   id: string;
@@ -35,6 +36,7 @@ export function WebBrowser({
 }: WebBrowserProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const theme = useTheme();
+  const colors = useControlColors('WebBrowser', { backColor });
 
   const handleLoad = useCallback(() => {
     updateControlState(id, 'documentLoaded', true);
@@ -45,7 +47,7 @@ export function WebBrowser({
   const safeUrl = isSafeUrl(url) ? url : 'about:blank';
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? theme.controls.textInput.background,
+    backgroundColor: colors.backgroundColor,
     border: theme.controls.textInput.border,
     borderRadius: theme.controls.textInput.borderRadius,
     display: 'flex',

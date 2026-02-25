@@ -23,6 +23,7 @@ const formPropertiesSchema = z.object({
   minimizeBox: z.boolean().default(true),
   windowState: z.enum(['Normal', 'Maximized']).default('Normal'),
   theme: z.string().optional(),
+  themeColorMode: z.enum(['theme', 'control']).optional(), // v2: themeColorMode 지원
 });
 
 const anchorStyleSchema = z.object({

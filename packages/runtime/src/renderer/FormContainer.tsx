@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, type CSSProperties, type ReactNode } from 'react';
 import type { FormProperties } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
+import { useThemeColorMode } from '../theme/ThemeColorModeContext';
 import { computeFontStyle } from './layoutUtils';
 import { useFormResize } from './useFormResize';
 import { useFormDrag } from './useFormDrag';
@@ -53,6 +54,7 @@ export function FormContainer({
   children,
 }: FormContainerProps) {
   const theme = useTheme();
+  const themeColorMode = useThemeColorMode();
   const formRef = useRef<HTMLDivElement>(null);
   const [maximized, setMaximized] = useState(properties.windowState === 'Maximized');
   const isMaximized = maximized;
@@ -140,7 +142,9 @@ export function FormContainer({
   const contentStyle: CSSProperties = {
     flex: 1,
     position: 'relative',
-    backgroundColor: properties.backgroundColor || theme.form.backgroundColor,
+    backgroundColor: themeColorMode === 'theme'
+      ? theme.form.backgroundColor
+      : (properties.backgroundColor || theme.form.backgroundColor),
     color: theme.form.foreground,
     overflow: 'hidden',
     display: 'flex',

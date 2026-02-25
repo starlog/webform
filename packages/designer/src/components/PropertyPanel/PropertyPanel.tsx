@@ -3,7 +3,7 @@ import type { ControlDefinition, FormProperties, ShellProperties } from '@webfor
 import { FORM_EVENTS, PRESET_THEME_IDS } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
-import { useHistoryStore } from '../../stores/historyStore';
+import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
 import { apiService } from '../../services/apiService';
 import { getPropertyMeta, getControlEvents, SHELL_PROPERTIES } from './controlProperties';
 import type { PropertyCategory as PropertyCategoryName, PropertyMeta } from './controlProperties';
@@ -45,6 +45,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
       { name: 'height', label: 'Height', category: 'Layout', editorType: 'number', min: 150 },
       { name: 'title', label: 'Title', category: 'Appearance', editorType: 'text' },
       { name: 'theme', label: 'Theme', category: 'Appearance', editorType: 'dropdown', options: themeOptions },
+      { name: 'themeColorMode', label: 'ThemeColorMode', category: 'Appearance', editorType: 'dropdown', options: ['control', 'theme'] },
       { name: 'backgroundColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
       { name: 'font', label: 'Font', category: 'Appearance', editorType: 'font' },
       { name: 'formBorderStyle', label: 'FormBorderStyle', category: 'Behavior', editorType: 'dropdown', options: ['None', 'FixedSingle', 'Fixed3D', 'Sizable'] },
@@ -171,8 +172,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const handleValueChange = useCallback((name: string, value: unknown) => {
     if (!selectedControl) return;
 
-    const allControls = useDesignerStore.getState().controls;
-    pushSnapshot(JSON.stringify(allControls));
+    pushSnapshot(createSnapshot());
 
     applyValueToControl(selectedControl, name, value);
   }, [selectedControl, pushSnapshot, applyValueToControl]);
@@ -181,8 +181,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const handleMultiValueChange = useCallback((name: string, value: unknown) => {
     if (selectedControls.length === 0) return;
 
-    const allControls = useDesignerStore.getState().controls;
-    pushSnapshot(JSON.stringify(allControls));
+    pushSnapshot(createSnapshot());
 
     for (const ctrl of selectedControls) {
       applyValueToControl(ctrl, name, value);
@@ -207,8 +206,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const handleDeleteHandler = useCallback((eventName: string) => {
     if (!selectedControl) return;
 
-    const allControls = useDesignerStore.getState().controls;
-    pushSnapshot(JSON.stringify(allControls));
+    pushSnapshot(createSnapshot());
 
     const currentHandlers = (selectedControl.properties._eventHandlers ?? {}) as Record<string, string>;
     const currentCode = (selectedControl.properties._eventCode ?? {}) as Record<string, string>;
@@ -283,8 +281,9 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   }, [formProperties]);
 
   const handleFormValueChange = useCallback((name: string, value: unknown) => {
+    pushSnapshot(createSnapshot());
     setFormProperties({ [name]: value } as Partial<FormProperties>);
-  }, [setFormProperties]);
+  }, [setFormProperties, pushSnapshot]);
 
   const formGroupedProperties = useMemo(() => {
     const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior'];
@@ -341,11 +340,18 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     [setShellProperties],
   );
 
+  // Shell 속성: theme 옵션을 동적으로 교체 (커스텀 테마 포함)
+  const shellPropertyMetas = useMemo(() => {
+    return SHELL_PROPERTIES.map((meta) =>
+      meta.name === 'theme' ? { ...meta, options: themeOptions } : meta,
+    );
+  }, [themeOptions]);
+
   // Shell 속성 그룹화
   const shellGroupedProperties = useMemo(() => {
     const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior'];
     const groups = new Map<string, PropertyMeta[]>();
-    for (const meta of SHELL_PROPERTIES) {
+    for (const meta of shellPropertyMetas) {
       const list = groups.get(meta.category) ?? [];
       list.push(meta);
       groups.set(meta.category, list);
@@ -353,7 +359,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     return categoryOrder
       .filter((cat) => groups.has(cat))
       .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
-  }, []);
+  }, [shellPropertyMetas]);
 
   // Shell 컨트롤 속성 getValue/handleValueChange
   const getShellControlValue = useCallback(

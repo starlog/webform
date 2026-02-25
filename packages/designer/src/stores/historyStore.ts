@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import type { ControlDefinition, FormProperties } from '@webform/common';
+import { useDesignerStore } from './designerStore';
 
 const MAX_HISTORY = 50;
 
@@ -10,8 +12,8 @@ interface HistoryState {
   canRedo: boolean;
 
   pushSnapshot: (snapshot: string) => void;
-  undo: () => string | null;
-  redo: () => string | null;
+  undo: (currentSnapshot: string) => string | null;
+  redo: (currentSnapshot: string) => string | null;
   clear: () => void;
 }
 
@@ -32,34 +34,36 @@ export const useHistoryStore = create<HistoryState>()(
       state.canRedo = false;
     }),
 
-    undo: () => {
+    undo: (currentSnapshot) => {
       const { past } = get();
       if (past.length === 0) return null;
 
-      const previous = past.length > 1 ? past[past.length - 2] : null;
+      const restored = past[past.length - 1];
 
       set((state) => {
-        const popped = state.past.pop()!;
-        state.future.push(popped);
+        state.past.pop();
+        state.future.push(currentSnapshot);
         state.canUndo = state.past.length > 0;
         state.canRedo = true;
       });
 
-      return previous;
+      return restored;
     },
 
-    redo: () => {
+    redo: (currentSnapshot) => {
       const { future } = get();
       if (future.length === 0) return null;
 
+      const restored = future[future.length - 1];
+
       set((state) => {
-        const snapshot = state.future.pop()!;
-        state.past.push(snapshot);
+        state.future.pop();
+        state.past.push(currentSnapshot);
         state.canUndo = true;
         state.canRedo = state.future.length > 0;
       });
 
-      return get().past[get().past.length - 1];
+      return restored;
     },
 
     clear: () => set((state) => {
@@ -70,3 +74,20 @@ export const useHistoryStore = create<HistoryState>()(
     }),
   })),
 );
+
+// --- 스냅샷 유틸리티 ---
+
+/** 현재 controls + formProperties를 JSON 스냅샷으로 생성 */
+export function createSnapshot(): string {
+  const { controls, formProperties } = useDesignerStore.getState();
+  return JSON.stringify({ controls, formProperties });
+}
+
+/** 스냅샷을 복원하여 controls + formProperties를 교체 */
+export function restoreSnapshot(snapshot: string): void {
+  const { controls, formProperties } = JSON.parse(snapshot) as {
+    controls: ControlDefinition[];
+    formProperties: FormProperties;
+  };
+  useDesignerStore.setState({ controls, formProperties, isDirty: true });
+}

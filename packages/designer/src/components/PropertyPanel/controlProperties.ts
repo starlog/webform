@@ -1,5 +1,5 @@
 import type { ControlType } from '@webform/common';
-import { COMMON_EVENTS, CONTROL_EVENTS } from '@webform/common';
+import { COMMON_EVENTS, CONTROL_EVENTS, PRESET_THEME_IDS } from '@webform/common';
 
 export type EditorType =
   | 'text'
@@ -386,7 +386,7 @@ export const SHELL_PROPERTIES: PropertyMeta[] = [
   { name: 'width', label: 'Width', category: 'Layout', editorType: 'number', min: 400 },
   { name: 'height', label: 'Height', category: 'Layout', editorType: 'number', min: 300 },
   { name: 'title', label: 'Title', category: 'Appearance', editorType: 'text' },
-  { name: 'theme', label: 'Theme', category: 'Appearance', editorType: 'dropdown', options: ['windows-xp', 'ubuntu-2004', 'macos-tahoe'] },
+  { name: 'theme', label: 'Theme', category: 'Appearance', editorType: 'dropdown', options: [...PRESET_THEME_IDS] },
   { name: 'backgroundColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
   { name: 'font', label: 'Font', category: 'Appearance', editorType: 'font' },
   {

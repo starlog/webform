@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface TabInfo {
   title: string;
@@ -13,6 +14,8 @@ interface TabControlProps {
   selectedIndex?: number;
   tabs?: TabInfo[];
   tabPages?: string[];
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   onSelectedIndexChanged?: () => void;
@@ -72,12 +75,15 @@ export function TabControl({
   selectedIndex = 0,
   tabs,
   tabPages,
+  backColor,
+  foreColor,
   style,
   enabled = true,
   onSelectedIndexChanged,
   children,
 }: TabControlProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const colors = useControlColors('TabControl', { backColor, foreColor });
   const { tabHeaderStyle, tabButtonBase, tabButtonActive, contentBorder } = useTabStyles();
 
   // children are tab pages rendered by ControlRenderer
@@ -95,6 +101,8 @@ export function TabControl({
       data-control-id={id}
       style={{
         boxSizing: 'border-box',
+        backgroundColor: colors.backgroundColor,
+        color: colors.color,
         ...style,
       }}
     >

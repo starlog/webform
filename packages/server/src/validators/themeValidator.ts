@@ -2,7 +2,22 @@ import { z } from 'zod';
 
 export const createThemeSchema = z.object({
   name: z.string().min(1).max(200),
-  basePreset: z.enum(['windows-xp', 'ubuntu-2004', 'macos-tahoe', 'vibrant-neon']),
+  basePreset: z.enum([
+    'arctic-frost',
+    'autumn-harvest',
+    'cherry-blossom',
+    'dark-monokai',
+    'forest-green',
+    'macos-tahoe',
+    'material-blue',
+    'ocean-breeze',
+    'retro-terminal',
+    'solarized-light',
+    'sunset-glow',
+    'ubuntu-2004',
+    'vibrant-neon',
+    'windows-xp',
+  ]),
   tokens: z.record(z.unknown()),
 });
 

@@ -11,6 +11,7 @@ import { ElementList } from './components/ElementList';
 import { ThemeEditor } from './components/ThemeEditor/ThemeEditor';
 import { apiService, useAutoSave } from './services/apiService';
 import { useDesignerStore } from './stores/designerStore';
+import { useHistoryStore, createSnapshot, restoreSnapshot } from './stores/historyStore';
 
 interface EventEditorState {
   controlId: string;
@@ -105,12 +106,31 @@ export function App() {
     ? `${window.location.origin.replace(':3000', ':3001')}/?projectId=${currentProjectId}&formId=${currentFormId}`
     : null;
 
-  // Ctrl+S 키보드 단축키
+  // Ctrl+S / Ctrl+Z / Ctrl+Y 키보드 단축키
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      if (!(e.ctrlKey || e.metaKey)) return;
+
+      if (e.key === 's') {
         e.preventDefault();
         handleSave();
+        return;
+      }
+
+      // Ctrl+Z/Y: 텍스트 입력 중에는 브라우저 기본 동작 유지
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
+
+      if (e.key === 'z') {
+        e.preventDefault();
+        const current = createSnapshot();
+        const snapshot = useHistoryStore.getState().undo(current);
+        if (snapshot) restoreSnapshot(snapshot);
+      } else if (e.key === 'y') {
+        e.preventDefault();
+        const current = createSnapshot();
+        const snapshot = useHistoryStore.getState().redo(current);
+        if (snapshot) restoreSnapshot(snapshot);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -212,7 +232,7 @@ export function App() {
             borderColor: editMode === 'theme' ? '#0078d4' : '#bbb',
           }}
         >
-          Themes
+          {editMode === 'theme' ? 'WebForms' : 'Themes'}
         </button>
 
         {(currentFormId || editMode === 'shell') && editMode !== 'theme' && (

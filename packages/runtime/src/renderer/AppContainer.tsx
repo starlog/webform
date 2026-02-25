@@ -200,12 +200,16 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
     );
   }
 
-  // Shell이 있으면 ShellRenderer로 감싸기 (Shell 테마 적용)
+  // Shell이 있으면 ShellRenderer로 감싸기 (Shell 테마를 폼에 전파)
   if (adjustedShellDef) {
     return (
       <ThemeProvider themeId={adjustedShellDef.properties.theme}>
         <ShellRenderer shellDef={adjustedShellDef} projectId={projectId}>
-          <SDUIRenderer formDefinition={formDefinition} enableDrag />
+          <SDUIRenderer
+            formDefinition={formDefinition}
+            enableDrag
+            themeIdOverride={adjustedShellDef.properties.theme}
+          />
         </ShellRenderer>
       </ThemeProvider>
     );

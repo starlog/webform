@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface PictureBoxProps {
   id: string;
@@ -31,6 +32,7 @@ export function PictureBox({
   style,
 }: PictureBoxProps) {
   const theme = useTheme();
+  const colors = useControlColors('PictureBox', { backColor });
 
   function getBorder(): string {
     if (borderStyle === 'FixedSingle') return theme.controls.panel.border;
@@ -44,7 +46,7 @@ export function PictureBox({
     display: 'flex',
     alignItems: sizeMode === 'CenterImage' ? 'center' : 'flex-start',
     justifyContent: sizeMode === 'CenterImage' ? 'center' : 'flex-start',
-    backgroundColor: backColor ?? theme.controls.panel.background,
+    backgroundColor: colors.backgroundColor,
     border: getBorder(),
     borderRadius: theme.controls.panel.borderRadius,
     ...style,

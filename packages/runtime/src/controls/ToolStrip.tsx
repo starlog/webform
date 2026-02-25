@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface ToolStripItem {
   type: 'button' | 'separator' | 'label' | 'dropdown';
@@ -38,6 +39,7 @@ export function ToolStrip({
   onItemClicked,
 }: ToolStripProps) {
   const theme = useTheme();
+  const colors = useControlColors('ToolStrip', { backColor, foreColor });
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -84,8 +86,8 @@ export function ToolStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? theme.controls.toolStrip.background,
-    color: foreColor ?? theme.controls.toolStrip.foreground,
+    backgroundColor: colors.backgroundColor,
+    color: colors.color,
     borderBottom: theme.controls.toolStrip.border,
     display: 'flex',
     alignItems: 'center',

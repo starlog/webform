@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import type { FontDefinition } from '@webform/common';
 import { computeFontStyle } from '../renderer/layoutUtils';
+import { useControlColors } from '../theme/useControlColors';
 import {
   ResponsiveContainer,
   LineChart,
@@ -98,6 +99,7 @@ export function GraphView({
   backColor,
   style,
 }: GraphViewProps) {
+  const controlColors = useControlColors('GraphView', { backColor, foreColor });
   const chartData = useMemo(() => parseData(data), [data]);
   const palette = useMemo(
     () => (colors ? colors.split(',').map((c) => c.trim()).filter(Boolean) : DEFAULT_COLORS),
@@ -115,8 +117,8 @@ export function GraphView({
   const containerStyle: CSSProperties = {
     width: '100%',
     height: '100%',
-    backgroundColor: backColor || '#ffffff',
-    color: foreColor || '#333333',
+    backgroundColor: controlColors.backgroundColor,
+    color: controlColors.color,
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',

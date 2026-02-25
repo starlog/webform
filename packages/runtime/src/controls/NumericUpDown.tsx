@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface NumericUpDownProps {
   id: string;
@@ -9,6 +10,8 @@ interface NumericUpDownProps {
   minimum?: number;
   maximum?: number;
   increment?: number;
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   onValueChanged?: () => void;
@@ -22,19 +25,22 @@ export function NumericUpDown({
   minimum = 0,
   maximum = 100,
   increment = 1,
+  backColor,
+  foreColor,
   style,
   enabled = true,
   onValueChanged,
 }: NumericUpDownProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const theme = useTheme();
+  const colors = useControlColors('NumericUpDown', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
-    backgroundColor: theme.controls.textInput.background,
+    backgroundColor: colors.backgroundColor,
     border: theme.controls.textInput.border,
     padding: theme.controls.textInput.padding,
     borderRadius: theme.controls.textInput.borderRadius,
-    color: theme.controls.textInput.foreground,
+    color: colors.color,
     fontFamily: 'inherit',
     fontSize: 'inherit',
     boxSizing: 'border-box',

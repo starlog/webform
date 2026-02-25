@@ -1,12 +1,15 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface ListBoxProps {
   id: string;
   name: string;
   items?: string[];
   selectedIndex?: number;
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   onSelectedIndexChanged?: () => void;
@@ -18,18 +21,21 @@ export function ListBox({
   id,
   items = [],
   selectedIndex = -1,
+  backColor,
+  foreColor,
   style,
   enabled = true,
   onSelectedIndexChanged,
 }: ListBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const theme = useTheme();
+  const colors = useControlColors('ListBox', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
-    backgroundColor: theme.controls.select.background,
+    backgroundColor: colors.backgroundColor,
     border: theme.controls.select.border,
     borderRadius: theme.controls.select.borderRadius,
-    color: theme.controls.select.foreground,
+    color: colors.color,
     overflow: 'auto',
     fontFamily: 'inherit',
     fontSize: 'inherit',

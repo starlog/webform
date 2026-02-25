@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import type { FontDefinition } from '@webform/common';
 import { apiClient } from '../communication/apiClient';
 import { computeFontStyle } from '../renderer/layoutUtils';
+import { useControlColors } from '../theme/useControlColors';
 
 interface MongoDBViewProps {
   id: string;
@@ -67,6 +68,7 @@ export function MongoDBView({
   onDocumentDeleted,
   onError,
 }: MongoDBViewProps) {
+  const controlColors = useControlColors('MongoDBView', { backColor, foreColor });
   const [documents, setDocuments] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -410,8 +412,8 @@ export function MongoDBView({
   const containerStyle: CSSProperties = {
     ...sty.container,
     ...fontStyle,
-    ...(foreColor ? { color: foreColor } : {}),
-    backgroundColor: backColor || '#ffffff',
+    backgroundColor: controlColors.backgroundColor,
+    color: controlColors.color,
     ...style,
   };
 

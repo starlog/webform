@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useControlColors } from '../theme/useControlColors';
 
 interface RadioButtonProps {
   id: string;
@@ -7,6 +8,8 @@ interface RadioButtonProps {
   text?: string;
   checked?: boolean;
   groupName?: string;
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   onCheckedChanged?: () => void;
@@ -14,26 +17,20 @@ interface RadioButtonProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4px',
-  boxSizing: 'border-box',
-  userSelect: 'none',
-  cursor: 'pointer',
-};
-
 export function RadioButton({
   id,
   text,
   checked = false,
   groupName = 'default',
+  backColor,
+  foreColor,
   style,
   enabled = true,
   onCheckedChanged,
 }: RadioButtonProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const controlStates = useRuntimeStore((s) => s.controlStates);
+  const colors = useControlColors('RadioButton', { backColor, foreColor });
 
   const handleChange = () => {
     if (!enabled) return;
@@ -54,7 +51,16 @@ export function RadioButton({
     <label
       className="wf-radiobutton"
       data-control-id={id}
-      style={{ ...baseStyle, ...style, cursor: enabled ? 'pointer' : 'default' }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        boxSizing: 'border-box',
+        userSelect: 'none',
+        color: colors.color,
+        ...style,
+        cursor: enabled ? 'pointer' : 'default',
+      }}
       onClick={handleChange}
     >
       <input

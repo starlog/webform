@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface MenuItem {
   text: string;
@@ -238,6 +239,7 @@ export function MenuStrip({
   onItemClicked,
 }: MenuStripProps) {
   const theme = useTheme();
+  const colors = useControlColors('MenuStrip', { backColor, foreColor });
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -288,8 +290,8 @@ export function MenuStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? theme.controls.menuStrip.background,
-    color: foreColor ?? theme.controls.menuStrip.foreground,
+    backgroundColor: colors.backgroundColor,
+    color: colors.color,
     borderBottom: theme.controls.menuStrip.border,
     display: 'flex',
     alignItems: 'center',

@@ -1,12 +1,15 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface ComboBoxProps {
   id: string;
   name: string;
   items?: string[];
   selectedIndex?: number;
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   onSelectedIndexChanged?: () => void;
@@ -18,18 +21,21 @@ export function ComboBox({
   id,
   items = [],
   selectedIndex = -1,
+  backColor,
+  foreColor,
   style,
   enabled = true,
   onSelectedIndexChanged,
 }: ComboBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const theme = useTheme();
+  const colors = useControlColors('ComboBox', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
-    backgroundColor: theme.controls.select.background,
+    backgroundColor: colors.backgroundColor,
     border: theme.controls.select.border,
     borderRadius: theme.controls.select.borderRadius,
-    color: theme.controls.select.foreground,
+    color: colors.color,
     padding: '2px 4px',
     fontFamily: 'inherit',
     fontSize: 'inherit',

@@ -1,10 +1,13 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 interface ButtonProps {
   id: string;
   name: string;
   text?: string;
+  backColor?: string;
+  foreColor?: string;
   style?: CSSProperties;
   enabled?: boolean;
   onClick?: () => void;
@@ -12,15 +15,16 @@ interface ButtonProps {
   [key: string]: unknown;
 }
 
-export function Button({ id, text, style, enabled = true, onClick }: ButtonProps) {
+export function Button({ id, text, backColor, foreColor, style, enabled = true, onClick }: ButtonProps) {
   const theme = useTheme();
+  const colors = useControlColors('Button', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
-    backgroundColor: theme.controls.button.background,
+    backgroundColor: colors.backgroundColor,
     border: theme.controls.button.border,
     padding: theme.controls.button.padding,
     borderRadius: theme.controls.button.borderRadius,
-    color: theme.controls.button.foreground,
+    color: colors.color,
     fontFamily: 'inherit',
     fontSize: 'inherit',
     cursor: 'pointer',
