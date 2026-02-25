@@ -62,6 +62,7 @@ interface UpdateFormPayload {
   controls?: ControlDefinition[];
   eventHandlers?: EventHandlerDefinition[];
   dataBindings?: DataBindingDefinition[];
+  version?: number; // 낙관적 잠금용
 }
 
 interface CreateProjectPayload {
@@ -176,7 +177,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: { message: res.statusText } }));
-    throw new Error(error.error?.message ?? `API Error: ${res.status}`);
+    const err = new Error(error.error?.message ?? `API Error: ${res.status}`);
+    (err as Error & { status: number }).status = res.status;
+    throw err;
   }
 
   if (res.status === 204) return undefined as T;
@@ -481,12 +484,15 @@ export function useAutoSave() {
 
     if (!currentFormId) return;
     try {
+      const state = useDesignerStore.getState();
       const nestedControls = nestControls(controls);
-      await apiService.saveForm(currentFormId, {
+      const result = await apiService.saveForm(currentFormId, {
         controls: nestedControls,
         properties: formProperties,
         eventHandlers: extractEventHandlers(controls),
+        version: state.formVersion ?? undefined,
       });
+      state.updateFormVersion(result.data.version);
       markClean();
     } catch (error) {
       console.error('Auto-save failed:', error);
@@ -519,11 +525,13 @@ export function useAutoSave() {
     if (!state.currentFormId) return;
     try {
       const nestedControls = nestControls(state.controls);
-      await apiService.saveForm(state.currentFormId, {
+      const result = await apiService.saveForm(state.currentFormId, {
         controls: nestedControls,
         properties: state.formProperties,
         eventHandlers: extractEventHandlers(state.controls),
+        version: state.formVersion ?? undefined,
       });
+      state.updateFormVersion(result.data.version);
       state.markClean();
     } catch (error) {
       console.error('Save failed:', error);
