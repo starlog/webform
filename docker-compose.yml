@@ -1,0 +1,29 @@
+services:
+  # 개발용 인프라
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # 프로덕션 서버
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./packages/server/.env
+    depends_on:
+      - mongo
+      - redis
+
+volumes:
+  mongo-data:
