@@ -386,6 +386,66 @@ const dividerProps: PropertyMeta[] = withCommon(
   { name: 'properties.foreColor',   label: 'ForeColor',   category: 'Appearance', editorType: 'color' },
 );
 
+const cardProps: PropertyMeta[] = withCommon(
+  { name: 'properties.title',        label: 'Title',        category: 'Appearance', editorType: 'text',     defaultValue: 'Card Title' },
+  { name: 'properties.subtitle',     label: 'Subtitle',     category: 'Appearance', editorType: 'text',     defaultValue: '' },
+  { name: 'properties.showHeader',   label: 'ShowHeader',   category: 'Appearance', editorType: 'boolean',  defaultValue: true },
+  { name: 'properties.showBorder',   label: 'ShowBorder',   category: 'Appearance', editorType: 'boolean',  defaultValue: true },
+  { name: 'properties.hoverable',    label: 'Hoverable',    category: 'Behavior',   editorType: 'boolean',  defaultValue: false },
+  { name: 'properties.size',         label: 'Size',         category: 'Appearance', editorType: 'dropdown', defaultValue: 'Default', options: ['Default', 'Small'] },
+  { name: 'properties.backColor',    label: 'BackColor',    category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor',    label: 'ForeColor',    category: 'Appearance', editorType: 'color' },
+  { name: 'properties.borderRadius', label: 'BorderRadius', category: 'Appearance', editorType: 'number',   defaultValue: 8, min: 0, max: 24 },
+);
+
+const badgeProps: PropertyMeta[] = withCommon(
+  { name: 'properties.count',         label: 'Count',         category: 'Data',       editorType: 'number',   defaultValue: 0, min: 0 },
+  { name: 'properties.overflowCount', label: 'OverflowCount', category: 'Behavior',   editorType: 'number',   defaultValue: 99, min: 1 },
+  { name: 'properties.showZero',      label: 'ShowZero',      category: 'Behavior',   editorType: 'boolean',  defaultValue: false },
+  { name: 'properties.dot',           label: 'Dot',           category: 'Appearance', editorType: 'boolean',  defaultValue: false },
+  { name: 'properties.status',        label: 'Status',        category: 'Appearance', editorType: 'dropdown', defaultValue: 'Default', options: ['Default', 'Success', 'Processing', 'Error', 'Warning'] },
+  { name: 'properties.text',          label: 'Text',          category: 'Appearance', editorType: 'text',     defaultValue: '' },
+  { name: 'properties.badgeColor',    label: 'BadgeColor',    category: 'Appearance', editorType: 'color' },
+  { name: 'properties.offset',        label: 'Offset',        category: 'Layout',     editorType: 'text',     defaultValue: '' },
+);
+
+const avatarProps: PropertyMeta[] = withCommon(
+  { name: 'properties.imageUrl',  label: 'ImageUrl',  category: 'Data',       editorType: 'text',     defaultValue: '' },
+  { name: 'properties.text',      label: 'Text',      category: 'Appearance', editorType: 'text',     defaultValue: 'U' },
+  { name: 'properties.shape',     label: 'Shape',     category: 'Appearance', editorType: 'dropdown', defaultValue: 'Circle', options: ['Circle', 'Square'] },
+  { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
+);
+
+const tooltipProps: PropertyMeta[] = withCommon(
+  { name: 'properties.title',     label: 'Title',     category: 'Appearance', editorType: 'text',     defaultValue: 'Tooltip text' },
+  { name: 'properties.placement', label: 'Placement', category: 'Appearance', editorType: 'dropdown', defaultValue: 'Top', options: ['Top', 'Bottom', 'Left', 'Right', 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'] },
+  { name: 'properties.trigger',   label: 'Trigger',   category: 'Behavior',   editorType: 'dropdown', defaultValue: 'Hover', options: ['Hover', 'Click', 'Focus'] },
+  { name: 'properties.backColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor', label: 'ForeColor', category: 'Appearance', editorType: 'color' },
+);
+
+const collapseProps: PropertyMeta[] = withCommon(
+  { name: 'properties.panels',             label: 'Panels',        category: 'Data',       editorType: 'collection', defaultValue: [{ title: 'Panel 1', key: '1' }, { title: 'Panel 2', key: '2' }] },
+  { name: 'properties.activeKeys',         label: 'ActiveKeys',    category: 'Behavior',   editorType: 'text',       defaultValue: '1' },
+  { name: 'properties.accordion',          label: 'Accordion',     category: 'Behavior',   editorType: 'boolean',    defaultValue: false },
+  { name: 'properties.bordered',           label: 'Bordered',      category: 'Appearance', editorType: 'boolean',    defaultValue: true },
+  { name: 'properties.expandIconPosition', label: 'ExpandIconPos', category: 'Appearance', editorType: 'dropdown',   defaultValue: 'Start', options: ['Start', 'End'] },
+  { name: 'properties.backColor',          label: 'BackColor',     category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor',          label: 'ForeColor',     category: 'Appearance', editorType: 'color' },
+);
+
+const statisticProps: PropertyMeta[] = withCommon(
+  { name: 'properties.title',              label: 'Title',          category: 'Appearance', editorType: 'text',    defaultValue: 'Statistic' },
+  { name: 'properties.value',              label: 'Value',          category: 'Data',       editorType: 'text',    defaultValue: '0' },
+  { name: 'properties.prefix',             label: 'Prefix',         category: 'Appearance', editorType: 'text',    defaultValue: '' },
+  { name: 'properties.suffix',             label: 'Suffix',         category: 'Appearance', editorType: 'text',    defaultValue: '' },
+  { name: 'properties.precision',          label: 'Precision',      category: 'Data',       editorType: 'number',  defaultValue: 0, min: 0, max: 10 },
+  { name: 'properties.showGroupSeparator', label: 'GroupSeparator', category: 'Appearance', editorType: 'boolean', defaultValue: true },
+  { name: 'properties.valueColor',         label: 'ValueColor',     category: 'Appearance', editorType: 'color' },
+  { name: 'properties.foreColor',          label: 'ForeColor',      category: 'Appearance', editorType: 'color' },
+);
+
 const defaultProps: PropertyMeta[] = withCommon();
 
 // 현재 구현된 14개 + fallback
@@ -426,6 +486,13 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   Alert:   alertProps,
   Tag:     tagProps,
   Divider: dividerProps,
+  // ── Step 2 신규 컨트롤 ──
+  Card:      cardProps,
+  Badge:     badgeProps,
+  Avatar:    avatarProps,
+  Tooltip:   tooltipProps,
+  Collapse:  collapseProps,
+  Statistic: statisticProps,
 };
 
 export function getPropertyMeta(type: ControlType): PropertyMeta[] {
