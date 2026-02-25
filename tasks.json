@@ -374,7 +374,7 @@
       "description": "Form 모델에 version 필드 추가 및 FormService.updateForm()에 충돌 감지 로직 구현",
       "phase": "phase2-improvements",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/optimistic-lock-plan.md의 계획에 따라 낙관적 잠금을 구현하세요.\n\n## 수행할 작업\n1. `plans/optimistic-lock-plan.md` 읽기\n2. Form 모델에 version 필드 추가:\n   - `packages/server/src/models/` 관련 파일 읽고 수정\n   - `version: { type: Number, default: 0 }` 추가\n3. `packages/server/src/services/FormService.ts` 수정:\n   - updateForm() 메서드에 version 파라미터 추가\n   - MongoDB 쿼리에 `{ _id: formId, version: clientVersion }` 조건 추가\n   - 매칭되는 문서가 없으면 409 Conflict 에러 throw (충돌 또는 미존재)\n   - 업데이트 성공 시 `$inc: { version: 1 }` 적용\n4. API 라우터에서 클라이언트 version 받도록 수정 (필요시)\n5. `packages/designer/src/App.tsx` 수정:\n   - 폼 저장 API 호출 시 현재 폼 version 포함\n   - 409 충돌 응답 시 사용자에게 충돌 알림 표시\n\n## 코드 스타일\n- 기존 코드 스타일 유지\n- TypeScript 타입 안전하게 작성",
       "dependsOn": [
         "optimistic-lock-plan"
@@ -447,7 +447,7 @@
       "description": "useEffect cleanup 보강, 폼 전환 시 상태 초기화, WebSocket 리스너 중복 방지",
       "phase": "phase3-stability",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/memory-leak-plan.md의 계획에 따라 메모리 누수를 수정하세요.\n\n## 수행할 작업\n1. `plans/memory-leak-plan.md` 읽기\n2. `packages/designer/src/components/Canvas/CanvasControl.tsx` 수정:\n   - document.addEventListener 등록에 대응하는 useEffect cleanup 함수 추가\n   - `return () => { document.removeEventListener(...) }` 패턴 적용\n   - cleanup 없는 모든 document 이벤트 리스너 수정\n3. `packages/runtime/src/stores/runtimeStore.ts` (최신 기준) 수정:\n   - 폼 전환 액션에 dataSourceData 초기화 로직 추가\n   - 폼 언마운트/전환 시 정리되지 않는 상태 필드 초기화\n4. `packages/runtime/src/communication/wsClient.ts` (최신 기준) 수정:\n   - disconnect() 시 모든 이벤트 리스너 제거 확인 (removeAllListeners 또는 개별 off)\n   - 재연결 시 기존 리스너 제거 후 등록하여 중복 방지\n\n## 코드 스타일\n- React useEffect cleanup 패턴 올바르게 사용\n- 기존 코드 스타일 유지",
       "dependsOn": [
         "memory-leak-plan"
@@ -587,7 +587,7 @@
       "description": "Dockerfile, GitHub Actions 워크플로우, .env.example 파일 생성",
       "phase": "phase4-infrastructure",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/cicd-plan.md의 계획에 따라 CI/CD 인프라를 구축하세요.\n\n## 수행할 작업\n1. `plans/cicd-plan.md` 읽기\n2. `.env.example` 파일 생성 (프로젝트 루트):\n   - 필요한 환경 변수 목록 (실제 값 없이 예시/설명 형태)\n   - 예: `MONGODB_URI=mongodb://localhost:27017/webform`\n   - 예: `REDIS_URL=redis://localhost:6379`\n   - 예: `JWT_SECRET=your-secret-key-here`\n3. `Dockerfile` 생성 (프로젝트 루트, 멀티스테이지):\n   - builder 스테이지: `node:20-alpine`, pnpm 설치, 전체 의존성 설치, 빌드\n   - runner 스테이지: 최소 이미지, server 패키지만 포함\n   - EXPOSE 4000, CMD 설정\n4. `.github/workflows/ci.yml` 생성:\n   - 트리거: `push` (main), `pull_request`\n   - Node.js 20 설정, pnpm 설치, pnpm store 캐시\n   - 단계: `pnpm install` → `pnpm lint` → `pnpm typecheck` → `pnpm test`\n5. 하드코딩된 환경 변수가 있는 vitest.config 파일 수정 (있는 경우)\n\n## 코드 스타일\n- Docker best practices (레이어 캐시 최적화, .dockerignore 생성)\n- GitHub Actions 최신 action 버전 사용",
       "dependsOn": [
         "cicd-plan"
