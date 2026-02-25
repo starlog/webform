@@ -7,12 +7,18 @@ class WsClient {
   private listeners: WsEventCallback[] = [];
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private currentPath: string | null = null;
+  private tokenProvider: (() => string | null) | null = null;
+
+  /** 토큰 제공 함수 설정 */
+  setTokenProvider(provider: () => string | null): void {
+    this.tokenProvider = provider;
+  }
 
   connect(formId: string): void {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const path = `/ws/runtime/${formId}`;
     this.currentPath = path;
-    const url = `${protocol}//${window.location.host}${path}`;
+    const url = this.buildUrl(protocol, path);
     this.setupWebSocket(url, () => this.connect(formId));
   }
 
@@ -20,8 +26,14 @@ class WsClient {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const path = `/ws/runtime/app/${projectId}`;
     this.currentPath = path;
-    const url = `${protocol}//${window.location.host}${path}`;
+    const url = this.buildUrl(protocol, path);
     this.setupWebSocket(url, () => this.connectApp(projectId));
+  }
+
+  private buildUrl(protocol: string, path: string): string {
+    const base = `${protocol}//${window.location.host}${path}`;
+    const token = this.tokenProvider?.();
+    return token ? `${base}?token=${encodeURIComponent(token)}` : base;
   }
 
   send(message: unknown): void {

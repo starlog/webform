@@ -3,6 +3,7 @@ import { WebSocketServer } from 'ws';
 import { handleDesignerConnection } from './designerSync.js';
 import { handleRuntimeConnection } from './runtimeEvents.js';
 import { handleAppConnection } from './appEvents.js';
+import { authenticateWsUpgrade } from './auth.js';
 
 export function initWebSocket(server: Server): void {
   const designerWss = new WebSocketServer({ noServer: true });
@@ -17,6 +18,13 @@ export function initWebSocket(server: Server): void {
   server.on('upgrade', (req, socket, head) => {
     const url = new URL(req.url ?? '', `http://${req.headers.host}`);
     const pathname = url.pathname;
+
+    // JWT 토큰 검증
+    const user = authenticateWsUpgrade(req, socket);
+    if (!user) return; // 인증 실패 → 소켓 이미 파괴됨
+
+    // 핸들러에서 user 정보 접근 가능하도록 req에 첨부
+    (req as any).user = user;
 
     if (pathname.startsWith('/ws/designer/')) {
       designerWss.handleUpgrade(req, socket, head, (ws) => {
