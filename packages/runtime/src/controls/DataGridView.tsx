@@ -137,6 +137,7 @@ export function DataGridView({
   font,
   backColor,
   foreColor,
+  ...rest
 }: DataGridViewProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number>(-1);
@@ -288,6 +289,29 @@ export function DataGridView({
   );
 
   const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, background: colors.background, color: colors.color, ...style };
+
+  // 에러 상태 표시
+  const errorMessage = rest['__error__'];
+  if (errorMessage) {
+    return (
+      <div className="wf-datagridview" data-control-id={id} style={mergedStyle}>
+        <div style={{ padding: 12, color: '#d32f2f', fontSize: 13 }}>
+          데이터 로드 실패: {String(errorMessage)}
+        </div>
+      </div>
+    );
+  }
+
+  // 로딩 상태 표시
+  if (rest['__loading__']) {
+    return (
+      <div className="wf-datagridview" data-control-id={id} style={mergedStyle}>
+        <div style={{ padding: 12, color: '#666', fontSize: 13 }}>
+          데이터 로딩 중...
+        </div>
+      </div>
+    );
+  }
 
   // 빈 데이터 처리
   if (rows.length === 0) {

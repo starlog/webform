@@ -22,7 +22,10 @@ interface EventEditorState {
 
 export function App() {
   const [eventEditor, setEventEditor] = useState<EventEditorState | null>(null);
-  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
   const { save, forceSave } = useAutoSave();
   const isDirty = useDesignerStore((s) => s.isDirty);
   const formTitle = useDesignerStore((s) => s.formProperties.title);
@@ -40,9 +43,9 @@ export function App() {
     setEventEditor({ controlId, eventName, handlerName });
   }, []);
 
-  const showStatus = (msg: string) => {
-    setSaveStatus(msg);
-    setTimeout(() => setSaveStatus(null), 3000);
+  const showStatus = (msg: string, type: 'success' | 'error' = 'success') => {
+    setSaveStatus({ message: msg, type });
+    setTimeout(() => setSaveStatus(null), type === 'error' ? 5000 : 3000);
   };
 
   const handleSave = useCallback(async () => {
@@ -63,8 +66,9 @@ export function App() {
       }
       await save();
       showStatus('Saved');
-    } catch {
-      showStatus('Save failed');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      showStatus(`Save failed: ${msg}`, 'error');
     }
   }, [save, editMode]);
 
@@ -83,8 +87,9 @@ export function App() {
         state.markClean();
         await apiService.publishShell(state.currentProjectId);
         showStatus('Published');
-      } catch {
-        showStatus('Publish failed');
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        showStatus(`Publish failed: ${msg}`, 'error');
       }
       return;
     }
@@ -96,8 +101,9 @@ export function App() {
       setFormStatus(data.status);
       setExplorerRefreshKey((k) => k + 1);
       showStatus('Published');
-    } catch {
-      showStatus('Publish failed');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      showStatus(`Publish failed: ${msg}`, 'error');
     }
   }, [currentFormId, save, editMode]);
 
@@ -373,7 +379,13 @@ export function App() {
             {saveStatus && (
               <>
                 <span style={{ color: '#aaa' }}>|</span>
-                <span style={{ fontSize: 11, color: '#2e7d32', fontWeight: 500 }}>{saveStatus}</span>
+                <span style={{
+                  fontSize: 11,
+                  color: saveStatus.type === 'error' ? '#d32f2f' : '#2e7d32',
+                  fontWeight: 500,
+                }}>
+                  {saveStatus.message}
+                </span>
               </>
             )}
           </>

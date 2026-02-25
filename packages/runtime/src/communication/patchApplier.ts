@@ -23,6 +23,17 @@ export function setupPatchListener(
         break;
       case 'error':
         console.error('Server error:', message.payload);
+        runtimeStore.applyPatches([{
+          type: 'showDialog',
+          target: '',
+          payload: {
+            title: '서버 오류',
+            text: typeof message.payload === 'string'
+              ? message.payload
+              : JSON.stringify(message.payload),
+            dialogType: 'error',
+          },
+        }]);
         break;
       case 'eventResult': {
         if (message.payload.patches) {

@@ -16,6 +16,8 @@ export function useDataBinding(
   // 2. bindingStore 구독
   const dataSourceData = useBindingStore((s) => s.dataSourceData);
   const selectedRows = useBindingStore((s) => s.selectedRows);
+  const errors = useBindingStore((s) => s.errors);
+  const loadingStates = useBindingStore((s) => s.loadingStates);
 
   // 3. oneTime 바인딩용 ref
   const oneTimeRef = useRef<Record<string, unknown>>({});
@@ -84,6 +86,19 @@ export function useDataBinding(
     // oneTime: 첫 로드 시 캐시
     if (bindingMode === 'oneTime' && value !== undefined) {
       oneTimeRef.current[controlProperty] = value;
+    }
+  }
+
+  // 바인딩된 데이터소스의 에러/로딩 상태 추가
+  for (const binding of myBindings) {
+    const ref = parseDataSourceRef(binding.dataSourceId);
+    if (ref.type === 'dataSource') {
+      if (errors[ref.dataSourceId]) {
+        result['__error__'] = errors[ref.dataSourceId];
+      }
+      if (loadingStates[ref.dataSourceId]) {
+        result['__loading__'] = true;
+      }
     }
   }
 

@@ -193,7 +193,11 @@ runtimeRouter.post('/forms/:id/data', async (req, res, next) => {
       uniqueDataSourceIds.map(async (dsId) => {
         try {
           results[dsId] = await dataSourceService.executeQuery(dsId, query || {});
-        } catch {
+        } catch (err) {
+          console.error(
+            `[runtime] Data source query failed — formId=${req.params.id}, dsId=${dsId}`,
+            err instanceof Error ? err.message : err,
+          );
           results[dsId] = [];
         }
       }),
