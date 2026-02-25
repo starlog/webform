@@ -235,7 +235,7 @@
       "description": "MongoDBAdapter를 싱글톤 클라이언트 캐시 패턴으로 리팩터링",
       "phase": "phase1-critical",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mongo-pool-plan.md의 계획에 따라 MongoDB 연결 풀링을 구현하세요.\n\n## 수행할 작업\n1. `plans/mongo-pool-plan.md` 읽기\n2. `packages/server/src/services/adapters/MongoDBAdapter.ts` 읽기\n3. 연결 풀 패턴 구현:\n   - 모듈 레벨 `clientCache: Map<string, MongoClient>` 선언\n   - `getClient(connectionString: string): MongoClient` 함수 구현 — 캐시에 있으면 재사용, 없으면 생성 및 캐시\n   - 기존 쿼리 메서드들이 매번 new MongoClient() 대신 `getClient()` 호출하도록 수정\n   - `client.close()` 호출 제거 (연결 유지)\n4. 앱 종료 시 cleanup 추가:\n   ```typescript\n   process.on('SIGTERM', async () => { for (const client of clientCache.values()) await client.close(); })\n   ```\n5. TypeScript 타입 유지, 기존 인터페이스 변경 최소화\n\n## 코드 스타일\n- 프로젝트의 기존 코드 스타일 유지\n- 과도한 추상화 없이 최소 변경",
       "dependsOn": [
         "mongo-pool-plan"
@@ -301,7 +301,7 @@
       "description": "Designer 저장 에러 상세화, Runtime 데이터소스 에러 UI, Server DataSourceService 로깅 추가",
       "phase": "phase2-improvements",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/error-handling-plan.md의 계획에 따라 에러 처리를 개선하세요.\n\n## 수행할 작업\n1. `plans/error-handling-plan.md` 읽기\n2. `packages/designer/src/App.tsx` 수정:\n   - 폼 저장 API 호출 실패 시 HTTP 상태 코드와 서버 에러 메시지를 포함한 상세 토스트 표시\n   - 에러 응답 본문에서 message 필드 추출하여 표시\n   - 기존 3초 toast를 더 긴 시간 또는 수동 닫기로 변경\n3. `packages/runtime/src/stores/runtimeStore.ts` 수정:\n   - 데이터소스 로드 실패 시 에러 상태 저장 (예: `dataSourceErrors: Record<string, string>`)\n   - 성공 시 해당 에러 초기화\n   - 폼 전환 시 에러 상태도 초기화\n4. `packages/server/src/services/DataSourceService.ts` 수정:\n   - 각 데이터소스 쿼리 메서드의 catch 블록에 에러 로깅 추가\n   - 데이터소스 ID, 타입, 에러 메시지를 포함한 컨텍스트 로깅\n\n## 코드 스타일\n- 기존 에러 처리 패턴 따름\n- 최소한의 변경으로 최대 효과",
       "dependsOn": [
         "error-handling-plan"
@@ -517,7 +517,7 @@
       "description": "DataGridView react-window 적용, 스냅라인 최적화, historyStore 스냅샷 개선",
       "phase": "phase3-stability",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/performance-plan.md의 계획에 따라 성능 개선을 구현하세요.\n\n## 수행할 작업\n1. `plans/performance-plan.md` 읽기\n2. DataGridView 가상화 (`packages/runtime/src/controls/DataGridView.tsx`):\n   - react-window 의존성 확인, 없으면 설치: `pnpm --filter @webform/runtime add react-window @types/react-window`\n   - `FixedSizeList`로 행 렌더링 교체\n   - 기존 DataGrid 기능(정렬, 선택, 셀 클릭 등) 유지\n   - 컨테이너 높이를 적절히 계산하여 스크롤 영역 설정\n3. 스냅라인 최적화 (`packages/designer/src/components/Canvas/DesignerCanvas.tsx`):\n   - 컨트롤 배열에서 x/y 좌표 정렬된 배열 생성 (useMemo 활용)\n   - O(n²) 이중 루프를 정렬 배열 기반으로 대체\n   - 또는 컨트롤 변경 시만 스냅라인 재계산하도록 메모이제이션\n4. historyStore 스냅샷 최적화 (`packages/designer/src/stores/historyStore.ts`):\n   - JSON.stringify 호출 빈도 줄이기\n   - 변경된 컨트롤만 diff하거나 immer의 구조적 공유 활용\n\n## 코드 스타일\n- 기존 코드 스타일 유지\n- 과도한 추상화 없이 최소 변경",
       "dependsOn": [
         "performance-plan"
