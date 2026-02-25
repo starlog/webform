@@ -1,4 +1,5 @@
 import type { DesignerControlProps } from './registry';
+import { useTheme } from '../theme/ThemeContext';
 
 function getAlignItems(align: string): string {
   if (align.startsWith('Top')) return 'flex-start';
@@ -15,14 +16,16 @@ function getJustifyContent(align: string): string {
 }
 
 export function LabelControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const text = (properties.text as string) ?? 'Label';
-  const foreColor = (properties.foreColor as string) ?? '#000000';
+  const foreColor = (properties.foreColor as string) || theme.form.foreground;
   const textAlign = (properties.textAlign as string) ?? 'TopLeft';
 
   return (
     <div style={{
       width: size.width,
       height: size.height,
+      backgroundColor: (properties.backColor as string) || undefined,
       color: foreColor,
       fontSize: 'inherit',
       fontFamily: 'inherit',

@@ -1,8 +1,10 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 export function WebBrowserControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const url = (properties.url as string) ?? 'about:blank';
-  const backColor = (properties.backColor as string) ?? '#FFFFFF';
+  const backColor = (properties.backColor as string) ?? theme.controls.panel.background;
 
   return (
     <div
@@ -10,7 +12,7 @@ export function WebBrowserControl({ properties, size }: DesignerControlProps) {
         width: size.width,
         height: size.height,
         backgroundColor: backColor,
-        border: '1px solid #D0D0D0',
+        border: `1px solid ${theme.controls.panel.border}`,
         display: 'flex',
         flexDirection: 'column',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

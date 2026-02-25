@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 interface ColumnDefinition {
@@ -56,19 +57,42 @@ const DEFAULT_COLUMNS: ColumnDefinition[] = [
 ];
 
 export function DataGridViewControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const columns = (properties.columns as ColumnDefinition[] | undefined);
   const dataSource = (properties.dataSource as Record<string, unknown>[] | undefined);
   const resolvedColumns = columns && columns.length > 0 ? columns : DEFAULT_COLUMNS;
   const getField = (col: ColumnDefinition) => col.field || col.key || '';
   const getHeader = (col: ColumnDefinition, i: number) => col.headerText || col.name || getField(col) || `Column${i + 1}`;
 
+  const themedContainer: CSSProperties = {
+    ...styles.container,
+    border: `1px solid ${theme.controls.dataGrid.border}`,
+    borderRadius: theme.controls.dataGrid.borderRadius,
+    backgroundColor: (properties.backColor as string) ?? theme.controls.dataGrid.rowBackground,
+    width: size.width,
+    height: size.height,
+  };
+
+  const themedHeaderCell: CSSProperties = {
+    ...styles.headerCell,
+    backgroundColor: theme.controls.dataGrid.headerBackground,
+    color: theme.controls.dataGrid.headerForeground,
+    borderRight: `1px solid ${theme.controls.dataGrid.headerBorder}`,
+    borderBottom: `2px solid ${theme.controls.dataGrid.border}`,
+  };
+
+  const themedCell: CSSProperties = {
+    ...styles.cell,
+    color: (properties.foreColor as string) ?? theme.controls.dataGrid.rowForeground,
+  };
+
   return (
-    <div style={{ ...styles.container, width: size.width, height: size.height }}>
+    <div style={themedContainer}>
       <table style={styles.table}>
         <thead>
           <tr>
             {resolvedColumns.map((col, i) => (
-              <th key={getField(col) || i} style={{ ...styles.headerCell, width: col.width }}>
+              <th key={getField(col) || i} style={{ ...themedHeaderCell, width: col.width }}>
                 {getHeader(col, i)}
               </th>
             ))}
@@ -77,11 +101,11 @@ export function DataGridViewControl({ properties, size }: DesignerControlProps) 
         <tbody>
           {dataSource && dataSource.length > 0 ? (
             dataSource.map((row, rowIndex) => (
-              <tr key={rowIndex}>
+              <tr key={rowIndex} style={{ backgroundColor: rowIndex % 2 === 1 ? theme.controls.dataGrid.rowAlternateBackground : undefined }}>
                 {resolvedColumns.map((col, colIndex) => {
                   const field = getField(col);
                   return (
-                    <td key={field || colIndex} style={{ ...styles.cell, width: col.width }}>
+                    <td key={field || colIndex} style={{ ...themedCell, width: col.width }}>
                       {String(row[field] ?? '')}
                     </td>
                   );

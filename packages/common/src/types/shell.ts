@@ -1,5 +1,6 @@
 import type { ControlDefinition, FontDefinition, FormDefinition } from './form';
 import type { EventHandlerDefinition, EventArgs } from './events';
+import type { ThemeId } from './theme';
 
 /**
  * Application Shell 속성.
@@ -15,6 +16,7 @@ export interface ShellProperties {
   formBorderStyle: 'None' | 'FixedSingle' | 'Fixed3D' | 'Sizable';
   maximizeBox: boolean;
   minimizeBox: boolean;
+  theme?: ThemeId;
 }
 
 /**

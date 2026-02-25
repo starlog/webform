@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface MenuItem {
   text: string;
@@ -35,6 +36,7 @@ function DropdownMenu({
   onItemClick: (item: MenuItem, path: number[]) => void;
   enabled: boolean;
 }) {
+  const theme = useTheme();
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   return (
@@ -43,9 +45,10 @@ function DropdownMenu({
         position: 'absolute',
         top: '100%',
         left: 0,
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #D0D0D0',
-        boxShadow: '2px 2px 4px rgba(0,0,0,0.15)',
+        backgroundColor: theme.popup.background,
+        border: theme.popup.border,
+        boxShadow: theme.popup.shadow,
+        borderRadius: theme.popup.borderRadius,
         zIndex: 1000,
         minWidth: 180,
         padding: '2px 0',
@@ -56,7 +59,7 @@ function DropdownMenu({
           return (
             <div
               key={i}
-              style={{ height: 1, backgroundColor: '#E0E0E0', margin: '2px 0' }}
+              style={{ height: 1, backgroundColor: theme.controls.menuStrip.border, margin: '2px 0' }}
             />
           );
         }
@@ -87,7 +90,7 @@ function DropdownMenu({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 whiteSpace: 'nowrap',
-                backgroundColor: isHovered && !isDisabled ? '#E8E8E8' : undefined,
+                backgroundColor: isHovered && !isDisabled ? theme.popup.hoverBackground : undefined,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -134,6 +137,7 @@ function SubMenu({
   onItemClick: (item: MenuItem, path: number[]) => void;
   enabled: boolean;
 }) {
+  const theme = useTheme();
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   return (
@@ -142,9 +146,10 @@ function SubMenu({
         position: 'absolute',
         top: 0,
         left: '100%',
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #D0D0D0',
-        boxShadow: '2px 2px 4px rgba(0,0,0,0.15)',
+        backgroundColor: theme.popup.background,
+        border: theme.popup.border,
+        boxShadow: theme.popup.shadow,
+        borderRadius: theme.popup.borderRadius,
         zIndex: 1001,
         minWidth: 160,
         padding: '2px 0',
@@ -155,7 +160,7 @@ function SubMenu({
           return (
             <div
               key={i}
-              style={{ height: 1, backgroundColor: '#E0E0E0', margin: '2px 0' }}
+              style={{ height: 1, backgroundColor: theme.controls.menuStrip.border, margin: '2px 0' }}
             />
           );
         }
@@ -184,7 +189,7 @@ function SubMenu({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 whiteSpace: 'nowrap',
-                backgroundColor: isHovered && !isDisabled ? '#E8E8E8' : undefined,
+                backgroundColor: isHovered && !isDisabled ? theme.popup.hoverBackground : undefined,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -232,6 +237,7 @@ export function MenuStrip({
   font,
   onItemClicked,
 }: MenuStripProps) {
+  const theme = useTheme();
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -282,9 +288,9 @@ export function MenuStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? '#F0F0F0',
-    color: foreColor,
-    borderBottom: '1px solid #D0D0D0',
+    backgroundColor: backColor ?? theme.controls.menuStrip.background,
+    color: foreColor ?? theme.controls.menuStrip.foreground,
+    borderBottom: theme.controls.menuStrip.border,
     display: 'flex',
     alignItems: 'center',
     fontFamily: font?.family ?? 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
@@ -312,11 +318,11 @@ export function MenuStrip({
                 whiteSpace: 'nowrap',
                 userSelect: 'none',
                 cursor: enabled ? 'pointer' : 'default',
-                backgroundColor: isOpen ? '#E0E0E0' : undefined,
+                backgroundColor: isOpen ? theme.controls.menuStrip.activeBackground : undefined,
               }}
               onMouseOver={(e) => {
                 if (!isOpen && enabled)
-                  (e.currentTarget as HTMLDivElement).style.backgroundColor = '#E8E8E8';
+                  (e.currentTarget as HTMLDivElement).style.backgroundColor = theme.controls.menuStrip.hoverBackground;
               }}
               onMouseOut={(e) => {
                 if (!isOpen)

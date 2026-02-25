@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface DateTimePickerProps {
   id: string;
@@ -13,14 +14,6 @@ interface DateTimePickerProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  boxSizing: 'border-box',
-  fontFamily: 'inherit',
-  fontSize: 'inherit',
-  border: '1px solid #ADB2B5',
-  padding: '2px 4px',
-};
-
 export function DateTimePicker({
   id,
   value = '',
@@ -29,6 +22,18 @@ export function DateTimePicker({
   onValueChanged,
 }: DateTimePickerProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
+
+  const baseStyle: CSSProperties = {
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
+    backgroundColor: theme.controls.textInput.background,
+    border: theme.controls.textInput.border,
+    padding: theme.controls.textInput.padding,
+    borderRadius: theme.controls.textInput.borderRadius,
+    color: theme.controls.textInput.foreground,
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateControlState(id, 'value', e.target.value);

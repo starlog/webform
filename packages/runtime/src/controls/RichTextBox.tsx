@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 type ScrollBars = 'None' | 'Horizontal' | 'Vertical' | 'Both';
 
@@ -49,6 +50,7 @@ export function RichTextBox({
   onSelectionChanged,
 }: RichTextBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
   const contentRef = useRef<HTMLDivElement>(null);
   const isComposing = useRef(false);
   const [boldActive, setBoldActive] = useState(false);
@@ -94,9 +96,10 @@ export function RichTextBox({
   const overflow = getOverflow(scrollBars);
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? '#FFFFFF',
-    color: foreColor,
-    border: '1px inset #D0D0D0',
+    backgroundColor: backColor ?? theme.controls.textInput.background,
+    color: foreColor ?? theme.controls.textInput.foreground,
+    border: theme.controls.textInput.border,
+    borderRadius: theme.controls.textInput.borderRadius,
     display: 'flex',
     flexDirection: 'column',
     fontFamily: font?.family ?? 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
@@ -115,8 +118,8 @@ export function RichTextBox({
           alignItems: 'center',
           gap: 2,
           padding: '2px 4px',
-          borderBottom: '1px solid #E0E0E0',
-          backgroundColor: '#FAFAFA',
+          borderBottom: theme.controls.textInput.border,
+          backgroundColor: theme.controls.panel.background,
           flexShrink: 0,
         }}
       >
@@ -124,8 +127,9 @@ export function RichTextBox({
           onClick={() => execCommand('bold')}
           disabled={readOnly || !enabled}
           style={{
-            border: '1px solid #D0D0D0',
-            backgroundColor: boldActive ? '#CCE4F7' : '#F0F0F0',
+            border: theme.controls.textInput.border,
+            backgroundColor: boldActive ? theme.accent.primary : theme.controls.panel.background,
+            color: boldActive ? theme.accent.primaryForeground : undefined,
             fontWeight: 'bold',
             width: 22,
             height: 20,
@@ -139,8 +143,9 @@ export function RichTextBox({
           onClick={() => execCommand('italic')}
           disabled={readOnly || !enabled}
           style={{
-            border: '1px solid #D0D0D0',
-            backgroundColor: italicActive ? '#CCE4F7' : '#F0F0F0',
+            border: theme.controls.textInput.border,
+            backgroundColor: italicActive ? theme.accent.primary : theme.controls.panel.background,
+            color: italicActive ? theme.accent.primaryForeground : undefined,
             fontStyle: 'italic',
             width: 22,
             height: 20,
@@ -154,8 +159,9 @@ export function RichTextBox({
           onClick={() => execCommand('underline')}
           disabled={readOnly || !enabled}
           style={{
-            border: '1px solid #D0D0D0',
-            backgroundColor: underlineActive ? '#CCE4F7' : '#F0F0F0',
+            border: theme.controls.textInput.border,
+            backgroundColor: underlineActive ? theme.accent.primary : theme.controls.panel.background,
+            color: underlineActive ? theme.accent.primaryForeground : undefined,
             textDecoration: 'underline',
             width: 22,
             height: 20,

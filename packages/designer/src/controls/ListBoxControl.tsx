@@ -1,6 +1,8 @@
 import type { DesignerControlProps } from './registry';
+import { useTheme } from '../theme/ThemeContext';
 
 export function ListBoxControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const items = (properties.items as string[]) ?? [];
   const selectedIndex = (properties.selectedIndex as number) ?? -1;
 
@@ -8,8 +10,9 @@ export function ListBoxControl({ properties, size }: DesignerControlProps) {
     <div style={{
       width: size.width,
       height: size.height,
-      backgroundColor: '#FFFFFF',
-      border: '1px inset #D0D0D0',
+      backgroundColor: (properties.backColor as string) || theme.controls.select.background,
+      border: theme.controls.select.border,
+      borderRadius: theme.controls.select.borderRadius,
       overflow: 'auto',
       fontSize: 'inherit',
       fontFamily: 'inherit',
@@ -23,8 +26,8 @@ export function ListBoxControl({ properties, size }: DesignerControlProps) {
             key={i}
             style={{
               padding: '1px 4px',
-              backgroundColor: i === selectedIndex ? '#0078D7' : 'transparent',
-              color: i === selectedIndex ? '#FFFFFF' : '#000000',
+              backgroundColor: i === selectedIndex ? theme.controls.select.selectedBackground : 'transparent',
+              color: i === selectedIndex ? theme.controls.select.selectedForeground : ((properties.foreColor as string) || theme.controls.select.foreground),
             }}
           >
             {item}

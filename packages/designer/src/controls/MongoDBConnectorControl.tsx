@@ -1,6 +1,8 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 export function MongoDBConnectorControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const database = (properties.database as string) || '';
   const connectionString = (properties.connectionString as string) || '';
   const hasConnection = connectionString.length > 0;
@@ -12,9 +14,9 @@ export function MongoDBConnectorControl({ properties, size }: DesignerControlPro
         alignItems: 'center',
         gap: 6,
         padding: '4px 8px',
-        border: '1px dashed #7B8794',
-        borderRadius: 4,
-        backgroundColor: '#F0F4F8',
+        border: `1px dashed ${theme.controls.panel.border}`,
+        borderRadius: theme.controls.panel.borderRadius,
+        backgroundColor: theme.controls.panel.background,
         width: size.width,
         height: size.height,
         boxSizing: 'border-box',

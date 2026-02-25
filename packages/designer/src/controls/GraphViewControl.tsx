@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 type GraphType =
@@ -10,9 +11,10 @@ type GraphType =
 const PREVIEW_COLORS = ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2'];
 
 export function GraphViewControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const graphType = (properties.graphType as GraphType) || 'Bar';
   const title = (properties.title as string) || '';
-  const backColor = (properties.backColor as string) || '#ffffff';
+  const backColor = (properties.backColor as string) || theme.controls.panel.background;
 
   const w = size.width;
   const h = size.height;
@@ -25,7 +27,7 @@ export function GraphViewControl({ properties, size }: DesignerControlProps) {
       style={{
         width: w,
         height: h,
-        border: '1px solid #a0a0a0',
+        border: `1px solid ${theme.controls.panel.border}`,
         backgroundColor: backColor,
         display: 'flex',
         flexDirection: 'column',

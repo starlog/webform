@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { FormDefinition, ApplicationShellDefinition } from '@webform/common';
 import { SDUIRenderer } from './SDUIRenderer';
 import { ShellRenderer } from './ShellRenderer';
+import { ThemeProvider } from '../theme/ThemeContext';
 import { apiClient } from '../communication/apiClient';
 import { wsClient } from '../communication/wsClient';
 import { setupPatchListener } from '../communication/patchApplier';
@@ -199,12 +200,14 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
     );
   }
 
-  // Shell이 있으면 ShellRenderer로 감싸기
+  // Shell이 있으면 ShellRenderer로 감싸기 (Shell 테마 적용)
   if (adjustedShellDef) {
     return (
-      <ShellRenderer shellDef={adjustedShellDef} projectId={projectId}>
-        <SDUIRenderer formDefinition={formDefinition} />
-      </ShellRenderer>
+      <ThemeProvider themeId={adjustedShellDef.properties.theme}>
+        <ShellRenderer shellDef={adjustedShellDef} projectId={projectId}>
+          <SDUIRenderer formDefinition={formDefinition} />
+        </ShellRenderer>
+      </ThemeProvider>
     );
   }
 

@@ -1,15 +1,17 @@
 import type { CSSProperties } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 const DEFAULT_previewCols = ['_id', 'name', 'value', 'status'];
 const PREVIEW_ROWS = 4;
 
 export function MongoDBViewControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const showToolbar = (properties.showToolbar as boolean) ?? true;
   const collection = (properties.collection as string) || 'collection';
   const title = (properties.title as string) || '';
   const columnsProp = properties.columns;
-  const backColor = (properties.backColor as string) || '#ffffff';
+  const backColor = (properties.backColor as string) || theme.controls.dataGrid.rowBackground;
 
   const previewCols = columnsProp
     ? Array.isArray(columnsProp)
@@ -21,12 +23,20 @@ export function MongoDBViewControl({ properties, size }: DesignerControlProps) {
       : String(columnsProp).split(',').map((s) => s.trim()).filter(Boolean)
     : DEFAULT_previewCols;
 
+  const themedHeaderCell: CSSProperties = {
+    ...styles.headerCell,
+    backgroundColor: theme.controls.dataGrid.headerBackground,
+    color: theme.controls.dataGrid.headerForeground,
+    borderBottom: `1px solid ${theme.controls.dataGrid.border}`,
+  };
+
   return (
     <div
       style={{
         width: size.width,
         height: size.height,
-        border: '1px solid #a0a0a0',
+        border: `1px solid ${theme.controls.dataGrid.border}`,
+        borderRadius: theme.controls.dataGrid.borderRadius,
         backgroundColor: backColor,
         display: 'flex',
         flexDirection: 'column',
@@ -58,7 +68,7 @@ export function MongoDBViewControl({ properties, size }: DesignerControlProps) {
             <tr>
               {previewCols.map((col) => (
                 <th key={col} style={{
-                  ...styles.headerCell,
+                  ...themedHeaderCell,
                   ...(col === '_id' ? { fontFamily: 'monospace', color: '#888' } : {}),
                 }}>
                   {col}

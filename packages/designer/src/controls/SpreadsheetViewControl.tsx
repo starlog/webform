@@ -1,21 +1,31 @@
 import type { CSSProperties } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 const DEFAULT_COLS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const PREVIEW_ROWS = 5;
 
 export function SpreadsheetViewControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const showToolbar = (properties.showToolbar as boolean) ?? true;
   const showFormulaBar = (properties.showFormulaBar as boolean) ?? true;
   const showRowNumbers = (properties.showRowNumbers as boolean) ?? true;
-  const backColor = (properties.backColor as string) || '#ffffff';
+  const backColor = (properties.backColor as string) || theme.controls.dataGrid.rowBackground;
+
+  const themedHeaderCell: CSSProperties = {
+    ...styles.headerCell,
+    backgroundColor: theme.controls.dataGrid.headerBackground,
+    color: theme.controls.dataGrid.headerForeground,
+    borderBottom: `1px solid ${theme.controls.dataGrid.border}`,
+  };
 
   return (
     <div
       style={{
         width: size.width,
         height: size.height,
-        border: '1px solid #a0a0a0',
+        border: `1px solid ${theme.controls.dataGrid.border}`,
+        borderRadius: theme.controls.dataGrid.borderRadius,
         backgroundColor: backColor,
         display: 'flex',
         flexDirection: 'column',
@@ -47,9 +57,9 @@ export function SpreadsheetViewControl({ properties, size }: DesignerControlProp
         <table style={styles.table}>
           <thead>
             <tr>
-              {showRowNumbers && <th style={{ ...styles.headerCell, width: 32 }} />}
+              {showRowNumbers && <th style={{ ...themedHeaderCell, width: 32 }} />}
               {DEFAULT_COLS.map((col) => (
-                <th key={col} style={styles.headerCell}>
+                <th key={col} style={themedHeaderCell}>
                   {col}
                 </th>
               ))}
@@ -57,9 +67,9 @@ export function SpreadsheetViewControl({ properties, size }: DesignerControlProp
           </thead>
           <tbody>
             {Array.from({ length: PREVIEW_ROWS }, (_, rowIdx) => (
-              <tr key={rowIdx}>
+              <tr key={rowIdx} style={{ backgroundColor: rowIdx % 2 === 1 ? theme.controls.dataGrid.rowAlternateBackground : undefined }}>
                 {showRowNumbers && (
-                  <td style={styles.rowNumber}>{rowIdx + 1}</td>
+                  <td style={{ ...styles.rowNumber, backgroundColor: theme.controls.dataGrid.headerBackground }}>{rowIdx + 1}</td>
                 )}
                 {DEFAULT_COLS.map((col) => (
                   <td key={col} style={styles.cell} />

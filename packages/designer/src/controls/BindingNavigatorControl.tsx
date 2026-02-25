@@ -1,7 +1,9 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 export function BindingNavigatorControl({ properties, size }: DesignerControlProps) {
-  const backColor = (properties.backColor as string) ?? '#F0F0F0';
+  const theme = useTheme();
+  const backColor = (properties.backColor as string) ?? theme.controls.toolStrip.background;
   const showAddButton = (properties.showAddButton as boolean) ?? true;
   const showDeleteButton = (properties.showDeleteButton as boolean) ?? true;
 
@@ -19,7 +21,7 @@ export function BindingNavigatorControl({ properties, size }: DesignerControlPro
   const sepStyle: React.CSSProperties = {
     width: 1,
     height: 16,
-    backgroundColor: '#C0C0C0',
+    backgroundColor: theme.controls.toolStrip.separator,
     margin: '0 3px',
   };
 
@@ -29,7 +31,8 @@ export function BindingNavigatorControl({ properties, size }: DesignerControlPro
         width: size.width,
         height: size.height,
         backgroundColor: backColor,
-        borderBottom: '1px solid #D0D0D0',
+        color: theme.controls.toolStrip.foreground,
+        borderBottom: `1px solid ${theme.controls.toolStrip.border}`,
         display: 'flex',
         alignItems: 'center',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 interface PreviewRowProps {
@@ -23,7 +24,8 @@ function PreviewRow({ label, value, indent, isObject }: PreviewRowProps) {
 }
 
 export function JsonEditorControl({ properties, size }: DesignerControlProps) {
-  const backColor = (properties.backColor as string) || '#ffffff';
+  const theme = useTheme();
+  const backColor = (properties.backColor as string) || theme.controls.textInput.background;
   const font = properties.font as { family?: string; size?: number } | undefined;
 
   return (
@@ -31,7 +33,8 @@ export function JsonEditorControl({ properties, size }: DesignerControlProps) {
       style={{
         width: size.width,
         height: size.height,
-        border: '1px solid #a0a0a0',
+        border: `1px solid ${theme.controls.textInput.border}`,
+        borderRadius: theme.controls.textInput.borderRadius,
         backgroundColor: backColor,
         display: 'flex',
         flexDirection: 'column',

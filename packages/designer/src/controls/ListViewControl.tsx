@@ -1,3 +1,4 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 interface ListViewItem {
@@ -39,11 +40,12 @@ function IconPlaceholder({ size }: { size: number }) {
 }
 
 export function ListViewControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const items = (properties.items as ListViewItem[]) ?? [];
   const columns = (properties.columns as ListViewColumn[]) ?? [];
   const view = (properties.view as ViewMode) ?? 'Details';
-  const backColor = (properties.backColor as string) ?? '#FFFFFF';
-  const foreColor = (properties.foreColor as string) ?? undefined;
+  const backColor = (properties.backColor as string) ?? theme.controls.select.background;
+  const foreColor = (properties.foreColor as string) ?? theme.controls.select.foreground;
   const gridLines = (properties.gridLines as boolean) ?? false;
 
   const displayItems = items.length > 0 ? items : SAMPLE_ITEMS;
@@ -54,7 +56,8 @@ export function ListViewControl({ properties, size }: DesignerControlProps) {
     height: size.height,
     backgroundColor: backColor,
     color: foreColor,
-    border: '1px inset #D0D0D0',
+    border: `1px solid ${theme.controls.select.border}`,
+    borderRadius: theme.controls.select.borderRadius,
     overflow: 'auto',
     fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
     fontSize: '12px',
@@ -72,9 +75,10 @@ export function ListViewControl({ properties, size }: DesignerControlProps) {
                 <th
                   key={ci}
                   style={{
-                    backgroundColor: '#E0E0E0',
-                    borderRight: '1px solid #D0D0D0',
-                    borderBottom: '2px solid #A0A0A0',
+                    backgroundColor: theme.controls.dataGrid.headerBackground,
+                    color: theme.controls.dataGrid.headerForeground,
+                    borderRight: `1px solid ${theme.controls.dataGrid.headerBorder}`,
+                    borderBottom: `2px solid ${theme.controls.dataGrid.border}`,
                     padding: '3px 6px',
                     textAlign: 'left',
                     fontWeight: 600,

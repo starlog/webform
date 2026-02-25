@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useBindingStore } from '../bindings/bindingStore';
+import { useTheme } from '../theme/ThemeContext';
 
 export interface ColumnDefinition {
   field?: string;
@@ -57,61 +58,68 @@ interface EditingCell {
 
 const INTERNAL_FIELDS = ['_id', '__v', 'createdAt', 'updatedAt'];
 
-const styles = {
-  container: {
-    border: '1px solid #a0a0a0',
-    overflow: 'auto',
-    backgroundColor: '#ffffff',
-    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-    fontSize: '12px',
-  } as CSSProperties,
-  table: {
-    minWidth: '100%',
-    borderCollapse: 'collapse' as const,
-  } as CSSProperties,
-  headerCell: {
-    backgroundColor: '#e0e0e0',
-    borderRight: '1px solid #d0d0d0',
-    borderBottom: '2px solid #a0a0a0',
-    padding: '3px 6px',
-    textAlign: 'left' as const,
-    fontWeight: 600,
-    height: '22px',
-    cursor: 'pointer',
-    userSelect: 'none' as const,
-    whiteSpace: 'nowrap' as const,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  } as CSSProperties,
-  cell: {
-    borderRight: '1px solid #d0d0d0',
-    borderBottom: '1px solid #d0d0d0',
-    padding: '2px 6px',
-    height: '22px',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  } as CSSProperties,
-  selectedRow: {
-    backgroundColor: '#0078d7',
-    color: '#ffffff',
-  } as CSSProperties,
-  emptyMessage: {
-    padding: '20px',
-    textAlign: 'center' as const,
-    color: '#888',
-  } as CSSProperties,
-  editInput: {
-    width: '100%',
-    height: '100%',
-    border: '1px solid #0078d7',
-    padding: '1px 4px',
-    fontSize: 'inherit',
-    fontFamily: 'inherit',
-    boxSizing: 'border-box' as const,
-    outline: 'none',
-  } as CSSProperties,
-};
+function useDataGridStyles() {
+  const theme = useTheme();
+  return useMemo(() => ({
+    container: {
+      border: theme.controls.dataGrid.border,
+      borderRadius: theme.controls.dataGrid.borderRadius,
+      overflow: 'auto',
+      backgroundColor: theme.controls.dataGrid.rowBackground,
+      fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+      fontSize: '12px',
+    } as CSSProperties,
+    table: {
+      minWidth: '100%',
+      borderCollapse: 'collapse' as const,
+      tableLayout: 'fixed' as const,
+    } as CSSProperties,
+    headerCell: {
+      backgroundColor: theme.controls.dataGrid.headerBackground,
+      color: theme.controls.dataGrid.headerForeground,
+      borderRight: theme.controls.dataGrid.headerBorder,
+      borderBottom: theme.controls.dataGrid.headerBorder,
+      padding: '3px 6px',
+      textAlign: 'left' as const,
+      fontWeight: 600,
+      height: '22px',
+      cursor: 'pointer',
+      userSelect: 'none' as const,
+      whiteSpace: 'nowrap' as const,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    } as CSSProperties,
+    cell: {
+      borderRight: theme.controls.dataGrid.headerBorder,
+      borderBottom: theme.controls.dataGrid.headerBorder,
+      padding: '2px 6px',
+      height: '22px',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap' as const,
+      color: theme.controls.dataGrid.rowForeground,
+    } as CSSProperties,
+    selectedRow: {
+      backgroundColor: theme.controls.dataGrid.selectedRowBackground,
+      color: theme.controls.dataGrid.selectedRowForeground,
+    } as CSSProperties,
+    emptyMessage: {
+      padding: '20px',
+      textAlign: 'center' as const,
+      color: '#888',
+    } as CSSProperties,
+    editInput: {
+      width: '100%',
+      height: '100%',
+      border: `1px solid ${theme.accent.primary}`,
+      padding: '1px 4px',
+      fontSize: 'inherit',
+      fontFamily: 'inherit',
+      boxSizing: 'border-box' as const,
+      outline: 'none',
+    } as CSSProperties,
+  }), [theme]);
+}
 
 export function DataGridView({
   id,
@@ -132,6 +140,7 @@ export function DataGridView({
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const setSelectedRow = useBindingStore((s) => s.setSelectedRow);
+  const styles = useDataGridStyles();
 
   const fontStyle = useMemo<CSSProperties>(() => {
     if (!font) return {};

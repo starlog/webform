@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface BindingNavigatorProps {
   id: string;
@@ -31,6 +32,7 @@ export function BindingNavigator({
 }: BindingNavigatorProps) {
   const controlStates = useRuntimeStore((s) => s.controlStates);
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
 
   // Get bound data from the binding source control
   const boundData = bindingSource ? (controlStates[bindingSource] as Record<string, unknown>) : null;
@@ -83,14 +85,15 @@ export function BindingNavigator({
   const sepStyle: CSSProperties = {
     width: 1,
     height: 16,
-    backgroundColor: '#C0C0C0',
+    backgroundColor: theme.controls.toolStrip.separator,
     margin: '0 3px',
     flexShrink: 0,
   };
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? '#F0F0F0',
-    borderBottom: '1px solid #D0D0D0',
+    backgroundColor: backColor ?? theme.controls.toolStrip.background,
+    color: theme.controls.toolStrip.foreground,
+    borderBottom: theme.controls.toolStrip.border,
     display: 'flex',
     alignItems: 'center',
     fontFamily: font?.family ?? 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
@@ -127,7 +130,7 @@ export function BindingNavigator({
           height: 18,
           textAlign: 'center',
           fontSize: 11,
-          border: '1px solid #C0C0C0',
+          border: theme.controls.textInput.border,
           padding: 0,
         }}
       />

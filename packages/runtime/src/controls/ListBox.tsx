@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ListBoxProps {
   id: string;
@@ -13,15 +14,6 @@ interface ListBoxProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  border: '1px inset #D0D0D0',
-  overflow: 'auto',
-  fontFamily: 'inherit',
-  fontSize: 'inherit',
-  boxSizing: 'border-box',
-};
-
 export function ListBox({
   id,
   items = [],
@@ -31,6 +23,18 @@ export function ListBox({
   onSelectedIndexChanged,
 }: ListBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
+
+  const baseStyle: CSSProperties = {
+    backgroundColor: theme.controls.select.background,
+    border: theme.controls.select.border,
+    borderRadius: theme.controls.select.borderRadius,
+    color: theme.controls.select.foreground,
+    overflow: 'auto',
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
+    boxSizing: 'border-box',
+  };
 
   const handleClick = (index: number) => {
     if (!enabled) return;
@@ -49,8 +53,8 @@ export function ListBox({
           key={i}
           style={{
             padding: '1px 4px',
-            backgroundColor: i === selectedIndex ? '#0078D7' : 'transparent',
-            color: i === selectedIndex ? '#FFFFFF' : '#000000',
+            backgroundColor: i === selectedIndex ? theme.controls.select.selectedBackground : 'transparent',
+            color: i === selectedIndex ? theme.controls.select.selectedForeground : theme.controls.select.foreground,
             cursor: enabled ? 'pointer' : 'default',
             userSelect: 'none',
           }}

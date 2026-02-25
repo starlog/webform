@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import type { FormDefinition, ControlDefinition } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { apiClient } from '../communication/apiClient';
+import { ThemeProvider } from '../theme/ThemeContext';
 import { FormContainer } from './FormContainer';
 import { ControlRenderer } from './ControlRenderer';
 
@@ -112,15 +113,17 @@ export function SDUIRenderer({ formDefinition }: SDUIRendererProps) {
   );
 
   return (
-    <FormContainer
-      properties={formDefinition.properties}
-      dockTop={dockTop.length > 0 ? dockTop.map(renderControl) : undefined}
-      dockBottom={dockBottom.length > 0 ? dockBottom.map(renderControl) : undefined}
-      dockLeft={dockLeft.length > 0 ? dockLeft.map(renderControl) : undefined}
-      dockRight={dockRight.length > 0 ? dockRight.map(renderControl) : undefined}
-      dockFill={dockFill.length > 0 ? dockFill.map(renderControl) : undefined}
-    >
-      {rest.map(renderControl)}
-    </FormContainer>
+    <ThemeProvider themeId={formDefinition.properties.theme}>
+      <FormContainer
+        properties={formDefinition.properties}
+        dockTop={dockTop.length > 0 ? dockTop.map(renderControl) : undefined}
+        dockBottom={dockBottom.length > 0 ? dockBottom.map(renderControl) : undefined}
+        dockLeft={dockLeft.length > 0 ? dockLeft.map(renderControl) : undefined}
+        dockRight={dockRight.length > 0 ? dockRight.map(renderControl) : undefined}
+        dockFill={dockFill.length > 0 ? dockFill.map(renderControl) : undefined}
+      >
+        {rest.map(renderControl)}
+      </FormContainer>
+    </ThemeProvider>
   );
 }

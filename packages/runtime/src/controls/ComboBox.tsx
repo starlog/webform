@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ComboBoxProps {
   id: string;
@@ -13,15 +14,6 @@ interface ComboBoxProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  border: '1px inset #A0A0A0',
-  padding: '2px 4px',
-  fontFamily: 'inherit',
-  fontSize: 'inherit',
-  boxSizing: 'border-box',
-};
-
 export function ComboBox({
   id,
   items = [],
@@ -31,6 +23,18 @@ export function ComboBox({
   onSelectedIndexChanged,
 }: ComboBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
+
+  const baseStyle: CSSProperties = {
+    backgroundColor: theme.controls.select.background,
+    border: theme.controls.select.border,
+    borderRadius: theme.controls.select.borderRadius,
+    color: theme.controls.select.foreground,
+    padding: '2px 4px',
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
+    boxSizing: 'border-box',
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newIndex = e.target.selectedIndex;

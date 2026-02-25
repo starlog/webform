@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface TextBoxProps {
   id: string;
@@ -15,15 +16,6 @@ interface TextBoxProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  border: '1px inset #A0A0A0',
-  padding: '2px 4px',
-  fontFamily: 'inherit',
-  fontSize: 'inherit',
-  boxSizing: 'border-box',
-};
-
 export function TextBox({
   id,
   text = '',
@@ -35,6 +27,18 @@ export function TextBox({
   onTextChanged,
 }: TextBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
+
+  const baseStyle: CSSProperties = {
+    backgroundColor: theme.controls.textInput.background,
+    border: theme.controls.textInput.border,
+    padding: theme.controls.textInput.padding,
+    borderRadius: theme.controls.textInput.borderRadius,
+    color: theme.controls.textInput.foreground,
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
+    boxSizing: 'border-box',
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     updateControlState(id, 'text', e.target.value);

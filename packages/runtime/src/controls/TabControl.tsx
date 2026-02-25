@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface TabInfo {
   title: string;
@@ -19,30 +20,41 @@ interface TabControlProps {
   [key: string]: unknown;
 }
 
-const tabHeaderStyle: CSSProperties = {
-  display: 'flex',
-  borderBottom: '1px solid #A0A0A0',
-  backgroundColor: '#F0F0F0',
-};
+function useTabStyles() {
+  const theme = useTheme();
 
-const tabButtonBase: CSSProperties = {
-  padding: '4px 12px',
-  border: '1px solid #A0A0A0',
-  borderBottom: 'none',
-  backgroundColor: '#E8E8E8',
-  cursor: 'pointer',
-  fontSize: 'inherit',
-  fontFamily: 'inherit',
-  marginRight: '-1px',
-};
+  const tabHeaderStyle: CSSProperties = {
+    display: 'flex',
+    borderBottom: theme.controls.tabControl.tabBorder,
+    backgroundColor: theme.controls.tabControl.contentBackground,
+  };
 
-const tabButtonActive: CSSProperties = {
-  ...tabButtonBase,
-  backgroundColor: '#FFFFFF',
-  borderBottom: '1px solid #FFFFFF',
-  marginBottom: '-1px',
-  fontWeight: 'bold',
-};
+  const tabButtonBase: CSSProperties = {
+    padding: '4px 12px',
+    border: theme.controls.tabControl.tabBorder,
+    borderBottom: 'none',
+    borderRadius: `${theme.controls.tabControl.tabBorderRadius} ${theme.controls.tabControl.tabBorderRadius} 0 0`,
+    backgroundColor: theme.controls.tabControl.tabBackground,
+    color: theme.controls.tabControl.tabForeground,
+    cursor: 'pointer',
+    fontSize: 'inherit',
+    fontFamily: 'inherit',
+    marginRight: '-1px',
+  };
+
+  const tabButtonActive: CSSProperties = {
+    ...tabButtonBase,
+    backgroundColor: theme.controls.tabControl.tabActiveBackground,
+    color: theme.controls.tabControl.tabActiveForeground,
+    borderBottom: `1px solid ${theme.controls.tabControl.tabActiveBackground}`,
+    marginBottom: '-1px',
+    fontWeight: 'bold',
+  };
+
+  const contentBorder = theme.controls.tabControl.contentBorder;
+
+  return { tabHeaderStyle, tabButtonBase, tabButtonActive, contentBorder };
+}
 
 function getTabName(
   index: number,
@@ -66,6 +78,7 @@ export function TabControl({
   children,
 }: TabControlProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const { tabHeaderStyle, tabButtonBase, tabButtonActive, contentBorder } = useTabStyles();
 
   // children are tab pages rendered by ControlRenderer
   const childArray = Array.isArray(children) ? children : children ? [children] : [];
@@ -111,7 +124,7 @@ export function TabControl({
         </div>
         <div style={{
           flex: 1,
-          border: '1px solid #A0A0A0',
+          border: contentBorder,
           borderTop: 'none',
           overflow: 'hidden',
         }} />

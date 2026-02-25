@@ -4,6 +4,7 @@ import type { ControlType, ControlDefinition } from '@webform/common';
 import { useDesignerStore, createDefaultControl } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore } from '../../stores/historyStore';
+import { ThemeProvider } from '../../theme/ThemeContext';
 import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';
 import type { Snapline as SnaplineType } from '../../utils/snapGrid';
 import { CanvasControl, DragItemTypes } from './CanvasControl';
@@ -318,6 +319,7 @@ export function DesignerCanvas() {
   }, []);
 
   return (
+    <ThemeProvider themeId={formProperties.theme}>
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <div
         ref={(node) => {
@@ -404,5 +406,6 @@ export function DesignerCanvas() {
         onMouseDown={(e) => handleFormResizeMouseDown('se', e)}
       />
     </div>
+    </ThemeProvider>
   );
 }

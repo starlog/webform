@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 
 interface PictureBoxProps {
   id: string;
@@ -21,12 +22,6 @@ const SIZE_MODE_MAP: Record<string, CSSProperties['objectFit']> = {
   Zoom: 'contain',
 };
 
-function getBorderStyle(borderStyle?: string): string {
-  if (borderStyle === 'FixedSingle') return '1px solid #7A7A7A';
-  if (borderStyle === 'Fixed3D') return '2px inset #7A7A7A';
-  return 'none';
-}
-
 export function PictureBox({
   id,
   imageUrl,
@@ -35,14 +30,23 @@ export function PictureBox({
   borderStyle,
   style,
 }: PictureBoxProps) {
+  const theme = useTheme();
+
+  function getBorder(): string {
+    if (borderStyle === 'FixedSingle') return theme.controls.panel.border;
+    if (borderStyle === 'Fixed3D') return theme.controls.panel.border;
+    return 'none';
+  }
+
   const containerStyle: CSSProperties = {
     boxSizing: 'border-box',
     overflow: 'hidden',
     display: 'flex',
     alignItems: sizeMode === 'CenterImage' ? 'center' : 'flex-start',
     justifyContent: sizeMode === 'CenterImage' ? 'center' : 'flex-start',
-    backgroundColor: backColor ?? '#E0E0E0',
-    border: getBorderStyle(borderStyle),
+    backgroundColor: backColor ?? theme.controls.panel.background,
+    border: getBorder(),
+    borderRadius: theme.controls.panel.borderRadius,
     ...style,
   };
 

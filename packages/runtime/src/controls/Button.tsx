@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ButtonProps {
   id: string;
@@ -11,18 +12,22 @@ interface ButtonProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  backgroundColor: '#E1E1E1',
-  border: '1px outset #D0D0D0',
-  padding: '2px 8px',
-  fontFamily: 'inherit',
-  fontSize: 'inherit',
-  cursor: 'pointer',
-  boxSizing: 'border-box',
-  textAlign: 'center',
-};
-
 export function Button({ id, text, style, enabled = true, onClick }: ButtonProps) {
+  const theme = useTheme();
+
+  const baseStyle: CSSProperties = {
+    backgroundColor: theme.controls.button.background,
+    border: theme.controls.button.border,
+    padding: theme.controls.button.padding,
+    borderRadius: theme.controls.button.borderRadius,
+    color: theme.controls.button.foreground,
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    textAlign: 'center',
+  };
+
   return (
     <button
       className="wf-button"

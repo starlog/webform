@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 
 interface PanelProps {
   id: string;
@@ -11,11 +12,13 @@ interface PanelProps {
 }
 
 export function Panel({ id, borderStyle, style, children }: PanelProps) {
+  const theme = useTheme();
+
   const panelBorder: CSSProperties = {};
   if (borderStyle === 'FixedSingle') {
-    panelBorder.border = '1px solid #888888';
+    panelBorder.border = theme.controls.panel.border;
   } else if (borderStyle === 'Fixed3D') {
-    panelBorder.border = '2px inset #D0D0D0';
+    panelBorder.border = theme.controls.panel.border;
   }
 
   return (
@@ -26,6 +29,7 @@ export function Panel({ id, borderStyle, style, children }: PanelProps) {
         position: 'relative',
         overflow: 'hidden',
         boxSizing: 'border-box',
+        borderRadius: theme.controls.panel.borderRadius,
         ...panelBorder,
         ...style,
       }}

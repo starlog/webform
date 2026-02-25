@@ -4,7 +4,7 @@ import type { ControlDefinition, FontDefinition, DockStyle } from '@webform/comm
 export function computeDockStyle(
   dock: DockStyle,
   size: { width: number; height: number },
-  position?: { x: number; y: number },
+  _position?: { x: number; y: number },
 ): CSSProperties {
   switch (dock) {
     case 'Top':

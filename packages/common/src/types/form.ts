@@ -1,5 +1,6 @@
 import type { DataBindingDefinition } from './datasource';
 import type { EventHandlerDefinition } from './events';
+import type { ThemeId } from './theme';
 
 export interface FontDefinition {
   family: string;
@@ -21,6 +22,7 @@ export interface FormProperties {
   maximizeBox: boolean;
   minimizeBox: boolean;
   windowState?: 'Normal' | 'Maximized';
+  theme?: ThemeId;
 }
 
 // Phase 1 - 기본 컨트롤 (11종), 컨테이너 (4종)

@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
+import type { ThemeTokens } from '@webform/common';
 
 interface TreeNode {
   text: string;
@@ -29,15 +31,18 @@ interface TreeViewProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  border: '1px inset #D0D0D0',
-  overflow: 'auto',
-  fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-  fontSize: '12px',
-  boxSizing: 'border-box',
-  padding: '2px',
-};
+function getBaseStyle(theme: ThemeTokens): CSSProperties {
+  return {
+    backgroundColor: theme.controls.select.background,
+    border: theme.controls.select.border,
+    borderRadius: theme.controls.select.borderRadius,
+    overflow: 'auto',
+    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+    fontSize: '12px',
+    boxSizing: 'border-box',
+    padding: '2px',
+  };
+}
 
 function TreeNodeItem({
   node,
@@ -51,6 +56,7 @@ function TreeNodeItem({
   onToggle,
   onSelect,
   onCheck,
+  theme,
 }: {
   node: TreeNode;
   path: string;
@@ -63,6 +69,7 @@ function TreeNodeItem({
   onToggle: (path: string, expanded: boolean) => void;
   onSelect: (path: string) => void;
   onCheck: (path: string, checked: boolean) => void;
+  theme: ThemeTokens;
 }) {
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = node.expanded !== false && hasChildren;
@@ -77,8 +84,8 @@ function TreeNodeItem({
           paddingLeft: depth * 18,
           height: 20,
           cursor: enabled ? 'pointer' : 'default',
-          backgroundColor: isSelected ? '#0078D7' : 'transparent',
-          color: isSelected ? '#FFFFFF' : 'inherit',
+          backgroundColor: isSelected ? theme.controls.select.selectedBackground : 'transparent',
+          color: isSelected ? theme.controls.select.selectedForeground : 'inherit',
           userSelect: 'none',
           whiteSpace: 'nowrap',
         }}
@@ -148,6 +155,7 @@ function TreeNodeItem({
               onToggle={onToggle}
               onSelect={onSelect}
               onCheck={onCheck}
+              theme={theme}
             />
           ))}
         </div>
@@ -192,6 +200,8 @@ export function TreeView({
   onAfterCollapse,
 }: TreeViewProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
+  const baseStyle = getBaseStyle(theme);
 
   const handleSelect = useCallback(
     (path: string) => {
@@ -251,6 +261,7 @@ export function TreeView({
             onToggle={handleToggle}
             onSelect={handleSelect}
             onCheck={handleCheck}
+            theme={theme}
           />
         ))
       )}

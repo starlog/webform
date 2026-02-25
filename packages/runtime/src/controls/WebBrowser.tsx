@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface WebBrowserProps {
   id: string;
@@ -33,6 +34,7 @@ export function WebBrowser({
   onDocumentCompleted,
 }: WebBrowserProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
 
   const handleLoad = useCallback(() => {
     updateControlState(id, 'documentLoaded', true);
@@ -43,8 +45,9 @@ export function WebBrowser({
   const safeUrl = isSafeUrl(url) ? url : 'about:blank';
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? '#FFFFFF',
-    border: '1px solid #D0D0D0',
+    backgroundColor: backColor ?? theme.controls.textInput.background,
+    border: theme.controls.textInput.border,
+    borderRadius: theme.controls.textInput.borderRadius,
     display: 'flex',
     flexDirection: 'column',
     boxSizing: 'border-box',
@@ -62,8 +65,8 @@ export function WebBrowser({
           alignItems: 'center',
           gap: 4,
           padding: '3px 6px',
-          borderBottom: '1px solid #E0E0E0',
-          backgroundColor: '#FAFAFA',
+          borderBottom: theme.controls.textInput.border,
+          backgroundColor: theme.controls.panel.background,
           flexShrink: 0,
           fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
           fontSize: '12px',
@@ -73,15 +76,15 @@ export function WebBrowser({
         <div
           style={{
             flex: 1,
-            backgroundColor: '#FFFFFF',
-            border: '1px solid #D0D0D0',
-            borderRadius: 2,
+            backgroundColor: theme.controls.textInput.background,
+            border: theme.controls.textInput.border,
+            borderRadius: theme.controls.textInput.borderRadius,
             padding: '1px 4px',
             fontSize: '11px',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            color: '#444',
+            color: theme.controls.textInput.foreground,
           }}
         >
           {safeUrl}

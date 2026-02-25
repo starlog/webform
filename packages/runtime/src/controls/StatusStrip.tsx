@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface StatusStripItem {
   type: 'label' | 'progressBar' | 'dropDownButton';
@@ -34,6 +35,7 @@ export function StatusStrip({
   font,
   onItemClicked,
 }: StatusStripProps) {
+  const theme = useTheme();
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
 
   const handleItemClick = useCallback(
@@ -46,9 +48,9 @@ export function StatusStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? '#F0F0F0',
-    color: foreColor,
-    borderTop: '1px solid #D0D0D0',
+    backgroundColor: backColor ?? theme.controls.statusStrip.background,
+    color: foreColor ?? theme.controls.statusStrip.foreground,
+    borderTop: theme.controls.statusStrip.border,
     display: 'flex',
     alignItems: 'center',
     fontFamily: font?.family ?? 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
@@ -75,8 +77,9 @@ export function StatusStrip({
                 width: item.spring ? undefined : (item.width ?? 100),
                 flexGrow: item.spring ? 1 : undefined,
                 height: 14,
-                backgroundColor: '#E0E0E0',
-                borderRadius: 1,
+                backgroundColor: theme.controls.progressBar.background,
+                border: theme.controls.progressBar.border,
+                borderRadius: theme.controls.progressBar.borderRadius,
                 overflow: 'hidden',
                 cursor: enabled ? 'pointer' : 'default',
               }}
@@ -85,7 +88,7 @@ export function StatusStrip({
                 style={{
                   width: `${Math.min(100, Math.max(0, val))}%`,
                   height: '100%',
-                  backgroundColor: '#06B025',
+                  backgroundColor: theme.controls.progressBar.fillBackground,
                 }}
               />
             </div>

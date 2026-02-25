@@ -1,10 +1,12 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 export function SplitContainerControl({ properties, size, children }: DesignerControlProps) {
+  const theme = useTheme();
   const orientation = (properties.orientation as string) || 'Vertical';
   const splitterDistance = (properties.splitterDistance as number) ?? Math.round(size.width / 2);
   const splitterWidth = (properties.splitterWidth as number) ?? 4;
-  const backColor = (properties.backColor as string) || '#F0F0F0';
+  const backColor = (properties.backColor as string) || theme.controls.panel.background;
 
   const isVertical = orientation === 'Vertical';
   const childArr = Array.isArray(children) ? children : children ? [children] : [];
@@ -21,7 +23,7 @@ export function SplitContainerControl({ properties, size, children }: DesignerCo
         display: 'flex',
         flexDirection: isVertical ? 'row' : 'column',
         backgroundColor: backColor,
-        border: '1px solid #a0a0a0',
+        border: `1px solid ${theme.controls.panel.border}`,
         boxSizing: 'border-box',
         overflow: 'hidden',
       }}
@@ -49,7 +51,7 @@ export function SplitContainerControl({ properties, size, children }: DesignerCo
           ...(isVertical
             ? { width: splitterWidth, cursor: 'col-resize' }
             : { height: splitterWidth, cursor: 'row-resize' }),
-          backgroundColor: '#C0C0C0',
+          backgroundColor: theme.controls.panel.border,
           flexShrink: 0,
         }}
       />

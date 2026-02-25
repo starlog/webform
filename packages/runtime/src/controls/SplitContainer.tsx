@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface SplitContainerProps {
   id: string;
@@ -31,6 +32,7 @@ export function SplitContainer({
 }: SplitContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
 
   const [distance, setDistance] = useState<number | null>(null);
   const isVertical = orientation === 'Vertical';
@@ -103,7 +105,7 @@ export function SplitContainer({
           ...(isVertical
             ? { width: splitterWidth, cursor: isSplitterFixed ? 'default' : 'col-resize' }
             : { height: splitterWidth, cursor: isSplitterFixed ? 'default' : 'row-resize' }),
-          backgroundColor: '#C0C0C0',
+          backgroundColor: theme.controls.toolStrip.separator,
           flexShrink: 0,
           userSelect: 'none',
         }}

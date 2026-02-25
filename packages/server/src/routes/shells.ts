@@ -27,6 +27,7 @@ const shellPropertiesSchema = z.object({
   formBorderStyle: z.enum(['None', 'FixedSingle', 'Fixed3D', 'Sizable']).default('Sizable'),
   maximizeBox: z.boolean().default(true),
   minimizeBox: z.boolean().default(true),
+  theme: z.enum(['windows-xp', 'ubuntu-2004', 'macos-tahoe']).optional(),
 });
 
 const createShellSchema = z.object({

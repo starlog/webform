@@ -1,9 +1,11 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 export function RichTextBoxControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const text = (properties.text as string) ?? '';
-  const backColor = (properties.backColor as string) ?? '#FFFFFF';
-  const foreColor = (properties.foreColor as string) ?? undefined;
+  const backColor = (properties.backColor as string) ?? theme.controls.textInput.background;
+  const foreColor = (properties.foreColor as string) ?? theme.controls.textInput.foreground;
   const readOnly = (properties.readOnly as boolean) ?? false;
 
   return (
@@ -13,7 +15,8 @@ export function RichTextBoxControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         backgroundColor: backColor,
         color: foreColor,
-        border: '1px inset #D0D0D0',
+        border: `1px solid ${theme.controls.textInput.border}`,
+        borderRadius: theme.controls.textInput.borderRadius,
         display: 'flex',
         flexDirection: 'column',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

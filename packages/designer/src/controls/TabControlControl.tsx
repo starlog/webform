@@ -1,4 +1,5 @@
 import { useDesignerStore } from '../stores/designerStore';
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 function getTabNames(properties: Record<string, unknown>): string[] {
@@ -12,6 +13,7 @@ function getTabNames(properties: Record<string, unknown>): string[] {
 }
 
 export function TabControlControl({ id, properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const updateControl = useDesignerStore((s) => s.updateControl);
   const selectedIndex = (properties.selectedIndex as number) ?? 0;
   const tabNames = getTabNames(properties);
@@ -34,8 +36,8 @@ export function TabControlControl({ id, properties, size }: DesignerControlProps
     }}>
       <div style={{
         display: 'flex',
-        borderBottom: '1px solid #A0A0A0',
-        backgroundColor: '#F0F0F0',
+        borderBottom: `1px solid ${theme.controls.tabControl.tabBorder}`,
+        backgroundColor: theme.controls.tabControl.tabBackground,
         flexShrink: 0,
       }}>
         {tabNames.map((name, i) => (
@@ -48,13 +50,15 @@ export function TabControlControl({ id, properties, size }: DesignerControlProps
             }}
             style={{
               padding: '4px 12px',
-              border: '1px solid #A0A0A0',
-              borderBottom: i === selectedIndex ? '1px solid #FFFFFF' : 'none',
-              backgroundColor: i === selectedIndex ? '#FFFFFF' : '#E8E8E8',
+              border: `1px solid ${theme.controls.tabControl.tabBorder}`,
+              borderBottom: i === selectedIndex ? `1px solid ${theme.controls.tabControl.contentBackground}` : 'none',
+              backgroundColor: i === selectedIndex ? theme.controls.tabControl.tabActiveBackground : theme.controls.tabControl.tabBackground,
+              color: i === selectedIndex ? theme.controls.tabControl.tabActiveForeground : theme.controls.tabControl.tabForeground,
               marginRight: '-1px',
               marginBottom: i === selectedIndex ? '-1px' : '0',
               fontSize: '11px',
               fontFamily: 'Segoe UI, sans-serif',
+              borderRadius: theme.controls.tabControl.tabBorderRadius,
               cursor: 'pointer',
             }}
           >
@@ -64,11 +68,11 @@ export function TabControlControl({ id, properties, size }: DesignerControlProps
       </div>
       <div style={{
         flex: 1,
-        border: '1px solid #A0A0A0',
+        border: `1px solid ${theme.controls.tabControl.contentBorder}`,
         borderTop: 'none',
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.controls.tabControl.contentBackground,
       }} />
     </div>
   );

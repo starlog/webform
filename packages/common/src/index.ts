@@ -54,6 +54,34 @@ export type {
   WsMessage,
 } from './types/protocol';
 
+// types/theme
+export type {
+  ThemeId,
+  ThemeTokens,
+  TitleBarTokens,
+  WindowTokens,
+  FormTokens,
+  ButtonTokens,
+  TextInputTokens,
+  SelectTokens,
+  CheckRadioTokens,
+  PanelTokens,
+  GroupBoxTokens,
+  TabControlTokens,
+  DataGridTokens,
+  ProgressBarTokens,
+  MenuStripTokens,
+  ToolStripTokens,
+  StatusStripTokens,
+  ScrollbarTokens,
+  AccentTokens,
+  PopupTokens,
+  ControlTokens,
+} from './types/theme';
+
+// themes
+export { getThemeById, THEME_IDS, windowsXpTheme, ubuntu2004Theme, macosTahoeTheme } from './themes/presets';
+
 // utils
 export { validateFormDefinition, validateControlDefinition, sanitizeQueryInput } from './utils/validation';
 export { serializeFormDefinition, deserializeFormDefinition } from './utils/serialization';

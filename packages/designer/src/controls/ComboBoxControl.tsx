@@ -1,6 +1,8 @@
 import type { DesignerControlProps } from './registry';
+import { useTheme } from '../theme/ThemeContext';
 
 export function ComboBoxControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const items = (properties.items as string[]) ?? [];
   const selectedIndex = (properties.selectedIndex as number) ?? -1;
   const displayText = selectedIndex >= 0 && selectedIndex < items.length
@@ -15,11 +17,13 @@ export function ComboBoxControl({ properties, size }: DesignerControlProps) {
       height: size.height,
       display: 'flex',
       boxSizing: 'border-box',
-      border: '1px solid #A0A0A0',
+      border: theme.controls.select.border,
+      borderRadius: theme.controls.select.borderRadius,
     }}>
       <div style={{
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: (properties.backColor as string) || theme.controls.select.background,
+        color: (properties.foreColor as string) || theme.controls.select.foreground,
         padding: '1px 2px',
         fontSize: 'inherit',
         fontFamily: 'inherit',
@@ -32,8 +36,8 @@ export function ComboBoxControl({ properties, size }: DesignerControlProps) {
       </div>
       <div style={{
         width: arrowWidth,
-        backgroundColor: '#E1E1E1',
-        borderLeft: '1px solid #A0A0A0',
+        backgroundColor: theme.controls.button.background,
+        borderLeft: theme.controls.select.border,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

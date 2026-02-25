@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 
 interface GroupBoxProps {
   id: string;
@@ -11,6 +12,8 @@ interface GroupBoxProps {
 }
 
 export function GroupBox({ id, text, style, children }: GroupBoxProps) {
+  const theme = useTheme();
+
   return (
     <div
       className="wf-groupbox"
@@ -28,8 +31,8 @@ export function GroupBox({ id, text, style, children }: GroupBoxProps) {
         left: 0,
         right: 0,
         bottom: 0,
-        border: '1px solid #D0D0D0',
-        borderRadius: '2px',
+        border: theme.controls.groupBox.border,
+        borderRadius: theme.controls.groupBox.borderRadius,
         padding: 0,
         margin: 0,
         boxSizing: 'border-box',
@@ -39,7 +42,7 @@ export function GroupBox({ id, text, style, children }: GroupBoxProps) {
           <legend style={{
             padding: '0 4px',
             fontSize: 'inherit',
-            color: '#000',
+            color: theme.controls.groupBox.foreground,
             marginLeft: 8,
           }}>
             {text}

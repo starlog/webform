@@ -1,3 +1,4 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 interface ToolStripItem {
@@ -21,8 +22,9 @@ const DEFAULT_ITEMS: ToolStripItem[] = [
 ];
 
 export function ToolStripControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const items = (properties.items as ToolStripItem[]) ?? [];
-  const backColor = (properties.backColor as string) ?? '#F0F0F0';
+  const backColor = (properties.backColor as string) ?? theme.controls.toolStrip.background;
 
   const displayItems = items.length > 0 ? items : DEFAULT_ITEMS;
 
@@ -32,7 +34,8 @@ export function ToolStripControl({ properties, size }: DesignerControlProps) {
         width: size.width,
         height: size.height,
         backgroundColor: backColor,
-        borderBottom: '1px solid #D0D0D0',
+        color: theme.controls.toolStrip.foreground,
+        borderBottom: `1px solid ${theme.controls.toolStrip.border}`,
         display: 'flex',
         alignItems: 'center',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
@@ -51,7 +54,7 @@ export function ToolStripControl({ properties, size }: DesignerControlProps) {
               style={{
                 width: 1,
                 height: 16,
-                backgroundColor: '#C0C0C0',
+                backgroundColor: theme.controls.toolStrip.separator,
                 margin: '0 3px',
               }}
             />

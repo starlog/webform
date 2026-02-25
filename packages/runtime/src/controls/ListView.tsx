@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ListViewItem {
   text: string;
@@ -35,14 +36,7 @@ interface ListViewProps {
   [key: string]: unknown;
 }
 
-const baseStyle: CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  border: '1px inset #D0D0D0',
-  overflow: 'auto',
-  fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-  fontSize: '12px',
-  boxSizing: 'border-box',
-};
+// baseStyle is now computed inside the component via useTheme
 
 function IconPlaceholder({ size }: { size: number }) {
   return (
@@ -76,6 +70,17 @@ export function ListView({
 }: ListViewProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const controlStates = useRuntimeStore((s) => s.controlStates);
+  const theme = useTheme();
+
+  const baseStyle: CSSProperties = {
+    backgroundColor: theme.controls.select.background,
+    border: theme.controls.select.border,
+    borderRadius: theme.controls.select.borderRadius,
+    overflow: 'auto',
+    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+    fontSize: '12px',
+    boxSizing: 'border-box',
+  };
   const selectedIndices: number[] = (controlStates[id]?.selectedIndices as number[]) ?? (selectedIndex >= 0 ? [selectedIndex] : []);
 
   const handleSelect = useCallback(
@@ -140,8 +145,8 @@ export function ListView({
   };
 
   const selectedStyle: CSSProperties = {
-    backgroundColor: '#0078D7',
-    color: '#FFFFFF',
+    backgroundColor: theme.controls.select.selectedBackground,
+    color: theme.controls.select.selectedForeground,
   };
 
   if (items.length === 0) {
@@ -170,9 +175,10 @@ export function ListView({
                   <th
                     key={ci}
                     style={{
-                      backgroundColor: '#E0E0E0',
-                      borderRight: '1px solid #D0D0D0',
-                      borderBottom: '2px solid #A0A0A0',
+                      backgroundColor: theme.controls.dataGrid.headerBackground,
+                      color: theme.controls.dataGrid.headerForeground,
+                      borderRight: theme.controls.dataGrid.headerBorder,
+                      borderBottom: theme.controls.dataGrid.headerBorder,
                       padding: '3px 6px',
                       textAlign: 'left',
                       fontWeight: 600,
@@ -264,7 +270,7 @@ export function ListView({
                 textAlign: 'center',
                 cursor: enabled ? 'pointer' : 'default',
                 borderRadius: 2,
-                ...(isSelected ? { backgroundColor: '#0078D7', color: '#FFFFFF' } : {}),
+                ...(isSelected ? selectedStyle : {}),
               }}
               onClick={(e) => handleSelect(i, e)}
               onDoubleClick={() => handleDoubleClick(i)}
@@ -308,7 +314,7 @@ export function ListView({
                 padding: '2px 8px',
                 cursor: enabled ? 'pointer' : 'default',
                 borderRadius: 2,
-                ...(isSelected ? { backgroundColor: '#0078D7', color: '#FFFFFF' } : {}),
+                ...(isSelected ? selectedStyle : {}),
               }}
               onClick={(e) => handleSelect(i, e)}
               onDoubleClick={() => handleDoubleClick(i)}
@@ -342,7 +348,7 @@ export function ListView({
                 padding: '1px 6px',
                 height: 20,
                 cursor: enabled ? 'pointer' : 'default',
-                ...(isSelected ? { backgroundColor: '#0078D7', color: '#FFFFFF' } : {}),
+                ...(isSelected ? selectedStyle : {}),
               }}
               onClick={(e) => handleSelect(i, e)}
               onDoubleClick={() => handleDoubleClick(i)}
@@ -378,7 +384,7 @@ export function ListView({
               padding: 6,
               cursor: enabled ? 'pointer' : 'default',
               borderRadius: 2,
-              ...(isSelected ? { backgroundColor: '#0078D7', color: '#FFFFFF' } : {}),
+              ...(isSelected ? selectedStyle : {}),
             }}
             onClick={(e) => handleSelect(i, e)}
             onDoubleClick={() => handleDoubleClick(i)}

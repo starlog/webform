@@ -1,3 +1,4 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 interface MenuItem {
@@ -18,9 +19,10 @@ const DEFAULT_ITEMS: MenuItem[] = [
 ];
 
 export function MenuStripControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const items = (properties.items as MenuItem[]) ?? [];
-  const backColor = (properties.backColor as string) ?? '#F0F0F0';
-  const foreColor = (properties.foreColor as string) ?? undefined;
+  const backColor = (properties.backColor as string) ?? theme.controls.menuStrip.background;
+  const foreColor = (properties.foreColor as string) ?? theme.controls.menuStrip.foreground;
 
   const displayItems = items.length > 0 ? items : DEFAULT_ITEMS;
 
@@ -31,7 +33,7 @@ export function MenuStripControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         backgroundColor: backColor,
         color: foreColor,
-        borderBottom: '1px solid #D0D0D0',
+        borderBottom: `1px solid ${theme.controls.menuStrip.border}`,
         display: 'flex',
         alignItems: 'center',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

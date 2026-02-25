@@ -3,6 +3,7 @@ import { useDrop } from 'react-dnd';
 import type { ControlType, ControlDefinition } from '@webform/common';
 import { useDesignerStore, createDefaultControl } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
+import { ThemeProvider } from '../../theme/ThemeContext';
 import { getDesignerComponent } from '../../controls/registry';
 import { DragItemTypes } from './CanvasControl';
 
@@ -83,6 +84,7 @@ export function ShellCanvas() {
   );
 
   return (
+    <ThemeProvider themeId={shellProperties.theme}>
     <div
       style={{
         width: shellProperties.width,
@@ -157,6 +159,7 @@ export function ShellCanvas() {
         ))}
       </div>
     </div>
+    </ThemeProvider>
   );
 }
 

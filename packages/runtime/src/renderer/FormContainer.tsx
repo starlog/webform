@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { FormProperties } from '@webform/common';
+import { useTheme } from '../theme/ThemeContext';
 import { computeFontStyle } from './layoutUtils';
 
 interface FormContainerProps {
@@ -12,21 +13,6 @@ interface FormContainerProps {
   children: ReactNode;
 }
 
-const TITLE_BAR_HEIGHT = 30;
-
-const titleBarStyle: CSSProperties = {
-  height: TITLE_BAR_HEIGHT,
-  background: 'linear-gradient(to right, #0078D7, #005A9E)',
-  display: 'flex',
-  alignItems: 'center',
-  padding: '0 8px',
-  color: '#FFFFFF',
-  fontSize: '12px',
-  fontFamily: 'Segoe UI, sans-serif',
-  userSelect: 'none',
-  flexShrink: 0,
-};
-
 const titleTextStyle: CSSProperties = {
   flex: 1,
   overflow: 'hidden',
@@ -34,33 +20,23 @@ const titleTextStyle: CSSProperties = {
   textOverflow: 'ellipsis',
 };
 
-const windowButtonStyle: CSSProperties = {
-  width: 30,
-  height: 30,
-  border: 'none',
-  background: 'transparent',
-  color: '#FFFFFF',
-  fontSize: '14px',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  lineHeight: 1,
-};
-
-function getBorderStyle(formBorderStyle: FormProperties['formBorderStyle']): CSSProperties {
-  switch (formBorderStyle) {
-    case 'None':
-      return { border: 'none' };
-    case 'FixedSingle':
-      return { border: '1px solid #333333' };
-    case 'Fixed3D':
-      return { border: '2px inset #D0D0D0' };
-    case 'Sizable':
-      return { border: '1px solid #333333', resize: 'both', overflow: 'auto' };
-    default:
-      return { border: '1px solid #333333' };
-  }
+function TrafficLightButtons() {
+  const btnBase: CSSProperties = {
+    width: 12,
+    height: 12,
+    borderRadius: '50%',
+    border: 'none',
+    cursor: 'pointer',
+    padding: 0,
+    marginRight: 8,
+  };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
+      <button style={{ ...btnBase, backgroundColor: '#FF5F57' }} title="Close" />
+      <button style={{ ...btnBase, backgroundColor: '#FEBC2E' }} title="Minimize" />
+      <button style={{ ...btnBase, backgroundColor: '#28C840' }} title="Maximize" />
+    </div>
+  );
 }
 
 export function FormContainer({
@@ -72,11 +48,46 @@ export function FormContainer({
   dockFill,
   children,
 }: FormContainerProps) {
+  const theme = useTheme();
   const isMaximized = properties.windowState === 'Maximized';
-  const borderStyles = getBorderStyle(properties.formBorderStyle);
   const fontStyles = computeFontStyle(properties.font);
 
   const showTitleBar = !isMaximized && properties.formBorderStyle !== 'None';
+
+  const titleBarHeight = theme.window.titleBar.height;
+  const isTrafficLight = theme.window.titleBar.controlButtonsPosition === 'left';
+
+  const titleBarStyle: CSSProperties = {
+    height: titleBarHeight,
+    background: theme.window.titleBar.background,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 8px',
+    color: theme.window.titleBar.foreground,
+    font: theme.window.titleBar.font,
+    userSelect: 'none',
+    flexShrink: 0,
+    borderRadius: theme.window.titleBar.borderRadius,
+  };
+
+  const windowButtonStyle: CSSProperties = {
+    width: titleBarHeight,
+    height: titleBarHeight,
+    border: 'none',
+    background: 'transparent',
+    color: theme.window.titleBar.foreground,
+    fontSize: '14px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    lineHeight: 1,
+  };
+
+  const borderStyle: CSSProperties =
+    properties.formBorderStyle === 'None'
+      ? { border: 'none' }
+      : { border: theme.window.border };
 
   const containerStyle: CSSProperties = isMaximized
     ? {
@@ -87,20 +98,25 @@ export function FormContainer({
       }
     : {
         width: properties.width,
-        height: showTitleBar ? properties.height + TITLE_BAR_HEIGHT : properties.height,
+        height: showTitleBar ? properties.height + titleBarHeight : properties.height,
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-        ...borderStyles,
+        boxShadow: theme.window.shadow,
+        borderRadius: theme.window.borderRadius,
+        overflow: 'hidden',
+        ...borderStyle,
       };
 
   const contentStyle: CSSProperties = {
     flex: 1,
     position: 'relative',
-    backgroundColor: properties.backgroundColor || '#F0F0F0',
+    backgroundColor: properties.backgroundColor || theme.form.backgroundColor,
+    color: theme.form.foreground,
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
+    fontFamily: theme.form.fontFamily,
+    fontSize: theme.form.fontSize,
     ...fontStyles,
   };
 
@@ -124,19 +140,24 @@ export function FormContainer({
     <div className="wf-form" style={containerStyle}>
       {showTitleBar && (
         <div className="wf-titlebar" style={titleBarStyle}>
+          {isTrafficLight && <TrafficLightButtons />}
           <span style={titleTextStyle}>{properties.title}</span>
-          {properties.minimizeBox && (
-            <button style={windowButtonStyle} title="Minimize">&#x2500;</button>
+          {!isTrafficLight && (
+            <>
+              {properties.minimizeBox && (
+                <button style={windowButtonStyle} title="Minimize">&#x2500;</button>
+              )}
+              {properties.maximizeBox && (
+                <button style={windowButtonStyle} title="Maximize">&#x25A1;</button>
+              )}
+              <button
+                style={{ ...windowButtonStyle, fontWeight: 'bold' }}
+                title="Close"
+              >
+                &#x2715;
+              </button>
+            </>
           )}
-          {properties.maximizeBox && (
-            <button style={windowButtonStyle} title="Maximize">&#x25A1;</button>
-          )}
-          <button
-            style={{ ...windowButtonStyle, fontWeight: 'bold' }}
-            title="Close"
-          >
-            &#x2715;
-          </button>
         </div>
       )}
       <div className="wf-content" style={contentStyle}>

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import type { FontDefinition } from '@webform/common';
 import { computeFontStyle } from '../renderer/layoutUtils';
+import { useTheme } from '../theme/ThemeContext';
 import {
   ResponsiveContainer,
   LineChart,
@@ -98,6 +99,7 @@ export function Chart({
   font,
   style,
 }: ChartProps) {
+  const theme = useTheme();
   const chartData = useMemo(() => parseData(series), [series]);
   const palette = DEFAULT_COLORS;
 
@@ -112,8 +114,8 @@ export function Chart({
   const containerStyle: CSSProperties = {
     width: '100%',
     height: '100%',
-    backgroundColor: backColor || '#ffffff',
-    color: foreColor || '#333333',
+    backgroundColor: backColor || theme.form.backgroundColor,
+    color: foreColor || theme.form.foreground,
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',

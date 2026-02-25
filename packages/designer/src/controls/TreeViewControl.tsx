@@ -1,3 +1,4 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 interface TreeNode {
@@ -52,10 +53,11 @@ function RenderNode({ node, depth }: { node: TreeNode; depth: number }) {
 }
 
 export function TreeViewControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const nodes = (properties.nodes as TreeNode[]) ?? [];
   const displayNodes = nodes.length > 0 ? nodes : SAMPLE_NODES;
-  const backColor = (properties.backColor as string) ?? '#FFFFFF';
-  const foreColor = (properties.foreColor as string) ?? undefined;
+  const backColor = (properties.backColor as string) ?? theme.controls.select.background;
+  const foreColor = (properties.foreColor as string) ?? theme.controls.select.foreground;
 
   return (
     <div
@@ -64,7 +66,8 @@ export function TreeViewControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         backgroundColor: backColor,
         color: foreColor,
-        border: '1px inset #D0D0D0',
+        border: `1px solid ${theme.controls.select.border}`,
+        borderRadius: theme.controls.select.borderRadius,
         overflow: 'auto',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
         fontSize: '12px',

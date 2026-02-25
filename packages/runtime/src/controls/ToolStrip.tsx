@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ToolStripItem {
   type: 'button' | 'separator' | 'label' | 'dropdown';
@@ -36,6 +37,7 @@ export function ToolStrip({
   font,
   onItemClicked,
 }: ToolStripProps) {
+  const theme = useTheme();
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -82,9 +84,9 @@ export function ToolStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: backColor ?? '#F0F0F0',
-    color: foreColor,
-    borderBottom: '1px solid #D0D0D0',
+    backgroundColor: backColor ?? theme.controls.toolStrip.background,
+    color: foreColor ?? theme.controls.toolStrip.foreground,
+    borderBottom: theme.controls.toolStrip.border,
     display: 'flex',
     alignItems: 'center',
     fontFamily: font?.family ?? 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
@@ -108,7 +110,7 @@ export function ToolStrip({
               style={{
                 width: 1,
                 height: 16,
-                backgroundColor: '#C0C0C0',
+                backgroundColor: theme.controls.toolStrip.separator,
                 margin: '0 3px',
               }}
             />
@@ -134,12 +136,12 @@ export function ToolStrip({
                 opacity: isDisabled ? 0.5 : 1,
                 whiteSpace: 'nowrap',
                 ...(item.checked
-                  ? { backgroundColor: '#CCE4F7', border: '1px solid #99C9EF' }
+                  ? { backgroundColor: theme.accent.primary, border: `1px solid ${theme.accent.primaryHover}` }
                   : {}),
               }}
               onMouseEnter={(e) => {
                 if (!isDisabled && !item.checked) {
-                  (e.currentTarget as HTMLDivElement).style.backgroundColor = '#E0E0E0';
+                  (e.currentTarget as HTMLDivElement).style.backgroundColor = theme.controls.toolStrip.buttonHoverBackground;
                 }
               }}
               onMouseLeave={(e) => {
@@ -159,9 +161,10 @@ export function ToolStrip({
                   position: 'absolute',
                   top: '100%',
                   left: 0,
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #D0D0D0',
-                  boxShadow: '2px 2px 4px rgba(0,0,0,0.15)',
+                  backgroundColor: theme.popup.background,
+                  border: theme.popup.border,
+                  boxShadow: theme.popup.shadow,
+                  borderRadius: theme.popup.borderRadius,
                   zIndex: 1000,
                   minWidth: 120,
                 }}
@@ -171,7 +174,7 @@ export function ToolStrip({
                     return (
                       <div
                         key={si}
-                        style={{ height: 1, backgroundColor: '#E0E0E0', margin: '2px 0' }}
+                        style={{ height: 1, backgroundColor: theme.controls.toolStrip.separator, margin: '2px 0' }}
                       />
                     );
                   }
@@ -191,7 +194,7 @@ export function ToolStrip({
                       }}
                       onMouseEnter={(e) => {
                         if (!subDisabled)
-                          (e.currentTarget as HTMLDivElement).style.backgroundColor = '#E8E8E8';
+                          (e.currentTarget as HTMLDivElement).style.backgroundColor = theme.popup.hoverBackground;
                       }}
                       onMouseLeave={(e) => {
                         if (!subDisabled)

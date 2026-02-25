@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { DesignerControlProps } from './registry';
+import { useTheme } from '../theme/ThemeContext';
 
 const SIZE_MODE_MAP: Record<string, CSSProperties['objectFit']> = {
   Normal: 'none',
@@ -10,12 +11,13 @@ const SIZE_MODE_MAP: Record<string, CSSProperties['objectFit']> = {
 };
 
 export function PictureBoxControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const image = properties.imageUrl as string | undefined;
   const sizeMode = (properties.sizeMode as string) ?? 'Normal';
-  const backColor = (properties.backColor as string) ?? '#E0E0E0';
+  const backColor = (properties.backColor as string) || theme.controls.panel.background;
   const borderStyle = properties.borderStyle as string | undefined;
 
-  let border = '1px solid #BCBCBC';
+  let border = theme.controls.panel.border;
   if (borderStyle === 'FixedSingle') border = '1px solid #7A7A7A';
   else if (borderStyle === 'Fixed3D') border = '2px inset #7A7A7A';
   else if (borderStyle === 'None') border = 'none';

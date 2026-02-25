@@ -1,3 +1,4 @@
+import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
 interface StatusStripItem {
@@ -13,8 +14,9 @@ const DEFAULT_ITEMS: StatusStripItem[] = [
 ];
 
 export function StatusStripControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
   const items = (properties.items as StatusStripItem[]) ?? [];
-  const backColor = (properties.backColor as string) ?? '#F0F0F0';
+  const backColor = (properties.backColor as string) ?? theme.controls.statusStrip.background;
 
   const displayItems = items.length > 0 ? items : DEFAULT_ITEMS;
 
@@ -24,7 +26,8 @@ export function StatusStripControl({ properties, size }: DesignerControlProps) {
         width: size.width,
         height: size.height,
         backgroundColor: backColor,
-        borderTop: '1px solid #D0D0D0',
+        color: theme.controls.statusStrip.foreground,
+        borderTop: `1px solid ${theme.controls.statusStrip.border}`,
         display: 'flex',
         alignItems: 'center',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

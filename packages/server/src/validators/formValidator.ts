@@ -22,6 +22,7 @@ const formPropertiesSchema = z.object({
   maximizeBox: z.boolean().default(true),
   minimizeBox: z.boolean().default(true),
   windowState: z.enum(['Normal', 'Maximized']).default('Normal'),
+  theme: z.enum(['windows-xp', 'ubuntu-2004', 'macos-tahoe']).optional(),
 });
 
 const anchorStyleSchema = z.object({
