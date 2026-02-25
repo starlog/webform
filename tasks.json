@@ -156,7 +156,7 @@
       "description": "Step 1 Designer 컨트롤 변경사항 git 커밋",
       "phase": "phase2-step1",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Step 1 Designer 컨트롤 구현 내용을 git 커밋한다.\n\n## 커밋 절차\n1. 변경 파일 확인: `git status`\n2. 관련 파일 스테이징:\n   ```\n   git add packages/designer/src/controls/SliderControl.tsx\n   git add packages/designer/src/controls/SwitchControl.tsx\n   git add packages/designer/src/controls/UploadControl.tsx\n   git add packages/designer/src/controls/AlertControl.tsx\n   git add packages/designer/src/controls/TagControl.tsx\n   git add packages/designer/src/controls/DividerControl.tsx\n   git add packages/designer/src/controls/registry.ts\n   git add plans/step1-designer-plan.md\n   ```\n3. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: Step 1 Designer 컨트롤 6개 추가\n   \n   - SliderControl: 수평/수직 슬라이더 미리보기\n   - SwitchControl: on/off 토글 스위치 미리보기\n   - UploadControl: 버튼/드롭존 파일업로드 미리보기\n   - AlertControl: 4가지 타입 인라인 알림 미리보기\n   - TagControl: 다색상 태그 목록 미리보기\n   - DividerControl: 수평/수직 구분선 미리보기\n   - registry.ts: 6개 컨트롤 Toolbox 등록\n   ```\n\n## 주의사항\n- .env 등 민감한 파일은 절대 포함하지 않는다\n- 개별 파일을 명시적으로 git add한다",
       "dependsOn": [
         "step1-designer-test"
@@ -235,7 +235,7 @@
       "description": "Step 1 PropertyMeta 변경사항 git 커밋",
       "phase": "phase2-step1",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Step 1 컨트롤 PropertyMeta 구현 내용을 git 커밋한다.\n\n## 커밋 절차\n1. 변경 파일 확인: `git status`\n2. 관련 파일 스테이징:\n   ```\n   git add packages/designer/src/components/PropertyPanel/controlProperties.ts\n   git add plans/step1-properties-plan.md\n   ```\n3. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: Step 1 컨트롤 6개 PropertyMeta 등록\n   \n   - Slider: value/min/max/step/orientation/showValue/trackColor/fillColor\n   - Switch: checked/text/onText/offText/onColor/offColor\n   - Upload: uploadMode/accept/multiple/maxFileSize/maxCount/borderStyle\n   - Alert: message/description/alertType/showIcon/closable/banner\n   - Tag: tags(collection)/tagColor/closable/addable\n   - Divider: text/orientation/textAlign/lineStyle/lineColor\n   ```\n\n## 주의사항\n- .env 등 민감한 파일은 절대 포함하지 않는다\n- 개별 파일을 명시적으로 git add한다",
       "dependsOn": [
         "step1-properties-test"
@@ -326,7 +326,7 @@
       "description": "Step 1 Runtime 컨트롤 변경사항 git 커밋",
       "phase": "phase2-step1",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Step 1 Runtime 컨트롤 구현 내용을 git 커밋한다.\n\n## 커밋 절차\n1. 변경 파일 확인: `git status`\n2. 관련 파일 스테이징:\n   ```\n   git add packages/runtime/src/controls/Slider.tsx\n   git add packages/runtime/src/controls/Switch.tsx\n   git add packages/runtime/src/controls/Upload.tsx\n   git add packages/runtime/src/controls/Alert.tsx\n   git add packages/runtime/src/controls/Tag.tsx\n   git add packages/runtime/src/controls/Divider.tsx\n   git add packages/runtime/src/controls/registry.ts\n   git add plans/step1-runtime-plan.md\n   ```\n3. 한국어 커밋 메시지로 커밋:\n   ```\n   feat: Step 1 Runtime 컨트롤 6개 구현\n   \n   - Slider: input[type=range] 기반, ValueChanged 이벤트, 수직 모드 지원\n   - Switch: 토글 애니메이션, CheckedChanged 이벤트\n   - Upload: 파일 입력/드래그앤드롭, FileSelected 이벤트\n   - Alert: 4가지 타입 인라인 알림, Closed 이벤트\n   - Tag: 태그 추가/삭제/클릭 이벤트 지원\n   - Divider: 수평/수직 구분선 (순수 표시)\n   - registry.ts: 6개 컨트롤 Runtime 등록\n   ```\n\n## 주의사항\n- .env 등 민감한 파일은 절대 포함하지 않는다\n- 개별 파일을 명시적으로 git add한다",
       "dependsOn": [
         "step1-runtime-test"
