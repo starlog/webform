@@ -133,7 +133,7 @@
       "description": "6개 Step 1 Designer 컨트롤의 TypeScript 타입 검사 및 테스트 실행",
       "phase": "phase2-step1",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Step 1 Designer 컨트롤(Slider, Switch, Upload, Alert, Tag, Divider) 구현의 정확성을 검증한다.\n\n## 테스트 절차\n\n1. TypeScript 타입 체크:\n   ```\n   pnpm --filter @webform/designer typecheck\n   ```\n   오류가 있으면 해당 컨트롤 파일을 수정한다.\n\n2. Designer 패키지 테스트 실행:\n   ```\n   pnpm --filter @webform/designer test\n   ```\n\n3. 전체 패키지 타입 체크:\n   ```\n   pnpm typecheck\n   ```\n\n4. 검증 항목:\n   - 6개 컨트롤 파일이 모두 생성되었는지 확인\n   - registry.ts에 6개 컨트롤이 모두 등록되었는지 확인\n   - 각 컨트롤의 defaultSize가 PRD 스펙과 일치하는지 확인\n   - category가 올바른지 확인 (Upload만 'data', 나머지 'basic')\n   - useTheme() 훅 사용이 올바른지 확인\n\n5. 린트 검사:\n   ```\n   pnpm --filter @webform/designer lint\n   ```\n\n## 실패 시 대응\n- import 오류: 경로 확인 및 수정\n- 타입 오류: Props 인터페이스와 기존 컨트롤 패턴 재확인\n- 렌더링 오류: JSX 구조 검토",
       "dependsOn": [
         "step1-designer-impl"
@@ -218,7 +218,7 @@
       "description": "Step 1 컨트롤 PropertyMeta 등록 검증",
       "phase": "phase2-step1",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Step 1 컨트롤의 PropertyMeta 등록이 올바른지 검증한다.\n\n## 테스트 절차\n\n1. TypeScript 타입 체크:\n   ```\n   pnpm --filter @webform/designer typecheck\n   ```\n   오류가 있으면 controlProperties.ts를 수정한다.\n\n2. 전체 테스트 실행:\n   ```\n   pnpm --filter @webform/designer test\n   ```\n\n3. 린트 검사:\n   ```\n   pnpm --filter @webform/designer lint\n   ```\n\n4. 검증 항목:\n   - CONTROL_PROPERTY_META에 Slider, Switch, Upload, Alert, Tag, Divider 키 존재 확인\n   - 각 컨트롤의 PropertyMeta 배열에 withCommon()이 적용되어 공통 속성 포함 확인\n   - dropdown 옵션 배열이 PRD 스펙과 일치 확인\n   - defaultValue 타입이 editorType과 일치 확인\n   - collection 타입(Tag의 tags) defaultValue 구조 확인\n\n## 실패 시 대응\n- withCommon() 함수 시그니처 오류: 기존 사용 예시 재확인\n- 타입 오류: PropertyMeta 인터페이스 필수 필드 확인\n- 누락된 속성: EXTRA-ELEMENTS.md와 대조하여 수정",
       "dependsOn": [
         "step1-properties-impl"
@@ -303,7 +303,7 @@
       "description": "6개 Step 1 Runtime 컨트롤의 TypeScript 타입 검사 및 테스트 실행",
       "phase": "phase2-step1",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Step 1 Runtime 컨트롤(Slider, Switch, Upload, Alert, Tag, Divider) 구현의 정확성을 검증한다.\n\n## 테스트 절차\n\n1. TypeScript 타입 체크:\n   ```\n   pnpm --filter @webform/runtime typecheck\n   ```\n\n2. Runtime 패키지 테스트 실행:\n   ```\n   pnpm --filter @webform/runtime test\n   ```\n\n3. 전체 타입 체크:\n   ```\n   pnpm typecheck\n   ```\n\n4. 린트 검사:\n   ```\n   pnpm --filter @webform/runtime lint\n   ```\n\n5. 검증 항목:\n   - 6개 컨트롤 파일이 모두 생성되었는지 확인\n   - registry.ts에 6개 컨트롤이 모두 등록되었는지 확인\n   - 이벤트 연결 확인: Slider(ValueChanged), Switch(CheckedChanged), Upload(FileSelected), Alert(Closed), Tag(TagAdded/TagRemoved/TagClicked)\n   - Divider가 순수 표시 컨트롤로 작동하는지 확인\n   - enabled=false 처리가 올바른지 확인\n\n## 실패 시 대응\n- import 오류: 경로 확인\n- 이벤트 타입 오류: packages/common의 이벤트 타입 재확인\n- 렌더링 오류: JSX 구조 및 CSS 검토",
       "dependsOn": [
         "step1-runtime-impl"
