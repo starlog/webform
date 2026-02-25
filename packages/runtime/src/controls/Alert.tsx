@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useControlColors } from '../theme/useControlColors';
 
 interface AlertProps {
   id: string;
@@ -21,11 +20,11 @@ interface AlertProps {
   [key: string]: unknown;
 }
 
-const ALERT_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
-  Success: { bg: '#f6ffed', border: '#b7eb8f', icon: '✓' },
-  Info: { bg: '#e6f4ff', border: '#91caff', icon: 'ℹ' },
-  Warning: { bg: '#fffbe6', border: '#ffe58f', icon: '⚠' },
-  Error: { bg: '#fff2f0', border: '#ffccc7', icon: '✕' },
+const ALERT_STYLES: Record<string, { bg: string; border: string; icon: string; color: string }> = {
+  Success: { bg: '#f6ffed', border: '#b7eb8f', icon: '✓', color: '#135200' },
+  Info: { bg: '#e6f4ff', border: '#91caff', icon: 'ℹ', color: '#003a8c' },
+  Warning: { bg: '#fffbe6', border: '#ffe58f', icon: '⚠', color: '#614700' },
+  Error: { bg: '#fff2f0', border: '#ffccc7', icon: '✕', color: '#820014' },
 };
 
 export function Alert({
@@ -38,12 +37,10 @@ export function Alert({
   banner = false,
   visible = true,
   foreColor,
-  backColor,
   style,
   onClosed,
 }: AlertProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const colors = useControlColors('Alert', { backColor, foreColor });
 
   if (!visible) return null;
 
@@ -62,7 +59,7 @@ export function Alert({
     borderRadius: banner ? 0 : '6px',
     border: banner ? 'none' : `1px solid ${alertStyle.border}`,
     backgroundColor: alertStyle.bg,
-    color: colors.color,
+    color: foreColor ?? alertStyle.color,
     boxSizing: 'border-box',
     ...style,
   };
