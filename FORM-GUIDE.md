@@ -57,7 +57,7 @@
   "tabIndex": 0,
   "visible": true,
   "enabled": true,
-  "children": []                            // 컨테이너만: Panel, GroupBox, TabControl, SplitContainer
+  "children": []                            // 컨테이너만: Panel, GroupBox, TabControl, SplitContainer, Card, Tooltip, Collapse
 }
 ```
 
@@ -68,7 +68,7 @@
 
 ## 4. 컨트롤 타입별 properties
 
-### Basic (12종)
+### Basic (20종)
 
 | 타입 | 주요 properties |
 |------|----------------|
@@ -84,8 +84,16 @@
 | **ProgressBar** | `value`, `minimum`, `maximum`, `style`("Blocks"\|"Continuous"\|"Marquee") |
 | **PictureBox** | `imageUrl`, `sizeMode`("Normal"\|"StretchImage"\|"AutoSize"\|"CenterImage"\|"Zoom"), `backColor`, `borderStyle` |
 | **RichTextBox** | `text`, `readOnly`, `scrollBars`("None"\|"Horizontal"\|"Vertical"\|"Both"), `backColor`, `foreColor`, `font` |
+| **Slider** | `value`, `minimum`(0), `maximum`(100), `step`(1), `orientation`("Horizontal"\|"Vertical"), `showValue`, `trackColor`, `fillColor` |
+| **Switch** | `checked`, `text`, `onText`("ON"), `offText`("OFF"), `onColor`, `offColor` |
+| **Alert** | `message`, `description`, `alertType`("Success"\|"Info"\|"Warning"\|"Error"), `showIcon`, `closable`, `banner`, `foreColor` |
+| **Tag** | `tags`(문자열 배열), `tagColor`("Default"\|"Blue"\|"Green"\|"Red"\|"Orange"\|"Purple"\|"Cyan"\|"Gold"), `closable`, `addable`, `foreColor` |
+| **Divider** | `text`, `orientation`("Horizontal"\|"Vertical"), `textAlign`("Left"\|"Center"\|"Right"), `lineStyle`("Solid"\|"Dashed"\|"Dotted"), `lineColor`, `foreColor` |
+| **Badge** | `count`, `overflowCount`(99), `showZero`, `dot`, `status`("Default"\|"Success"\|"Processing"\|"Error"\|"Warning"), `text`, `badgeColor`, `offset` |
+| **Avatar** | `imageUrl`, `text`("U"), `shape`("Circle"\|"Square"), `backColor`, `foreColor` |
+| **Statistic** | `title`, `value`("0"), `prefix`, `suffix`, `precision`(0), `showGroupSeparator`, `valueColor`, `foreColor` |
 
-### Container (7종)
+### Container (10종)
 
 | 타입 | 주요 properties | children 규칙 |
 |------|----------------|---------------|
@@ -96,8 +104,11 @@
 | **MenuStrip** | `items`([{text, children, shortcut, enabled, checked, separator, formId}]), `backColor` | dock: "Top" |
 | **ToolStrip** | `items`([{type, text, icon, tooltip, enabled, checked, items}]), `backColor` | dock: "Top" |
 | **StatusStrip** | `items`([{type, text, spring, width, value}]), `backColor` | dock: "Bottom" |
+| **Card** | `title`, `subtitle`, `showHeader`, `showBorder`, `hoverable`, `size`("Default"\|"Small"), `backColor`, `foreColor`, `borderRadius` | 자유 배치 |
+| **Tooltip** | `title`, `placement`("Top"\|"Bottom"\|"Left"\|"Right"\|"TopLeft"\|"TopRight"\|"BottomLeft"\|"BottomRight"), `trigger`("Hover"\|"Click"\|"Focus"), `backColor`, `foreColor` | 래퍼 (자식 1개) |
+| **Collapse** | `panels`([{title, key}]), `activeKeys`, `accordion`, `bordered`, `expandIconPosition`("Start"\|"End"), `backColor`, `foreColor` | 패널별 자식 배치 |
 
-### Data (10종)
+### Data (11종)
 
 | 타입 | 주요 properties |
 |------|----------------|
@@ -111,6 +122,7 @@
 | **MongoDBView** | `title`, `connectionString`, `database`, `collection`, `columns`, `filter`, `pageSize`, `readOnly` |
 | **WebBrowser** | `url`, `allowNavigation` |
 | **BindingNavigator** | `bindingSource`, `showAddButton`, `showDeleteButton` |
+| **Upload** | `uploadMode`("Button"\|"DropZone"), `text`, `accept`, `multiple`, `maxFileSize`(MB), `maxCount`, `backColor`, `foreColor`, `borderStyle`("None"\|"Solid"\|"Dashed") |
 
 ### 비시각적 (1종)
 
@@ -364,6 +376,59 @@ GraphView와 동일한 데이터 형식을 사용한다.
 > - `width`(선택): 고정 너비 (px).
 > - `value`(선택): `progressBar`의 값 (0–100).
 
+### Tag — tags
+
+```jsonc
+{
+  "tags": ["태그1", "태그2", "태그3"],
+  "tagColor": "Blue",
+  "closable": true,
+  "addable": true
+}
+```
+
+> - `tags`(필수): 문자열 배열. 각 항목이 하나의 태그 칩으로 렌더링.
+> - `closable: true` → 각 태그에 ✕ 버튼 표시, 클릭 시 `onTagRemoved` (eventArgs: `{ tag }`).
+> - `addable: true` → `+ New Tag` 칩 표시, 클릭 시 인라인 input → `onTagAdded` (eventArgs: `{ tag }`).
+
+### Upload — 파일 메타 전달
+
+```jsonc
+{
+  "uploadMode": "DropZone",
+  "text": "파일을 드래그하거나 클릭하세요",
+  "accept": ".pdf,.docx",
+  "multiple": true,
+  "maxFileSize": 10,
+  "maxCount": 5
+}
+```
+
+> - `accept`: MIME 타입 또는 확장자 (예: `".pdf,.docx"`, `"image/*"`). 빈 문자열이면 모든 파일 허용.
+> - 파일 선택 시 `onFileSelected` 이벤트 발생 (eventArgs: `{ files: [{ name, size, type }] }`).
+> - 실제 업로드는 이벤트 핸들러 코드에서 `ctx.http.post()` 등으로 처리.
+
+### Collapse — panels
+
+```jsonc
+{
+  "panels": [
+    { "title": "섹션 1", "key": "1" },
+    { "title": "섹션 2", "key": "2" },
+    { "title": "섹션 3", "key": "3" }
+  ],
+  "activeKeys": "1",
+  "accordion": false,
+  "bordered": true
+}
+```
+
+> - `panels[].title`(필수): 패널 헤더 텍스트.
+> - `panels[].key`(필수): 패널 고유 키. `activeKeys`와 매칭하여 열림/닫힘 결정.
+> - `activeKeys`: 열려 있는 패널의 key (쉼표 구분 문자열 또는 단일 key).
+> - `accordion: true` → 한 번에 하나의 패널만 열림.
+> - 자식 컨트롤은 패널 key에 매칭하여 배치 (TabControl 패턴과 동일).
+
 ### MongoDBView — columns
 
 ```jsonc
@@ -416,6 +481,13 @@ GraphView와 동일한 데이터 형식을 사용한다.
 | TreeView | AfterSelect, AfterExpand, AfterCollapse |
 | ListView | SelectedIndexChanged, ItemActivate |
 | MenuStrip, ToolStrip, StatusStrip | ItemClicked |
+| Slider | ValueChanged |
+| Switch | CheckedChanged |
+| Upload | FileSelected, UploadCompleted, UploadFailed |
+| Alert | Closed |
+| Tag | TagAdded, TagRemoved, TagClicked |
+| Tooltip | VisibleChanged |
+| Collapse | ActiveKeyChanged |
 
 > **OnLoading vs Load**: 폼 로드 시 서버에서 데이터 조회하려면 반드시 `OnLoading` + `handlerType: "server"` + `controlId: "_form"` 사용.
 
@@ -504,6 +576,47 @@ ctx.closeApp();                       // Shell 종료
 }
 ```
 
+### Card
+
+```jsonc
+// Panel/GroupBox와 동일한 자식 배치 패턴
+{
+  "type": "Card",
+  "properties": { "title": "카드 제목", "subtitle": "부제목", "showHeader": true, "showBorder": true, "hoverable": false, "borderRadius": 8 },
+  "children": [
+    { "type": "Label", "position": { "x": 16, "y": 16 }, ... }
+  ]
+}
+```
+
+### Tooltip
+
+```jsonc
+// 자식 컨트롤을 감싸는 래퍼
+{
+  "type": "Tooltip",
+  "properties": { "title": "도움말 텍스트", "placement": "Top", "trigger": "Hover" },
+  "children": [
+    { "type": "Button", "properties": { "text": "호버하세요" }, ... }
+  ]
+}
+```
+
+### Collapse
+
+```jsonc
+// panels[].key ↔ 자식 배치 (TabControl과 유사)
+{
+  "type": "Collapse",
+  "properties": {
+    "panels": [{ "title": "섹션 1", "key": "1" }, { "title": "섹션 2", "key": "2" }],
+    "activeKeys": "1",
+    "accordion": false
+  },
+  "children": [...]
+}
+```
+
 ### MenuStrip 아이템 (formId로 선언적 네비게이션)
 
 ```jsonc
@@ -538,6 +651,10 @@ ctx.closeApp();                       // Shell 종료
 - [ ] StatusStrip items `type` 값: `"label"` | `"progressBar"` | `"dropDownButton"`
 - [ ] MongoDBView `columns`는 쉼표 구분 문자열 (예: `"name,email,phone"`)
 - [ ] TabControl: `tabs[].id` ↔ 자식 Panel `tabId` 매칭
+- [ ] Collapse: `panels[].key` ↔ 자식 컨트롤 패널 소속 매칭
+- [ ] Tag: `tags`는 문자열 배열
+- [ ] Upload: `accept`는 MIME 타입 또는 확장자 문자열 (예: `".pdf,.docx"`, `"image/*"`)
+- [ ] Card/Tooltip/Collapse: 컨테이너 — `children`에 자식 컨트롤 배치
 - [ ] JSON 유효성 (trailing comma 없음, 줄바꿈은 `\n`)
 
 ---

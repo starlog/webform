@@ -47,6 +47,7 @@ export interface DesignerControlProps {
   id?: string;
   properties: Record<string, unknown>;
   size: { width: number; height: number };
+  position?: { x: number; y: number };
   children?: React.ReactNode;
 }
 

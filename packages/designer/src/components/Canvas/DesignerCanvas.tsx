@@ -16,12 +16,14 @@ const FORM_MIN_WIDTH = 200;
 const FORM_MIN_HEIGHT = 150;
 
 /**
- * TabControl의 탭 페이지 기반 숨김 컨트롤 ID를 계산한다.
- * - 탭 페이지 Panel 자체는 항상 숨김 (TabControl 프리뷰가 시각적 경계를 표시)
- * - 선택되지 않은 탭 페이지의 자식 컨트롤은 숨김
+ * TabControl/Collapse의 숨김 컨트롤 ID를 계산한다.
+ * - TabControl: 탭 페이지 Panel 자체는 항상 숨김, 비선택 탭의 자식 숨김
+ * - Collapse: 비활성 패널의 자식 컨트롤 숨김
  */
 function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
   const hidden = new Set<string>();
+
+  // --- TabControl ---
   const tabControls = controls.filter((c) => c.type === 'TabControl');
 
   for (const tc of tabControls) {
@@ -54,6 +56,34 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
       if (!isSelected) {
         collectDescendants(controls, panel.id, hidden);
       }
+    }
+  }
+
+  // --- Collapse ---
+  const collapseControls = controls.filter((c) => c.type === 'Collapse');
+
+  for (const cc of collapseControls) {
+    // Collapse의 직접 자식을 찾기
+    const children = controls.filter(
+      (c) => (c.properties._parentId as string) === cc.id,
+    );
+
+    // Collapse 자식은 모두 캔버스에서 숨기고 CollapseControl 내부에서 인라인 렌더링
+    for (const child of children) {
+      hidden.add(child.id);
+      collectDescendants(controls, child.id, hidden);
+    }
+  }
+
+  // --- Card ---
+  const cardControls = controls.filter((c) => c.type === 'Card');
+  for (const card of cardControls) {
+    const children = controls.filter(
+      (c) => (c.properties._parentId as string) === card.id,
+    );
+    for (const child of children) {
+      hidden.add(child.id);
+      collectDescendants(controls, child.id, hidden);
     }
   }
 

@@ -3102,6 +3102,832 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         }
       ],
       "dataBindings": []
+    },
+    {
+      "name": "15. 새 UI 컴포넌트 데모",
+      "properties": {
+        "title": "새 UI 컴포넌트 데모",
+        "width": 800,
+        "height": 950,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "windowState": "Maximized",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblTitle15",
+          "type": "Label",
+          "name": "lblTitle15",
+          "position": { "x": 20, "y": 10 },
+          "size": { "width": 750, "height": 35 },
+          "properties": {
+            "text": "새 UI 컴포넌트 데모",
+            "foreColor": "#1565C0",
+            "font": { "family": "Pretendard", "size": 18, "bold": true, "italic": false, "underline": false, "strikethrough": false },
+            "textAlign": "MiddleLeft"
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "divTop",
+          "type": "Divider",
+          "name": "divTop",
+          "position": { "x": 20, "y": 50 },
+          "size": { "width": 750, "height": 30 },
+          "properties": { "text": "Slider / Switch", "orientation": "Horizontal", "textAlign": "Left", "lineStyle": "Solid", "lineColor": "#1565C0" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblSlider",
+          "type": "Label",
+          "name": "lblSlider",
+          "position": { "x": 20, "y": 85 },
+          "size": { "width": 80, "height": 23 },
+          "properties": { "text": "밝기 조절" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+        },
+        {
+          "id": "sldBrightness",
+          "type": "Slider",
+          "name": "sldBrightness",
+          "position": { "x": 110, "y": 80 },
+          "size": { "width": 300, "height": 40 },
+          "properties": { "value": 70, "minimum": 0, "maximum": 100, "step": 5, "orientation": "Horizontal", "showValue": true, "trackColor": "#E0E0E0", "fillColor": "#1565C0" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblSliderVal",
+          "type": "Label",
+          "name": "lblSliderVal",
+          "position": { "x": 420, "y": 85 },
+          "size": { "width": 100, "height": 23 },
+          "properties": { "text": "70%", "foreColor": "#1565C0" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblVolume",
+          "type": "Label",
+          "name": "lblVolume",
+          "position": { "x": 20, "y": 130 },
+          "size": { "width": 80, "height": 23 },
+          "properties": { "text": "볼륨" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 5, "visible": true, "enabled": true
+        },
+        {
+          "id": "sldVolume",
+          "type": "Slider",
+          "name": "sldVolume",
+          "position": { "x": 110, "y": 125 },
+          "size": { "width": 300, "height": 40 },
+          "properties": { "value": 50, "minimum": 0, "maximum": 100, "step": 1, "orientation": "Horizontal", "showValue": true, "trackColor": "#E0E0E0", "fillColor": "#E91E63" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 6, "visible": true, "enabled": true
+        },
+        {
+          "id": "swDarkMode",
+          "type": "Switch",
+          "name": "swDarkMode",
+          "position": { "x": 540, "y": 85 },
+          "size": { "width": 180, "height": 30 },
+          "properties": { "checked": false, "text": "다크 모드", "onText": "ON", "offText": "OFF", "onColor": "#1565C0", "offColor": "#BDBDBD" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 7, "visible": true, "enabled": true
+        },
+        {
+          "id": "swNotification",
+          "type": "Switch",
+          "name": "swNotification",
+          "position": { "x": 540, "y": 125 },
+          "size": { "width": 180, "height": 30 },
+          "properties": { "checked": true, "text": "알림 수신", "onText": "ON", "offText": "OFF", "onColor": "#2E7D32", "offColor": "#BDBDBD" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 8, "visible": true, "enabled": true
+        },
+        {
+          "id": "divAlert",
+          "type": "Divider",
+          "name": "divAlert",
+          "position": { "x": 20, "y": 170 },
+          "size": { "width": 750, "height": 30 },
+          "properties": { "text": "Alert", "orientation": "Horizontal", "textAlign": "Left", "lineStyle": "Dashed", "lineColor": "#FF9800" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 9, "visible": true, "enabled": true
+        },
+        {
+          "id": "alertSuccess",
+          "type": "Alert",
+          "name": "alertSuccess",
+          "position": { "x": 20, "y": 205 },
+          "size": { "width": 360, "height": 60 },
+          "properties": { "message": "저장 완료", "description": "데이터가 성공적으로 저장되었습니다.", "alertType": "Success", "showIcon": true, "closable": true, "banner": false },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 10, "visible": true, "enabled": true
+        },
+        {
+          "id": "alertWarning",
+          "type": "Alert",
+          "name": "alertWarning",
+          "position": { "x": 400, "y": 205 },
+          "size": { "width": 370, "height": 60 },
+          "properties": { "message": "주의", "description": "저장하지 않은 변경 사항이 있습니다.", "alertType": "Warning", "showIcon": true, "closable": false, "banner": false },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 11, "visible": true, "enabled": true
+        },
+        {
+          "id": "alertInfo",
+          "type": "Alert",
+          "name": "alertInfo",
+          "position": { "x": 20, "y": 275 },
+          "size": { "width": 360, "height": 60 },
+          "properties": { "message": "안내", "description": "새로운 업데이트가 있습니다.", "alertType": "Info", "showIcon": true, "closable": true, "banner": false },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 12, "visible": true, "enabled": true
+        },
+        {
+          "id": "alertError",
+          "type": "Alert",
+          "name": "alertError",
+          "position": { "x": 400, "y": 275 },
+          "size": { "width": 370, "height": 60 },
+          "properties": { "message": "오류 발생", "description": "서버 연결에 실패했습니다.", "alertType": "Error", "showIcon": true, "closable": true, "banner": false },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 13, "visible": true, "enabled": true
+        },
+        {
+          "id": "divTag",
+          "type": "Divider",
+          "name": "divTag",
+          "position": { "x": 20, "y": 345 },
+          "size": { "width": 750, "height": 30 },
+          "properties": { "text": "Tag / Badge / Avatar / Statistic", "orientation": "Horizontal", "textAlign": "Left", "lineStyle": "Solid", "lineColor": "#9C27B0" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 14, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblTagLabel",
+          "type": "Label",
+          "name": "lblTagLabel",
+          "position": { "x": 20, "y": 385 },
+          "size": { "width": 60, "height": 23 },
+          "properties": { "text": "태그" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 15, "visible": true, "enabled": true
+        },
+        {
+          "id": "tagSkills",
+          "type": "Tag",
+          "name": "tagSkills",
+          "position": { "x": 80, "y": 380 },
+          "size": { "width": 350, "height": 35 },
+          "properties": { "tags": ["React", "TypeScript", "Node.js", "MongoDB"], "tagColor": "Blue", "closable": true, "addable": true },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 16, "visible": true, "enabled": true
+        },
+        {
+          "id": "tagStatus",
+          "type": "Tag",
+          "name": "tagStatus",
+          "position": { "x": 450, "y": 380 },
+          "size": { "width": 300, "height": 35 },
+          "properties": { "tags": ["진행중", "긴급", "완료"], "tagColor": "Red", "closable": false, "addable": false },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 17, "visible": true, "enabled": true
+        },
+        {
+          "id": "bdgNotify",
+          "type": "Badge",
+          "name": "bdgNotify",
+          "position": { "x": 20, "y": 425 },
+          "size": { "width": 120, "height": 40 },
+          "properties": { "count": 5, "overflowCount": 99, "showZero": false, "dot": false, "status": "Error", "text": "알림" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 18, "visible": true, "enabled": true
+        },
+        {
+          "id": "bdgMsg",
+          "type": "Badge",
+          "name": "bdgMsg",
+          "position": { "x": 150, "y": 425 },
+          "size": { "width": 120, "height": 40 },
+          "properties": { "count": 128, "overflowCount": 99, "showZero": false, "dot": false, "status": "Processing", "text": "메시지" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 19, "visible": true, "enabled": true
+        },
+        {
+          "id": "bdgDot",
+          "type": "Badge",
+          "name": "bdgDot",
+          "position": { "x": 280, "y": 425 },
+          "size": { "width": 100, "height": 40 },
+          "properties": { "count": 0, "showZero": false, "dot": true, "status": "Success", "text": "상태" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 20, "visible": true, "enabled": true
+        },
+        {
+          "id": "avtUser1",
+          "type": "Avatar",
+          "name": "avtUser1",
+          "position": { "x": 420, "y": 425 },
+          "size": { "width": 40, "height": 40 },
+          "properties": { "text": "김", "shape": "Circle", "backColor": "#1565C0", "foreColor": "#FFFFFF" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 21, "visible": true, "enabled": true
+        },
+        {
+          "id": "avtUser2",
+          "type": "Avatar",
+          "name": "avtUser2",
+          "position": { "x": 470, "y": 425 },
+          "size": { "width": 40, "height": 40 },
+          "properties": { "text": "이", "shape": "Circle", "backColor": "#E91E63", "foreColor": "#FFFFFF" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 22, "visible": true, "enabled": true
+        },
+        {
+          "id": "avtUser3",
+          "type": "Avatar",
+          "name": "avtUser3",
+          "position": { "x": 520, "y": 425 },
+          "size": { "width": 40, "height": 40 },
+          "properties": { "text": "박", "shape": "Square", "backColor": "#FF9800", "foreColor": "#FFFFFF" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 23, "visible": true, "enabled": true
+        },
+        {
+          "id": "avtPhoto",
+          "type": "Avatar",
+          "name": "avtPhoto",
+          "position": { "x": 570, "y": 425 },
+          "size": { "width": 40, "height": 40 },
+          "properties": { "imageUrl": "https://i.pravatar.cc/40?img=3", "shape": "Circle" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 24, "visible": true, "enabled": true
+        },
+        {
+          "id": "divStatistic",
+          "type": "Divider",
+          "name": "divStatistic",
+          "position": { "x": 20, "y": 475 },
+          "size": { "width": 750, "height": 30 },
+          "properties": { "text": "Statistic", "orientation": "Horizontal", "textAlign": "Center", "lineStyle": "Dotted", "lineColor": "#607D8B" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 25, "visible": true, "enabled": true
+        },
+        {
+          "id": "statUsers",
+          "type": "Statistic",
+          "name": "statUsers",
+          "position": { "x": 20, "y": 515 },
+          "size": { "width": 170, "height": 70 },
+          "properties": { "title": "활성 사용자", "value": "1284", "prefix": "", "suffix": "명", "precision": 0, "showGroupSeparator": true, "valueColor": "#1565C0" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 26, "visible": true, "enabled": true
+        },
+        {
+          "id": "statRevenue",
+          "type": "Statistic",
+          "name": "statRevenue",
+          "position": { "x": 200, "y": 515 },
+          "size": { "width": 180, "height": 70 },
+          "properties": { "title": "월 매출", "value": "52840000", "prefix": "₩", "suffix": "", "precision": 0, "showGroupSeparator": true, "valueColor": "#2E7D32" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 27, "visible": true, "enabled": true
+        },
+        {
+          "id": "statRate",
+          "type": "Statistic",
+          "name": "statRate",
+          "position": { "x": 390, "y": 515 },
+          "size": { "width": 170, "height": 70 },
+          "properties": { "title": "전환율", "value": "3.76", "prefix": "", "suffix": "%", "precision": 2, "showGroupSeparator": false, "valueColor": "#E91E63" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 28, "visible": true, "enabled": true
+        },
+        {
+          "id": "statOrders",
+          "type": "Statistic",
+          "name": "statOrders",
+          "position": { "x": 570, "y": 515 },
+          "size": { "width": 200, "height": 70 },
+          "properties": { "title": "금일 주문", "value": "47", "prefix": "", "suffix": "건", "precision": 0, "showGroupSeparator": false, "valueColor": "#FF9800" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 29, "visible": true, "enabled": true
+        },
+        {
+          "id": "divUpload",
+          "type": "Divider",
+          "name": "divUpload",
+          "position": { "x": 20, "y": 595 },
+          "size": { "width": 750, "height": 30 },
+          "properties": { "text": "Upload", "orientation": "Horizontal", "textAlign": "Left", "lineStyle": "Solid", "lineColor": "#00897B" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 30, "visible": true, "enabled": true
+        },
+        {
+          "id": "uplButton",
+          "type": "Upload",
+          "name": "uplButton",
+          "position": { "x": 20, "y": 635 },
+          "size": { "width": 200, "height": 36 },
+          "properties": { "uploadMode": "Button", "text": "파일 선택", "accept": ".pdf,.docx,.xlsx", "multiple": true, "maxFileSize": 10, "maxCount": 5 },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 31, "visible": true, "enabled": true
+        },
+        {
+          "id": "uplDropZone",
+          "type": "Upload",
+          "name": "uplDropZone",
+          "position": { "x": 240, "y": 635 },
+          "size": { "width": 530, "height": 120 },
+          "properties": { "uploadMode": "DropZone", "text": "파일을 여기에 드래그하거나 클릭하여 업로드하세요", "accept": "image/*", "multiple": true, "maxFileSize": 5, "maxCount": 10, "borderStyle": "Dashed" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 32, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblUploadStatus",
+          "type": "Label",
+          "name": "lblUploadStatus",
+          "position": { "x": 20, "y": 765 },
+          "size": { "width": 750, "height": 23 },
+          "properties": { "text": "파일을 선택하면 이벤트 정보가 여기에 표시됩니다.", "foreColor": "#616161" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 33, "visible": true, "enabled": true
+        },
+        {
+          "id": "divVertical",
+          "type": "Divider",
+          "name": "divVertical",
+          "position": { "x": 390, "y": 800 },
+          "size": { "width": 30, "height": 80 },
+          "properties": { "orientation": "Vertical", "lineStyle": "Dashed", "lineColor": "#9E9E9E" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 34, "visible": true, "enabled": true
+        },
+        {
+          "id": "btnToggleAlert",
+          "type": "Button",
+          "name": "btnToggleAlert",
+          "position": { "x": 20, "y": 810 },
+          "size": { "width": 160, "height": 32 },
+          "properties": { "text": "Alert 토글", "backColor": "#FF9800", "foreColor": "#FFFFFF" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 35, "visible": true, "enabled": true
+        },
+        {
+          "id": "btnUpdateStats",
+          "type": "Button",
+          "name": "btnUpdateStats",
+          "position": { "x": 200, "y": 810 },
+          "size": { "width": 160, "height": 32 },
+          "properties": { "text": "통계 업데이트", "backColor": "#1565C0", "foreColor": "#FFFFFF" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 36, "visible": true, "enabled": true
+        },
+        {
+          "id": "btnResetSliders",
+          "type": "Button",
+          "name": "btnResetSliders",
+          "position": { "x": 440, "y": 810 },
+          "size": { "width": 160, "height": 32 },
+          "properties": { "text": "슬라이더 초기화" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 37, "visible": true, "enabled": true
+        },
+        {
+          "id": "lblEventLog",
+          "type": "Label",
+          "name": "lblEventLog",
+          "position": { "x": 20, "y": 860 },
+          "size": { "width": 750, "height": 23 },
+          "properties": { "text": "", "foreColor": "#616161" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 38, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [
+        {
+          "controlId": "sldBrightness",
+          "eventName": "ValueChanged",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.lblSliderVal.text = ctx.controls.sldBrightness.value + '%';\nctx.controls.lblEventLog.text = '밝기: ' + ctx.controls.sldBrightness.value + '%';"
+        },
+        {
+          "controlId": "swDarkMode",
+          "eventName": "CheckedChanged",
+          "handlerType": "server",
+          "handlerCode": "var isDark = ctx.controls.swDarkMode.checked;\nctx.controls.lblEventLog.text = '다크 모드: ' + (isDark ? 'ON' : 'OFF');"
+        },
+        {
+          "controlId": "swNotification",
+          "eventName": "CheckedChanged",
+          "handlerType": "server",
+          "handlerCode": "var isOn = ctx.controls.swNotification.checked;\nctx.controls.lblEventLog.text = '알림 수신: ' + (isOn ? 'ON' : 'OFF');"
+        },
+        {
+          "controlId": "tagSkills",
+          "eventName": "TagAdded",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.lblEventLog.text = '태그 추가: ' + ctx.eventArgs.tag;"
+        },
+        {
+          "controlId": "tagSkills",
+          "eventName": "TagRemoved",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.lblEventLog.text = '태그 삭제: ' + ctx.eventArgs.tag;"
+        },
+        {
+          "controlId": "uplButton",
+          "eventName": "FileSelected",
+          "handlerType": "server",
+          "handlerCode": "var files = ctx.eventArgs.files || [];\nvar names = [];\nfor (var i = 0; i < files.length; i++) { names.push(files[i].name); }\nctx.controls.lblUploadStatus.text = '선택된 파일: ' + names.join(', ');\nctx.controls.lblUploadStatus.foreColor = '#2E7D32';"
+        },
+        {
+          "controlId": "uplDropZone",
+          "eventName": "FileSelected",
+          "handlerType": "server",
+          "handlerCode": "var files = ctx.eventArgs.files || [];\nvar names = [];\nfor (var i = 0; i < files.length; i++) { names.push(files[i].name + ' (' + files[i].size + 'B)'); }\nctx.controls.lblUploadStatus.text = '드롭존 파일: ' + names.join(', ');\nctx.controls.lblUploadStatus.foreColor = '#1565C0';"
+        },
+        {
+          "controlId": "btnToggleAlert",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.alertSuccess.visible = !ctx.controls.alertSuccess.visible;\nctx.controls.alertError.visible = !ctx.controls.alertError.visible;\nctx.controls.lblEventLog.text = 'Alert 표시 상태 토글됨';"
+        },
+        {
+          "controlId": "btnUpdateStats",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "var users = Math.floor(Math.random() * 2000) + 500;\nvar revenue = Math.floor(Math.random() * 100000000);\nvar rate = (Math.random() * 5 + 1).toFixed(2);\nvar orders = Math.floor(Math.random() * 100) + 10;\nctx.controls.statUsers.value = String(users);\nctx.controls.statRevenue.value = String(revenue);\nctx.controls.statRate.value = String(rate);\nctx.controls.statOrders.value = String(orders);\nctx.controls.lblEventLog.text = '통계가 랜덤 값으로 업데이트되었습니다.';\nctx.controls.lblEventLog.foreColor = '#2E7D32';"
+        },
+        {
+          "controlId": "btnResetSliders",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.sldBrightness.value = 70;\nctx.controls.sldVolume.value = 50;\nctx.controls.lblSliderVal.text = '70%';\nctx.controls.swDarkMode.checked = false;\nctx.controls.swNotification.checked = true;\nctx.controls.lblEventLog.text = '슬라이더와 스위치가 초기화되었습니다.';"
+        }
+      ],
+      "dataBindings": []
+    },
+    {
+      "name": "16. 카드/툴팁/콜랩스 데모",
+      "properties": {
+        "title": "카드 / 툴팁 / 콜랩스 데모",
+        "width": 800,
+        "height": 800,
+        "backgroundColor": "#F5F5F5",
+        "font": { "family": "Pretendard", "size": 10, "bold": false, "italic": false, "underline": false, "strikethrough": false },
+        "startPosition": "CenterScreen",
+        "windowState": "Maximized",
+        "formBorderStyle": "Sizable",
+        "maximizeBox": true,
+        "minimizeBox": true
+      },
+      "controls": [
+        {
+          "id": "lblTitle16",
+          "type": "Label",
+          "name": "lblTitle16",
+          "position": { "x": 20, "y": 10 },
+          "size": { "width": 750, "height": 35 },
+          "properties": {
+            "text": "카드 / 툴팁 / 콜랩스 데모",
+            "foreColor": "#1565C0",
+            "font": { "family": "Pretendard", "size": 18, "bold": true, "italic": false, "underline": false, "strikethrough": false },
+            "textAlign": "MiddleLeft"
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+        },
+        {
+          "id": "cardProfile",
+          "type": "Card",
+          "name": "cardProfile",
+          "position": { "x": 20, "y": 55 },
+          "size": { "width": 240, "height": 200 },
+          "properties": { "title": "사용자 프로필", "subtitle": "개인 정보", "showHeader": true, "showBorder": true, "hoverable": true, "size": "Default", "backColor": "#FFFFFF", "borderRadius": 8 },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 1, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "avtProfile",
+              "type": "Avatar",
+              "name": "avtProfile",
+              "position": { "x": 90, "y": 10 },
+              "size": { "width": 50, "height": 50 },
+              "properties": { "text": "홍", "shape": "Circle", "backColor": "#1565C0", "foreColor": "#FFFFFF" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblProfileName",
+              "type": "Label",
+              "name": "lblProfileName",
+              "position": { "x": 16, "y": 70 },
+              "size": { "width": 200, "height": 23 },
+              "properties": { "text": "홍길동", "textAlign": "MiddleCenter", "font": { "family": "Pretendard", "size": 12, "bold": true, "italic": false, "underline": false, "strikethrough": false } },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblProfileRole",
+              "type": "Label",
+              "name": "lblProfileRole",
+              "position": { "x": 16, "y": 95 },
+              "size": { "width": 200, "height": 23 },
+              "properties": { "text": "풀스택 개발자", "textAlign": "MiddleCenter", "foreColor": "#757575" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "cardStats",
+          "type": "Card",
+          "name": "cardStats",
+          "position": { "x": 275, "y": 55 },
+          "size": { "width": 240, "height": 200 },
+          "properties": { "title": "프로젝트 통계", "subtitle": "이번 달", "showHeader": true, "showBorder": true, "hoverable": true, "size": "Default", "backColor": "#FFFFFF", "borderRadius": 8 },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 2, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "statTaskDone",
+              "type": "Statistic",
+              "name": "statTaskDone",
+              "position": { "x": 16, "y": 10 },
+              "size": { "width": 100, "height": 55 },
+              "properties": { "title": "완료", "value": "24", "suffix": "건", "precision": 0, "showGroupSeparator": false, "valueColor": "#2E7D32" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "statTaskPending",
+              "type": "Statistic",
+              "name": "statTaskPending",
+              "position": { "x": 120, "y": 10 },
+              "size": { "width": 100, "height": 55 },
+              "properties": { "title": "진행중", "value": "8", "suffix": "건", "precision": 0, "showGroupSeparator": false, "valueColor": "#FF9800" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+              "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+            },
+            {
+              "id": "prgTaskProgress",
+              "type": "ProgressBar",
+              "name": "prgTaskProgress",
+              "position": { "x": 16, "y": 80 },
+              "size": { "width": 200, "height": 20 },
+              "properties": { "value": 75, "minimum": 0, "maximum": 100, "style": "Continuous" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "cardAction",
+          "type": "Card",
+          "name": "cardAction",
+          "position": { "x": 530, "y": 55 },
+          "size": { "width": 240, "height": 200 },
+          "properties": { "title": "빠른 작업", "showHeader": true, "showBorder": true, "hoverable": false, "size": "Small", "backColor": "#FFFFFF", "borderRadius": 8 },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 3, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "btnCardNew",
+              "type": "Button",
+              "name": "btnCardNew",
+              "position": { "x": 16, "y": 10 },
+              "size": { "width": 200, "height": 32 },
+              "properties": { "text": "새 프로젝트", "backColor": "#1565C0", "foreColor": "#FFFFFF" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "btnCardImport",
+              "type": "Button",
+              "name": "btnCardImport",
+              "position": { "x": 16, "y": 50 },
+              "size": { "width": 200, "height": 32 },
+              "properties": { "text": "가져오기", "backColor": "#2E7D32", "foreColor": "#FFFFFF" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 1, "visible": true, "enabled": true
+            },
+            {
+              "id": "btnCardExport",
+              "type": "Button",
+              "name": "btnCardExport",
+              "position": { "x": 16, "y": 90 },
+              "size": { "width": 200, "height": 32 },
+              "properties": { "text": "내보내기" },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 2, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "lblTooltipSection",
+          "type": "Label",
+          "name": "lblTooltipSection",
+          "position": { "x": 20, "y": 270 },
+          "size": { "width": 200, "height": 28 },
+          "properties": {
+            "text": "Tooltip 데모",
+            "foreColor": "#1565C0",
+            "font": { "family": "Pretendard", "size": 13, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 4, "visible": true, "enabled": true
+        },
+        {
+          "id": "tipTop",
+          "type": "Tooltip",
+          "name": "tipTop",
+          "position": { "x": 20, "y": 305 },
+          "size": { "width": 150, "height": 36 },
+          "properties": { "title": "위쪽에 표시되는 툴팁입니다", "placement": "Top", "trigger": "Hover" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 5, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "btnTipTop",
+              "type": "Button",
+              "name": "btnTipTop",
+              "position": { "x": 0, "y": 0 },
+              "size": { "width": 150, "height": 36 },
+              "properties": { "text": "Top 툴팁" },
+              "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "tipRight",
+          "type": "Tooltip",
+          "name": "tipRight",
+          "position": { "x": 185, "y": 305 },
+          "size": { "width": 150, "height": 36 },
+          "properties": { "title": "오른쪽에 표시되는 툴팁", "placement": "Right", "trigger": "Hover" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 6, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "btnTipRight",
+              "type": "Button",
+              "name": "btnTipRight",
+              "position": { "x": 0, "y": 0 },
+              "size": { "width": 150, "height": 36 },
+              "properties": { "text": "Right 툴팁" },
+              "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "tipBottom",
+          "type": "Tooltip",
+          "name": "tipBottom",
+          "position": { "x": 350, "y": 305 },
+          "size": { "width": 150, "height": 36 },
+          "properties": { "title": "아래쪽 툴팁\n여러 줄도 가능합니다", "placement": "Bottom", "trigger": "Hover" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 7, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "btnTipBottom",
+              "type": "Button",
+              "name": "btnTipBottom",
+              "position": { "x": 0, "y": 0 },
+              "size": { "width": 150, "height": 36 },
+              "properties": { "text": "Bottom 툴팁" },
+              "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "tipClick",
+          "type": "Tooltip",
+          "name": "tipClick",
+          "position": { "x": 515, "y": 305 },
+          "size": { "width": 150, "height": 36 },
+          "properties": { "title": "클릭으로 표시되는 툴팁입니다", "placement": "TopRight", "trigger": "Click", "backColor": "#1565C0", "foreColor": "#FFFFFF" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 8, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "btnTipClick",
+              "type": "Button",
+              "name": "btnTipClick",
+              "position": { "x": 0, "y": 0 },
+              "size": { "width": 150, "height": 36 },
+              "properties": { "text": "Click 툴팁", "backColor": "#E91E63", "foreColor": "#FFFFFF" },
+              "anchor": { "top": true, "bottom": true, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "lblCollapseSection",
+          "type": "Label",
+          "name": "lblCollapseSection",
+          "position": { "x": 20, "y": 360 },
+          "size": { "width": 200, "height": 28 },
+          "properties": {
+            "text": "Collapse 데모",
+            "foreColor": "#1565C0",
+            "font": { "family": "Pretendard", "size": 13, "bold": true, "italic": false, "underline": false, "strikethrough": false }
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
+          "dock": "None", "tabIndex": 9, "visible": true, "enabled": true
+        },
+        {
+          "id": "colFaq",
+          "type": "Collapse",
+          "name": "colFaq",
+          "position": { "x": 20, "y": 395 },
+          "size": { "width": 750, "height": 300 },
+          "properties": {
+            "panels": [
+              { "title": "WebForm이란 무엇인가요?", "key": "1" },
+              { "title": "어떤 컨트롤을 지원하나요?", "key": "2" },
+              { "title": "이벤트 처리는 어떻게 하나요?", "key": "3" }
+            ],
+            "activeKeys": "1",
+            "accordion": false,
+            "bordered": true,
+            "expandIconPosition": "Start"
+          },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 10, "visible": true, "enabled": true,
+          "children": [
+            {
+              "id": "lblFaq1",
+              "type": "Label",
+              "name": "lblFaq1",
+              "position": { "x": 4, "y": 0 },
+              "size": { "width": 700, "height": 46 },
+              "properties": { "text": "WebForm은 Microsoft WinForm 디자이너를 웹으로 구현한 Server-Driven UI(SDUI) 기반 로우코드 플랫폼입니다. 드래그 앤 드롭으로 UI를 설계하고, 서버 측 이벤트 핸들러로 비즈니스 로직을 처리합니다." },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblFaq2",
+              "type": "Label",
+              "name": "lblFaq2",
+              "position": { "x": 4, "y": 0 },
+              "size": { "width": 700, "height": 46 },
+              "properties": { "text": "Basic 20종(Button, Label, TextBox, Slider, Switch, Alert, Tag 등), Container 10종(Panel, Card, Tooltip, Collapse 등), Data 11종(DataGridView, Chart, GraphView, Upload 등), 비시각적 1종(MongoDBConnector)을 지원합니다." },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            },
+            {
+              "id": "lblFaq3",
+              "type": "Label",
+              "name": "lblFaq3",
+              "position": { "x": 4, "y": 0 },
+              "size": { "width": 700, "height": 46 },
+              "properties": { "text": "이벤트 핸들러는 서버 측 JavaScript(isolated-vm 샌드박스)에서 실행됩니다. ctx.controls로 컨트롤 속성을 읽고 쓰며, ctx.showMessage(), ctx.http, ctx.navigate() 등의 API를 사용할 수 있습니다." },
+              "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+              "dock": "None", "tabIndex": 0, "visible": true, "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "lblColStatus",
+          "type": "Label",
+          "name": "lblColStatus",
+          "position": { "x": 20, "y": 705 },
+          "size": { "width": 750, "height": 23 },
+          "properties": { "text": "", "foreColor": "#616161" },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "dock": "None", "tabIndex": 11, "visible": true, "enabled": true
+        }
+      ],
+      "eventHandlers": [
+        {
+          "controlId": "btnCardNew",
+          "eventName": "Click",
+          "handlerType": "server",
+          "handlerCode": "ctx.showMessage('새 프로젝트를 생성합니다.', '알림', 'info');\nctx.controls.lblColStatus.text = '새 프로젝트 버튼 클릭';\nctx.controls.lblColStatus.foreColor = '#1565C0';"
+        },
+        {
+          "controlId": "colFaq",
+          "eventName": "ActiveKeyChanged",
+          "handlerType": "server",
+          "handlerCode": "ctx.controls.lblColStatus.text = 'Collapse 패널 변경됨';\nctx.controls.lblColStatus.foreColor = '#9C27B0';"
+        }
+      ],
+      "dataBindings": []
     }
   ]
 }
@@ -3162,6 +3988,9 @@ echo -e "   11. 웹 브라우저 데모     - WebBrowser (iframe, URL 탐색)"
 echo -e "   12. 차트 데모            - Chart (Column, Pie, Doughnut, Radar)"
 echo -e "   13. 분할 컨테이너 데모   - SplitContainer (수직/수평 분할)"
 echo -e "   14. 바인딩 네비게이터    - BindingNavigator + DataGridView 연동"
+echo -e "   15. 새 UI 컴포넌트 데모  - Slider, Switch, Alert, Tag, Divider,"
+echo -e "                              Badge, Avatar, Statistic, Upload"
+echo -e "   16. 카드/툴팁/콜랩스    - Card, Tooltip, Collapse"
 echo ""
 echo -e "  ${YELLOW}[MongoDB 샘플 데이터]${NC}"
 echo -e "    데이터베이스 : demo"
@@ -3186,5 +4015,13 @@ echo -e "    - WebBrowser URL 탐색/잠금"
 echo -e "    - Chart 차트 타입 변경 및 데이터 로드"
 echo -e "    - SplitContainer 방향/고정 토글"
 echo -e "    - BindingNavigator 레코드 탐색"
+echo -e "    - Slider ValueChanged 이벤트 처리"
+echo -e "    - Switch CheckedChanged 토글"
+echo -e "    - Tag 추가/삭제 이벤트 (TagAdded/TagRemoved)"
+echo -e "    - Upload FileSelected 이벤트"
+echo -e "    - Statistic 동적 값 업데이트"
+echo -e "    - Collapse ActiveKeyChanged 이벤트"
+echo -e "    - Card 내부 자식 컨트롤 배치"
+echo -e "    - Tooltip 다양한 배치/트리거"
 echo -e "${GREEN}========================================${NC}"
 echo ""

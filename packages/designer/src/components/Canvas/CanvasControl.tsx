@@ -37,16 +37,18 @@ function ControlPreview({
   type,
   properties,
   size,
+  position,
 }: {
   id: string;
   type: ControlType;
   properties: Record<string, unknown>;
   size: { width: number; height: number };
+  position: { x: number; y: number };
 }) {
   const Component = getDesignerComponent(type);
 
   if (Component) {
-    return <Component id={id} properties={properties} size={size} />;
+    return <Component id={id} properties={properties} size={size} position={position} />;
   }
 
   const text = (properties.text as string) ?? type;
@@ -209,7 +211,7 @@ export function CanvasControl({ control, isSelected, onSnaplineChange }: CanvasC
       }}
       onMouseDown={handleMouseDown}
     >
-      <ControlPreview id={control.id} type={control.type} properties={control.properties} size={control.size} />
+      <ControlPreview id={control.id} type={control.type} properties={control.properties} size={control.size} position={control.position} />
 
       {isSelected && (
         <>

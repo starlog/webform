@@ -87,7 +87,7 @@ export function Tooltip({
     <div
       className="wf-tooltip"
       data-control-id={id}
-      style={{ ...style, position: 'relative' }}
+      style={{ position: 'relative', ...style }}
       {...triggerProps}
     >
       {children}

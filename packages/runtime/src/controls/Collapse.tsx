@@ -77,7 +77,7 @@ export function Collapse({
     color: colors.color,
     border: bordered ? '1px solid rgba(0,0,0,0.1)' : 'none',
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: 'auto',
     ...style,
   };
 
@@ -96,6 +96,16 @@ export function Collapse({
 
   return (
     <div className="wf-collapse" data-control-id={id} style={containerStyle}>
+      <style>{`.wf-collapse-panel-content > * {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+      }`}</style>
       {panels.map((panel, index) => {
         const isActive = activeKeySet.has(panel.key);
         return (
@@ -129,7 +139,9 @@ export function Collapse({
                 transition: 'max-height 0.3s ease',
               }}
             >
-              <div style={{ position: 'relative', padding: 12 }}>{childArray[index]}</div>
+              <div className="wf-collapse-panel-content" style={{ padding: '8px 12px' }}>
+                {childArray[index]}
+              </div>
             </div>
           </div>
         );
