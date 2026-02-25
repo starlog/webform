@@ -45,6 +45,14 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   SplitContainer: ['SplitterMoved'],
   BindingNavigator: ['PositionChanged', 'ItemClicked'],
   MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
+  // Extra Elements
+  Slider: ['ValueChanged'],
+  Switch: ['CheckedChanged'],
+  Upload: ['FileSelected', 'UploadCompleted', 'UploadFailed'],
+  Alert: ['Closed'],
+  Tag: ['TagAdded', 'TagRemoved', 'TagClicked'],
+  Tooltip: ['VisibleChanged'],
+  Collapse: ['ActiveKeyChanged'],
 };
 
 export const FORM_EVENTS = [

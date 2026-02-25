@@ -25,7 +25,7 @@
       "description": "packages/common에 12개 신규 컨트롤 타입 및 관련 이벤트 실제 추가",
       "phase": "phase1-setup",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/common-types-plan.md의 계획에 따라 packages/common 패키지에 12개 신규 컨트롤 타입을 등록한다.\n\n## 수정 파일 1: packages/common/src/types/form.ts\nCONTROL_TYPES 배열(또는 유니온 타입)에 다음 12개 타입 추가:\n- Step 1: 'Slider', 'Switch', 'Upload', 'Alert', 'Tag', 'Divider'\n- Step 2: 'Card', 'Badge', 'Avatar', 'Tooltip', 'Collapse', 'Statistic'\n\n기존 컨트롤 타입과 동일한 패턴으로, 기존 목록 마지막에 순서대로 추가한다.\n\n## 수정 파일 2: packages/common/src/types/events.ts\nCONTROL_EVENTS 객체에 다음 항목 추가:\n```\nSlider: ['ValueChanged'],\nSwitch: ['CheckedChanged'],\nUpload: ['FileSelected', 'UploadCompleted', 'UploadFailed'],\nAlert: ['Closed'],\nTag: ['TagAdded', 'TagRemoved', 'TagClicked'],\nTooltip: ['VisibleChanged'],\nCollapse: ['ActiveKeyChanged'],\n```\n\n## 주의사항\n- 기존 코드의 정확한 패턴(배열 vs 유니온, 네임스페이스 등)을 먼저 읽고 동일하게 따른다\n- TypeScript 오류 없이 컴파일되어야 한다\n- 구현 후 `pnpm typecheck` 실행하여 오류 확인 및 수정\n- EXTRA-ELEMENTS.md의 공통 규칙 섹션 참조",
       "dependsOn": [
         "common-types-plan"

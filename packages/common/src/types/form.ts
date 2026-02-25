@@ -38,6 +38,10 @@ export const CONTROL_TYPES = [
   'MenuStrip', 'ToolStrip', 'StatusStrip', 'RichTextBox', 'WebBrowser',
   'SpreadsheetView', 'JsonEditor', 'MongoDBView', 'GraphView',
   'MongoDBConnector',
+  // Extra Elements — Step 1 (폼 필수 요소)
+  'Slider', 'Switch', 'Upload', 'Alert', 'Tag', 'Divider',
+  // Extra Elements — Step 2 (모던 UI 강화)
+  'Card', 'Badge', 'Avatar', 'Tooltip', 'Collapse', 'Statistic',
 ] as const;
 
 export type ControlType = (typeof CONTROL_TYPES)[number];
