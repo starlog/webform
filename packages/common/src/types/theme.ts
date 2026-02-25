@@ -3,7 +3,8 @@
  * 각 테마는 ThemeTokens 인터페이스를 구현하여 UI 전체에 일관된 스타일을 적용한다.
  */
 
-export type ThemeId = 'windows-xp' | 'ubuntu-2004' | 'macos-tahoe';
+export type PresetThemeId = 'windows-xp' | 'ubuntu-2004' | 'macos-tahoe';
+export type ThemeId = PresetThemeId | (string & {});
 
 export interface TitleBarTokens {
   background: string;
@@ -174,4 +175,16 @@ export interface ThemeTokens {
   controls: ControlTokens;
   accent: AccentTokens;
   popup: PopupTokens;
+}
+
+/** 서버에 저장되는 커스텀 테마 문서 */
+export interface CustomThemeDocument {
+  _id: string;
+  name: string;
+  basePreset: PresetThemeId;
+  tokens: ThemeTokens;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
 }

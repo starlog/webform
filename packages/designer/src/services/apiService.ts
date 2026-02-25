@@ -8,6 +8,9 @@ import type {
   EventHandlerDefinition,
   DataBindingDefinition,
   ShellProperties,
+  CustomThemeDocument,
+  ThemeTokens,
+  PresetThemeId,
 } from '@webform/common';
 
 // --- 타입 정의 ---
@@ -299,6 +302,41 @@ export const apiService = {
   // 프로젝트 전체 퍼블리시 (폼 + Shell)
   async publishAll(projectId: string): Promise<{ data: PublishAllResult }> {
     return request(`/projects/${projectId}/publish-all`, { method: 'POST' });
+  },
+
+  // --- Theme API ---
+
+  async listThemes(): Promise<{ data: CustomThemeDocument[]; meta: PaginationMeta }> {
+    return request('/themes');
+  },
+
+  async getTheme(id: string): Promise<{ data: CustomThemeDocument }> {
+    return request(`/themes/${id}`);
+  },
+
+  async createTheme(input: {
+    name: string;
+    basePreset: PresetThemeId;
+    tokens: ThemeTokens;
+  }): Promise<{ data: CustomThemeDocument }> {
+    return request('/themes', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  },
+
+  async updateTheme(
+    id: string,
+    input: { name?: string; tokens?: ThemeTokens },
+  ): Promise<{ data: CustomThemeDocument }> {
+    return request(`/themes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    });
+  },
+
+  async deleteTheme(id: string): Promise<void> {
+    return request(`/themes/${id}`, { method: 'DELETE' });
   },
 };
 

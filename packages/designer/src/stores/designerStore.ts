@@ -61,7 +61,7 @@ interface DesignerState {
   formEventCode: Record<string, string>;     // handlerName → code
 
   // Shell 상태
-  editMode: 'form' | 'shell';
+  editMode: 'form' | 'shell' | 'theme';
   shellControls: ControlDefinition[];
   shellProperties: ShellProperties;
   shellName: string;
@@ -88,7 +88,7 @@ interface DesignerState {
   setProjectDefaultFont: (font: FontDefinition | null) => void;
 
   // Shell 메서드
-  setEditMode: (mode: 'form' | 'shell') => void;
+  setEditMode: (mode: 'form' | 'shell' | 'theme') => void;
   loadShell: (shellDef: ApplicationShellDefinition) => void;
   addShellControl: (control: ControlDefinition) => void;
   updateShellControl: (id: string, changes: Partial<ControlDefinition>) => void;

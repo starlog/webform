@@ -8,6 +8,7 @@ import { PropertyPanel } from './components/PropertyPanel';
 import { EventEditor } from './components/EventEditor/EventEditor';
 import { ProjectExplorer } from './components/ProjectExplorer';
 import { ElementList } from './components/ElementList';
+import { ThemeEditor } from './components/ThemeEditor/ThemeEditor';
 import { apiService, useAutoSave } from './services/apiService';
 import { useDesignerStore } from './stores/designerStore';
 
@@ -188,14 +189,33 @@ export function App() {
         }}
       >
         <span style={{ fontWeight: 600 }}>
-          {editMode === 'shell'
-            ? `${shellTitle} (Shell)${isDirty ? ' *' : ''}`
-            : currentFormId
-              ? `${formTitle}${isDirty ? ' *' : ''}`
-              : 'WebForm Designer'}
+          {editMode === 'theme'
+            ? 'Theme Editor'
+            : editMode === 'shell'
+              ? `${shellTitle} (Shell)${isDirty ? ' *' : ''}`
+              : currentFormId
+                ? `${formTitle}${isDirty ? ' *' : ''}`
+                : 'WebForm Designer'}
         </span>
 
-        {(currentFormId || editMode === 'shell') && (
+        <span style={{ color: '#aaa' }}>|</span>
+        <button
+          type="button"
+          onClick={() => {
+            const store = useDesignerStore.getState();
+            store.setEditMode(editMode === 'theme' ? 'form' : 'theme');
+          }}
+          style={{
+            ...menuBtnStyle,
+            backgroundColor: editMode === 'theme' ? '#0078d4' : '#fff',
+            color: editMode === 'theme' ? '#fff' : undefined,
+            borderColor: editMode === 'theme' ? '#0078d4' : '#bbb',
+          }}
+        >
+          Themes
+        </button>
+
+        {(currentFormId || editMode === 'shell') && editMode !== 'theme' && (
           <>
             <span style={{ color: '#aaa' }}>|</span>
 
@@ -272,56 +292,65 @@ export function App() {
           fontFamily: 'Segoe UI, sans-serif',
         }}
       >
-        {/* 좌측 패널: ProjectExplorer + Toolbox */}
-        <div
-          className="left-panel"
-          style={{
-            width: 220,
-            borderRight: '1px solid #ccc',
-            backgroundColor: '#f5f5f5',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ flex: '0 0 auto', maxHeight: '30%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
-            <ProjectExplorer onFormSelect={handleFormSelect} onPublishAll={handlePublishAll} refreshKey={explorerRefreshKey} />
+        {editMode === 'theme' ? (
+          /* Theme Editor 전체 화면 */
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <ThemeEditor />
           </div>
-          <div style={{ flex: '0 0 auto', maxHeight: '35%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
-            <ElementList />
-          </div>
-          <div style={{ flex: 1, overflow: 'auto' }}>
-            <Toolbox />
-          </div>
-        </div>
+        ) : (
+          <>
+            {/* 좌측 패널: ProjectExplorer + Toolbox */}
+            <div
+              className="left-panel"
+              style={{
+                width: 220,
+                borderRight: '1px solid #ccc',
+                backgroundColor: '#f5f5f5',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
+            >
+              <div style={{ flex: '0 0 auto', maxHeight: '30%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
+                <ProjectExplorer onFormSelect={handleFormSelect} onPublishAll={handlePublishAll} refreshKey={explorerRefreshKey} />
+              </div>
+              <div style={{ flex: '0 0 auto', maxHeight: '35%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderBottom: '1px solid #ccc' }}>
+                <ElementList />
+              </div>
+              <div style={{ flex: 1, overflow: 'auto' }}>
+                <Toolbox />
+              </div>
+            </div>
 
-        {/* 캔버스 영역 */}
-        <div
-          className="canvas-area"
-          style={{
-            flex: 1,
-            overflow: 'auto',
-            padding: 16,
-            backgroundColor: '#E0E0E0',
-          }}
-        >
-          {editMode === 'shell' ? <ShellCanvas /> : <DesignerCanvas />}
-        </div>
+            {/* 캔버스 영역 */}
+            <div
+              className="canvas-area"
+              style={{
+                flex: 1,
+                overflow: 'auto',
+                padding: 16,
+                backgroundColor: '#E0E0E0',
+              }}
+            >
+              {editMode === 'shell' ? <ShellCanvas /> : <DesignerCanvas />}
+            </div>
 
-        {/* 속성 패널 */}
-        <div
-          className="properties-panel"
-          style={{
-            width: 308,
-            borderLeft: '1px solid #ccc',
-            backgroundColor: '#f5f5f5',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <PropertyPanel onOpenEventEditor={handleOpenEventEditor} />
-        </div>
+            {/* 속성 패널 */}
+            <div
+              className="properties-panel"
+              style={{
+                width: 308,
+                borderLeft: '1px solid #ccc',
+                backgroundColor: '#f5f5f5',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <PropertyPanel onOpenEventEditor={handleOpenEventEditor} />
+            </div>
+          </>
+        )}
       </div>
 
       {/* 이벤트 에디터 모달 */}

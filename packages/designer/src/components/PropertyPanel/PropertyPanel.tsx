@@ -1,28 +1,17 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { ControlDefinition, FormProperties, ShellProperties } from '@webform/common';
-import { FORM_EVENTS } from '@webform/common';
+import { FORM_EVENTS, PRESET_THEME_IDS } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore } from '../../stores/historyStore';
+import { apiService } from '../../services/apiService';
 import { getPropertyMeta, getControlEvents, SHELL_PROPERTIES } from './controlProperties';
 import type { PropertyCategory as PropertyCategoryName, PropertyMeta } from './controlProperties';
 import { PropertyCategory } from './PropertyCategory';
 import { EventsTab } from './EventsTab';
 
-// 폼 속성 메타데이터
-const FORM_PROPERTY_METAS: PropertyMeta[] = [
-  { name: 'width',           label: 'Width',           category: 'Layout',     editorType: 'number', min: 200 },
-  { name: 'height',          label: 'Height',          category: 'Layout',     editorType: 'number', min: 150 },
-  { name: 'title',           label: 'Title',           category: 'Appearance', editorType: 'text' },
-  { name: 'theme',           label: 'Theme',           category: 'Appearance', editorType: 'dropdown', options: ['windows-xp', 'ubuntu-2004', 'macos-tahoe'] },
-  { name: 'backgroundColor', label: 'BackColor',       category: 'Appearance', editorType: 'color' },
-  { name: 'font',            label: 'Font',            category: 'Appearance', editorType: 'font' },
-  { name: 'formBorderStyle', label: 'FormBorderStyle', category: 'Behavior',   editorType: 'dropdown', options: ['None', 'FixedSingle', 'Fixed3D', 'Sizable'] },
-  { name: 'startPosition',   label: 'StartPosition',   category: 'Behavior',   editorType: 'dropdown', options: ['CenterScreen', 'Manual', 'CenterParent'] },
-  { name: 'maximizeBox',     label: 'MaximizeBox',     category: 'Behavior',   editorType: 'boolean' },
-  { name: 'minimizeBox',     label: 'MinimizeBox',     category: 'Behavior',   editorType: 'boolean' },
-  { name: 'windowState',     label: 'WindowState',     category: 'Layout',     editorType: 'dropdown', options: ['Normal', 'Maximized'] },
-];
+// 프리셋 테마 ID 목록
+const BASE_THEME_OPTIONS = [...PRESET_THEME_IDS];
 
 type TabType = 'properties' | 'events';
 type SortMode = 'category' | 'alphabetical';
@@ -34,6 +23,38 @@ interface PropertyPanelProps {
 export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('properties');
   const [sortMode, setSortMode] = useState<SortMode>('category');
+  const [themeOptions, setThemeOptions] = useState<string[]>(BASE_THEME_OPTIONS);
+
+  // 커스텀 테마 목록 동적 로드
+  useEffect(() => {
+    apiService
+      .listThemes()
+      .then((res) => {
+        const customIds = res.data.map((t) => t._id);
+        setThemeOptions([...BASE_THEME_OPTIONS, ...customIds]);
+      })
+      .catch(() => {
+        // ignore — 프리셋만 사용
+      });
+  }, []);
+
+  // 동적 FORM_PROPERTY_METAS 생성
+  const FORM_PROPERTY_METAS: PropertyMeta[] = useMemo(
+    () => [
+      { name: 'width', label: 'Width', category: 'Layout', editorType: 'number', min: 200 },
+      { name: 'height', label: 'Height', category: 'Layout', editorType: 'number', min: 150 },
+      { name: 'title', label: 'Title', category: 'Appearance', editorType: 'text' },
+      { name: 'theme', label: 'Theme', category: 'Appearance', editorType: 'dropdown', options: themeOptions },
+      { name: 'backgroundColor', label: 'BackColor', category: 'Appearance', editorType: 'color' },
+      { name: 'font', label: 'Font', category: 'Appearance', editorType: 'font' },
+      { name: 'formBorderStyle', label: 'FormBorderStyle', category: 'Behavior', editorType: 'dropdown', options: ['None', 'FixedSingle', 'Fixed3D', 'Sizable'] },
+      { name: 'startPosition', label: 'StartPosition', category: 'Behavior', editorType: 'dropdown', options: ['CenterScreen', 'Manual', 'CenterParent'] },
+      { name: 'maximizeBox', label: 'MaximizeBox', category: 'Behavior', editorType: 'boolean' },
+      { name: 'minimizeBox', label: 'MinimizeBox', category: 'Behavior', editorType: 'boolean' },
+      { name: 'windowState', label: 'WindowState', category: 'Layout', editorType: 'dropdown', options: ['Normal', 'Maximized'] },
+    ],
+    [themeOptions],
+  );
 
   const selectedIds = useSelectionStore((s) => s.selectedIds);
   const controls = useDesignerStore((s) => s.controls);
@@ -276,7 +297,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     return categoryOrder
       .filter((cat) => groups.has(cat))
       .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
-  }, []);
+  }, [FORM_PROPERTY_METAS]);
 
   // 폼 이벤트 관련 store
   const formEventHandlers = useDesignerStore((s) => s.formEventHandlers);

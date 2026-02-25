@@ -8,6 +8,7 @@ import { MongoDBAdapter } from '../services/adapters/MongoDBAdapter.js';
 import { AppError, NotFoundError } from '../middleware/errorHandler.js';
 import { ShellService } from '../services/ShellService.js';
 import type { ShellDocument } from '../models/Shell.js';
+import { ThemeService } from '../services/ThemeService.js';
 
 function toObjectId(value: unknown): ObjectId | unknown {
   if (typeof value === 'string' && /^[a-f\d]{24}$/i.test(value)) {
@@ -32,6 +33,7 @@ export const runtimeRouter = Router();
 const eventEngine = new EventEngine();
 const dataSourceService = new DataSourceService();
 const shellService = new ShellService();
+const themeService = new ThemeService();
 
 /** ShellDocument → 런타임용 Shell 정의 변환 (서버 핸들러만 노출) */
 function toShellDefinition(shell: ShellDocument) {
@@ -429,6 +431,21 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
       shell: shell ? toShellDefinition(shell) : null,
       startForm: toRuntimeFormDef(form),
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── Theme Runtime API ────────────────────────────────────────────────────────
+
+/**
+ * GET /api/runtime/themes/:id
+ * 커스텀 테마 토큰을 반환한다 (인증 불필요).
+ */
+runtimeRouter.get('/themes/:id', async (req, res, next) => {
+  try {
+    const theme = await themeService.getById(req.params.id);
+    res.json({ data: theme });
   } catch (err) {
     next(err);
   }

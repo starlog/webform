@@ -56,6 +56,7 @@ export type {
 
 // types/theme
 export type {
+  PresetThemeId,
   ThemeId,
   ThemeTokens,
   TitleBarTokens,
@@ -77,10 +78,21 @@ export type {
   AccentTokens,
   PopupTokens,
   ControlTokens,
+  CustomThemeDocument,
 } from './types/theme';
 
 // themes
-export { getThemeById, THEME_IDS, windowsXpTheme, ubuntu2004Theme, macosTahoeTheme } from './themes/presets';
+export {
+  getThemeById,
+  getPresetThemeById,
+  getDefaultTheme,
+  isPresetTheme,
+  THEME_IDS,
+  PRESET_THEME_IDS,
+  windowsXpTheme,
+  ubuntu2004Theme,
+  macosTahoeTheme,
+} from './themes/presets';
 
 // utils
 export { validateFormDefinition, validateControlDefinition, sanitizeQueryInput } from './utils/validation';

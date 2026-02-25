@@ -1,4 +1,4 @@
-import type { ThemeId, ThemeTokens } from '../types/theme';
+import type { PresetThemeId, ThemeId, ThemeTokens } from '../types/theme';
 
 export const windowsXpTheme: ThemeTokens = {
   id: 'windows-xp',
@@ -396,14 +396,30 @@ export const macosTahoeTheme: ThemeTokens = {
   },
 };
 
-const themeMap: Record<ThemeId, ThemeTokens> = {
+const themeMap: Record<PresetThemeId, ThemeTokens> = {
   'windows-xp': windowsXpTheme,
   'ubuntu-2004': ubuntu2004Theme,
   'macos-tahoe': macosTahoeTheme,
 };
 
-export const THEME_IDS: ThemeId[] = ['windows-xp', 'ubuntu-2004', 'macos-tahoe'];
+export const PRESET_THEME_IDS: PresetThemeId[] = ['windows-xp', 'ubuntu-2004', 'macos-tahoe'];
+
+/** @deprecated Use PRESET_THEME_IDS */
+export const THEME_IDS: PresetThemeId[] = PRESET_THEME_IDS;
+
+export function isPresetTheme(id: string): id is PresetThemeId {
+  return PRESET_THEME_IDS.includes(id as PresetThemeId);
+}
+
+export function getDefaultTheme(): ThemeTokens {
+  return windowsXpTheme;
+}
+
+export function getPresetThemeById(id: PresetThemeId): ThemeTokens {
+  return themeMap[id] ?? windowsXpTheme;
+}
 
 export function getThemeById(id: ThemeId | undefined): ThemeTokens {
-  return themeMap[id ?? 'windows-xp'] ?? windowsXpTheme;
+  if (!id) return windowsXpTheme;
+  return themeMap[id as PresetThemeId] ?? windowsXpTheme;
 }

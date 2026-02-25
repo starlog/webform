@@ -9,6 +9,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { apiClient } from '../communication/apiClient';
 import { runtimeControlRegistry } from '../controls/registry';
 import { computeLayoutStyle, computeFontStyle } from './layoutUtils';
+import { useFormResize } from './useFormResize';
 
 interface ShellRendererProps {
   shellDef: ApplicationShellDefinition;
@@ -213,19 +214,29 @@ export function ShellRenderer({ shellDef, projectId, children }: ShellRendererPr
     lineHeight: 1,
   };
 
+  const isSizable = properties.formBorderStyle === 'Sizable';
+  const baseHeight = showTitleBar ? properties.height + titleBarHeight : properties.height;
+
+  const { width, height, resizeHandles } = useFormResize({
+    initialWidth: properties.width,
+    initialHeight: baseHeight,
+    enabled: isSizable,
+  });
+
   const borderStyle: CSSProperties =
     properties.formBorderStyle === 'None'
       ? { border: 'none' }
       : { border: theme.window.border };
 
   const containerStyle: CSSProperties = {
-    width: properties.width,
-    height: showTitleBar ? properties.height + titleBarHeight : properties.height,
+    width,
+    height,
     display: 'flex',
     flexDirection: 'column',
     boxShadow: theme.window.shadow,
     borderRadius: theme.window.borderRadius,
     overflow: 'hidden',
+    position: 'relative',
     ...borderStyle,
   };
 
@@ -259,6 +270,7 @@ export function ShellRenderer({ shellDef, projectId, children }: ShellRendererPr
 
   return (
     <div className="wf-shell" style={containerStyle}>
+      {resizeHandles}
       {showTitleBar && (
         <div className="wf-titlebar" style={titleBarStyle}>
           {isTrafficLight && <TrafficLightButtons />}

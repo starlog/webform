@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { FormProperties } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import { computeFontStyle } from './layoutUtils';
+import { useFormResize } from './useFormResize';
 
 interface FormContainerProps {
   properties: FormProperties;
@@ -84,6 +85,15 @@ export function FormContainer({
     lineHeight: 1,
   };
 
+  const isSizable = !isMaximized && properties.formBorderStyle === 'Sizable';
+  const baseHeight = showTitleBar ? properties.height + titleBarHeight : properties.height;
+
+  const { width, height, resizeHandles } = useFormResize({
+    initialWidth: properties.width,
+    initialHeight: baseHeight,
+    enabled: isSizable,
+  });
+
   const borderStyle: CSSProperties =
     properties.formBorderStyle === 'None'
       ? { border: 'none' }
@@ -97,13 +107,14 @@ export function FormContainer({
         flexDirection: 'column',
       }
     : {
-        width: properties.width,
-        height: showTitleBar ? properties.height + titleBarHeight : properties.height,
+        width,
+        height,
         display: 'flex',
         flexDirection: 'column',
         boxShadow: theme.window.shadow,
         borderRadius: theme.window.borderRadius,
         overflow: 'hidden',
+        position: 'relative' as const,
         ...borderStyle,
       };
 
@@ -138,6 +149,7 @@ export function FormContainer({
 
   return (
     <div className="wf-form" style={containerStyle}>
+      {resizeHandles}
       {showTitleBar && (
         <div className="wf-titlebar" style={titleBarStyle}>
           {isTrafficLight && <TrafficLightButtons />}

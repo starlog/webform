@@ -6,6 +6,7 @@ import { datasourcesRouter } from './datasources.js';
 import { projectsRouter } from './projects.js';
 import { debugRouter } from './debug.js';
 import { shellsRouter } from './shells.js';
+import { themesRouter } from './themes.js';
 
 export const apiRouter = Router();
 
@@ -21,3 +22,4 @@ apiRouter.use('/forms', formsRouter);
 apiRouter.use('/datasources', datasourcesRouter);
 apiRouter.use('/projects', projectsRouter);
 apiRouter.use('/projects/:projectId/shell', shellsRouter);
+apiRouter.use('/themes', themesRouter);
