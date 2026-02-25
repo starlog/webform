@@ -140,6 +140,119 @@ describe('Forms API Integration', () => {
     });
   });
 
+  describe('낙관적 잠금 (Optimistic Locking)', () => {
+    it('초기 폼 생성 시 version이 1로 설정되어야 한다', async () => {
+      const res = await request(app)
+        .post('/api/forms')
+        .set('Authorization', auth)
+        .send(baseBody);
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.version).toBe(1);
+    });
+
+    it('올바른 version으로 업데이트하면 200을 반환해야 한다', async () => {
+      const created = await request(app)
+        .post('/api/forms')
+        .set('Authorization', auth)
+        .send(baseBody);
+
+      const id = created.body.data._id;
+
+      const res = await request(app)
+        .put(`/api/forms/${id}`)
+        .set('Authorization', auth)
+        .send({ name: 'Version Update', version: 1 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.name).toBe('Version Update');
+    });
+
+    it('업데이트 성공 후 version이 1 증가해야 한다', async () => {
+      const created = await request(app)
+        .post('/api/forms')
+        .set('Authorization', auth)
+        .send(baseBody);
+
+      const id = created.body.data._id;
+
+      // 첫 번째 업데이트: version 1 → 2
+      const res1 = await request(app)
+        .put(`/api/forms/${id}`)
+        .set('Authorization', auth)
+        .send({ name: 'V2', version: 1 });
+
+      expect(res1.status).toBe(200);
+      expect(res1.body.data.version).toBe(2);
+
+      // 두 번째 업데이트: version 2 → 3
+      const res2 = await request(app)
+        .put(`/api/forms/${id}`)
+        .set('Authorization', auth)
+        .send({ name: 'V3', version: 2 });
+
+      expect(res2.status).toBe(200);
+      expect(res2.body.data.version).toBe(3);
+    });
+
+    it('구버전(stale version)으로 업데이트 시 409를 반환해야 한다', async () => {
+      const created = await request(app)
+        .post('/api/forms')
+        .set('Authorization', auth)
+        .send(baseBody);
+
+      const id = created.body.data._id;
+
+      // 먼저 version 1로 정상 업데이트 → version 2가 됨
+      await request(app)
+        .put(`/api/forms/${id}`)
+        .set('Authorization', auth)
+        .send({ name: 'Updated by User A', version: 1 });
+
+      // 구버전(version: 1)으로 다시 업데이트 시도 → 409 충돌
+      const res = await request(app)
+        .put(`/api/forms/${id}`)
+        .set('Authorization', auth)
+        .send({ name: 'Updated by User B', version: 1 });
+
+      expect(res.status).toBe(409);
+    });
+
+    it('동시 업데이트 시 먼저 성공한 요청만 반영되어야 한다', async () => {
+      const created = await request(app)
+        .post('/api/forms')
+        .set('Authorization', auth)
+        .send(baseBody);
+
+      const id = created.body.data._id;
+
+      // 두 요청을 동시에 전송 (둘 다 version: 1)
+      const [resA, resB] = await Promise.all([
+        request(app)
+          .put(`/api/forms/${id}`)
+          .set('Authorization', auth)
+          .send({ name: 'User A Update', version: 1 }),
+        request(app)
+          .put(`/api/forms/${id}`)
+          .set('Authorization', auth)
+          .send({ name: 'User B Update', version: 1 }),
+      ]);
+
+      // 하나는 성공(200), 하나는 충돌(409)
+      const statuses = [resA.status, resB.status].sort();
+      expect(statuses).toEqual([200, 409]);
+
+      // 최종 폼 상태 확인: version이 2이고, 성공한 쪽의 이름이 반영됨
+      const final = await request(app)
+        .get(`/api/forms/${id}`)
+        .set('Authorization', auth);
+
+      expect(final.body.data.version).toBe(2);
+      const winner = resA.status === 200 ? resA : resB;
+      expect(final.body.data.name).toBe(winner.body.data.name);
+    });
+  });
+
   describe('DELETE /api/forms/:id', () => {
     it('삭제 후 GET 요청 시 404를 반환해야 한다', async () => {
       const created = await request(app)
