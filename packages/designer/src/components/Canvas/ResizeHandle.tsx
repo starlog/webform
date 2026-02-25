@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+import { useRef, useEffect } from 'react';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
 import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';
@@ -32,6 +33,20 @@ const POSITION_MAP: Record<ResizeDirection, React.CSSProperties> = {
 };
 
 export function ResizeHandle({ direction, controlId }: ResizeHandleProps) {
+  const activeDragListeners = useRef<{
+    move: ((e: MouseEvent) => void) | null;
+    up: (() => void) | null;
+  }>({ move: null, up: null });
+
+  // 드래그 중 언마운트 시 document 리스너 안전 정리
+  useEffect(() => {
+    return () => {
+      const { move, up } = activeDragListeners.current;
+      if (move) document.removeEventListener('mousemove', move);
+      if (up) document.removeEventListener('mouseup', up);
+    };
+  }, []);
+
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -80,8 +95,10 @@ export function ResizeHandle({ direction, controlId }: ResizeHandleProps) {
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      activeDragListeners.current = { move: null, up: null };
     };
 
+    activeDragListeners.current = { move: handleMouseMove, up: handleMouseUp };
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };

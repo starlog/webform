@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import type { ControlDefinition, ControlType } from '@webform/common';
 import { useDesignerStore } from '../../stores/designerStore';
 import { useSelectionStore } from '../../stores/selectionStore';
@@ -77,6 +77,19 @@ export function CanvasControl({ control, isSelected, onSnaplineChange, onContext
   const select = useSelectionStore((s) => s.select);
   const toggleSelect = useSelectionStore((s) => s.toggleSelect);
   const isDragging = useRef(false);
+  const activeDragListeners = useRef<{
+    move: ((e: MouseEvent) => void) | null;
+    up: (() => void) | null;
+  }>({ move: null, up: null });
+
+  // 드래그 중 언마운트 시 document 리스너 안전 정리
+  useEffect(() => {
+    return () => {
+      const { move, up } = activeDragListeners.current;
+      if (move) document.removeEventListener('mousemove', move);
+      if (up) document.removeEventListener('mouseup', up);
+    };
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     // 리사이즈 핸들 클릭은 무시
@@ -176,6 +189,7 @@ export function CanvasControl({ control, isSelected, onSnaplineChange, onContext
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      activeDragListeners.current = { move: null, up: null };
       onSnaplineChange([]);
 
       if (!moved) {
@@ -195,6 +209,7 @@ export function CanvasControl({ control, isSelected, onSnaplineChange, onContext
       });
     };
 
+    activeDragListeners.current = { move: handleMouseMove, up: handleMouseUp };
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };

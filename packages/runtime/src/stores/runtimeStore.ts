@@ -182,6 +182,8 @@ export const useRuntimeStore = create<RuntimeState>()(
       set((state) => {
         state.currentFormDef = def;
         state.controlStates = {};
+        state.pendingPatchGroups = [];
+        state.dialogQueue = [];
         initControlStates(def.controls, state.controlStates);
       }),
 

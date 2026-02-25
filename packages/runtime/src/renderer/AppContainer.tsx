@@ -7,6 +7,7 @@ import { apiClient } from '../communication/apiClient';
 import { wsClient } from '../communication/wsClient';
 import { setupPatchListener } from '../communication/patchApplier';
 import { useRuntimeStore } from '../stores/runtimeStore';
+import { useBindingStore } from '../bindings/bindingStore';
 import { ensureAuthToken } from '../communication/authToken';
 
 interface AppContainerProps {
@@ -65,6 +66,9 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
         pushFormHistory(currentFormIdRef.current);
       }
 
+      // 폼 전환 시 바인딩 상태(에러, 로딩, 데이터) 초기화
+      useBindingStore.getState().reset();
+
       try {
         const def = await apiClient.fetchForm(formId);
         setFormDefinition(def);
@@ -86,6 +90,7 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
   // 초기 앱 로드 (Shell + startForm 일괄)
   useEffect(() => {
     let cancelled = false;
+    let unsubPatch: (() => void) | null = null;
 
     async function loadApp() {
       setLoading(true);
@@ -112,7 +117,7 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
 
         // WebSocket: 프로젝트 단위 연결 (Shell 패치 + 폼 패치 모두 수신)
         wsClient.connectApp(projectId);
-        setupPatchListener({ applyPatches, applyShellPatches }, wsClient);
+        unsubPatch = setupPatchListener({ applyPatches, applyShellPatches }, wsClient);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : String(err));
@@ -126,6 +131,7 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
 
     return () => {
       cancelled = true;
+      unsubPatch?.();
       wsClient.disconnect();
     };
   }, [projectId, initialFormId, applyPatches, applyShellPatches, setFormDef, setShellDef]);
