@@ -395,7 +395,7 @@
       "description": "버전 기반 충돌 감지 로직에 대한 통합 테스트 작성 및 통과 확인",
       "phase": "phase2-improvements",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "낙관적 잠금 구현을 테스트하세요.\n\n## 수행할 작업\n1. `packages/server/src/__tests__/forms.integration.test.ts`에 낙관적 잠금 테스트 케이스 추가:\n   - 올바른 version으로 폼 업데이트 성공 확인\n   - 구버전(stale version)으로 업데이트 시 409 반환 확인\n   - 업데이트 성공 후 version이 1 증가됨 확인\n   - 초기 폼 생성 시 version이 0(또는 1) 으로 설정됨 확인\n2. `pnpm --filter @webform/server test` 실행하여 모든 서버 테스트 통과 확인\n3. 실패 시 원인 분석 후 FormService.ts 수정 및 재실행\n\n## 성공 기준\n- 낙관적 잠금 관련 테스트 모두 통과\n- 기존 서버 통합 테스트 통과 유지",
       "dependsOn": [
         "optimistic-lock-impl"
@@ -470,7 +470,7 @@
       "description": "메모리 누수 수정 후 디자이너/런타임 테스트 통과 확인",
       "phase": "phase3-stability",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "메모리 누수 수정을 검증하세요.\n\n## 수행할 작업\n1. `pnpm --filter @webform/designer test` 실행하여 디자이너 테스트 통과 확인\n2. `pnpm --filter @webform/runtime test` 실행하여 런타임 테스트 통과 확인\n3. CanvasControl cleanup 관련 테스트 추가 (가능한 경우):\n   - 컴포넌트 언마운트 시 document 이벤트 리스너 제거 확인\n4. runtimeStore 상태 초기화 동작 검증:\n   - 폼 전환 시 dataSourceData 초기화 확인\n5. 실패 시 원인 분석 후 수정 및 재실행\n\n## 성공 기준\n- 모든 패키지 테스트 통과\n- 이벤트 리스너 cleanup 패턴이 올바르게 적용됨을 코드 검토로 확인",
       "dependsOn": [
         "memory-leak-impl"
@@ -612,7 +612,7 @@
       "description": "CI 파이프라인 시뮬레이션 및 설정 파일 유효성 확인",
       "phase": "phase4-infrastructure",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "CI/CD 인프라 구축을 검증하세요.\n\n## 수행할 작업\n1. `pnpm lint` 실행하여 린트 통과 확인 (CI 첫 단계 시뮬레이션)\n2. `pnpm typecheck` 실행하여 타입 체크 통과 확인\n3. `pnpm test` 실행하여 전체 테스트 통과 확인\n4. `.env.example` 파일 검토:\n   - 프로젝트에서 실제로 사용되는 환경 변수 누락 없이 포함되었는지 확인\n   - `packages/server/src/` 코드에서 `process.env.` 참조 검색하여 누락된 변수 확인\n5. `.github/workflows/ci.yml` YAML 문법 유효성 확인 (yaml 파서로 검증)\n6. `Dockerfile` 문법 검토\n7. 문제 발견 시 수정\n\n## 성공 기준\n- pnpm lint, typecheck, test 모두 통과\n- CI/CD 파일 문법 오류 없음\n- .env.example 완성도 확인",
       "dependsOn": [
         "cicd-impl"
