@@ -218,7 +218,7 @@
       "description": "MongoDBAdapter의 비효율적 매 쿼리 연결 패턴 분석 및 연결 풀 재사용 설계",
       "phase": "phase1-critical",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm MongoDB 연결 풀링 문제를 분석하고 수정 계획을 작성하세요.\n\n## 문제 설명\n`MongoDBAdapter`에서 매 쿼리마다 `new MongoClient()` → 쿼리 실행 → `client.close()` 패턴 사용. 성능 저하 및 연결 풀 미활용.\n\n## 수행할 작업\n1. `packages/server/src/services/adapters/MongoDBAdapter.ts` 파일 읽고 현재 구현 전체 분석\n2. `packages/server/src/services/DataSourceService.ts` 읽고 MongoDBAdapter 사용 패턴 확인\n3. MongoDB Node.js 드라이버의 연결 풀링 방식 이해 (MongoClient 인스턴스가 내부적으로 풀 관리)\n4. 싱글톤 클라이언트 패턴 설계:\n   - 모듈 레벨 또는 클래스 레벨 싱글톤 MongoClient\n   - `connectionString` 기반 클라이언트 캐시 Map 구조 (다중 연결 지원)\n   - 앱 종료 시 cleanup 방법 (`process.on('SIGTERM', 'SIGINT')` 등)\n   - 연결 에러 시 재연결 전략\n5. 기존 쿼리 메서드들의 인터페이스 변경 최소화 방안\n6. 수정 계획을 `plans/mongo-pool-plan.md`에 작성\n\n## 출력\n`plans/mongo-pool-plan.md` 파일 생성",
       "dependsOn": null,
       "outputFiles": [
@@ -284,7 +284,7 @@
       "description": "Designer 저장 에러, Runtime 데이터소스 에러, Server 로깅 부재 문제 분석 및 개선 계획",
       "phase": "phase2-improvements",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm의 에러 처리 및 사용자 피드백 부족 문제를 분석하고 개선 계획을 작성하세요.\n\n## 문제 설명\n- Designer: 폼 저장 실패 시 3초 토스트만 표시, 상세 에러 메시지 없음\n- Runtime: 데이터소스 로드 실패 시 UI 피드백 없이 조용히 실패\n- Server: DataSourceService에 에러 로깅 부재\n\n## 수행할 작업\n1. `packages/designer/src/App.tsx` 읽고 현재 폼 저장 에러 처리 방식 분석 (toast 구현 위치 파악)\n2. `packages/runtime/src/stores/runtimeStore.ts` 읽고 데이터소스 로드 실패 처리 로직 분석\n3. `packages/server/src/services/DataSourceService.ts` 읽고 에러 로깅 현황 분석\n4. 개선 방안 설계:\n   - Designer: HTTP 상태 코드와 서버 에러 메시지를 포함한 상세 토스트, 재시도 버튼(선택적)\n   - Runtime: 데이터소스 실패 시 에러 상태 필드 추가 → 로딩 스피너 대신 에러 메시지 표시\n   - Server: try-catch 블록에 console.error 또는 logger 추가, 데이터소스 ID/타입 컨텍스트 포함\n5. 수정 계획을 `plans/error-handling-plan.md`에 작성\n\n## 출력\n`plans/error-handling-plan.md` 파일 생성",
       "dependsOn": null,
       "outputFiles": [
@@ -500,7 +500,7 @@
       "description": "DataGridView 가상화, 스냅라인 O(n²) 개선, historyStore 스냅샷 최적화 계획",
       "phase": "phase3-stability",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm의 대용량 데이터 성능 문제를 분석하고 개선 계획을 작성하세요.\n\n## 문제 설명\n- DataGridView: 가상화 없음 — 수천 행에서 모든 DOM 동시 생성\n- Designer Canvas: O(n²) 스냅라인 계산 — 컨트롤 500개 이상에서 심각한 지연\n- historyStore: JSON.stringify 기반 전체 상태 스냅샷 — 큰 폼에서 오버헤드\n\n## 수행할 작업\n1. `packages/runtime/src/controls/DataGridView.tsx` 읽고 현재 행 렌더링 방식 분석:\n   - 데이터 배열 전체를 map으로 렌더링하는지 확인\n   - 행 높이 고정/가변 여부 파악\n2. `packages/designer/src/components/Canvas/DesignerCanvas.tsx` 읽고 스냅라인 계산 로직 분석:\n   - 컨트롤 목록 순회 방식 확인\n   - O(n²) 이중 루프 위치 파악\n3. `packages/designer/src/stores/historyStore.ts` 읽고 스냅샷 저장 방식 분석:\n   - JSON.stringify 사용 위치 및 빈도\n   - 현재 저장하는 상태의 크기 추정\n4. 개선 방안 설계:\n   - DataGridView: react-window `FixedSizeList` 또는 `VariableSizeList` 적용\n   - 스냅라인: 정렬된 x/y 배열 + 이진 탐색, 또는 컨트롤 변경 시만 재계산(useMemo)\n   - historyStore: 전체 스냅샷 대신 변경된 컨트롤 ID 기반 구조적 공유\n5. 수정 계획을 `plans/performance-plan.md`에 작성\n\n## 출력\n`plans/performance-plan.md` 파일 생성",
       "dependsOn": null,
       "outputFiles": [
