@@ -129,6 +129,12 @@ function getDefaultSize(type: ControlType): { width: number; height: number } {
     RichTextBox:     { width: 300, height: 150 },
     WebBrowser:      { width: 400, height: 300 },
     MongoDBConnector: { width: 120, height: 40 },
+    Slider:          { width: 200, height: 30 },
+    Switch:          { width: 120, height: 30 },
+    Upload:          { width: 300, height: 120 },
+    Alert:           { width: 300, height: 50 },
+    Tag:             { width: 200, height: 30 },
+    Divider:         { width: 300, height: 24 },
   };
   return sizes[type] ?? { width: 100, height: 23 };
 }
@@ -243,6 +249,18 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
         queryTimeout: 10000,
         maxResultCount: 1000,
       };
+    case 'Slider':
+      return { value: 0, minimum: 0, maximum: 100, orientation: 'Horizontal', showValue: true };
+    case 'Switch':
+      return { checked: false, text: '', onText: 'ON', offText: 'OFF' };
+    case 'Upload':
+      return { uploadMode: 'DropZone', text: 'Click or drag file to upload', borderStyle: 'Dashed' };
+    case 'Alert':
+      return { message: 'Alert message', description: '', alertType: 'Info', showIcon: true, closable: false, banner: false };
+    case 'Tag':
+      return { tags: ['Tag1', 'Tag2'], tagColor: 'Default', closable: false, addable: false };
+    case 'Divider':
+      return { text: '', orientation: 'Horizontal', textAlign: 'Center', lineStyle: 'Solid' };
     default:
       return {};
   }

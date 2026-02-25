@@ -30,6 +30,12 @@ import { ChartControl } from './ChartControl';
 import { SplitContainerControl } from './SplitContainerControl';
 import { BindingNavigatorControl } from './BindingNavigatorControl';
 import { MongoDBConnectorControl } from './MongoDBConnectorControl';
+import { SliderControl } from './SliderControl';
+import { SwitchControl } from './SwitchControl';
+import { UploadControl } from './UploadControl';
+import { AlertControl } from './AlertControl';
+import { TagControl } from './TagControl';
+import { DividerControl } from './DividerControl';
 
 export interface DesignerControlProps {
   id?: string;
@@ -71,6 +77,12 @@ export const designerControlRegistry: Partial<
   SplitContainer: SplitContainerControl,
   BindingNavigator: BindingNavigatorControl,
   MongoDBConnector: MongoDBConnectorControl,
+  Slider: SliderControl,
+  Switch: SwitchControl,
+  Upload: UploadControl,
+  Alert: AlertControl,
+  Tag: TagControl,
+  Divider: DividerControl,
 };
 
 export interface ControlMeta {
@@ -116,6 +128,13 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'BindingNavigator', displayName: 'BindingNavigator', icon: '\u23E9', category: 'data' },
 
   { type: 'MongoDBConnector', displayName: 'MongoDBConnector', icon: '\uD83D\uDDC4', category: 'database' },
+
+  { type: 'Slider',  displayName: 'Slider',  icon: '\u23AF', category: 'basic' },
+  { type: 'Switch',  displayName: 'Switch',  icon: '\u2298', category: 'basic' },
+  { type: 'Upload',  displayName: 'Upload',  icon: '\u2B06', category: 'data' },
+  { type: 'Alert',   displayName: 'Alert',   icon: '\u26A0', category: 'basic' },
+  { type: 'Tag',     displayName: 'Tag',     icon: '\u2B21', category: 'basic' },
+  { type: 'Divider', displayName: 'Divider', icon: '\u2014', category: 'basic' },
 ];
 
 export const TOOLBOX_CATEGORIES = [
