@@ -44,6 +44,12 @@ const controlThemeMap: Record<string, ThemeColorResolver> = {
   MongoDBView: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   SplitContainer: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   WebBrowser: (t) => ({ background: t.controls.textInput.background, foreground: t.form.foreground }),
+  Slider: (t) => ({ background: t.controls.progressBar.background, foreground: t.form.foreground }),
+  Switch: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
+  Upload: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
+  Alert: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
+  Tag: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
+  Divider: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
 };
 
 function resolveThemeColors(controlType: ControlType, theme: ThemeTokens) {
