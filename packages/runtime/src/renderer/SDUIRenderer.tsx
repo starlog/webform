@@ -131,6 +131,7 @@ export function SDUIRenderer({ formDefinition, enableDrag, themeIdOverride }: SD
       <ThemeColorModeProvider mode={formDefinition.properties.themeColorMode ?? 'control'}>
         <FormContainer
           properties={formDefinition.properties}
+          designSize={formSize}
           enableDrag={enableDrag}
           dockTop={dockTop.length > 0 ? dockTop.map(renderControl) : undefined}
           dockBottom={dockBottom.length > 0 ? dockBottom.map(renderControl) : undefined}

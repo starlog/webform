@@ -536,4 +536,5 @@ export const SHELL_PROPERTIES: PropertyMeta[] = [
   },
   { name: 'maximizeBox', label: 'MaximizeBox', category: 'Behavior', editorType: 'boolean' },
   { name: 'minimizeBox', label: 'MinimizeBox', category: 'Behavior', editorType: 'boolean' },
+  { name: 'windowState', label: 'WindowState', category: 'Layout', editorType: 'dropdown', options: ['Normal', 'Maximized'] },
 ];

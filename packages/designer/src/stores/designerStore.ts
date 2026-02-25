@@ -27,6 +27,7 @@ const DEFAULT_SHELL_PROPERTIES: ShellProperties = {
   formBorderStyle: 'Sizable',
   maximizeBox: true,
   minimizeBox: true,
+  windowState: 'Normal',
 };
 
 const DEFAULT_FORM_PROPERTIES: FormProperties = {

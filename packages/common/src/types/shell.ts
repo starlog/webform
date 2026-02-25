@@ -16,6 +16,7 @@ export interface ShellProperties {
   formBorderStyle: 'None' | 'FixedSingle' | 'Fixed3D' | 'Sizable';
   maximizeBox: boolean;
   minimizeBox: boolean;
+  windowState?: 'Normal' | 'Maximized';
   theme?: ThemeId;
 }
 

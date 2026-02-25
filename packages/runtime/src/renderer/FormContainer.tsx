@@ -1,13 +1,15 @@
-import { useState, useCallback, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useState, useCallback, useRef, useEffect, type CSSProperties, type ReactNode } from 'react';
 import type { FormProperties } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import { useThemeColorMode } from '../theme/ThemeColorModeContext';
 import { computeFontStyle } from './layoutUtils';
 import { useFormResize } from './useFormResize';
 import { useFormDrag } from './useFormDrag';
+import { FormScaleProvider } from './FormScaleContext';
 
 interface FormContainerProps {
   properties: FormProperties;
+  designSize?: { width: number; height: number };
   enableDrag?: boolean;
   dockTop?: ReactNode;
   dockBottom?: ReactNode;
@@ -45,6 +47,7 @@ function TrafficLightButtons({ onMaximize }: { onMaximize?: () => void }) {
 
 export function FormContainer({
   properties,
+  designSize,
   enableDrag = false,
   dockTop,
   dockBottom,
@@ -56,9 +59,34 @@ export function FormContainer({
   const theme = useTheme();
   const themeColorMode = useThemeColorMode();
   const formRef = useRef<HTMLDivElement>(null);
+  const centerRef = useRef<HTMLDivElement>(null);
   const [maximized, setMaximized] = useState(properties.windowState === 'Maximized');
   const isMaximized = maximized;
   const fontStyles = computeFontStyle(properties.font);
+
+  // Track actual .wf-center size for proportional scaling
+  const [centerSize, setCenterSize] = useState<{ width: number; height: number } | null>(null);
+  useEffect(() => {
+    const el = centerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setCenterSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const formScale = (() => {
+    if (!designSize || !centerSize) return { scaleX: 1, scaleY: 1 };
+    const sx = designSize.width > 0 ? centerSize.width / designSize.width : 1;
+    const sy = designSize.height > 0 ? centerSize.height / designSize.height : 1;
+    // Only scale if actual size differs meaningfully from design size
+    if (Math.abs(sx - 1) < 0.01 && Math.abs(sy - 1) < 0.01) return { scaleX: 1, scaleY: 1 };
+    return { scaleX: sx, scaleY: sy };
+  })();
 
   const { position, onTitleBarMouseDown, resetPosition } = useFormDrag({
     enabled: enableDrag,
@@ -209,9 +237,11 @@ export function FormContainer({
         {dockTop}
         <div style={middleStyle}>
           {dockLeft}
-          <div className="wf-center" style={centerStyle}>
+          <div ref={centerRef} className="wf-center" style={centerStyle}>
             {dockFill}
-            {children}
+            <FormScaleProvider value={formScale}>
+              {children}
+            </FormScaleProvider>
           </div>
           {dockRight}
         </div>

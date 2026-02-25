@@ -67,16 +67,44 @@ export function computeAnchorStyle(
   return style;
 }
 
+/** Controls anchored on both horizontal or both vertical sides stretch via CSS margins */
+function isStretchAnchor(def: ControlDefinition): boolean {
+  const { anchor } = def;
+  const hStretch = anchor.left && anchor.right;
+  const vStretch = anchor.top && anchor.bottom;
+  return hStretch || vStretch;
+}
+
+export function computeScaledStyle(
+  def: ControlDefinition,
+  scaleX: number,
+  scaleY: number,
+): CSSProperties {
+  return {
+    position: 'absolute',
+    left: def.position.x * scaleX,
+    top: def.position.y * scaleY,
+    width: def.size.width * scaleX,
+    height: def.size.height * scaleY,
+  };
+}
+
 export function computeLayoutStyle(
   def: ControlDefinition,
   parentSize?: { width: number; height: number },
+  scale?: { scaleX: number; scaleY: number },
 ): CSSProperties {
   // Dock takes priority over absolute positioning
   if (def.dock !== 'None') {
     return computeDockStyle(def.dock, def.size, def.position);
   }
 
-  // Anchor layout when parentSize is available
+  // Proportional scaling for non-stretch controls when scale differs from 1:1
+  if (scale && (scale.scaleX !== 1 || scale.scaleY !== 1) && !isStretchAnchor(def)) {
+    return computeScaledStyle(def, scale.scaleX, scale.scaleY);
+  }
+
+  // Anchor layout when parentSize is available (includes stretch anchors)
   if (parentSize) {
     return computeAnchorStyle(def, parentSize);
   }

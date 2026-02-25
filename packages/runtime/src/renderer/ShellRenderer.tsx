@@ -149,7 +149,7 @@ const titleTextStyle: CSSProperties = {
 
 export function ShellRenderer({ shellDef, projectId, children }: ShellRendererProps) {
   const theme = useTheme();
-  const [maximized, setMaximized] = useState(false);
+  const [maximized, setMaximized] = useState(shellDef.properties.windowState === 'Maximized');
   const toggleMaximize = useCallback(() => setMaximized((prev) => !prev), []);
   const applyShellPatches = useRuntimeStore((s) => s.applyShellPatches);
 

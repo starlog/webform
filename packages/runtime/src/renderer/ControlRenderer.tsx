@@ -4,6 +4,7 @@ import { useRuntimeStore } from '../stores/runtimeStore';
 import { useDataBinding } from '../hooks/useDataBinding';
 import { useEventHandlers } from '../hooks/useEventHandlers';
 import { computeLayoutStyle } from './layoutUtils';
+import { useFormScale } from './FormScaleContext';
 
 const EMPTY_STATE: Record<string, unknown> = {};
 
@@ -18,6 +19,7 @@ export function ControlRenderer({ definition, bindings, events, parentSize }: Co
   const controlState = useRuntimeStore((s) => s.controlStates[definition.id] ?? EMPTY_STATE);
   const boundProps = useDataBinding(definition.id, bindings);
   const eventHandlers = useEventHandlers(definition.id, events);
+  const scale = useFormScale();
 
   const Component = runtimeControlRegistry[definition.type];
   if (!Component) {
@@ -25,7 +27,7 @@ export function ControlRenderer({ definition, bindings, events, parentSize }: Co
     return null;
   }
 
-  const layoutStyle = computeLayoutStyle(definition, parentSize);
+  const layoutStyle = computeLayoutStyle(definition, parentSize, scale);
 
   if (controlState.visible === false) return null;
 
