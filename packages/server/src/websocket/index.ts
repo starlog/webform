@@ -1,9 +1,10 @@
-import type { Server } from 'node:http';
+import type { IncomingMessage, Server } from 'node:http';
 import { WebSocketServer } from 'ws';
 import { handleDesignerConnection } from './designerSync.js';
 import { handleRuntimeConnection } from './runtimeEvents.js';
 import { handleAppConnection } from './appEvents.js';
 import { authenticateWsUpgrade } from './auth.js';
+import type { JwtPayload } from '../middleware/auth.js';
 
 export function initWebSocket(server: Server): void {
   const designerWss = new WebSocketServer({ noServer: true });
@@ -24,7 +25,7 @@ export function initWebSocket(server: Server): void {
     if (!user) return; // 인증 실패 → 소켓 이미 파괴됨
 
     // 핸들러에서 user 정보 접근 가능하도록 req에 첨부
-    (req as any).user = user;
+    (req as IncomingMessage & { user: JwtPayload }).user = user;
 
     if (pathname.startsWith('/ws/designer/')) {
       designerWss.handleUpgrade(req, socket, head, (ws) => {

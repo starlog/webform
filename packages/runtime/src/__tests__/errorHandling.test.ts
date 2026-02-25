@@ -280,7 +280,7 @@ describe('에러 처리 개선', () => {
       const newForm = createMockFormDef({ id: 'form2', name: 'Form2' });
       useRuntimeStore.getState().setFormDef(newForm);
 
-      // dialogQueue는 setFormDef에서 초기화됨 (이전 폼의 다이얼로그가 새 폼에 남지 않도록)
+      // dialogQueue는 setFormDef에서 초기화되므로 비어 있어야 함 (이전 폼의 다이얼로그가 새 폼에 남지 않도록)
       const state = useRuntimeStore.getState();
       expect(state.dialogQueue).toHaveLength(0);
     });
