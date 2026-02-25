@@ -86,7 +86,7 @@ export function ToolStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     borderBottom: theme.controls.toolStrip.border,
     display: 'flex',

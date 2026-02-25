@@ -73,7 +73,7 @@ export function Collapse({
 
   const containerStyle: CSSProperties = {
     boxSizing: 'border-box',
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     border: bordered ? '1px solid rgba(0,0,0,0.1)' : 'none',
     borderRadius: 8,

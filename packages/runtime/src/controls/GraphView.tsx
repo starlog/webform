@@ -117,7 +117,7 @@ export function GraphView({
   const containerStyle: CSSProperties = {
     width: '100%',
     height: '100%',
-    backgroundColor: controlColors.backgroundColor,
+    background: controlColors.background,
     color: controlColors.color,
     display: 'flex',
     flexDirection: 'column',

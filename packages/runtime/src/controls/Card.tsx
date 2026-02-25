@@ -51,7 +51,7 @@ export function Card({
     position: 'relative',
     overflow: 'hidden',
     boxSizing: 'border-box',
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     borderRadius,
     border: showBorder ? theme.controls.panel.border : 'none',

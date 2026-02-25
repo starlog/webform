@@ -412,7 +412,7 @@ export function MongoDBView({
   const containerStyle: CSSProperties = {
     ...sty.container,
     ...fontStyle,
-    backgroundColor: controlColors.backgroundColor,
+    background: controlColors.background,
     color: controlColors.color,
     ...style,
   };

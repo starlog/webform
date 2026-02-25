@@ -101,7 +101,7 @@ export function TabControl({
       data-control-id={id}
       style={{
         boxSizing: 'border-box',
-        backgroundColor: colors.backgroundColor,
+        background: colors.background,
         color: colors.color,
         ...style,
       }}

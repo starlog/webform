@@ -32,7 +32,7 @@ export function ComboBox({
   const colors = useControlColors('ComboBox', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     border: theme.controls.select.border,
     borderRadius: theme.controls.select.borderRadius,
     color: colors.color,

@@ -238,7 +238,7 @@ export function TreeView({
 
   const mergedStyle: CSSProperties = {
     ...baseStyle,
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     ...style,
     opacity: enabled ? 1 : 0.6,

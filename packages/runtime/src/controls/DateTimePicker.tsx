@@ -34,7 +34,7 @@ export function DateTimePicker({
     boxSizing: 'border-box',
     fontFamily: 'inherit',
     fontSize: 'inherit',
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     border: theme.controls.textInput.border,
     padding: theme.controls.textInput.padding,
     borderRadius: theme.controls.textInput.borderRadius,

@@ -36,7 +36,7 @@ export function TextBox({
   const colors = useControlColors('TextBox', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     border: theme.controls.textInput.border,
     padding: theme.controls.textInput.padding,
     borderRadius: theme.controls.textInput.borderRadius,

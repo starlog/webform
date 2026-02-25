@@ -290,7 +290,7 @@ export function MenuStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     borderBottom: theme.controls.menuStrip.border,
     display: 'flex',

@@ -38,7 +38,7 @@ export function CardControl({ id, properties, size, position = { x: 0, y: 0 } }:
         height: size.height,
         borderRadius,
         border: showBorder ? theme.controls.panel.border : 'none',
-        backgroundColor: colors.backgroundColor,
+        background: colors.background,
         color: colors.color,
         display: 'flex',
         flexDirection: 'column',

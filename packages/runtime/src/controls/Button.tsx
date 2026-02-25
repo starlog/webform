@@ -20,7 +20,7 @@ export function Button({ id, text, backColor, foreColor, style, enabled = true, 
   const colors = useControlColors('Button', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     border: theme.controls.button.border,
     padding: theme.controls.button.padding,
     borderRadius: theme.controls.button.borderRadius,

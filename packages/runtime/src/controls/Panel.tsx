@@ -33,7 +33,7 @@ export function Panel({ id, borderStyle, backColor, foreColor, style, children }
         position: 'relative',
         overflow: 'hidden',
         boxSizing: 'border-box',
-        backgroundColor: colors.backgroundColor,
+        background: colors.background,
         color: colors.color,
         borderRadius: theme.controls.panel.borderRadius,
         ...panelBorder,

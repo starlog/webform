@@ -50,7 +50,7 @@ export function StatusStrip({
   );
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     borderTop: theme.controls.statusStrip.border,
     display: 'flex',

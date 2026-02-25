@@ -32,7 +32,7 @@ export function ProgressBar({
     boxSizing: 'border-box',
     border: theme.controls.progressBar.border,
     borderRadius: theme.controls.progressBar.borderRadius,
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     overflow: 'hidden',
   };
 
@@ -49,7 +49,7 @@ export function ProgressBar({
         style={{
           width: `${percent}%`,
           height: '100%',
-          backgroundColor: theme.controls.progressBar.fillBackground,
+          background: theme.controls.progressBar.fillBackground,
           transition: 'width 0.2s ease',
         }}
       />

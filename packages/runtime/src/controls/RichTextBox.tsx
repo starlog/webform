@@ -98,7 +98,7 @@ export function RichTextBox({
   const overflow = getOverflow(scrollBars);
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     border: theme.controls.textInput.border,
     borderRadius: theme.controls.textInput.borderRadius,

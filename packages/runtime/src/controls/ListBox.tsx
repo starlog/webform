@@ -32,7 +32,7 @@ export function ListBox({
   const colors = useControlColors('ListBox', { backColor, foreColor });
 
   const baseStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     border: theme.controls.select.border,
     borderRadius: theme.controls.select.borderRadius,
     color: colors.color,

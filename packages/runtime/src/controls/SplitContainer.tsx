@@ -81,7 +81,7 @@ export function SplitContainer({
     height: '100%',
     display: 'flex',
     flexDirection: isVertical ? 'row' : 'column',
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     overflow: 'hidden',
     ...style,
   };

@@ -287,7 +287,7 @@ export function DataGridView({
     [commitEdit, cancelEdit],
   );
 
-  const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, backgroundColor: colors.backgroundColor, color: colors.color, ...style };
+  const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, background: colors.background, color: colors.color, ...style };
 
   // 빈 데이터 처리
   if (rows.length === 0) {

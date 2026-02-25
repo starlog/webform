@@ -8,7 +8,7 @@ interface ControlColorProps {
 }
 
 interface ControlColors {
-  backgroundColor: string;
+  background: string;
   color: string;
 }
 
@@ -82,13 +82,13 @@ export function useControlColors(
 
   if (mode === 'theme' || chromeControlTypes.has(controlType)) {
     return {
-      backgroundColor: themeColors.background,
+      background: themeColors.background,
       color: themeColors.foreground,
     };
   }
 
   return {
-    backgroundColor: props.backColor ?? themeColors.background,
+    background: props.backColor ?? themeColors.background,
     color: props.foreColor ?? themeColors.foreground,
   };
 }

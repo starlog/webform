@@ -53,7 +53,7 @@ export function Statistic({
 
   const containerStyle: CSSProperties = {
     boxSizing: 'border-box',
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     ...style,
   };

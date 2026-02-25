@@ -26,7 +26,7 @@ describe('useControlColors', () => {
         () => useControlColors('Button', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.button.background);
+      expect(result.current.background).toBe(theme.controls.button.background);
       expect(result.current.color).toBe(theme.controls.button.foreground);
     });
 
@@ -35,7 +35,7 @@ describe('useControlColors', () => {
         () => useControlColors('Button', { backColor: '#ff0000' }),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe('#ff0000');
+      expect(result.current.background).toBe('#ff0000');
       expect(result.current.color).toBe(theme.controls.button.foreground);
     });
 
@@ -44,7 +44,7 @@ describe('useControlColors', () => {
         () => useControlColors('Button', { foreColor: '#00ff00' }),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.button.background);
+      expect(result.current.background).toBe(theme.controls.button.background);
       expect(result.current.color).toBe('#00ff00');
     });
 
@@ -53,7 +53,7 @@ describe('useControlColors', () => {
         () => useControlColors('Button', { backColor: '#ff0000', foreColor: '#00ff00' }),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe('#ff0000');
+      expect(result.current.background).toBe('#ff0000');
       expect(result.current.color).toBe('#00ff00');
     });
   });
@@ -66,7 +66,7 @@ describe('useControlColors', () => {
         () => useControlColors('Button', { backColor: '#ff0000', foreColor: '#00ff00' }),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.button.background);
+      expect(result.current.background).toBe(theme.controls.button.background);
       expect(result.current.color).toBe(theme.controls.button.foreground);
     });
 
@@ -75,7 +75,7 @@ describe('useControlColors', () => {
         () => useControlColors('TextBox', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.textInput.background);
+      expect(result.current.background).toBe(theme.controls.textInput.background);
       expect(result.current.color).toBe(theme.controls.textInput.foreground);
     });
   });
@@ -88,7 +88,7 @@ describe('useControlColors', () => {
         () => useControlColors('TextBox', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.textInput.background);
+      expect(result.current.background).toBe(theme.controls.textInput.background);
       expect(result.current.color).toBe(theme.controls.textInput.foreground);
     });
 
@@ -97,7 +97,7 @@ describe('useControlColors', () => {
         () => useControlColors('ComboBox', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.select.background);
+      expect(result.current.background).toBe(theme.controls.select.background);
       expect(result.current.color).toBe(theme.controls.select.foreground);
     });
 
@@ -106,7 +106,7 @@ describe('useControlColors', () => {
         () => useControlColors('Panel', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.panel.background);
+      expect(result.current.background).toBe(theme.controls.panel.background);
     });
 
     it('MenuStrip → menuStrip 토큰', () => {
@@ -114,7 +114,7 @@ describe('useControlColors', () => {
         () => useControlColors('MenuStrip', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.menuStrip.background);
+      expect(result.current.background).toBe(theme.controls.menuStrip.background);
       expect(result.current.color).toBe(theme.controls.menuStrip.foreground);
     });
 
@@ -123,7 +123,7 @@ describe('useControlColors', () => {
         () => useControlColors('StatusStrip', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.statusStrip.background);
+      expect(result.current.background).toBe(theme.controls.statusStrip.background);
       expect(result.current.color).toBe(theme.controls.statusStrip.foreground);
     });
 
@@ -132,7 +132,7 @@ describe('useControlColors', () => {
         () => useControlColors('ProgressBar', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.progressBar.background);
+      expect(result.current.background).toBe(theme.controls.progressBar.background);
     });
 
     it('Label → form 토큰', () => {
@@ -140,7 +140,7 @@ describe('useControlColors', () => {
         () => useControlColors('Label', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.form.backgroundColor);
+      expect(result.current.background).toBe(theme.form.backgroundColor);
       expect(result.current.color).toBe(theme.form.foreground);
     });
 
@@ -149,7 +149,7 @@ describe('useControlColors', () => {
         () => useControlColors('DataGridView', {}),
         { wrapper },
       );
-      expect(result.current.backgroundColor).toBe(theme.controls.dataGrid.rowBackground);
+      expect(result.current.background).toBe(theme.controls.dataGrid.rowBackground);
       expect(result.current.color).toBe(theme.controls.dataGrid.rowForeground);
     });
   });

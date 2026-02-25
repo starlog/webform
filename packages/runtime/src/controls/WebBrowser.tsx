@@ -47,7 +47,7 @@ export function WebBrowser({
   const safeUrl = isSafeUrl(url) ? url : 'about:blank';
 
   const mergedStyle: CSSProperties = {
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     border: theme.controls.textInput.border,
     borderRadius: theme.controls.textInput.borderRadius,
     display: 'flex',

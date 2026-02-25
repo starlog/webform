@@ -52,7 +52,7 @@ export function Slider({
     onValueChanged?.();
   };
 
-  const resolvedTrackColor = trackColor || colors.backgroundColor;
+  const resolvedTrackColor = trackColor || colors.background;
   const resolvedFillColor = fillColor || '#1677ff';
 
   const inputStyle: CSSProperties = {

@@ -65,20 +65,20 @@ const chromeControlTypes = new Set<string>([
 export function useControlColors(
   controlType: ControlType,
   props: { backColor?: string; foreColor?: string },
-): { backgroundColor: string; color: string } {
+): { background: string; color: string } {
   const theme = useTheme();
   const mode = useDesignerStore((s) => s.formProperties.themeColorMode ?? 'control');
   const themeColors = resolveThemeColors(controlType, theme);
 
   if (mode === 'theme' || chromeControlTypes.has(controlType)) {
     return {
-      backgroundColor: themeColors.background,
+      background: themeColors.background,
       color: themeColors.foreground,
     };
   }
 
   return {
-    backgroundColor: props.backColor ?? themeColors.background,
+    background: props.backColor ?? themeColors.background,
     color: props.foreColor ?? themeColors.foreground,
   };
 }

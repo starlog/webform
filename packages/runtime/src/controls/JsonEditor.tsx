@@ -313,7 +313,7 @@ export function JsonEditor({
       data-control-id={id}
       style={{
         ...baseStyle,
-        backgroundColor: controlColors.backgroundColor,
+        background: controlColors.background,
         color: controlColors.color,
         ...fontStyle,
         ...style,

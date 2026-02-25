@@ -366,7 +366,7 @@ export function SpreadsheetView({
 
   const mergedStyle: CSSProperties = {
     ...SS.container,
-    backgroundColor: controlColors.backgroundColor,
+    background: controlColors.background,
     ...style,
   };
 

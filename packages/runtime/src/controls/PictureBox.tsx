@@ -46,7 +46,7 @@ export function PictureBox({
     display: 'flex',
     alignItems: sizeMode === 'CenterImage' ? 'center' : 'flex-start',
     justifyContent: sizeMode === 'CenterImage' ? 'center' : 'flex-start',
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     border: getBorder(),
     borderRadius: theme.controls.panel.borderRadius,
     ...style,

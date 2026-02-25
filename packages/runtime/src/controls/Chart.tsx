@@ -114,7 +114,7 @@ export function Chart({
   const containerStyle: CSSProperties = {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.backgroundColor,
+    background: colors.background,
     color: colors.color,
     display: 'flex',
     flexDirection: 'column',
