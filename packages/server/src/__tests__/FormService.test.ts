@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { FormService } from '../services/FormService.js';
-import { NotFoundError } from '../middleware/errorHandler.js';
+import { AppError, NotFoundError } from '../middleware/errorHandler.js';
 import type { CreateFormInput } from '../validators/formValidator.js';
 
 const formService = new FormService();
@@ -106,15 +106,14 @@ describe('FormService', () => {
       expect(published.publishedVersion).toBe(1);
     });
 
-    it('이미 published 상태여도 re-publish가 가능해야 한다', async () => {
+    it('이미 published 상태면 AppError(409)를 throw해야 한다', async () => {
       const created = await formService.createForm(baseInput, userId);
       const id = created._id.toString();
 
       await formService.publishForm(id, userId);
-      const republished = await formService.publishForm(id, userId);
 
-      expect(republished.status).toBe('published');
-      expect(republished.publishedVersion).toBe(1);
+      await expect(formService.publishForm(id, userId)).rejects.toThrow(AppError);
+      await expect(formService.publishForm(id, userId)).rejects.toThrow('Form is already published');
     });
   });
 
