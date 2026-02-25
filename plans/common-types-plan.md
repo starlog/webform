@@ -1,285 +1,333 @@
-# Application Shell 공통 타입 정의 계획
+# EXTRA-ELEMENTS: 공통 타입 등록 구현 계획서
 
 > Task ID: `common-types-plan`
-> Phase: phase1-foundation
-> 참조: MDI.md (Application Shell / MDI 시스템 구현 계획)
+> Phase: phase1-setup (EXTRA-ELEMENTS 프로젝트)
+> 참조: EXTRA-ELEMENTS.md (신규 UI 컨트롤 확장 PRD)
+> 작성일: 2026-02-25
 
 ---
 
-## 1. 현재 타입 구조 분석
+## 1. 현재 코드 구조 요약
 
-### 1.1 UIPatch 타입 (protocol.ts:4-8)
+### 1.1 `packages/common/src/types/form.ts`
 
-```typescript
-export interface UIPatch {
-  type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate';
-  target: string;
-  payload: Record<string, unknown>;
-}
+**CONTROL_TYPES 배열** (라인 32–41):
+```ts
+// Phase 1 - 기본 컨트롤 (11종), 컨테이너 (4종)
+// Phase 2 - 데이터 컨트롤 (5종)
+// Phase 3 - 고급 컨트롤 (5종)
+export const CONTROL_TYPES = [
+  'Button', 'Label', 'TextBox', 'CheckBox', 'RadioButton',
+  'ComboBox', 'ListBox', 'NumericUpDown', 'DateTimePicker',
+  'ProgressBar', 'PictureBox',
+  'Panel', 'GroupBox', 'TabControl', 'SplitContainer',
+  'DataGridView', 'BindingNavigator', 'Chart', 'TreeView', 'ListView',
+  'MenuStrip', 'ToolStrip', 'StatusStrip', 'RichTextBox', 'WebBrowser',
+  'SpreadsheetView', 'JsonEditor', 'MongoDBView', 'GraphView',
+  'MongoDBConnector',
+] as const;
 ```
 
-기존 union 멤버 5개:
-- `updateProperty` — 컨트롤 속성 변경
-- `addControl` — 컨트롤 추가
-- `removeControl` — 컨트롤 제거
-- `showDialog` — 다이얼로그 표시
-- `navigate` — 폼 전환
+- **패턴**: `as const` 리터럴 배열 → `ControlType` 유니온 타입 자동 추론
+- **현재 항목 수**: 30개
+- **타입 추출** (라인 43): `export type ControlType = (typeof CONTROL_TYPES)[number];`
+- **ControlDefinition** (라인 56): `type: ControlType` 필드로 참조
 
-### 1.2 EventRequest 타입 (protocol.ts:10-16)
+### 1.2 `packages/common/src/types/events.ts`
 
-```typescript
-export interface EventRequest {
-  formId: string;
-  controlId: string;
-  eventName: string;
-  eventArgs: EventArgs;
-  formState: Record<string, Record<string, unknown>>;
-}
+**CONTROL_EVENTS 객체** (라인 23–48):
+```ts
+export const CONTROL_EVENTS: Record<string, readonly string[]> = {
+  TextBox: ['TextChanged', 'KeyPress'],
+  ComboBox: ['SelectedIndexChanged', 'DropDown', 'DropDownClosed'],
+  CheckBox: ['CheckedChanged'],
+  RadioButton: ['CheckedChanged'],
+  DataGridView: ['CellClick', 'CellValueChanged', 'RowEnter', 'SelectionChanged'],
+  NumericUpDown: ['ValueChanged'],
+  DateTimePicker: ['ValueChanged'],
+  ListBox: ['SelectedIndexChanged'],
+  TabControl: ['SelectedIndexChanged'],
+  TreeView: ['AfterSelect', 'AfterExpand', 'AfterCollapse'],
+  ListView: ['SelectedIndexChanged', 'ItemActivate'],
+  SpreadsheetView: ['CellChanged', 'RowAdded', 'RowDeleted', 'SelectionChanged', 'DataLoaded'],
+  JsonEditor: ['ValueChanged'],
+  MongoDBView: ['DataLoaded', 'SelectionChanged', 'CellValueChanged', 'DocumentInserted', 'DocumentUpdated', 'DocumentDeleted', 'Error'],
+  GraphView: ['DataLoaded'],
+  MenuStrip: ['ItemClicked'],
+  ToolStrip: ['ItemClicked'],
+  StatusStrip: ['ItemClicked'],
+  RichTextBox: ['TextChanged', 'SelectionChanged'],
+  WebBrowser: ['Navigated', 'DocumentCompleted'],
+  Chart: ['SeriesClicked', 'DataLoaded'],
+  SplitContainer: ['SplitterMoved'],
+  BindingNavigator: ['PositionChanged', 'ItemClicked'],
+  MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
+};
 ```
 
-필드 5개: `formId`, `controlId`, `eventName`, `eventArgs`, `formState`
+- **패턴**: `Record<string, readonly string[]>` 타입의 일반 객체
+- **현재 항목 수**: 25개 컨트롤에 대한 이벤트 정의
+- **참고**: 이벤트가 없는 컨트롤(Button, Label, Panel 등)은 CONTROL_EVENTS에 미포함, COMMON_EVENTS만 사용
 
-### 1.3 RuntimeWsMessage 타입 (protocol.ts:50-55)
+### 1.3 `packages/common/src/index.ts`
 
-```typescript
-export type RuntimeWsMessage =
-  | { type: 'event'; payload: EventRequest }
-  | { type: 'eventResult'; payload: EventResponse }
-  | { type: 'uiPatch'; payload: UIPatch[] }
-  | { type: 'dataRefresh'; payload: { controlId: string; data: unknown[] } }
-  | { type: 'error'; payload: { code: string; message: string } };
-```
+- `CONTROL_TYPES`, `ControlType` 등을 re-export (라인 11)
+- `CONTROL_EVENTS`, `COMMON_EVENTS`, `FORM_EVENTS` re-export (라인 23)
+- **변경 불필요**: 기존 export가 배열/객체를 그대로 내보내므로 원본에 항목 추가 시 자동 반영
 
-태그드 유니언 5개 variant. Shell 모드에서 `scope` 필드로 패치 대상(shell/form)을 구분해야 한다.
+### 1.4 `packages/common/src/utils/validation.ts`
 
-### 1.4 관련 타입 (form.ts, events.ts)
+- `validateControlDefinition()` (라인 17)에서 `CONTROL_TYPES` import하여 컨트롤 타입 검증
+- 라인 30: `if (!(CONTROL_TYPES as readonly string[]).includes(c.type))`
+- **변경 불필요**: CONTROL_TYPES 배열에 항목 추가하면 validation이 자동으로 신규 타입 허용
 
-- `ControlDefinition` (form.ts:50-63) — Shell의 `controls` 필드에 재사용
-- `FontDefinition` (form.ts:4-11) — Shell의 `properties.font`에 재사용
-- `FormProperties` (form.ts:13-23) — Shell의 `ShellProperties`와 구조 유사 (title, width, height, formBorderStyle 등)
-- `EventHandlerDefinition` (events.ts:1-6) — Shell의 `eventHandlers`에 재사용
-- `EventArgs` (events.ts:8-12) — Shell 이벤트에도 동일하게 사용
+### 1.5 기존 테스트 파일
 
-### 1.5 현재 index.ts export 구조 (index.ts:1-51)
-
-```
-VERSION, FontDefinition, FormProperties, ControlDefinition, FormDefinition,
-AnchorStyle, ControlType, DockStyle, CONTROL_TYPES,
-EventHandlerDefinition, EventArgs, ControlProxy, CollectionProxy,
-DataSourceProxy, FormContext, DialogResult, COMMON_EVENTS, CONTROL_EVENTS, FORM_EVENTS,
-DataSourceDefinition, DatabaseConfig, RestApiConfig, AuthConfig, StaticConfig, DataBindingDefinition,
-DebugLog, TraceEntry, UIPatch, EventRequest, EventResponse, DesignerWsMessage, RuntimeWsMessage, WsMessage,
-validateFormDefinition, validateControlDefinition, sanitizeQueryInput,
-serializeFormDefinition, deserializeFormDefinition,
-flattenControls, nestControls
-```
+- `src/__tests__/events.test.ts`: COMMON_EVENTS, CONTROL_EVENTS, FORM_EVENTS 기본 검증
+- `src/__tests__/validation.test.ts`: validateFormDefinition, sanitizeQueryInput 검증
+- **기존 테스트 영향**: 없음 (기존 항목 그대로 유지, 신규 항목 추가만)
 
 ---
 
-## 2. 신규 파일: packages/common/src/types/shell.ts
+## 2. 수정 계획 상세
 
-### 2.1 전체 코드 초안
+### 2.1 파일: `packages/common/src/types/form.ts`
 
-```typescript
-import type { ControlDefinition, FontDefinition } from './form';
-import type { EventHandlerDefinition, EventArgs } from './events';
+#### 수정 위치: 라인 40 (`'MongoDBConnector',`) 뒤
 
-/**
- * Application Shell 속성.
- * FormProperties와 유사하지만 startPosition이 없고 showTitleBar가 추가됨.
- */
-export interface ShellProperties {
-  title: string;
-  width: number;
-  height: number;
-  backgroundColor: string;
-  font: FontDefinition;
-  showTitleBar: boolean;
-  formBorderStyle: 'None' | 'FixedSingle' | 'Fixed3D' | 'Sizable';
-  maximizeBox: boolean;
-  minimizeBox: boolean;
-}
-
-/**
- * Application Shell 정의.
- * 프로젝트 당 하나의 Shell이 존재하며, MenuStrip/ToolStrip/StatusStrip 등
- * 앱 수준 UI 컨트롤을 포함한다.
- */
-export interface ApplicationShellDefinition {
-  id: string;
-  projectId: string;
-  name: string;
-  version: number;
-  properties: ShellProperties;
-  controls: ControlDefinition[];
-  eventHandlers: EventHandlerDefinition[];
-  startFormId?: string;
-}
-
-/**
- * Shell 전용 이벤트 목록.
- * - Load: Shell 최초 로드
- * - FormChanged: 활성 폼 변경 후
- * - BeforeFormChange: 폼 변경 전 (취소 가능)
- */
-export const SHELL_EVENTS = ['Load', 'FormChanged', 'BeforeFormChange'] as const;
-export type ShellEventType = (typeof SHELL_EVENTS)[number];
-
-/**
- * Shell 이벤트 요청.
- * EventRequest와 유사하지만 formId 대신 projectId를 사용하고
- * shellState, currentFormId 필드가 있다.
- */
-export interface ShellEventRequest {
-  projectId: string;
-  controlId: string;
-  eventName: string;
-  eventArgs: EventArgs;
-  shellState: Record<string, Record<string, unknown>>;
-  currentFormId: string;
-}
+#### 현재 코드 (라인 37–41):
+```ts
+  'MenuStrip', 'ToolStrip', 'StatusStrip', 'RichTextBox', 'WebBrowser',
+  'SpreadsheetView', 'JsonEditor', 'MongoDBView', 'GraphView',
+  'MongoDBConnector',
+] as const;
 ```
 
-### 2.2 설계 근거
+#### 수정 후 코드:
+```ts
+  'MenuStrip', 'ToolStrip', 'StatusStrip', 'RichTextBox', 'WebBrowser',
+  'SpreadsheetView', 'JsonEditor', 'MongoDBView', 'GraphView',
+  'MongoDBConnector',
+  // Extra Elements — Step 1 (폼 필수 요소)
+  'Slider', 'Switch', 'Upload', 'Alert', 'Tag', 'Divider',
+  // Extra Elements — Step 2 (모던 UI 강화)
+  'Card', 'Badge', 'Avatar', 'Tooltip', 'Collapse', 'Statistic',
+] as const;
+```
 
-1. **`ShellProperties.formBorderStyle`**: 문자열 리터럴 유니언 타입 사용 (`FormProperties`와 동일 패턴). MDI.md에서는 `FormBorderStyle` enum을 언급했으나, 기존 코드베이스가 리터럴 유니언을 일관되게 사용하므로 동일 패턴 적용.
+#### Edit 도구 사용 스니펫:
+```
+old_string:
+  'MongoDBConnector',
+] as const;
 
-2. **`ShellProperties`에 `startPosition` 없음**: Shell은 앱 전체 프레임이므로 startPosition 개념이 불필요. FormProperties와의 차이점.
+new_string:
+  'MongoDBConnector',
+  // Extra Elements — Step 1 (폼 필수 요소)
+  'Slider', 'Switch', 'Upload', 'Alert', 'Tag', 'Divider',
+  // Extra Elements — Step 2 (모던 UI 강화)
+  'Card', 'Badge', 'Avatar', 'Tooltip', 'Collapse', 'Statistic',
+] as const;
+```
 
-3. **`ShellEventRequest` 별도 정의**: 기존 `EventRequest`의 `formId`/`formState`와 의미가 다르므로 (`projectId`/`shellState`) 별도 인터페이스로 정의. 기존 EventRequest를 확장하지 않아 하위 호환성 유지.
+#### 변경 요약:
+- `'MongoDBConnector',` 뒤에 주석 2줄 + 타입 2줄 추가
+- 기존 Phase 주석 스타일과 일관성 유지 (라인 29–31 참고)
+- **결과**: CONTROL_TYPES 배열 30개 → 42개
+- **ControlType 유니온 타입**: `as const`에 의해 12개 리터럴 타입 자동 추가
 
-4. **`ShellEventType` 타입 별칭 추가**: `SHELL_EVENTS` 배열에서 파생된 유니언 타입. eventName 검증 등에 활용 가능.
+### 2.2 파일: `packages/common/src/types/events.ts`
+
+#### 수정 위치: 라인 47 (`MongoDBConnector: [...]`) 뒤, 닫는 `};` 앞
+
+#### 현재 코드 (라인 46–48):
+```ts
+  BindingNavigator: ['PositionChanged', 'ItemClicked'],
+  MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
+};
+```
+
+#### 수정 후 코드:
+```ts
+  BindingNavigator: ['PositionChanged', 'ItemClicked'],
+  MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
+  // Extra Elements
+  Slider: ['ValueChanged'],
+  Switch: ['CheckedChanged'],
+  Upload: ['FileSelected', 'UploadCompleted', 'UploadFailed'],
+  Alert: ['Closed'],
+  Tag: ['TagAdded', 'TagRemoved', 'TagClicked'],
+  Tooltip: ['VisibleChanged'],
+  Collapse: ['ActiveKeyChanged'],
+};
+```
+
+#### Edit 도구 사용 스니펫:
+```
+old_string:
+  MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
+};
+
+new_string:
+  MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
+  // Extra Elements
+  Slider: ['ValueChanged'],
+  Switch: ['CheckedChanged'],
+  Upload: ['FileSelected', 'UploadCompleted', 'UploadFailed'],
+  Alert: ['Closed'],
+  Tag: ['TagAdded', 'TagRemoved', 'TagClicked'],
+  Tooltip: ['VisibleChanged'],
+  Collapse: ['ActiveKeyChanged'],
+};
+```
+
+#### 변경 요약:
+- `MongoDBConnector` 항목 뒤에 주석 1줄 + 이벤트 항목 7줄 추가
+- **이벤트 미등록 컨트롤**: Card, Badge, Avatar, Statistic, Divider
+  - 공통 이벤트(COMMON_EVENTS: Click, DoubleClick, MouseEnter 등)만 사용
+  - CONTROL_EVENTS에 별도 항목 불필요
+- **결과**: CONTROL_EVENTS 항목 25개 → 32개
 
 ---
 
-## 3. protocol.ts 변경 사항
+## 3. TypeScript 타입 안전성 확보
 
-### 3.1 UIPatch type 확장
+### 3.1 ControlType 유니온 자동 확장
 
-```diff
- export interface UIPatch {
--  type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate';
-+  type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate'
-+    | 'updateShell' | 'updateAppState' | 'closeApp';
-   target: string;
-   payload: Record<string, unknown>;
- }
+```ts
+// form.ts 라인 43 — 변경 불필요
+export type ControlType = (typeof CONTROL_TYPES)[number];
 ```
 
-추가되는 3개 patch type:
-- `updateShell` — Shell 컨트롤 상태 업데이트 (target: shellControlId)
-- `updateAppState` — 앱 레벨 공유 상태 변경 (target: '_system')
-- `closeApp` — 앱 종료 (target: '_system')
+`CONTROL_TYPES`가 `as const`로 선언되어 있으므로, 배열에 리터럴 문자열을 추가하면 `ControlType` 유니온 타입에 자동 포함됨.
 
-### 3.2 EventRequest 필드 추가
-
-```diff
- export interface EventRequest {
-   formId: string;
-   controlId: string;
-   eventName: string;
-   eventArgs: EventArgs;
-   formState: Record<string, Record<string, unknown>>;
-+  appState?: Record<string, unknown>;
-+  scope?: 'shell' | 'form';
- }
+**추가 후 타입 결과:**
+```ts
+type ControlType =
+  | 'Button' | 'Label' | ... | 'MongoDBConnector'  // 기존 30개
+  | 'Slider' | 'Switch' | 'Upload' | 'Alert' | 'Tag' | 'Divider'  // Step 1
+  | 'Card' | 'Badge' | 'Avatar' | 'Tooltip' | 'Collapse' | 'Statistic';  // Step 2
 ```
 
-추가 필드 (모두 옵셔널 — 하위 호환):
-- `appState` — 앱 레벨 공유 상태. Shell과 폼 간 데이터 공유용
-- `scope` — 이벤트 발생 영역 구분 (`shell`: Shell 이벤트, `form`: 폼 이벤트, 미지정: 기존 방식)
+### 3.2 CONTROL_EVENTS 타입
 
-### 3.3 RuntimeWsMessage scope 필드 추가
+현재 `Record<string, readonly string[]>` 타입이므로 키 제약 없음. 아무 문자열 키든 추가 가능하며 별도 타입 수정 불필요.
 
-RuntimeWsMessage는 태그드 유니언이므로, 각 variant에 개별적으로 scope를 추가하기보다 별도 wrapper 접근이 필요하다. 기존 유니언 구조를 유지하면서 `uiPatch` variant에만 scope를 추가한다:
+### 3.3 Validation 자동 호환
 
-```diff
- export type RuntimeWsMessage =
-   | { type: 'event'; payload: EventRequest }
-   | { type: 'eventResult'; payload: EventResponse }
--  | { type: 'uiPatch'; payload: UIPatch[] }
-+  | { type: 'uiPatch'; payload: UIPatch[]; scope?: 'shell' | 'form' }
-   | { type: 'dataRefresh'; payload: { controlId: string; data: unknown[] } }
-   | { type: 'error'; payload: { code: string; message: string } };
+`validation.ts`의 `validateControlDefinition()`은 `CONTROL_TYPES` 배열을 직접 참조:
+```ts
+if (!(CONTROL_TYPES as readonly string[]).includes(c.type))
 ```
-
-scope가 필요한 것은 `uiPatch`와 `event` 메시지이므로, `event` variant의 payload인 `EventRequest`에 이미 `scope` 필드가 추가되었고, `uiPatch`에 직접 `scope` 옵셔널 필드를 추가한다.
+배열에 항목 추가 시 검증 로직이 자동으로 신규 타입을 유효한 것으로 인식.
 
 ---
 
-## 4. index.ts 추가 export 목록
+## 4. 영향받는 하위 패키지 및 영향 범위
 
-```typescript
-// types/shell
-export type {
-  ApplicationShellDefinition,
-  ShellProperties,
-  ShellEventRequest,
-  ShellEventType,
-} from './types/shell';
-export { SHELL_EVENTS } from './types/shell';
-```
+### 4.1 `packages/designer`
 
-추가되는 export 5개:
-- `ApplicationShellDefinition` (type)
-- `ShellProperties` (type)
-- `ShellEventRequest` (type)
-- `ShellEventType` (type)
-- `SHELL_EVENTS` (const)
+| 영향 영역 | 파일 | 영향도 | 설명 |
+|-----------|------|--------|------|
+| 컨트롤 레지스트리 | `controls/registry.ts` | 🔴 필수 수정 | 신규 타입에 대한 Designer 컴포넌트 매핑 추가 |
+| 속성 패널 | `components/PropertyPanel/controlProperties.ts` | 🔴 필수 수정 | 신규 타입별 PropertyMeta 정의 추가 |
+| Toolbox | (registry.ts 내 metadata) | 🔴 필수 수정 | 신규 타입에 대한 toolbox 메타 등록 |
+| 타입 체크 | 전역 | 🟡 자동 반영 | ControlType 유니온 확장으로 switch/if문 exhaustive 체크 가능 |
+
+### 4.2 `packages/runtime`
+
+| 영향 영역 | 파일 | 영향도 | 설명 |
+|-----------|------|--------|------|
+| 컨트롤 레지스트리 | `controls/registry.ts` | 🔴 필수 수정 | 신규 타입에 대한 Runtime 컴포넌트 매핑 추가 |
+| SDUI 렌더러 | `components/SDUIRenderer.tsx` | 🟢 영향 없음 | registry에서 동적 조회하므로 변경 불필요 |
+| 이벤트 처리 | (SDUIRenderer 내부) | 🟢 영향 없음 | CONTROL_EVENTS 동적 조회 패턴이므로 변경 불필요 |
+
+### 4.3 `packages/server`
+
+| 영향 영역 | 파일 | 영향도 | 설명 |
+|-----------|------|--------|------|
+| EventEngine | `services/EventEngine.ts` | 🟢 영향 없음 | 이벤트 처리가 컨트롤 타입에 무관한 범용 구조 |
+| SandboxRunner | `services/SandboxRunner.ts` | 🟢 영향 없음 | 사용자 코드 실행이 타입에 무관 |
+| Validation | API 입력 검증 | 🟡 자동 반영 | validateControlDefinition()이 신규 타입 자동 허용 |
+
+### 4.4 `packages/common` 내부
+
+| 영향 영역 | 파일 | 영향도 | 설명 |
+|-----------|------|--------|------|
+| index.ts | `src/index.ts` | 🟢 변경 불필요 | 기존 re-export 구조로 자동 반영 |
+| serialization | `utils/serialization.ts` | 🟢 영향 없음 | FormDefinition JSON 직렬화/역직렬화, 타입 무관 |
+| controlUtils | `utils/controlUtils.ts` | 🟢 영향 없음 | flatten/nest 등 구조 유틸, 타입 무관 |
+| 테스트 | `__tests__/*.test.ts` | 🟢 영향 없음 | 기존 테스트 항목 유지 |
 
 ---
 
-## 5. 타입 충돌 및 주의사항
+## 5. 구현 절차
 
-### 5.1 FormProperties vs ShellProperties
+### Step 1: form.ts 수정
+1. `packages/common/src/types/form.ts` 열기
+2. 라인 40 (`'MongoDBConnector',`) 뒤에 주석 2줄 + 타입 2줄 추가
+3. 저장
 
-두 인터페이스의 공통 필드: `title`, `width`, `height`, `backgroundColor`, `font`, `formBorderStyle`, `maximizeBox`, `minimizeBox`
+### Step 2: events.ts 수정
+1. `packages/common/src/types/events.ts` 열기
+2. 라인 47 (`MongoDBConnector: [...]`) 뒤, `};` 앞에 주석 1줄 + 이벤트 7줄 추가
+3. 저장
 
-차이점:
-- `FormProperties`에만 있는 필드: `startPosition`
-- `ShellProperties`에만 있는 필드: `showTitleBar`
+### Step 3: 검증
+1. `pnpm typecheck` 실행 → TypeScript 컴파일 오류 없음 확인
+2. `pnpm --filter @webform/common test` 실행 → 기존 테스트 전체 통과 확인
+3. (선택) `pnpm test` 전체 실행 → 하위 패키지 영향 없음 확인
 
-공통 베이스 인터페이스 추출을 고려할 수 있으나, 현 시점에서는 불필요한 추상화. 향후 필요 시 리팩토링 가능.
-
-### 5.2 EventRequest vs ShellEventRequest
-
-서로 다른 인터페이스이며 이름 충돌 없음. EventRequest는 폼 이벤트용, ShellEventRequest는 Shell 전용 이벤트 요청.
-
-단, EventRequest에 `scope` 필드를 추가하므로, scope가 `'shell'`인 EventRequest와 별도의 ShellEventRequest가 공존한다. 이는 의도적 설계:
-- **EventRequest + scope**: 기존 런타임 이벤트 플로우에서 Shell/Form 구분이 필요한 경우
-- **ShellEventRequest**: Shell 전용 API (`POST /api/runtime/shells/:projectId/events`)에서 사용
-
-### 5.3 SHELL_EVENTS vs FORM_EVENTS
-
-`SHELL_EVENTS`에 `'Load'`가 포함되며 이는 `FORM_EVENTS`에도 존재한다. 하지만 배열 자체가 다른 상수이고, 사용 맥락이 다르므로 충돌 없음.
-
-### 5.4 하위 호환성
-
-모든 변경이 하위 호환:
-- `shell.ts`: 완전히 새 파일이므로 기존 코드에 영향 없음
-- `UIPatch.type`: 기존 union에 멤버 추가 → 기존 코드의 switch/if 문에 새 case가 없어도 default/else로 처리됨
-- `EventRequest`: 새 필드 모두 옵셔널(`?`) → 기존 사용처에서 무시 가능
-- `RuntimeWsMessage.uiPatch.scope`: 옵셔널 → 기존 코드 영향 없음
-
-### 5.5 formBorderStyle 타입 일관성
-
-`FormProperties`와 `ShellProperties` 모두 `formBorderStyle: 'None' | 'FixedSingle' | 'Fixed3D' | 'Sizable'` 동일 리터럴 유니언 사용. 향후 공통 타입 `FormBorderStyle`로 추출할 수 있으나 현 단계에서는 인라인 유지.
+### Step 4: Exhaustive Check 경고 대응 (필요 시)
+- Designer/Runtime에서 `ControlType`에 대한 switch/if문이 있을 경우, 신규 타입에 대한 기본 처리가 필요할 수 있음
+- 이는 이후 태스크(Designer/Runtime 컨트롤 구현 단계)에서 해결
 
 ---
 
 ## 6. 변경 파일 요약
 
-| 파일 | 변경 유형 | 설명 |
-|------|----------|------|
-| `packages/common/src/types/shell.ts` | **신규** | ApplicationShellDefinition, ShellProperties, SHELL_EVENTS, ShellEventType, ShellEventRequest |
-| `packages/common/src/types/protocol.ts` | **수정** | UIPatch type 확장, EventRequest 필드 추가, RuntimeWsMessage scope 추가 |
-| `packages/common/src/index.ts` | **수정** | shell.ts export 5개 추가 |
+| # | 파일 | 변경 유형 | 변경 내용 |
+|---|------|----------|----------|
+| 1 | `packages/common/src/types/form.ts` | 수정 | CONTROL_TYPES에 12개 타입 추가 (라인 40 뒤) |
+| 2 | `packages/common/src/types/events.ts` | 수정 | CONTROL_EVENTS에 7개 항목 추가 (라인 47 뒤) |
+
+**변경하지 않는 파일:**
+- `packages/common/src/index.ts` — re-export 구조가 이미 전체 내보내기이므로 변경 불필요
+- `packages/common/src/utils/validation.ts` — CONTROL_TYPES 참조가 동적이므로 변경 불필요
+- `packages/common/src/__tests__/*.test.ts` — 기존 테스트 항목 그대로 유지 (신규 테스트는 별도 단계)
 
 ---
 
-## 7. 구현 순서
+## 7. 추가할 항목 전체 목록 (참조)
 
-1. `packages/common/src/types/shell.ts` 신규 파일 생성
-2. `packages/common/src/types/protocol.ts` UIPatch, EventRequest, RuntimeWsMessage 수정
-3. `packages/common/src/index.ts` export 추가
-4. `pnpm typecheck` 으로 타입 검증
+### 7.1 CONTROL_TYPES 추가 항목 (12개)
+
+| # | 타입명 | Step | 카테고리 | 컨테이너 여부 |
+|---|--------|------|----------|-------------|
+| 1 | `Slider` | Step 1 | basic | N |
+| 2 | `Switch` | Step 1 | basic | N |
+| 3 | `Upload` | Step 1 | data | N |
+| 4 | `Alert` | Step 1 | basic | N |
+| 5 | `Tag` | Step 1 | basic | N |
+| 6 | `Divider` | Step 1 | basic | N |
+| 7 | `Card` | Step 2 | container | Y (children 지원) |
+| 8 | `Badge` | Step 2 | basic | N |
+| 9 | `Avatar` | Step 2 | basic | N |
+| 10 | `Tooltip` | Step 2 | basic | Y (children 래퍼) |
+| 11 | `Collapse` | Step 2 | container | Y (children 지원) |
+| 12 | `Statistic` | Step 2 | basic | N |
+
+### 7.2 CONTROL_EVENTS 추가 항목 (7개)
+
+| # | 컨트롤 | 이벤트 배열 | 이벤트 수 |
+|---|--------|-----------|----------|
+| 1 | `Slider` | `['ValueChanged']` | 1 |
+| 2 | `Switch` | `['CheckedChanged']` | 1 |
+| 3 | `Upload` | `['FileSelected', 'UploadCompleted', 'UploadFailed']` | 3 |
+| 4 | `Alert` | `['Closed']` | 1 |
+| 5 | `Tag` | `['TagAdded', 'TagRemoved', 'TagClicked']` | 3 |
+| 6 | `Tooltip` | `['VisibleChanged']` | 1 |
+| 7 | `Collapse` | `['ActiveKeyChanged']` | 1 |
+
+**CONTROL_EVENTS 미등록 (공통 이벤트만 사용):**
+- Card, Badge, Avatar, Statistic, Divider
