@@ -2,27 +2,34 @@ import { MongoClient } from 'mongodb';
 import { sanitizeQueryInput } from '@webform/common';
 import { AppError } from '../../middleware/errorHandler.js';
 import type { DataSourceAdapter } from './types.js';
+import { getMongoClient } from './MongoClientPool.js';
 
 const QUERY_TIMEOUT_MS = 10_000;
 
 export class MongoDBAdapter implements DataSourceAdapter {
-  private client: MongoClient | null = null;
-
   constructor(
     private connectionString: string,
     private database: string,
   ) {}
 
+  private get db() {
+    return getMongoClient(this.connectionString).db(this.database);
+  }
+
   async testConnection(): Promise<{ success: boolean; message: string }> {
     try {
+      // testConnection은 일회성 클라이언트 사용 (풀 캐시에 넣지 않음)
       const client = new MongoClient(this.connectionString, {
         serverSelectionTimeoutMS: 5000,
         connectTimeoutMS: 5000,
       });
-      await client.connect();
-      await client.db(this.database).command({ ping: 1 });
-      await client.close();
-      return { success: true, message: 'Connection successful' };
+      try {
+        await client.connect();
+        await client.db(this.database).command({ ping: 1 });
+        return { success: true, message: 'Connection successful' };
+      } finally {
+        await client.close();
+      }
     } catch (err: unknown) {
       return { success: false, message: (err as Error).message };
     }
@@ -43,26 +50,15 @@ export class MongoDBAdapter implements DataSourceAdapter {
 
     const sanitizedFilter = sanitizeQueryInput(filter as Record<string, unknown>);
 
-    const client = new MongoClient(this.connectionString, {
-      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
-    });
-
-    try {
-      await client.connect();
-      const db = client.db(this.database);
-      const cursor = db
-        .collection(collection)
-        .find(sanitizedFilter, {
-          projection,
-          maxTimeMS: QUERY_TIMEOUT_MS,
-        })
-        .skip(skip)
-        .limit(Math.min(limit, 1000));
-
-      return await cursor.toArray();
-    } finally {
-      await client.close();
-    }
+    return this.db
+      .collection(collection)
+      .find(sanitizedFilter, {
+        projection,
+        maxTimeMS: QUERY_TIMEOUT_MS,
+      })
+      .skip(skip)
+      .limit(Math.min(limit, 1000))
+      .toArray();
   }
 
   async countDocuments(
@@ -70,35 +66,17 @@ export class MongoDBAdapter implements DataSourceAdapter {
     filter: Record<string, unknown> = {},
   ): Promise<number> {
     const sanitizedFilter = sanitizeQueryInput(filter);
-    const client = new MongoClient(this.connectionString, {
-      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
+    return this.db.collection(collection).countDocuments(sanitizedFilter, {
+      maxTimeMS: QUERY_TIMEOUT_MS,
     });
-    try {
-      await client.connect();
-      const db = client.db(this.database);
-      return await db.collection(collection).countDocuments(sanitizedFilter, {
-        maxTimeMS: QUERY_TIMEOUT_MS,
-      });
-    } finally {
-      await client.close();
-    }
   }
 
   async insertOne(
     collection: string,
     document: Record<string, unknown>,
   ): Promise<{ insertedId: string }> {
-    const client = new MongoClient(this.connectionString, {
-      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
-    });
-    try {
-      await client.connect();
-      const db = client.db(this.database);
-      const result = await db.collection(collection).insertOne(document);
-      return { insertedId: result.insertedId.toString() };
-    } finally {
-      await client.close();
-    }
+    const result = await this.db.collection(collection).insertOne(document);
+    return { insertedId: result.insertedId.toString() };
   }
 
   async updateOne(
@@ -106,40 +84,20 @@ export class MongoDBAdapter implements DataSourceAdapter {
     filter: Record<string, unknown>,
     update: Record<string, unknown>,
   ): Promise<{ modifiedCount: number }> {
-    const client = new MongoClient(this.connectionString, {
-      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
-    });
-    try {
-      await client.connect();
-      const db = client.db(this.database);
-      const result = await db.collection(collection).updateOne(filter, { $set: update });
-      return { modifiedCount: result.modifiedCount };
-    } finally {
-      await client.close();
-    }
+    const result = await this.db.collection(collection).updateOne(filter, { $set: update });
+    return { modifiedCount: result.modifiedCount };
   }
 
   async deleteOne(
     collection: string,
     filter: Record<string, unknown>,
   ): Promise<{ deletedCount: number }> {
-    const client = new MongoClient(this.connectionString, {
-      serverSelectionTimeoutMS: QUERY_TIMEOUT_MS,
-    });
-    try {
-      await client.connect();
-      const db = client.db(this.database);
-      const result = await db.collection(collection).deleteOne(filter);
-      return { deletedCount: result.deletedCount };
-    } finally {
-      await client.close();
-    }
+    const result = await this.db.collection(collection).deleteOne(filter);
+    return { deletedCount: result.deletedCount };
   }
 
   async disconnect(): Promise<void> {
-    if (this.client) {
-      await this.client.close();
-      this.client = null;
-    }
+    // 풀링 방식에서는 개별 어댑터가 클라이언트를 닫지 않음 (no-op)
+    // 클라이언트 생명주기는 MongoClientPool에서 관리
   }
 }
