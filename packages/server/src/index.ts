@@ -3,6 +3,7 @@ import { createApp } from './app.js';
 import { env } from './config/index.js';
 import { connectMongo, disconnectMongo } from './db/mongodb.js';
 import { connectRedis, disconnectRedis } from './db/redis.js';
+import { closeAllMongoClients } from './services/adapters/MongoClientPool.js';
 import { initWebSocket } from './websocket/index.js';
 
 async function main() {
@@ -27,6 +28,7 @@ async function main() {
     console.log(`[server] ${signal} received, shutting down...`);
     server.close();
     await disconnectMongo();
+    await closeAllMongoClients();
     await disconnectRedis();
     process.exit(0);
   };
