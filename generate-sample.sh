@@ -3240,7 +3240,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
           "position": { "x": 400, "y": 205 },
           "size": { "width": 370, "height": 60 },
           "properties": { "message": "주의", "description": "저장하지 않은 변경 사항이 있습니다.", "alertType": "Warning", "showIcon": true, "closable": false, "banner": false },
-          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
           "dock": "None", "tabIndex": 11, "visible": true, "enabled": true
         },
         {
@@ -3260,7 +3260,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
           "position": { "x": 400, "y": 275 },
           "size": { "width": 370, "height": 60 },
           "properties": { "message": "오류 발생", "description": "서버 연결에 실패했습니다.", "alertType": "Error", "showIcon": true, "closable": true, "banner": false },
-          "anchor": { "top": true, "bottom": false, "left": true, "right": true },
+          "anchor": { "top": true, "bottom": false, "left": true, "right": false },
           "dock": "None", "tabIndex": 13, "visible": true, "enabled": true
         },
         {

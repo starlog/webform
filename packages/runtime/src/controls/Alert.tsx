@@ -20,11 +20,14 @@ interface AlertProps {
   [key: string]: unknown;
 }
 
-const ALERT_STYLES: Record<string, { bg: string; border: string; icon: string; color: string }> = {
-  Success: { bg: '#f6ffed', border: '#b7eb8f', icon: '✓', color: '#135200' },
-  Info: { bg: '#e6f4ff', border: '#91caff', icon: 'ℹ', color: '#003a8c' },
-  Warning: { bg: '#fffbe6', border: '#ffe58f', icon: '⚠', color: '#614700' },
-  Error: { bg: '#fff2f0', border: '#ffccc7', icon: '✕', color: '#820014' },
+const ALERT_STYLES: Record<
+  string,
+  { bg: string; border: string; icon: string; iconColor: string; color: string }
+> = {
+  Success: { bg: '#f6ffed', border: '#b7eb8f', icon: '✓', iconColor: '#52c41a', color: '#135200' },
+  Info: { bg: '#e6f4ff', border: '#91caff', icon: 'ℹ', iconColor: '#1677ff', color: '#003a8c' },
+  Warning: { bg: '#fffbe6', border: '#ffe58f', icon: '⚠', iconColor: '#faad14', color: '#614700' },
+  Error: { bg: '#fff2f0', border: '#ffccc7', icon: '✕', iconColor: '#ff4d4f', color: '#820014' },
 };
 
 export function Alert({
@@ -67,9 +70,23 @@ export function Alert({
   return (
     <div className="wf-alert" data-control-id={id} style={containerStyle}>
       {showIcon && (
-        <span style={{ flexShrink: 0, fontSize: '1.1em', lineHeight: 1.4 }}>
+        <div
+          style={{
+            width: 20,
+            height: 20,
+            borderRadius: '50%',
+            backgroundColor: alertStyle.iconColor,
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 12,
+            flexShrink: 0,
+            lineHeight: 1,
+          }}
+        >
           {alertStyle.icon}
-        </span>
+        </div>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 'bold' }}>{message}</div>
