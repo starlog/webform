@@ -338,7 +338,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
       let result = await apiService.getShell(projectId);
 
       // Shell이 없으면 기본값으로 생성
-      if (!result) {
+      if (!result?.data) {
         result = await apiService.createShell(projectId, {
           name: 'Application Shell',
         });
