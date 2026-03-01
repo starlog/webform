@@ -315,6 +315,46 @@ pnpm --filter @webform/mcp start:remote
 | `MCP_HOST` | `0.0.0.0` | 바인드 주소 |
 | `WEBFORM_API_URL` | `http://localhost:4000` | 백엔드 API URL |
 
+### Claude Code 계정 레벨 MCP 설정
+
+Claude Code에서 계정(user) 레벨로 MCP 서버를 등록하면 모든 프로젝트에서 WebForm MCP 도구를 사용할 수 있습니다.
+
+**1. MCP 원격 서버 시작** (`./run.sh` 실행 시 자동 시작, 또는 수동):
+
+```bash
+pnpm --filter @webform/mcp start:remote
+```
+
+**2. API 키 확인** (`packages/mcp/.env`에서 확인, `./run.sh` 최초 실행 시 자동 생성):
+
+```bash
+cat packages/mcp/.env | grep MCP_API_KEYS
+```
+
+**3. Claude Code에 계정 레벨로 등록**:
+
+```bash
+claude mcp add --transport http -s user webform \
+  "http://localhost:4100/mcp" \
+  --header "Authorization: Bearer <YOUR_API_KEY>"
+```
+
+> `-s user` 옵션이 계정(글로벌) 레벨 등록입니다. 프로젝트 레벨은 `-s project`를 사용합니다.
+
+**4. 등록 확인**:
+
+```bash
+claude mcp list
+```
+
+**5. 삭제** (필요 시):
+
+```bash
+claude mcp remove -s user webform
+```
+
+등록 후 새 Claude Code 세션을 시작하면 47개 WebForm MCP 도구(`list_projects`, `create_form`, `add_control` 등)를 사용할 수 있습니다.
+
 ## 기술 스택
 
 | 영역 | 기술 |
