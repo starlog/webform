@@ -8,6 +8,7 @@
     "dev:designer": "pnpm --filter @webform/designer dev",
     "dev:runtime": "pnpm --filter @webform/runtime dev",
     "dev:server": "pnpm --filter @webform/server dev",
+    "dev:mcp": "pnpm --filter @webform/mcp dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "test:watch": "pnpm -r --parallel test:watch",
