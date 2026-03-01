@@ -16,7 +16,8 @@ export type EditorType =
   | 'graphSample'
   | 'menuEditor'
   | 'toolStripEditor'
-  | 'statusStripEditor';
+  | 'statusStripEditor'
+  | 'swaggerSpec';
 
 export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data' | 'Sample';
 
@@ -327,6 +328,14 @@ const mongoDBConnectorProps: PropertyMeta[] = [
   { name: 'properties.maxResultCount',   label: 'MaxResultCount',   category: 'Behavior', editorType: 'number', min: 1, max: 100000, defaultValue: 1000 },
 ];
 
+const swaggerConnectorProps: PropertyMeta[] = [
+  { name: 'name',                       label: 'Name',            category: 'Design',   editorType: 'text' },
+  { name: 'properties.specYaml',        label: 'Spec (YAML)',     category: 'Data',     editorType: 'swaggerSpec' },
+  { name: 'properties.baseUrl',         label: 'Base URL',        category: 'Data',     editorType: 'text' },
+  { name: 'properties.defaultHeaders',  label: 'DefaultHeaders',  category: 'Data',     editorType: 'text' },
+  { name: 'properties.timeout',         label: 'Timeout (ms)',    category: 'Behavior', editorType: 'number', min: 1000, max: 60000, defaultValue: 10000 },
+];
+
 const sliderProps: PropertyMeta[] = withCommon(
   { name: 'properties.value',       label: 'Value',       category: 'Behavior',   editorType: 'number',   defaultValue: 0 },
   { name: 'properties.minimum',     label: 'Minimum',     category: 'Behavior',   editorType: 'number',   defaultValue: 0 },
@@ -480,6 +489,7 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   SplitContainer: splitContainerProps,
   BindingNavigator: bindingNavigatorProps,
   MongoDBConnector: mongoDBConnectorProps,
+  SwaggerConnector: swaggerConnectorProps,
   Slider:  sliderProps,
   Switch:  switchProps,
   Upload:  uploadProps,

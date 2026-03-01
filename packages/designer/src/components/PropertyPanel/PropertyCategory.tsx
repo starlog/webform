@@ -13,6 +13,7 @@ import { TabPagesEditor } from './editors/TabPagesEditor';
 import { MongoColumnsEditor } from './editors/MongoColumnsEditor';
 import { MongoConnectionStringEditor } from './editors/MongoConnectionStringEditor';
 import { SampleDataEditor } from './editors/SampleDataEditor';
+import { SwaggerSpecEditor } from './editors/SwaggerSpecEditor';
 import { MenuItemEditor } from '../Editors/MenuItemEditor';
 import { ToolStripItemEditor } from '../Editors/ToolStripItemEditor';
 import { StatusStripItemEditor } from '../Editors/StatusStripItemEditor';
@@ -148,6 +149,8 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
     case 'statusStripEditor':
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return <StatusStripItemEditor value={value as any[] ?? []} onChange={onChange} />;
+    case 'swaggerSpec':
+      return <SwaggerSpecEditor value={value as string ?? ''} onChange={onChange} />;
     default:
       return <TextEditor value={String(value ?? '')} onChange={onChange} />;
   }
