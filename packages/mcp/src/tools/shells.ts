@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -33,30 +33,21 @@ interface MutateShellResponse {
   data: ShellData;
 }
 
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
-}
-
 function handleShellToolError(error: unknown, projectId: string) {
   if (error instanceof ApiError) {
     if (error.status === 404) {
       return toolError(
-        `Shell을 찾을 수 없습니다: projectId=${projectId}. create_shell로 먼저 생성하세요.`,
+        `Shell을 찾을 수 없습니다 (projectId: ${projectId})`,
+        { code: 'SHELL_NOT_FOUND', details: { projectId }, suggestion: 'create_shell로 먼저 생성하세요.' },
       );
     }
     if (error.status === 409) {
-      return toolError(`Shell 충돌: ${error.detail || error.message}`);
+      return toolError(`Shell 버전 충돌: ${error.detail || error.message}`, { code: 'SHELL_CONFLICT', details: { projectId } });
     }
-    return toolError(error.message);
+    return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { projectId } });
   }
   if (error instanceof Error && error.message.includes('유효하지 않은')) {
-    return toolError(error.message);
+    return toolError(error.message, { code: 'VALIDATION_ERROR' });
   }
   throw error;
 }
@@ -166,7 +157,8 @@ properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId
       } catch (error) {
         if (error instanceof ApiError && error.status === 409) {
           return toolError(
-            '이 프로젝트에 이미 Shell이 존재합니다. update_shell을 사용하세요.',
+            '이 프로젝트에 이미 Shell이 존재합니다.',
+            { code: 'SHELL_ALREADY_EXISTS', details: { projectId }, suggestion: 'update_shell을 사용하세요.' },
           );
         }
         return handleShellToolError(error, projectId);
@@ -244,7 +236,7 @@ properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId
         });
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
-          return toolError('Shell을 찾을 수 없습니다. create_shell로 먼저 생성하세요.');
+          return toolError('Shell을 찾을 수 없습니다.', { code: 'SHELL_NOT_FOUND', details: { projectId }, suggestion: 'create_shell로 먼저 생성하세요.' });
         }
         return handleShellToolError(error, projectId);
       }
@@ -270,7 +262,7 @@ properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId
         });
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
-          return toolError(`Shell을 찾을 수 없습니다: projectId=${projectId}`);
+          return toolError(`Shell을 찾을 수 없습니다 (projectId: ${projectId})`, { code: 'SHELL_NOT_FOUND', details: { projectId } });
         }
         return handleShellToolError(error, projectId);
       }
@@ -304,10 +296,10 @@ properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId
         });
       } catch (error) {
         if (error instanceof ApiError && error.status === 409) {
-          return toolError('Shell이 이미 published 상태입니다. 수정 후 재퍼블리시하세요.');
+          return toolError('Shell이 이미 published 상태입니다.', { code: 'ALREADY_PUBLISHED', details: { projectId }, suggestion: 'update_shell로 수정 후 재퍼블리시하세요.' });
         }
         if (error instanceof ApiError && error.status === 404) {
-          return toolError('Shell을 찾을 수 없습니다. create_shell로 먼저 생성하세요.');
+          return toolError('Shell을 찾을 수 없습니다.', { code: 'SHELL_NOT_FOUND', details: { projectId }, suggestion: 'create_shell로 먼저 생성하세요.' });
         }
         return handleShellToolError(error, projectId);
       }

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -48,15 +48,7 @@ interface MutateFormResponse {
   };
 }
 
-// --- 헬퍼 ---
 
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
-}
 
 // --- 커스텀 에러 ---
 
@@ -65,7 +57,7 @@ class BindingExistsError extends Error {
     public controlId: string,
     public controlProperty: string,
   ) {
-    super(`Binding already exists: ${controlId}.${controlProperty}`);
+    super(`이미 존재하는 바인딩: ${controlId}.${controlProperty}`);
   }
 }
 
@@ -74,13 +66,13 @@ class BindingNotFoundError extends Error {
     public controlId: string,
     public controlProperty: string,
   ) {
-    super(`Binding not found: ${controlId}.${controlProperty}`);
+    super(`바인딩을 찾을 수 없음: ${controlId}.${controlProperty}`);
   }
 }
 
 class ControlNotFoundError extends Error {
   constructor(public controlId: string) {
-    super(`Control not found: ${controlId}`);
+    super(`컨트롤을 찾을 수 없음: ${controlId}`);
   }
 }
 
@@ -135,28 +127,57 @@ async function withDatabindingMutation<T>(
 function handleDatabindingToolError(error: unknown, formId: string) {
   if (error instanceof BindingExistsError) {
     return toolError(
-      `이미 존재하는 바인딩입니다: controlId=${error.controlId}, controlProperty=${error.controlProperty}. remove_data_binding 후 다시 추가하세요.`,
+      `이미 존재하는 바인딩입니다: ${error.controlId}.${error.controlProperty}`,
+      {
+        code: 'BINDING_ALREADY_EXISTS',
+        details: { controlId: error.controlId, controlProperty: error.controlProperty, formId },
+        suggestion: 'remove_data_binding으로 기존 바인딩을 삭제한 후 다시 추가하세요.',
+      },
     );
   }
   if (error instanceof BindingNotFoundError) {
     return toolError(
-      `바인딩을 찾을 수 없습니다: controlId=${error.controlId}, controlProperty=${error.controlProperty}`,
+      `바인딩을 찾을 수 없습니다: ${error.controlId}.${error.controlProperty}`,
+      {
+        code: 'BINDING_NOT_FOUND',
+        details: { controlId: error.controlId, controlProperty: error.controlProperty, formId },
+        suggestion: 'list_data_bindings로 현재 바인딩 목록을 확인하세요.',
+      },
     );
   }
   if (error instanceof ControlNotFoundError) {
-    return toolError(`컨트롤을 찾을 수 없습니다: controlId=${error.controlId}`);
+    return toolError(
+      `컨트롤을 찾을 수 없습니다 (controlId: ${error.controlId})`,
+      {
+        code: 'CONTROL_NOT_FOUND',
+        details: { controlId: error.controlId, formId },
+        suggestion: 'get_form으로 폼의 컨트롤 목록을 확인하세요.',
+      },
+    );
   }
   if (error instanceof ApiError) {
-    if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+    if (error.status === 404) {
+      return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+        code: 'FORM_NOT_FOUND',
+        details: { formId },
+        suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+      });
+    }
     if (error.status === 409) {
       return toolError(
-        '버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.',
+        '버전 충돌이 발생했습니다. 폼이 다른 사용자에 의해 수정되었습니다.',
+        {
+          code: 'VERSION_CONFLICT',
+          details: { formId },
+          suggestion: 'get_form으로 최신 버전을 조회 후 다시 시도하세요.',
+        },
       );
     }
-    return toolError(error.message);
+    return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { formId } });
   }
   if (error instanceof Error) {
-    if (error.message.includes('유효하지 않은')) return toolError(error.message);
+    if (error.message.includes('유효하지 않은'))
+      return toolError(error.message, { code: 'VALIDATION_ERROR' });
   }
   throw error;
 }
@@ -308,11 +329,17 @@ export function registerDatabindingTools(server: McpServer): void {
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
-          return toolError(error.message);
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { formId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },

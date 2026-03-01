@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -60,30 +60,21 @@ interface AppLoadResponse {
   startForm: RuntimeFormDefinition;
 }
 
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
-}
-
 export function handleRuntimeToolError(error: unknown, resourceId: string) {
   if (error instanceof ApiError) {
     if (error.status === 404) {
       return toolError(
-        `리소스를 찾을 수 없습니다: ${resourceId}. 폼/Shell이 published 상태인지 확인하세요.`,
+        `리소스를 찾을 수 없습니다 (ID: ${resourceId})`,
+        { code: 'RUNTIME_RESOURCE_NOT_FOUND', details: { resourceId }, suggestion: '폼/Shell이 published 상태인지 확인하세요. publish_form 또는 publish_shell을 먼저 호출해야 합니다.' },
       );
     }
     if (error.status === 400) {
-      return toolError(`잘못된 요청: ${error.detail || error.message}`);
+      return toolError(`잘못된 요청입니다: ${error.detail || error.message}`, { code: 'BAD_REQUEST', details: { resourceId, serverDetail: error.detail } });
     }
-    return toolError(error.message);
+    return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { resourceId } });
   }
   if (error instanceof Error && error.message.includes('유효하지 않은')) {
-    return toolError(error.message);
+    return toolError(error.message, { code: 'VALIDATION_ERROR' });
   }
   throw error;
 }
@@ -134,7 +125,7 @@ eventArgs를 제공하면 ctx.eventArgs에 전달됩니다.
           const errorMsg = res.errorLine
             ? `핸들러 실행 오류 (line ${res.errorLine}): ${res.error}`
             : `핸들러 실행 오류: ${res.error}`;
-          return toolError(errorMsg);
+          return toolError(errorMsg, { code: 'HANDLER_EXECUTION_ERROR', details: { formId, controlId, eventName, errorLine: res.errorLine ?? null }, suggestion: '핸들러 코드의 구문 오류를 확인하세요. debug_execute로 상세 트레이스를 확인할 수 있습니다.' });
         }
 
         return toolResult({

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { COMMON_EVENTS, CONTROL_EVENTS, FORM_EVENTS } from '@webform/common';
-import { apiClient, ApiError, validateObjectId, withOptimisticRetry } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, withOptimisticRetry, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -49,16 +49,6 @@ interface RuntimeEventResponse {
   errorLine?: number;
 }
 
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
-}
-
 // --- 커스텀 에러 ---
 
 class HandlerExistsError extends Error {
@@ -66,7 +56,7 @@ class HandlerExistsError extends Error {
     public controlId: string,
     public eventName: string,
   ) {
-    super(`Handler already exists: ${controlId}.${eventName}`);
+    super(`이미 존재하는 핸들러: ${controlId}.${eventName}`);
   }
 }
 
@@ -75,13 +65,13 @@ class HandlerNotFoundError extends Error {
     public controlId: string,
     public eventName: string,
   ) {
-    super(`Handler not found: ${controlId}.${eventName}`);
+    super(`핸들러를 찾을 수 없음: ${controlId}.${eventName}`);
   }
 }
 
 class ControlNotFoundError extends Error {
   constructor(public controlId: string) {
-    super(`Control not found: ${controlId}`);
+    super(`컨트롤을 찾을 수 없음: ${controlId}`);
   }
 }
 
@@ -115,28 +105,57 @@ async function withEventHandlerMutation<T>(
 function handleEventToolError(error: unknown, formId: string) {
   if (error instanceof HandlerExistsError) {
     return toolError(
-      `이미 존재하는 핸들러입니다: controlId=${error.controlId}, eventName=${error.eventName}. update_event_handler를 사용하세요.`,
+      `이미 존재하는 핸들러입니다: ${error.controlId}.${error.eventName}`,
+      {
+        code: 'HANDLER_ALREADY_EXISTS',
+        details: { controlId: error.controlId, eventName: error.eventName, formId },
+        suggestion: 'update_event_handler로 기존 핸들러 코드를 수정하세요.',
+      },
     );
   }
   if (error instanceof HandlerNotFoundError) {
     return toolError(
-      `핸들러를 찾을 수 없습니다: controlId=${error.controlId}, eventName=${error.eventName}`,
+      `핸들러를 찾을 수 없습니다: ${error.controlId}.${error.eventName}`,
+      {
+        code: 'HANDLER_NOT_FOUND',
+        details: { controlId: error.controlId, eventName: error.eventName, formId },
+        suggestion: 'list_event_handlers로 현재 핸들러 목록을 확인하세요.',
+      },
     );
   }
   if (error instanceof ControlNotFoundError) {
-    return toolError(`컨트롤을 찾을 수 없습니다: controlId=${error.controlId}`);
+    return toolError(
+      `컨트롤을 찾을 수 없습니다 (controlId: ${error.controlId})`,
+      {
+        code: 'CONTROL_NOT_FOUND',
+        details: { controlId: error.controlId, formId },
+        suggestion: 'get_form으로 폼의 컨트롤 목록을 확인하세요. 폼 레벨 이벤트는 controlId를 "_form"으로 지정하세요.',
+      },
+    );
   }
   if (error instanceof ApiError) {
-    if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+    if (error.status === 404) {
+      return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+        code: 'FORM_NOT_FOUND',
+        details: { formId },
+        suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+      });
+    }
     if (error.status === 409) {
       return toolError(
-        '버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.',
+        '버전 충돌이 발생했습니다. 폼이 다른 사용자에 의해 수정되었습니다.',
+        {
+          code: 'VERSION_CONFLICT',
+          details: { formId },
+          suggestion: 'get_form으로 최신 버전을 조회 후 다시 시도하세요.',
+        },
       );
     }
-    return toolError(error.message);
+    return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { formId } });
   }
   if (error instanceof Error) {
-    if (error.message.includes('유효하지 않은')) return toolError(error.message);
+    if (error.message.includes('유효하지 않은'))
+      return toolError(error.message, { code: 'VALIDATION_ERROR' });
   }
   throw error;
 }
@@ -323,11 +342,17 @@ ctx 객체 사용법은 add_event_handler 설명을 참고하세요.`,
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
-          return toolError(error.message);
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { formId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -396,10 +421,16 @@ ctx 객체 사용법은 add_event_handler 설명을 참고하세요.`,
         );
 
         if (res.error) {
-          const errorMsg = res.errorLine
-            ? `핸들러 실행 오류: ${res.error} (line ${res.errorLine})`
-            : `핸들러 실행 오류: ${res.error}`;
-          return toolError(errorMsg);
+          return toolError(
+            res.errorLine
+              ? `핸들러 실행 오류 (${controlId}.${eventName}, line ${res.errorLine}): ${res.error}`
+              : `핸들러 실행 오류 (${controlId}.${eventName}): ${res.error}`,
+            {
+              code: 'HANDLER_EXECUTION_ERROR',
+              details: { formId, controlId, eventName, errorLine: res.errorLine ?? null },
+              suggestion: '핸들러 코드의 구문 오류를 확인하세요. debug_execute로 상세 트레이스를 확인할 수 있습니다.',
+            },
+          );
         }
 
         return toolResult({
@@ -412,13 +443,18 @@ ctx 객체 사용법은 add_event_handler 설명을 참고하세요.`,
         if (error instanceof ApiError) {
           if (error.status === 404) {
             return toolError(
-              `폼을 찾을 수 없습니다: ${formId}. 폼이 published 상태인지 확인하세요 (publish_form 호출 필요).`,
+              `폼을 찾을 수 없습니다 (formId: ${formId})`,
+              {
+                code: 'FORM_NOT_FOUND',
+                details: { formId },
+                suggestion: '폼이 published 상태인지 확인하세요. publish_form으로 먼저 퍼블리시해야 합니다.',
+              },
             );
           }
-          return toolError(error.message);
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { formId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },

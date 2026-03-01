@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CONTROL_TYPES, COMMON_EVENTS, CONTROL_EVENTS } from '@webform/common';
 import type { ControlType, ControlDefinition, DockStyle } from '@webform/common';
-import { apiClient, ApiError, validateObjectId, withOptimisticRetry } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, withOptimisticRetry, toolResult, toolError } from '../utils/index.js';
 import { autoPosition, snapToGrid } from '../utils/autoPosition.js';
 import { CONTROL_DEFAULTS } from '../utils/controlDefaults.js';
 
@@ -31,16 +31,6 @@ interface MutateFormResponse {
     status: string;
     controls: ControlDefinition[];
   };
-}
-
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
 }
 
 const CONTAINER_TYPES: ControlType[] = [
@@ -290,7 +280,12 @@ export function registerControlTools(server: McpServer): void {
         validateObjectId(formId, 'formId');
         if (!isValidControlType(type)) {
           return toolError(
-            `유효하지 않은 컨트롤 타입: '${type}'. list_control_types로 사용 가능한 타입을 확인하세요.`,
+            `유효하지 않은 컨트롤 타입입니다: '${type}' (사용 가능: ${CONTROL_TYPES.join(', ')})`,
+            {
+              code: 'INVALID_CONTROL_TYPE',
+              details: { type, availableTypes: CONTROL_TYPES },
+              suggestion: 'list_control_types로 사용 가능한 타입 목록을 확인하세요.',
+            },
           );
         }
 
@@ -315,14 +310,25 @@ export function registerControlTools(server: McpServer): void {
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+          if (error.status === 404)
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
           if (error.status === 409)
             return toolError(
-              `버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.`,
+              '버전 충돌이 발생했습니다. 폼이 다른 사용자에 의해 수정되었습니다.',
+              {
+                code: 'VERSION_CONFLICT',
+                details: { formId },
+                suggestion: '자동 재시도 횟수를 초과했습니다. 잠시 후 다시 시도하세요.',
+              },
             );
-          return toolError(error.message);
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         }
-        if (error instanceof Error) return toolError(error.message);
+        if (error instanceof Error)
+          return toolError(error.message, { code: 'OPERATION_ERROR', details: { formId } });
         throw error;
       }
     },
@@ -361,6 +367,10 @@ export function registerControlTools(server: McpServer): void {
         if (!properties && !position && !size) {
           return toolError(
             '수정할 내용을 지정하세요: properties, position, size 중 하나 이상 필요합니다.',
+            {
+              code: 'MISSING_UPDATE_FIELDS',
+              details: { formId, controlId },
+            },
           );
         }
 
@@ -376,14 +386,25 @@ export function registerControlTools(server: McpServer): void {
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+          if (error.status === 404)
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
           if (error.status === 409)
             return toolError(
-              `버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.`,
+              '버전 충돌이 발생했습니다. 폼이 다른 사용자에 의해 수정되었습니다.',
+              {
+                code: 'VERSION_CONFLICT',
+                details: { formId },
+                suggestion: '자동 재시도 횟수를 초과했습니다. 잠시 후 다시 시도하세요.',
+              },
             );
-          return toolError(error.message);
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         }
-        if (error instanceof Error) return toolError(error.message);
+        if (error instanceof Error)
+          return toolError(error.message, { code: 'OPERATION_ERROR', details: { formId } });
         throw error;
       }
     },
@@ -412,14 +433,25 @@ export function registerControlTools(server: McpServer): void {
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+          if (error.status === 404)
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
           if (error.status === 409)
             return toolError(
-              `버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.`,
+              '버전 충돌이 발생했습니다. 폼이 다른 사용자에 의해 수정되었습니다.',
+              {
+                code: 'VERSION_CONFLICT',
+                details: { formId },
+                suggestion: '자동 재시도 횟수를 초과했습니다. 잠시 후 다시 시도하세요.',
+              },
             );
-          return toolError(error.message);
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         }
-        if (error instanceof Error) return toolError(error.message);
+        if (error instanceof Error)
+          return toolError(error.message, { code: 'OPERATION_ERROR', details: { formId } });
         throw error;
       }
     },
@@ -455,14 +487,25 @@ export function registerControlTools(server: McpServer): void {
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+          if (error.status === 404)
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
           if (error.status === 409)
             return toolError(
-              `버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.`,
+              '버전 충돌이 발생했습니다. 폼이 다른 사용자에 의해 수정되었습니다.',
+              {
+                code: 'VERSION_CONFLICT',
+                details: { formId },
+                suggestion: '자동 재시도 횟수를 초과했습니다. 잠시 후 다시 시도하세요.',
+              },
             );
-          return toolError(error.message);
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         }
-        if (error instanceof Error) return toolError(error.message);
+        if (error instanceof Error)
+          return toolError(error.message, { code: 'OPERATION_ERROR', details: { formId } });
         throw error;
       }
     },
@@ -498,14 +541,25 @@ export function registerControlTools(server: McpServer): void {
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+          if (error.status === 404)
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
           if (error.status === 409)
             return toolError(
-              `버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.`,
+              '버전 충돌이 발생했습니다. 폼이 다른 사용자에 의해 수정되었습니다.',
+              {
+                code: 'VERSION_CONFLICT',
+                details: { formId },
+                suggestion: '자동 재시도 횟수를 초과했습니다. 잠시 후 다시 시도하세요.',
+              },
             );
-          return toolError(error.message);
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         }
-        if (error instanceof Error) return toolError(error.message);
+        if (error instanceof Error)
+          return toolError(error.message, { code: 'OPERATION_ERROR', details: { formId } });
         throw error;
       }
     },
@@ -552,7 +606,12 @@ export function registerControlTools(server: McpServer): void {
         for (const ctrl of controls) {
           if (!isValidControlType(ctrl.type)) {
             return toolError(
-              `유효하지 않은 컨트롤 타입: '${ctrl.type}'. list_control_types로 사용 가능한 타입을 확인하세요.`,
+              `유효하지 않은 컨트롤 타입입니다: '${ctrl.type}' (사용 가능: ${CONTROL_TYPES.join(', ')})`,
+              {
+                code: 'INVALID_CONTROL_TYPE',
+                details: { type: ctrl.type, availableTypes: CONTROL_TYPES },
+                suggestion: 'list_control_types로 사용 가능한 타입 목록을 확인하세요.',
+              },
             );
           }
         }
@@ -563,6 +622,10 @@ export function registerControlTools(server: McpServer): void {
         if (duplicates.length > 0) {
           return toolError(
             `입력 배열 내 이름이 중복됩니다: ${[...new Set(duplicates)].join(', ')}`,
+            {
+              code: 'DUPLICATE_CONTROL_NAMES',
+              details: { duplicates: [...new Set(duplicates)] },
+            },
           );
         }
 
@@ -604,14 +667,25 @@ export function registerControlTools(server: McpServer): void {
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+          if (error.status === 404)
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
           if (error.status === 409)
             return toolError(
-              `버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.`,
+              '버전 충돌이 발생했습니다. 폼이 다른 사용자에 의해 수정되었습니다.',
+              {
+                code: 'VERSION_CONFLICT',
+                details: { formId },
+                suggestion: '자동 재시도 횟수를 초과했습니다. 잠시 후 다시 시도하세요.',
+              },
             );
-          return toolError(error.message);
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         }
-        if (error instanceof Error) return toolError(error.message);
+        if (error instanceof Error)
+          return toolError(error.message, { code: 'OPERATION_ERROR', details: { formId } });
         throw error;
       }
     },
@@ -658,7 +732,12 @@ export function registerControlTools(server: McpServer): void {
     async ({ controlType }) => {
       if (!isValidControlType(controlType)) {
         return toolError(
-          `유효하지 않은 컨트롤 타입: '${controlType}'. list_control_types로 사용 가능한 타입을 확인하세요.`,
+          `유효하지 않은 컨트롤 타입입니다: '${controlType}' (사용 가능: ${CONTROL_TYPES.join(', ')})`,
+          {
+            code: 'INVALID_CONTROL_TYPE',
+            details: { type: controlType, availableTypes: CONTROL_TYPES },
+            suggestion: 'list_control_types로 사용 가능한 타입 목록을 확인하세요.',
+          },
         );
       }
 

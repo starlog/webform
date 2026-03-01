@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CONTROL_TYPES } from '@webform/common';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -28,16 +28,6 @@ interface FormData {
 
 interface GetFormResponse {
   data: FormData;
-}
-
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
 }
 
 // --- 검증 타입 ---
@@ -305,9 +295,18 @@ MongoDB 연결 상태, Redis 연결 상태, 서버 응답 시간을 반환합니
         });
       } catch (error) {
         const elapsed = Date.now() - startTime;
+        const baseUrl = process.env.WEBFORM_API_URL || 'http://localhost:4000';
         return toolError(
-          `서버에 연결할 수 없습니다 (${elapsed}ms 경과). ` +
-            `서버가 실행 중인지 확인하세요: ${error instanceof Error ? error.message : String(error)}`,
+          `서버에 연결할 수 없습니다 (${elapsed}ms 경과)`,
+          {
+            code: 'SERVER_UNREACHABLE',
+            details: {
+              serverUrl: baseUrl,
+              elapsedMs: elapsed,
+              errorMessage: error instanceof Error ? error.message : String(error),
+            },
+            suggestion: '서버가 실행 중인지 확인하세요. "pnpm dev:server" 또는 "./run.sh"로 서버를 시작할 수 있습니다.',
+          },
         );
       }
     },
@@ -397,11 +396,17 @@ MongoDB 연결 상태, Redis 연결 상태, 서버 응답 시간을 반환합니
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 404) return toolError(`폼을 찾을 수 없습니다: formId=${formId}`);
-          return toolError(error.message);
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { formId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },

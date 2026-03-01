@@ -708,7 +708,7 @@
       "description": "모든 Tool의 에러 메시지를 한국어로 작성하고 컨텍스트 정보 추가",
       "phase": "phase5-polishing",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 7 Phase 5 항목 22를 참조.\n\n모든 Tool 파일을 순회하여 에러 메시지를 한국어로 개선하라:\n\n1. 에러 메시지 한국어화:\n   - 'Form not found' → '폼을 찾을 수 없습니다 (formId: xxx)'\n   - 'Invalid control type' → '유효하지 않은 컨트롤 타입입니다: xxx (사용 가능: Button, Label, ...)'\n   - 'Version conflict' → '버전 충돌이 발생했습니다. 현재 버전: xxx, 요청 버전: yyy'\n2. 컨텍스트 정보 추가:\n   - 에러 시 관련 ID, 현재 상태, 가능한 해결 방법 포함\n   - 404 에러: '해당 리소스가 존재하지 않습니다. ID를 확인해주세요.'\n   - 400 에러: 어떤 필드가 잘못되었는지 상세히\n3. toolError 함수 개선: 에러 코드, 메시지, 상세 정보 포함\n\n수정 대상: packages/mcp/src/tools/*.ts, packages/mcp/src/utils/apiClient.ts",
       "dependsOn": [
         "mcp-phase4-test"

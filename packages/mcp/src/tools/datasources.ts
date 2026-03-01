@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -46,16 +46,6 @@ interface TestConnectionResponse {
 
 interface QueryDataSourceResponse {
   data: unknown[];
-}
-
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
 }
 
 // --- Tool 등록 ---
@@ -110,9 +100,10 @@ export function registerDatasourceTools(server: McpServer): void {
           meta: res.meta,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -148,11 +139,11 @@ export function registerDatasourceTools(server: McpServer): void {
       } catch (error) {
         if (error instanceof ApiError) {
           if (error.status === 404)
-            return toolError(`데이터소스를 찾을 수 없습니다: ${datasourceId}`);
-          return toolError(error.message);
+            return toolError(`데이터소스를 찾을 수 없습니다 (datasourceId: ${datasourceId})`, { code: 'DATASOURCE_NOT_FOUND', details: { datasourceId }, suggestion: 'list_datasources로 유효한 데이터소스 ID를 확인하세요.' });
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { datasourceId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -197,9 +188,10 @@ export function registerDatasourceTools(server: McpServer): void {
           description: ds.description,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { projectId } });
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -247,11 +239,11 @@ export function registerDatasourceTools(server: McpServer): void {
       } catch (error) {
         if (error instanceof ApiError) {
           if (error.status === 404)
-            return toolError(`데이터소스를 찾을 수 없습니다: ${datasourceId}`);
-          return toolError(error.message);
+            return toolError(`데이터소스를 찾을 수 없습니다 (datasourceId: ${datasourceId})`, { code: 'DATASOURCE_NOT_FOUND', details: { datasourceId }, suggestion: 'list_datasources로 유효한 데이터소스 ID를 확인하세요.' });
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { datasourceId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -277,11 +269,11 @@ export function registerDatasourceTools(server: McpServer): void {
       } catch (error) {
         if (error instanceof ApiError) {
           if (error.status === 404)
-            return toolError(`데이터소스를 찾을 수 없습니다: ${datasourceId}`);
-          return toolError(error.message);
+            return toolError(`데이터소스를 찾을 수 없습니다 (datasourceId: ${datasourceId})`, { code: 'DATASOURCE_NOT_FOUND', details: { datasourceId }, suggestion: 'list_datasources로 유효한 데이터소스 ID를 확인하세요.' });
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { datasourceId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -310,11 +302,11 @@ export function registerDatasourceTools(server: McpServer): void {
       } catch (error) {
         if (error instanceof ApiError) {
           if (error.status === 404)
-            return toolError(`데이터소스를 찾을 수 없습니다: ${datasourceId}`);
-          return toolError(error.message);
+            return toolError(`데이터소스를 찾을 수 없습니다 (datasourceId: ${datasourceId})`, { code: 'DATASOURCE_NOT_FOUND', details: { datasourceId }, suggestion: 'list_datasources로 유효한 데이터소스 ID를 확인하세요.' });
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { datasourceId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -351,11 +343,11 @@ export function registerDatasourceTools(server: McpServer): void {
       } catch (error) {
         if (error instanceof ApiError) {
           if (error.status === 404)
-            return toolError(`데이터소스를 찾을 수 없습니다: ${datasourceId}`);
-          return toolError(error.message);
+            return toolError(`데이터소스를 찾을 수 없습니다 (datasourceId: ${datasourceId})`, { code: 'DATASOURCE_NOT_FOUND', details: { datasourceId }, suggestion: 'list_datasources로 유효한 데이터소스 ID를 확인하세요.' });
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { datasourceId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },

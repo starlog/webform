@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -79,16 +79,6 @@ interface PublishAllResponse {
   };
 }
 
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
-}
-
 // --- Tool 등록 ---
 
 export function registerProjectTools(server: McpServer): void {
@@ -134,7 +124,8 @@ export function registerProjectTools(server: McpServer): void {
           meta: res.meta,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         throw error;
       }
     },
@@ -171,9 +162,17 @@ export function registerProjectTools(server: McpServer): void {
           })),
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404)
+            return toolError(`프로젝트를 찾을 수 없습니다 (projectId: ${projectId})`, {
+              code: 'PROJECT_NOT_FOUND',
+              details: { projectId },
+              suggestion: 'list_projects로 유효한 프로젝트 ID를 확인하세요.',
+            });
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -204,7 +203,8 @@ export function registerProjectTools(server: McpServer): void {
           },
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         throw error;
       }
     },
@@ -242,9 +242,17 @@ export function registerProjectTools(server: McpServer): void {
           },
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404)
+            return toolError(`프로젝트를 찾을 수 없습니다 (projectId: ${projectId})`, {
+              code: 'PROJECT_NOT_FOUND',
+              details: { projectId },
+              suggestion: 'list_projects로 유효한 프로젝트 ID를 확인하세요.',
+            });
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -263,9 +271,17 @@ export function registerProjectTools(server: McpServer): void {
         await apiClient.delete(`/api/projects/${projectId}`);
         return toolResult({ deleted: true, projectId });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404)
+            return toolError(`프로젝트를 찾을 수 없습니다 (projectId: ${projectId})`, {
+              code: 'PROJECT_NOT_FOUND',
+              details: { projectId },
+              suggestion: 'list_projects로 유효한 프로젝트 ID를 확인하세요.',
+            });
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -286,9 +302,17 @@ export function registerProjectTools(server: McpServer): void {
         );
         return toolResult(res);
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404)
+            return toolError(`프로젝트를 찾을 수 없습니다 (projectId: ${projectId})`, {
+              code: 'PROJECT_NOT_FOUND',
+              details: { projectId },
+              suggestion: 'list_projects로 유효한 프로젝트 ID를 확인하세요.',
+            });
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -346,7 +370,8 @@ export function registerProjectTools(server: McpServer): void {
           },
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         throw error;
       }
     },
@@ -367,9 +392,17 @@ export function registerProjectTools(server: McpServer): void {
         );
         return toolResult(res.data);
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404)
+            return toolError(`프로젝트를 찾을 수 없습니다 (projectId: ${projectId})`, {
+              code: 'PROJECT_NOT_FOUND',
+              details: { projectId },
+              suggestion: 'list_projects로 유효한 프로젝트 ID를 확인하세요.',
+            });
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },

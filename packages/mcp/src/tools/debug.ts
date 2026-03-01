@@ -1,14 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { apiClient, validateObjectId } from '../utils/index.js';
+import { apiClient, validateObjectId, toolResult } from '../utils/index.js';
 import type { RuntimeEventResponse } from './runtime.js';
 import { handleRuntimeToolError } from './runtime.js';
-
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
 
 // --- Tool 등록 ---
 

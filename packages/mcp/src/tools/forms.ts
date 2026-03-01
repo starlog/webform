@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -60,16 +60,6 @@ interface GetSnapshotResponse {
   };
 }
 
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
-}
-
 // --- Tool 등록 ---
 
 export function registerFormTools(server: McpServer): void {
@@ -120,7 +110,8 @@ export function registerFormTools(server: McpServer): void {
           meta: res.meta,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         throw error;
       }
     },
@@ -155,9 +146,18 @@ export function registerFormTools(server: McpServer): void {
           updatedAt: f.updatedAt,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -214,9 +214,10 @@ export function registerFormTools(server: McpServer): void {
           status: f.status,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -307,14 +308,28 @@ export function registerFormTools(server: McpServer): void {
           controlCount: f.controls?.length ?? 0,
         });
       } catch (error) {
-        if (error instanceof ApiError && error.status === 409) {
-          return toolError(
-            `버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. get_form으로 최신 버전을 조회 후 다시 시도하세요. (요청 version: ${version})`,
-          );
+        if (error instanceof ApiError) {
+          if (error.status === 409) {
+            return toolError(
+              `버전 충돌이 발생했습니다. 현재 서버 버전과 요청 버전이 불일치합니다.`,
+              {
+                code: 'VERSION_CONFLICT',
+                details: { formId, requestedVersion: version },
+                suggestion: 'get_form으로 최신 버전을 조회 후 다시 시도하세요.',
+              },
+            );
+          }
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         }
-        if (error instanceof ApiError) return toolError(error.message);
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -333,9 +348,18 @@ export function registerFormTools(server: McpServer): void {
         await apiClient.delete(`/api/forms/${formId}`);
         return toolResult({ deleted: true, formId });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -363,12 +387,25 @@ export function registerFormTools(server: McpServer): void {
           status: f.status,
         });
       } catch (error) {
-        if (error instanceof ApiError && error.status === 409) {
-          return toolError('이미 퍼블리시된 폼입니다.');
+        if (error instanceof ApiError) {
+          if (error.status === 409) {
+            return toolError('이미 퍼블리시된 폼입니다.', {
+              code: 'ALREADY_PUBLISHED',
+              details: { formId },
+              suggestion: '폼을 수정한 후 다시 퍼블리시하세요.',
+            });
+          }
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         }
-        if (error instanceof ApiError) return toolError(error.message);
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -393,9 +430,18 @@ export function registerFormTools(server: McpServer): void {
           versions: res.data,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -423,9 +469,18 @@ export function registerFormTools(server: McpServer): void {
           savedAt: res.data.savedAt,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404) {
+            return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, {
+              code: 'FORM_NOT_FOUND',
+              details: { formId },
+              suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.',
+            });
+          }
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },

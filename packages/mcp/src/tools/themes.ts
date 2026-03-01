@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -51,16 +51,6 @@ interface MutateFormResponse {
   data: FormDocument;
 }
 
-// --- 헬퍼 ---
-
-function toolResult(data: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
-}
-
-function toolError(message: string) {
-  return { content: [{ type: 'text' as const, text: message }], isError: true as const };
-}
-
 // --- Tool 등록 ---
 
 export function registerThemeTools(server: McpServer): void {
@@ -106,7 +96,8 @@ export function registerThemeTools(server: McpServer): void {
           meta: res.meta,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         throw error;
       }
     },
@@ -138,9 +129,13 @@ export function registerThemeTools(server: McpServer): void {
           updatedAt: t.updatedAt,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError) {
+          if (error.status === 404)
+            return toolError(`테마를 찾을 수 없습니다 (themeId: ${themeId})`, { code: 'THEME_NOT_FOUND', details: { themeId }, suggestion: 'list_themes로 유효한 테마 ID를 확인하세요.' });
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { themeId } });
+        }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -170,7 +165,8 @@ export function registerThemeTools(server: McpServer): void {
           createdAt: t.createdAt,
         });
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}` });
         throw error;
       }
     },
@@ -204,13 +200,14 @@ export function registerThemeTools(server: McpServer): void {
         });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 403) return toolError('프리셋 테마는 수정할 수 없습니다.');
+          if (error.status === 403)
+            return toolError('프리셋 테마는 수정할 수 없습니다.', { code: 'PRESET_READONLY', details: { themeId }, suggestion: '프리셋 기반 커스텀 테마를 create_theme으로 생성하세요.' });
           if (error.status === 404)
-            return toolError(`테마를 찾을 수 없습니다: ${themeId}`);
-          return toolError(error.message);
+            return toolError(`테마를 찾을 수 없습니다 (themeId: ${themeId})`, { code: 'THEME_NOT_FOUND', details: { themeId }, suggestion: 'list_themes로 유효한 테마 ID를 확인하세요.' });
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { themeId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -230,13 +227,14 @@ export function registerThemeTools(server: McpServer): void {
         return toolResult({ deleted: true, themeId });
       } catch (error) {
         if (error instanceof ApiError) {
-          if (error.status === 403) return toolError('프리셋 테마는 삭제할 수 없습니다.');
+          if (error.status === 403)
+            return toolError('프리셋 테마는 삭제할 수 없습니다.', { code: 'PRESET_READONLY', details: { themeId }, suggestion: '프리셋 테마는 삭제할 수 없습니다. 커스텀 테마만 삭제 가능합니다.' });
           if (error.status === 404)
-            return toolError(`테마를 찾을 수 없습니다: ${themeId}`);
-          return toolError(error.message);
+            return toolError(`테마를 찾을 수 없습니다 (themeId: ${themeId})`, { code: 'THEME_NOT_FOUND', details: { themeId }, suggestion: 'list_themes로 유효한 테마 ID를 확인하세요.' });
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { themeId } });
         }
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
@@ -261,7 +259,7 @@ export function registerThemeTools(server: McpServer): void {
           themeRes = await apiClient.get<GetThemeResponse>(`/api/themes/${themeId}`);
         } catch (error) {
           if (error instanceof ApiError && error.status === 404)
-            return toolError(`테마를 찾을 수 없습니다: ${themeId}`);
+            return toolError(`테마를 찾을 수 없습니다 (themeId: ${themeId})`, { code: 'THEME_NOT_FOUND', details: { themeId }, suggestion: 'list_themes로 유효한 테마 ID를 확인하세요.' });
           throw error;
         }
 
@@ -273,7 +271,7 @@ export function registerThemeTools(server: McpServer): void {
             formRes = await apiClient.get<GetFormResponse>(`/api/forms/${formId}`);
           } catch (error) {
             if (error instanceof ApiError && error.status === 404)
-              return toolError(`폼을 찾을 수 없습니다: ${formId}`);
+              return toolError(`폼을 찾을 수 없습니다 (formId: ${formId})`, { code: 'FORM_NOT_FOUND', details: { formId }, suggestion: 'list_forms로 유효한 폼 ID를 확인하세요.' });
             throw error;
           }
 
@@ -304,11 +302,13 @@ export function registerThemeTools(server: McpServer): void {
 
         return toolError(
           '버전 충돌: 폼이 다른 사용자에 의해 수정되었습니다. 다시 시도하세요.',
+          { code: 'VERSION_CONFLICT', details: { formId, themeId }, suggestion: '폼이 다른 사용자에 의해 수정되었습니다. 잠시 후 다시 시도하세요.' },
         );
       } catch (error) {
-        if (error instanceof ApiError) return toolError(error.message);
+        if (error instanceof ApiError)
+          return toolError(error.message, { code: `API_ERROR_${error.status}`, details: { formId, themeId } });
         if (error instanceof Error && error.message.includes('유효하지 않은'))
-          return toolError(error.message);
+          return toolError(error.message, { code: 'VALIDATION_ERROR' });
         throw error;
       }
     },
