@@ -1,5 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerProjectTools, registerFormTools } from './tools/index.js';
+import { registerProjectResources, registerFormResources } from './resources/index.js';
 
 export function registerTools(server: McpServer): void {
   // Phase 1: 프로젝트/폼 관리 Tools
@@ -16,13 +17,14 @@ export function registerTools(server: McpServer): void {
   // registerShellTools(server);
 }
 
-export function registerResources(_server: McpServer): void {
+export function registerResources(server: McpServer): void {
+  // Phase 1: 프로젝트/폼 동적 Resources
+  registerProjectResources(server);
+  registerFormResources(server);
+
   // Phase 2: 스키마/가이드 Resources
   // registerSchemaResources(server);
   // registerGuideResources(server);
-
-  // Phase 3: 동적 Resources
-  // registerDynamicResources(server);
 }
 
 export function registerPrompts(_server: McpServer): void {

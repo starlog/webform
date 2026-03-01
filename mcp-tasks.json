@@ -195,7 +195,7 @@
       "description": "프로젝트, 폼 동적 리소스 구현",
       "phase": "phase1-foundation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-basic-resources-plan.md에 따라 기본 Resources를 구현하라.\n\nMCP-SERVER.md 섹션 3.2~3.3 참조.\n\n생성/수정할 파일:\n1. packages/mcp/src/resources/projectResource.ts: 프로젝트 관련 리소스 등록\n   - webform://projects/{projectId}\n2. packages/mcp/src/resources/formResource.ts: 폼 관련 리소스 등록\n   - webform://forms/{formId}\n   - webform://forms/{formId}/controls\n   - webform://forms/{formId}/events\n   - webform://forms/{formId}/bindings\n   - webform://forms/{formId}/versions\n3. packages/mcp/src/resources/index.ts에 export 추가\n4. packages/mcp/src/server.ts에 registerResources 호출 추가\n\nResourceTemplate 사용, MIME type은 application/json.",
       "dependsOn": [
         "mcp-basic-resources-plan"
