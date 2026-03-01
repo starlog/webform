@@ -48,8 +48,4 @@ export function registerResources(server: McpServer): void {
   registerShellResources(server);
 }
 
-export function registerPrompts(_server: McpServer): void {
-  // Phase 4: Prompt 템플릿
-  // registerFormWizardPrompt(server);
-  // registerCrudHandlersPrompt(server);
-}
+export { registerPrompts } from './prompts/index.js';

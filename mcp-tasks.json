@@ -576,7 +576,7 @@
       "description": "5개 Prompt 템플릿 구현",
       "phase": "phase4-advanced",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-prompts-plan.md에 따라 Prompt 템플릿을 구현하라.\n\nMCP-SERVER.md 섹션 4.1~4.5의 코드 예시 참조.\n\n생성/수정할 파일:\n1. packages/mcp/src/prompts/createForm.ts: create-form-wizard 프롬프트\n2. packages/mcp/src/prompts/addEventHandler.ts: add-crud-handlers 프롬프트\n3. packages/mcp/src/prompts/setupNavigation.ts: setup-navigation 프롬프트\n4. packages/mcp/src/prompts/cloneForm.ts: clone-and-modify-form 프롬프트\n5. packages/mcp/src/prompts/designTheme.ts: design-theme 프롬프트\n6. packages/mcp/src/prompts/index.ts: registerPrompts(server) 함수\n7. packages/mcp/src/server.ts에 registerPrompts 호출 추가",
       "dependsOn": [
         "mcp-prompts-plan"
