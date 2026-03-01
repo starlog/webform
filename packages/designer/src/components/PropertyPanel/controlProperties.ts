@@ -20,7 +20,7 @@ export type EditorType =
   | 'swaggerSpec'
   | 'swaggerApis';
 
-export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data' | 'APIs' | 'Sample';
+export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data' | 'APIs' | 'Sample' | 'Authentication';
 
 export interface PropertyMeta {
   name: string;
@@ -549,4 +549,7 @@ export const SHELL_PROPERTIES: PropertyMeta[] = [
   { name: 'maximizeBox', label: 'MaximizeBox', category: 'Behavior', editorType: 'boolean' },
   { name: 'minimizeBox', label: 'MinimizeBox', category: 'Behavior', editorType: 'boolean' },
   { name: 'windowState', label: 'WindowState', category: 'Layout', editorType: 'dropdown', options: ['Normal', 'Maximized'] },
+  { name: 'auth.enabled', label: 'Auth Enabled', category: 'Authentication', editorType: 'boolean' },
+  { name: 'auth.googleClientId', label: 'Google Client ID', category: 'Authentication', editorType: 'text' },
+  { name: 'auth.allowedDomains', label: 'Allowed Domains', category: 'Authentication', editorType: 'text' },
 ];

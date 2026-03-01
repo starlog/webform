@@ -334,9 +334,19 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     return shellControls.find((c) => c.id === id) ?? null;
   }, [editMode, selectedIds, shellControls]);
 
-  // Shell 속성 getValue/handleValueChange
+  // Shell 속성 getValue/handleValueChange (auth.xxx 중첩 경로 지원)
   const getShellValue = useCallback(
     (name: string): unknown => {
+      const parts = name.split('.');
+      if (parts.length === 2 && parts[0] === 'auth') {
+        const auth = shellProperties.auth;
+        if (!auth) return undefined;
+        const key = parts[1] as keyof typeof auth;
+        if (key === 'allowedDomains') {
+          return (auth.allowedDomains ?? []).join(', ');
+        }
+        return auth[key];
+      }
       return (shellProperties as unknown as Record<string, unknown>)[name];
     },
     [shellProperties],
@@ -344,9 +354,30 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
 
   const handleShellValueChange = useCallback(
     (name: string, value: unknown) => {
+      const parts = name.split('.');
+      if (parts.length === 2 && parts[0] === 'auth') {
+        const key = parts[1];
+        const currentAuth = shellProperties.auth ?? {
+          enabled: false,
+          provider: 'google' as const,
+          googleClientId: '',
+          allowedDomains: [],
+        };
+        let newValue = value;
+        if (key === 'allowedDomains' && typeof value === 'string') {
+          newValue = value
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+        setShellProperties({
+          auth: { ...currentAuth, [key]: newValue },
+        } as Partial<ShellProperties>);
+        return;
+      }
       setShellProperties({ [name]: value } as Partial<ShellProperties>);
     },
-    [setShellProperties],
+    [setShellProperties, shellProperties],
   );
 
   // Shell 속성: theme 옵션을 동적으로 교체 (커스텀 테마 포함)
@@ -358,7 +389,7 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
 
   // Shell 속성 그룹화
   const shellGroupedProperties = useMemo(() => {
-    const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior'];
+    const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior', 'Authentication'];
     const groups = new Map<string, PropertyMeta[]>();
     for (const meta of shellPropertyMetas) {
       const list = groups.get(meta.category) ?? [];

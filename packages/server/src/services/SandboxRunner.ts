@@ -545,6 +545,16 @@ export class SandboxRunner {
               params: params || {}
             }
           });
+        };
+        ctx.auth = {
+          logout: function() {
+            __flushChanges();
+            __operations.push({
+              type: 'authLogout',
+              target: '_system',
+              payload: {}
+            });
+          }
         };${shellSetup}
         ctx.http = {
           get: function(url) {

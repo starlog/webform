@@ -31,6 +31,7 @@ export interface RuntimeState {
   appState: Record<string, unknown>;
   formHistory: Array<{ formId: string; params?: Record<string, unknown> }>;
   navigateParams: Record<string, unknown>;
+  authLogoutRequested: boolean;
 
   setFormDef: (def: FormDefinition) => void;
   updateControlState: (controlId: string, property: string, value: unknown) => void;
@@ -160,6 +161,10 @@ function applyPatchToState(
       };
       break;
     }
+    case 'authLogout': {
+      (state as unknown as { authLogoutRequested: boolean }).authLogoutRequested = true;
+      break;
+    }
   }
 }
 
@@ -177,6 +182,7 @@ export const useRuntimeStore = create<RuntimeState>()(
     appState: {},
     formHistory: [],
     navigateParams: {},
+    authLogoutRequested: false,
 
     setFormDef: (def) =>
       set((state) => {
@@ -335,6 +341,10 @@ export const useRuntimeStore = create<RuntimeState>()(
               } catch {
                 window.location.href = 'about:blank';
               }
+              break;
+            }
+            case 'authLogout': {
+              state.authLogoutRequested = true;
               break;
             }
             case 'showDialog': {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { EventRequest, ShellEventRequest } from '@webform/common';
+import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { Form } from '../models/Form.js';
 import { EventEngine } from '../services/EventEngine.js';
@@ -9,6 +10,7 @@ import { AppError, NotFoundError } from '../middleware/errorHandler.js';
 import { ShellService } from '../services/ShellService.js';
 import type { ShellDocument } from '../models/Shell.js';
 import { ThemeService } from '../services/ThemeService.js';
+import { env } from '../config/index.js';
 
 function toObjectId(value: unknown): ObjectId | unknown {
   if (typeof value === 'string' && /^[a-f\d]{24}$/i.test(value)) {
@@ -43,7 +45,7 @@ function toShellDefinition(shell: ShellDocument) {
     name: shell.name,
     version: shell.version,
     properties: shell.properties,
-    controls: shell.controls,
+    controls: stripItemScripts(shell.controls),
     eventHandlers: shell.eventHandlers
       .filter((h) => h.handlerType === 'server')
       .map((h) => ({
@@ -53,6 +55,47 @@ function toShellDefinition(shell: ShellDocument) {
       })),
     startFormId: shell.startFormId,
   };
+}
+
+/** items 배열 내 script → hasScript 변환 (재귀) */
+function replaceScriptsWithFlags(items: unknown[]): unknown[] {
+  return items.map((item) => {
+    if (!item || typeof item !== 'object') return item;
+    const obj = { ...(item as Record<string, unknown>) };
+    if (obj.script) {
+      delete obj.script;
+      obj.hasScript = true;
+    }
+    // MenuStrip children
+    if (Array.isArray(obj.children)) {
+      obj.children = replaceScriptsWithFlags(obj.children);
+    }
+    // ToolStrip dropdown items
+    if (Array.isArray(obj.items)) {
+      obj.items = replaceScriptsWithFlags(obj.items);
+    }
+    return obj;
+  });
+}
+
+/** controls 재귀 순회하여 properties.items 내 script를 hasScript로 변환 */
+function stripItemScripts(controls: unknown[]): unknown[] {
+  // Mongoose 문서를 plain object로 변환 후 처리
+  const plain = JSON.parse(JSON.stringify(controls)) as unknown[];
+  return plain.map((ctrl) => {
+    if (!ctrl || typeof ctrl !== 'object') return ctrl;
+    const c = ctrl as Record<string, unknown>;
+    if (c.properties && typeof c.properties === 'object') {
+      const props = c.properties as Record<string, unknown>;
+      if (Array.isArray(props.items)) {
+        props.items = replaceScriptsWithFlags(props.items);
+      }
+    }
+    if (Array.isArray(c.children)) {
+      c.children = stripItemScripts(c.children);
+    }
+    return c;
+  });
 }
 
 /** FormDocument → 런타임용 폼 정의 변환 (서버 핸들러만 노출) */
@@ -70,7 +113,7 @@ function toRuntimeFormDef(form: {
     name: form.name,
     version: form.version,
     properties: form.properties,
-    controls: form.controls,
+    controls: stripItemScripts(form.controls),
     eventHandlers: form.eventHandlers
       .filter((h) => h.handlerType === 'server')
       .map((h) => ({
@@ -417,6 +460,42 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
   try {
     const shell = await shellService.getPublishedShell(req.params.projectId);
 
+    // ── 인증 게이트 ──
+    const auth = shell?.properties.auth;
+    if (auth?.enabled) {
+      const formIdParam = req.query.formId ? `&formId=${req.query.formId}` : '';
+      const loginUrl = `${env.RUNTIME_BASE_URL}/auth/google/login?projectId=${req.params.projectId}${formIdParam}`;
+
+      const header = req.headers.authorization;
+      if (!header?.startsWith('Bearer ')) {
+        res.status(401).json({ authRequired: true, loginUrl });
+        return;
+      }
+
+      try {
+        const payload = jwt.verify(header.slice(7), env.JWT_SECRET) as {
+          role: string;
+          projectId: string;
+          email: string;
+          name: string;
+          picture: string;
+        };
+        if (payload.role !== 'runtime-user' || payload.projectId !== req.params.projectId) {
+          res.status(401).json({ authRequired: true, loginUrl });
+          return;
+        }
+        // 인증 성공 — authUser 정보를 응답에 포함
+        (req as unknown as Record<string, unknown>)._authUser = {
+          email: payload.email,
+          name: payload.name,
+          picture: payload.picture,
+        };
+      } catch {
+        res.status(401).json({ authRequired: true, loginUrl });
+        return;
+      }
+    }
+
     const formId = (req.query.formId as string) || shell?.startFormId;
 
     if (!formId) {
@@ -433,9 +512,14 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
       throw new NotFoundError('Start form not published');
     }
 
+    const authUser = (req as unknown as Record<string, unknown>)._authUser as
+      | { email: string; name: string; picture: string }
+      | undefined;
+
     res.json({
       shell: shell ? toShellDefinition(shell) : null,
       startForm: toRuntimeFormDef(form),
+      ...(authUser ? { authUser } : {}),
     });
   } catch (err) {
     next(err);

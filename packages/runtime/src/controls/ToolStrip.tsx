@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
+import { apiClient } from '../communication/apiClient';
 
 interface ToolStripItem {
   type: 'button' | 'separator' | 'label' | 'dropdown';
@@ -11,6 +12,7 @@ interface ToolStripItem {
   icon?: string;
   enabled?: boolean;
   checked?: boolean;
+  hasScript?: boolean;
   items?: ToolStripItem[];
 }
 
@@ -24,6 +26,7 @@ interface ToolStripProps {
   foreColor?: string;
   font?: { family?: string; size?: number };
   onItemClicked?: () => void;
+  onItemScript?: (path: number[], item: { text?: string }) => void;
   children?: ReactNode;
   [key: string]: unknown;
 }
@@ -37,6 +40,7 @@ export function ToolStrip({
   foreColor,
   font,
   onItemClicked,
+  onItemScript,
 }: ToolStripProps) {
   const theme = useTheme();
   const colors = useControlColors('ToolStrip', { backColor, foreColor });
@@ -55,6 +59,41 @@ export function ToolStrip({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [openDropdown]);
 
+  const sendItemScript = useCallback(
+    (itemScriptPath: number[], item?: { text?: string }) => {
+      if (onItemScript) {
+        onItemScript(itemScriptPath, { text: item?.text });
+        return;
+      }
+
+      const store = useRuntimeStore.getState();
+      const formDef = store.currentFormDef;
+      if (!formDef) return;
+
+      const formState: Record<string, Record<string, unknown>> = {};
+      for (const [cid, cstate] of Object.entries(store.controlStates)) {
+        formState[cid] = { ...cstate };
+      }
+
+      apiClient
+        .postEvent(formDef.id, {
+          formId: formDef.id,
+          controlId: id,
+          eventName: 'ItemClicked',
+          eventArgs: { type: 'ItemClicked', timestamp: Date.now(), path: itemScriptPath },
+          formState,
+          itemScriptPath,
+        })
+        .then((res) => {
+          if (res.patches?.length) {
+            store.applyPatches(res.patches);
+          }
+        })
+        .catch((err) => console.error('[ToolStrip] item script error:', err));
+    },
+    [id, onItemScript],
+  );
+
   const handleItemClick = useCallback(
     (item: ToolStripItem, index: number) => {
       if (!enabled || item.enabled === false) return;
@@ -64,16 +103,27 @@ export function ToolStrip({
         return;
       }
 
+      if (item.hasScript) {
+        sendItemScript([index], item);
+        return;
+      }
+
       updateControlState(id, 'clickedItem', { text: item.text, icon: item.icon, index });
       onItemClicked?.();
     },
-    [id, enabled, updateControlState, onItemClicked],
+    [id, enabled, updateControlState, onItemClicked, sendItemScript],
   );
 
   const handleSubItemClick = useCallback(
     (subItem: ToolStripItem, parentIndex: number, subIndex: number) => {
       if (!enabled || subItem.enabled === false) return;
       setOpenDropdown(null);
+
+      if (subItem.hasScript) {
+        sendItemScript([parentIndex, subIndex], subItem);
+        return;
+      }
+
       updateControlState(id, 'clickedItem', {
         text: subItem.text,
         icon: subItem.icon,
@@ -82,7 +132,7 @@ export function ToolStrip({
       });
       onItemClicked?.();
     },
-    [id, enabled, updateControlState, onItemClicked],
+    [id, enabled, updateControlState, onItemClicked, sendItemScript],
   );
 
   const mergedStyle: CSSProperties = {
@@ -163,7 +213,8 @@ export function ToolStrip({
                   position: 'absolute',
                   top: '100%',
                   left: 0,
-                  backgroundColor: theme.popup.background,
+                  backgroundColor: theme.controls.toolStrip.background,
+                  color: theme.controls.toolStrip.foreground,
                   border: theme.popup.border,
                   boxShadow: theme.popup.shadow,
                   borderRadius: theme.popup.borderRadius,
@@ -196,7 +247,7 @@ export function ToolStrip({
                       }}
                       onMouseEnter={(e) => {
                         if (!subDisabled)
-                          (e.currentTarget as HTMLDivElement).style.backgroundColor = theme.popup.hoverBackground;
+                          (e.currentTarget as HTMLDivElement).style.backgroundColor = theme.controls.toolStrip.buttonHoverBackground;
                       }}
                       onMouseLeave={(e) => {
                         if (!subDisabled)

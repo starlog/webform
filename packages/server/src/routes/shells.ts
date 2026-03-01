@@ -29,6 +29,14 @@ const shellPropertiesSchema = z.object({
   minimizeBox: z.boolean().default(true),
   windowState: z.enum(['Normal', 'Maximized']).default('Normal'),
   theme: z.string().optional(),
+  auth: z
+    .object({
+      enabled: z.boolean().default(false),
+      provider: z.literal('google').default('google'),
+      googleClientId: z.string().default(''),
+      allowedDomains: z.array(z.string()).default([]),
+    })
+    .optional(),
 });
 
 const createShellSchema = z.object({

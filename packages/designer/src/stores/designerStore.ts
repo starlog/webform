@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import type {
   ControlDefinition,
   ControlType,
+  EventHandlerDefinition,
   FontDefinition,
   FormProperties,
   ShellProperties,
@@ -28,6 +29,7 @@ const DEFAULT_SHELL_PROPERTIES: ShellProperties = {
   maximizeBox: true,
   minimizeBox: true,
   windowState: 'Normal',
+  auth: { enabled: false, provider: 'google', googleClientId: '', allowedDomains: [] },
 };
 
 const DEFAULT_FORM_PROPERTIES: FormProperties = {
@@ -67,6 +69,7 @@ interface DesignerState {
   editMode: 'form' | 'shell' | 'theme';
   shellControls: ControlDefinition[];
   shellProperties: ShellProperties;
+  shellEventHandlers: EventHandlerDefinition[];
   shellName: string;
   currentShellId: string | null;
   projectShellTheme: string | undefined;
@@ -353,6 +356,7 @@ export const useDesignerStore = create<DesignerState>()(
     editMode: 'form' as const,
     shellControls: [] as ControlDefinition[],
     shellProperties: DEFAULT_SHELL_PROPERTIES,
+    shellEventHandlers: [] as EventHandlerDefinition[],
     shellName: 'Application Shell',
     currentShellId: null as string | null,
     projectShellTheme: undefined as string | undefined,
@@ -542,6 +546,7 @@ export const useDesignerStore = create<DesignerState>()(
       state.shellName = shellDef.name;
       state.shellControls = shellDef.controls as ControlDefinition[];
       state.shellProperties = shellDef.properties;
+      state.shellEventHandlers = (shellDef.eventHandlers ?? []) as EventHandlerDefinition[];
       state.projectShellTheme = shellDef.properties.theme;
       state.editMode = 'shell';
       state.isDirty = false;
@@ -586,7 +591,7 @@ export const useDesignerStore = create<DesignerState>()(
         version: 1,
         properties: state.shellProperties,
         controls: state.shellControls,
-        eventHandlers: [],
+        eventHandlers: state.shellEventHandlers,
       };
     },
   })),

@@ -28,6 +28,10 @@ const envSchema = z.object({
   // 샌드박스
   SANDBOX_TIMEOUT_MS: z.coerce.number().default(5000),
   SANDBOX_MEMORY_LIMIT_MB: z.coerce.number().default(128),
+
+  // Google OAuth2
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  RUNTIME_BASE_URL: z.string().optional().default('http://localhost:3001'),
 });
 
 export type Env = z.infer<typeof envSchema>;

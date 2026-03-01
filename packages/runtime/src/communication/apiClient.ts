@@ -6,6 +6,7 @@ import type {
   ShellEventRequest,
   AppLoadResponse,
 } from '@webform/common';
+import { getRuntimeAuthToken } from './runtimeAuth';
 
 class ApiClient {
   private baseUrl: string;
@@ -109,7 +110,23 @@ class ApiClient {
   }
   async fetchApp(projectId: string, formId?: string): Promise<AppLoadResponse> {
     const params = formId ? `?formId=${encodeURIComponent(formId)}` : '';
-    const res = await fetch(`${this.baseUrl}/runtime/app/${projectId}${params}`);
+    const headers: Record<string, string> = {};
+    const token = getRuntimeAuthToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(`${this.baseUrl}/runtime/app/${projectId}${params}`, { headers });
+    if (res.status === 401) {
+      const body = await res.json();
+      const err = new Error('Authentication required') as Error & {
+        authRequired: boolean;
+        loginUrl: string;
+        authError?: string;
+      };
+      err.authRequired = body.authRequired ?? true;
+      err.loginUrl = body.loginUrl ?? '';
+      throw err;
+    }
     if (!res.ok) throw new Error(`Failed to fetch app: ${res.status}`);
     return res.json();
   }

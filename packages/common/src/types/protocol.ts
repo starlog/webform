@@ -3,7 +3,7 @@ import type { EventArgs } from './events';
 
 export interface UIPatch {
   type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate'
-    | 'updateShell' | 'updateAppState' | 'closeApp';
+    | 'updateShell' | 'updateAppState' | 'closeApp' | 'authLogout';
   target: string;
   payload: Record<string, unknown>;
 }
@@ -16,6 +16,7 @@ export interface EventRequest {
   formState: Record<string, Record<string, unknown>>;
   appState?: Record<string, unknown>;
   scope?: 'shell' | 'form';
+  itemScriptPath?: number[];
 }
 
 export interface DebugLog {

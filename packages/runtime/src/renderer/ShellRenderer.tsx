@@ -72,7 +72,7 @@ function ShellControlRenderer({
   if (controlState.visible === false) return null;
 
   // Shell 이벤트 핸들러 생성
-  const eventHandlers: Record<string, () => void> = {};
+  const eventHandlers: Record<string, unknown> = {};
 
   const relevantEvents = shellDef.eventHandlers.filter(
     (e) => e.controlId === definition.id,
@@ -95,6 +95,28 @@ function ShellControlRenderer({
         }
       } catch (err) {
         console.error(`Shell event error [${definition.id}.${evt.eventName}]:`, err);
+      }
+    };
+  }
+
+  // MenuStrip/ToolStrip item script 콜백
+  if (definition.type === 'MenuStrip' || definition.type === 'ToolStrip') {
+    eventHandlers.onItemScript = async (path: number[], item: { text?: string }) => {
+      try {
+        const response = await apiClient.postShellEvent(projectId, {
+          projectId,
+          controlId: definition.id,
+          eventName: 'ItemClicked',
+          eventArgs: { type: 'ItemClicked', timestamp: Date.now(), text: item.text, path },
+          shellState: useRuntimeStore.getState().shellControlStates,
+          currentFormId: useRuntimeStore.getState().currentFormDef?.id ?? '',
+          itemScriptPath: path,
+        });
+        if (response.success && response.patches) {
+          applyShellPatches(response.patches);
+        }
+      } catch (err) {
+        console.error(`Shell item script error [${definition.id}]:`, err);
       }
     };
   }

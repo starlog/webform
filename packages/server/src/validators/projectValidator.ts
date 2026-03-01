@@ -46,6 +46,13 @@ export const importProjectSchema = z.object({
     eventHandlers: z.array(z.unknown()).default([]),
     dataBindings: z.array(z.unknown()).default([]),
   })),
+  shell: z.object({
+    name: z.string().min(1),
+    properties: z.record(z.unknown()).default({}),
+    controls: z.array(z.unknown()).default([]),
+    eventHandlers: z.array(z.unknown()).default([]),
+    startFormId: z.string().optional(),
+  }).optional(),
 });
 
 export type ImportProjectInput = z.infer<typeof importProjectSchema>;

@@ -9,6 +9,8 @@ import { setupPatchListener } from '../communication/patchApplier';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useBindingStore } from '../bindings/bindingStore';
 import { ensureAuthToken } from '../communication/authToken';
+import { extractAuthTokenFromUrl, clearRuntimeAuthToken } from '../communication/runtimeAuth';
+import { LoginRequiredPage } from '../components/LoginRequiredPage';
 
 interface AppContainerProps {
   projectId: string;
@@ -20,6 +22,9 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
   const [formDefinition, setFormDefinition] = useState<FormDefinition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [authRequired, setAuthRequired] = useState(false);
+  const [loginUrl, setLoginUrl] = useState('');
+  const [authError, setAuthError] = useState<string | undefined>();
   const currentFormIdRef = useRef<string | null>(null);
   const formDefRef = useRef<FormDefinition | null>(null);
 
@@ -31,6 +36,7 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
   const navigateRequest = useRuntimeStore((s) => s.navigateRequest);
   const clearNavigateRequest = useRuntimeStore((s) => s.clearNavigateRequest);
   const hasDialogs = useRuntimeStore((s) => s.dialogQueue.length > 0);
+  const authLogoutRequested = useRuntimeStore((s) => s.authLogoutRequested);
 
   // BeforeLeaving 이벤트 발생 (fire-and-forget)
   const fireBeforeLeaving = useCallback(() => {
@@ -95,6 +101,32 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
     async function loadApp() {
       setLoading(true);
       setError(null);
+      setAuthRequired(false);
+
+      // URL fragment에서 auth_token 추출 (OAuth 콜백 리다이렉트)
+      extractAuthTokenFromUrl();
+
+      // URL에서 authError 파라미터 확인
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlAuthError = urlParams.get('authError');
+      if (urlAuthError) {
+        const errorMessages: Record<string, string> = {
+          domain_not_allowed: '허용되지 않은 도메인입니다. 관리자에게 문의하세요.',
+          server_not_configured: '서버에 Google OAuth 설정(GOOGLE_CLIENT_SECRET)이 필요합니다. 관리자에게 문의하세요.',
+          auth_not_configured: '이 프로젝트의 인증이 올바르게 설정되지 않았습니다.',
+          shell_not_found: '퍼블리시된 Shell을 찾을 수 없습니다.',
+          token_exchange_failed: 'Google 인증 토큰 교환에 실패했습니다. 다시 시도해 주세요.',
+          invalid_token: '유효하지 않은 인증 토큰입니다. 다시 시도해 주세요.',
+          no_email: 'Google 계정에서 이메일을 가져올 수 없습니다.',
+        };
+        setAuthError(errorMessages[urlAuthError] || '인증 중 오류가 발생했습니다.');
+        clearRuntimeAuthToken();
+        setAuthRequired(true);
+        setLoginUrl(`/auth/google/login?projectId=${projectId}`);
+        setLoading(false);
+        return;
+      }
+
       try {
         // WebSocket 인증 토큰 확보
         await ensureAuthToken();
@@ -120,7 +152,13 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
         unsubPatch = setupPatchListener({ applyPatches, applyShellPatches }, wsClient);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : String(err));
+          const authErr = err as Error & { authRequired?: boolean; loginUrl?: string };
+          if (authErr.authRequired && authErr.loginUrl) {
+            setAuthRequired(true);
+            setLoginUrl(authErr.loginUrl);
+          } else {
+            setError(err instanceof Error ? err.message : String(err));
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -153,6 +191,18 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
       loadFormInShell(formId);
     }
   }, [navigateRequest, hasDialogs, clearNavigateRequest, loadFormInShell]);
+
+  // auth logout 요청 처리
+  useEffect(() => {
+    if (!authLogoutRequested) return;
+    clearRuntimeAuthToken();
+    useRuntimeStore.setState({ authLogoutRequested: false });
+    setShellDefLocal(null);
+    setFormDefinition(null);
+    setAuthRequired(true);
+    const formIdParam = currentFormIdRef.current ? `&formId=${currentFormIdRef.current}` : '';
+    setLoginUrl(`/auth/google/login?projectId=${projectId}${formIdParam}`);
+  }, [authLogoutRequested, projectId]);
 
   // Shell 크기를 폼 크기 + 셸 크롬에 맞춰 자동 조정
   const adjustedShellDef = useMemo(() => {
@@ -191,6 +241,10 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
       properties: { ...shellProps, width: newWidth, height: newHeight },
     };
   }, [shellDef, formDefinition]);
+
+  if (authRequired) {
+    return <LoginRequiredPage loginUrl={loginUrl} errorMessage={authError} />;
+  }
 
   if (loading) {
     return <div style={{ padding: 20, fontFamily: 'Segoe UI, sans-serif' }}>로딩 중...</div>;

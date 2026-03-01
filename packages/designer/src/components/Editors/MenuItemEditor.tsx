@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ItemScriptEditor } from './ItemScriptEditor';
 
 interface MenuItemData {
   id: string;
@@ -8,6 +9,7 @@ interface MenuItemData {
   checked: boolean;
   separator: boolean;
   formId?: string;
+  script?: string;
   children?: MenuItemData[];
 }
 
@@ -30,6 +32,7 @@ function normalizeMenuItems(raw: unknown[]): MenuItemData[] {
         checked: obj.checked === true,
         separator: obj.separator === true,
         formId: obj.formId as string | undefined,
+        script: obj.script as string | undefined,
         children: Array.isArray(obj.children)
           ? normalizeMenuItems(obj.children)
           : undefined,
@@ -56,6 +59,7 @@ function denormalizeMenuItems(
     if (item.checked) result.checked = true;
     if (item.separator) result.separator = true;
     if (item.formId) result.formId = item.formId;
+    if (item.script) result.script = item.script;
     if (item.children && item.children.length > 0) {
       result.children = denormalizeMenuItems(item.children);
     }
@@ -242,6 +246,7 @@ function MenuItemModal({
 }: MenuItemModalProps) {
   const [items, setItems] = useState<MenuItemData[]>(initial);
   const [selectedPath, setSelectedPath] = useState<number[]>([]);
+  const [scriptEditorOpen, setScriptEditorOpen] = useState(false);
 
   const selectedItem = findItemByPath(items, selectedPath);
 
@@ -487,6 +492,41 @@ function MenuItemModal({
                       style={inputStyle}
                     />
                   </PropRow>
+                  {!selectedItem.separator && (
+                    <PropRow label="script">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <span style={{ flex: 1, fontSize: 11, color: selectedItem.script ? '#333' : '#999' }}>
+                          {selectedItem.script ? '(has script)' : 'No script'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setScriptEditorOpen(true)}
+                          style={{ ...btnStyle, padding: '0 4px', fontSize: 11 }}
+                        >
+                          ...
+                        </button>
+                        {selectedItem.script && (
+                          <button
+                            type="button"
+                            onClick={() => handlePropertyChange('script', undefined)}
+                            style={{ ...btnStyle, padding: '0 4px', fontSize: 11 }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    </PropRow>
+                  )}
+                  {scriptEditorOpen && (
+                    <ItemScriptEditor
+                      script={selectedItem.script ?? ''}
+                      onSave={(code) => {
+                        handlePropertyChange('script', code || undefined);
+                        setScriptEditorOpen(false);
+                      }}
+                      onClose={() => setScriptEditorOpen(false)}
+                    />
+                  )}
                 </>
               ) : (
                 <div
@@ -618,3 +658,4 @@ const inputStyle: React.CSSProperties = {
   outline: 'none',
   boxSizing: 'border-box',
 };
+

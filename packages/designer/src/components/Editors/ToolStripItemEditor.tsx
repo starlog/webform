@@ -1,12 +1,15 @@
 import { useState } from 'react';
+import { ItemScriptEditor } from './ItemScriptEditor';
 
 interface ToolStripItemData {
   id: string;
   type: 'button' | 'separator' | 'label' | 'dropdown';
   text: string;
+  icon?: string;
   tooltip?: string;
   enabled: boolean;
   checked: boolean;
+  script?: string;
 }
 
 interface ToolStripItemEditorProps {
@@ -27,9 +30,11 @@ function normalizeToolStripItems(raw: unknown[]): ToolStripItemData[] {
           ? obj.type
           : 'button') as ToolStripItemData['type'],
         text: (obj.text as string) ?? '',
+        icon: obj.icon as string | undefined,
         tooltip: obj.tooltip as string | undefined,
         enabled: obj.enabled !== false,
         checked: obj.checked === true,
+        script: obj.script as string | undefined,
       };
     }
     return {
@@ -49,9 +54,11 @@ function denormalizeToolStripItems(
     const result: Record<string, unknown> = { type: item.type };
     if (item.type !== 'separator') {
       if (item.text) result.text = item.text;
+      if (item.icon) result.icon = item.icon;
       if (item.tooltip) result.tooltip = item.tooltip;
       if (!item.enabled) result.enabled = false;
       if (item.checked) result.checked = true;
+      if (item.script) result.script = item.script;
     }
     return result;
   });
@@ -59,7 +66,8 @@ function denormalizeToolStripItems(
 
 function getToolStripLabel(item: ToolStripItemData): string {
   if (item.type === 'separator') return '── (Separator) ──';
-  return `[${item.type}] ${item.text || '(empty)'}`;
+  const icon = item.icon ? `${item.icon} ` : '';
+  return `[${item.type}] ${icon}${item.text || '(empty)'}`;
 }
 
 export function ToolStripItemEditor({
@@ -114,6 +122,7 @@ function ToolStripItemModal({
 }: ToolStripItemModalProps) {
   const [items, setItems] = useState<ToolStripItemData[]>(initial);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [scriptEditorOpen, setScriptEditorOpen] = useState(false);
 
   const selectedItem =
     selectedIndex >= 0 && selectedIndex < items.length
@@ -318,6 +327,21 @@ function ToolStripItemModal({
                       style={inputStyle}
                     />
                   </PropRow>
+                  <PropRow label="icon">
+                    <input
+                      type="text"
+                      value={selectedItem.icon ?? ''}
+                      onChange={(e) =>
+                        updateProperty(
+                          'icon',
+                          e.target.value || undefined,
+                        )
+                      }
+                      disabled={isSeparator}
+                      placeholder="e.g. 📁, ✂, ⚙"
+                      style={inputStyle}
+                    />
+                  </PropRow>
                   <PropRow label="tooltip">
                     <input
                       type="text"
@@ -352,6 +376,41 @@ function ToolStripItemModal({
                       disabled={isSeparator}
                     />
                   </PropRow>
+                  {!isSeparator && (
+                    <PropRow label="script">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <span style={{ flex: 1, fontSize: 11, color: selectedItem.script ? '#333' : '#999' }}>
+                          {selectedItem.script ? '(has script)' : 'No script'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setScriptEditorOpen(true)}
+                          style={{ ...btnStyle, padding: '0 4px', fontSize: 11 }}
+                        >
+                          ...
+                        </button>
+                        {selectedItem.script && (
+                          <button
+                            type="button"
+                            onClick={() => updateProperty('script', undefined)}
+                            style={{ ...btnStyle, padding: '0 4px', fontSize: 11 }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    </PropRow>
+                  )}
+                  {scriptEditorOpen && (
+                    <ItemScriptEditor
+                      script={selectedItem.script ?? ''}
+                      onSave={(code) => {
+                        updateProperty('script', code || undefined);
+                        setScriptEditorOpen(false);
+                      }}
+                      onClose={() => setScriptEditorOpen(false)}
+                    />
+                  )}
                 </>
               ) : (
                 <div
@@ -440,3 +499,4 @@ const selectStyle: React.CSSProperties = {
   outline: 'none',
   boxSizing: 'border-box',
 };
+

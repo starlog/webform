@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
+import { apiClient } from '../communication/apiClient';
 
 interface MenuItem {
   text: string;
@@ -12,6 +13,7 @@ interface MenuItem {
   checked?: boolean;
   separator?: boolean;
   formId?: string;
+  hasScript?: boolean;
 }
 
 interface MenuStripProps {
@@ -24,6 +26,7 @@ interface MenuStripProps {
   foreColor?: string;
   font?: { family?: string; size?: number };
   onItemClicked?: () => void;
+  onItemScript?: (path: number[], item: { text: string }) => void;
   children?: ReactNode;
   [key: string]: unknown;
 }
@@ -46,7 +49,8 @@ function DropdownMenu({
         position: 'absolute',
         top: '100%',
         left: 0,
-        backgroundColor: theme.popup.background,
+        backgroundColor: theme.controls.menuStrip.background,
+        color: theme.controls.menuStrip.foreground,
         border: theme.popup.border,
         boxShadow: theme.popup.shadow,
         borderRadius: theme.popup.borderRadius,
@@ -91,7 +95,7 @@ function DropdownMenu({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 whiteSpace: 'nowrap',
-                backgroundColor: isHovered && !isDisabled ? theme.popup.hoverBackground : undefined,
+                backgroundColor: isHovered && !isDisabled ? theme.controls.menuStrip.hoverBackground : undefined,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -109,7 +113,7 @@ function DropdownMenu({
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 20 }}>
                 {item.shortcut && (
-                  <span style={{ color: '#888', fontSize: '11px' }}>{item.shortcut}</span>
+                  <span style={{ opacity: 0.6, fontSize: '11px' }}>{item.shortcut}</span>
                 )}
                 {hasChildren && <span style={{ fontSize: '10px' }}>&#9654;</span>}
               </div>
@@ -147,7 +151,8 @@ function SubMenu({
         position: 'absolute',
         top: 0,
         left: '100%',
-        backgroundColor: theme.popup.background,
+        backgroundColor: theme.controls.menuStrip.background,
+        color: theme.controls.menuStrip.foreground,
         border: theme.popup.border,
         boxShadow: theme.popup.shadow,
         borderRadius: theme.popup.borderRadius,
@@ -190,7 +195,7 @@ function SubMenu({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 whiteSpace: 'nowrap',
-                backgroundColor: isHovered && !isDisabled ? theme.popup.hoverBackground : undefined,
+                backgroundColor: isHovered && !isDisabled ? theme.controls.menuStrip.hoverBackground : undefined,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -208,7 +213,7 @@ function SubMenu({
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 20 }}>
                 {item.shortcut && (
-                  <span style={{ color: '#888', fontSize: '11px' }}>{item.shortcut}</span>
+                  <span style={{ opacity: 0.6, fontSize: '11px' }}>{item.shortcut}</span>
                 )}
                 {hasChildren && <span style={{ fontSize: '10px' }}>&#9654;</span>}
               </div>
@@ -237,6 +242,7 @@ export function MenuStrip({
   foreColor,
   font,
   onItemClicked,
+  onItemScript,
 }: MenuStripProps) {
   const theme = useTheme();
   const colors = useControlColors('MenuStrip', { backColor, foreColor });
@@ -255,12 +261,70 @@ export function MenuStrip({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [openMenuIndex]);
 
+  const handleItemClick = useCallback(
+    (item: MenuItem, path: number[], topIndex: number) => {
+      setOpenMenuIndex(null);
+      const fullPath = [topIndex, ...path];
+
+      if (item.hasScript) {
+        if (onItemScript) {
+          onItemScript(fullPath, { text: item.text });
+        } else {
+          const store = useRuntimeStore.getState();
+          const formDef = store.currentFormDef;
+          if (!formDef) return;
+
+          const formState: Record<string, Record<string, unknown>> = {};
+          for (const [cid, cstate] of Object.entries(store.controlStates)) {
+            formState[cid] = { ...cstate };
+          }
+
+          apiClient
+            .postEvent(formDef.id, {
+              formId: formDef.id,
+              controlId: id,
+              eventName: 'ItemClicked',
+              eventArgs: { type: 'ItemClicked', timestamp: Date.now(), text: item.text, path: fullPath },
+              formState,
+              itemScriptPath: fullPath,
+            })
+            .then((res) => {
+              if (res.patches?.length) {
+                store.applyPatches(res.patches);
+              }
+            })
+            .catch((err) => console.error('[MenuStrip] item script error:', err));
+        }
+        return;
+      }
+
+      updateControlState(id, 'clickedItem', {
+        text: item.text,
+        shortcut: item.shortcut,
+        formId: item.formId,
+        path: fullPath,
+      });
+      if (item.formId) {
+        useRuntimeStore.getState().requestNavigate(item.formId);
+      }
+      onItemClicked?.();
+    },
+    [id, updateControlState, onItemClicked, onItemScript],
+  );
+
   const handleTopLevelClick = useCallback(
     (index: number) => {
       if (!enabled) return;
+      const item = items[index];
+      const hasChildren = item?.children && item.children.length > 0;
+      if (!hasChildren && item) {
+        setOpenMenuIndex(null);
+        handleItemClick(item, [], index);
+        return;
+      }
       setOpenMenuIndex((prev) => (prev === index ? null : index));
     },
-    [enabled],
+    [enabled, items, handleItemClick],
   );
 
   const handleTopLevelHover = useCallback(
@@ -270,23 +334,6 @@ export function MenuStrip({
       }
     },
     [openMenuIndex],
-  );
-
-  const handleItemClick = useCallback(
-    (item: MenuItem, path: number[], topIndex: number) => {
-      setOpenMenuIndex(null);
-      updateControlState(id, 'clickedItem', {
-        text: item.text,
-        shortcut: item.shortcut,
-        formId: item.formId,
-        path: [topIndex, ...path],
-      });
-      if (item.formId) {
-        useRuntimeStore.getState().requestNavigate(item.formId);
-      }
-      onItemClicked?.();
-    },
-    [id, updateControlState, onItemClicked],
   );
 
   const mergedStyle: CSSProperties = {

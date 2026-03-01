@@ -3,6 +3,17 @@ import type { EventHandlerDefinition, EventArgs } from './events';
 import type { ThemeId } from './theme';
 
 /**
+ * Shell 인증 설정.
+ * enabled=true이면 Runtime 사용자는 Google 계정으로 로그인해야 폼에 접근 가능.
+ */
+export interface AuthSettings {
+  enabled: boolean;
+  provider: 'google';
+  googleClientId: string;
+  allowedDomains: string[]; // 빈 배열 = 모든 도메인 허용
+}
+
+/**
  * Application Shell 속성.
  * FormProperties와 유사하지만 startPosition이 없고 showTitleBar가 추가됨.
  */
@@ -18,6 +29,7 @@ export interface ShellProperties {
   minimizeBox: boolean;
   windowState?: 'Normal' | 'Maximized';
   theme?: ThemeId;
+  auth?: AuthSettings;
 }
 
 /**
@@ -66,4 +78,5 @@ export interface ShellEventRequest {
   eventArgs: EventArgs;
   shellState: Record<string, Record<string, unknown>>;
   currentFormId: string;
+  itemScriptPath?: number[];
 }

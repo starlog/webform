@@ -58,18 +58,36 @@ export class EventEngine {
     formDef: FormDefinition,
     options?: ExecuteEventOptions,
   ): Promise<EventResponse> {
-    const handler = formDef.eventHandlers.find(
-      (h) => h.controlId === payload.controlId
-        && h.eventName === payload.eventName
-        && h.handlerType === 'server',
-    );
+    let handlerCode: string | undefined;
 
-    if (!handler) {
-      return {
-        success: false,
-        patches: [],
-        error: `No server handler found: ${payload.controlId}.${payload.eventName}`,
-      };
+    // 아이템 스크립트 우선 처리
+    if (payload.itemScriptPath && payload.itemScriptPath.length > 0) {
+      handlerCode = this.findItemScript(formDef, payload.controlId, payload.itemScriptPath);
+      if (!handlerCode) {
+        return {
+          success: false,
+          patches: [],
+          error: `No item script found at path [${payload.itemScriptPath.join(',')}] for control ${payload.controlId}`,
+        };
+      }
+    }
+
+    // 아이템 스크립트가 없으면 기존 컨트롤 레벨 핸들러 사용
+    if (!handlerCode) {
+      const handler = formDef.eventHandlers.find(
+        (h) => h.controlId === payload.controlId
+          && h.eventName === payload.eventName
+          && h.handlerType === 'server',
+      );
+
+      if (!handler) {
+        return {
+          success: false,
+          patches: [],
+          error: `No server handler found: ${payload.controlId}.${payload.eventName}`,
+        };
+      }
+      handlerCode = handler.handlerCode;
     }
 
     // ID↔NAME 매핑 구축
@@ -90,7 +108,7 @@ export class EventEngine {
     const mongoConnectors = this.extractMongoConnectors(formDef.controls);
     const swaggerConnectors = this.extractSwaggerConnectors(formDef.controls);
 
-    const result = await this.sandboxRunner.runCode(handler.handlerCode, ctx, {
+    const result = await this.sandboxRunner.runCode(handlerCode, ctx, {
       debugMode: options?.debugMode,
       mongoConnectors,
       swaggerConnectors,
@@ -123,19 +141,41 @@ export class EventEngine {
     appState: Record<string, unknown>,
     options?: ExecuteEventOptions,
   ): Promise<EventResponse> {
-    const handler = shellDef.eventHandlers.find(
-      (h) =>
-        h.controlId === payload.controlId &&
-        h.eventName === payload.eventName &&
-        h.handlerType === 'server',
-    );
+    let handlerCode: string | undefined;
 
-    if (!handler) {
-      return {
-        success: false,
-        patches: [],
-        error: `No server handler found: ${payload.controlId}.${payload.eventName}`,
-      };
+    // 아이템 스크립트 우선 처리
+    if (payload.itemScriptPath && payload.itemScriptPath.length > 0) {
+      handlerCode = this.findItemScript(
+        { controls: shellDef.controls } as FormDefinition,
+        payload.controlId,
+        payload.itemScriptPath,
+      );
+      if (!handlerCode) {
+        return {
+          success: false,
+          patches: [],
+          error: `No item script found at path [${payload.itemScriptPath.join(',')}] for control ${payload.controlId}`,
+        };
+      }
+    }
+
+    // 아이템 스크립트가 없으면 기존 컨트롤 레벨 핸들러 사용
+    if (!handlerCode) {
+      const handler = shellDef.eventHandlers.find(
+        (h) =>
+          h.controlId === payload.controlId &&
+          h.eventName === payload.eventName &&
+          h.handlerType === 'server',
+      );
+
+      if (!handler) {
+        return {
+          success: false,
+          patches: [],
+          error: `No server handler found: ${payload.controlId}.${payload.eventName}`,
+        };
+      }
+      handlerCode = handler.handlerCode;
     }
 
     // Shell controls ID↔NAME 매핑
@@ -161,7 +201,7 @@ export class EventEngine {
     const mongoConnectors = this.extractMongoConnectors(shellDef.controls);
     const swaggerConnectors = this.extractSwaggerConnectors(shellDef.controls);
 
-    const result = await this.sandboxRunner.runCode(handler.handlerCode, ctx, {
+    const result = await this.sandboxRunner.runCode(handlerCode, ctx, {
       debugMode: options?.debugMode,
       mongoConnectors,
       swaggerConnectors,
@@ -302,6 +342,46 @@ export class EventEngine {
     }
 
     return { patches, logs };
+  }
+
+  /** formDef.controls에서 controlId로 컨트롤을 재귀 검색 */
+  private findControlById(controls: ControlDefinition[], controlId: string): ControlDefinition | null {
+    for (const ctrl of controls) {
+      if (ctrl.id === controlId) return ctrl;
+      if (ctrl.children) {
+        const found = this.findControlById(ctrl.children, controlId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  /** 컨트롤의 items에서 path 인덱스로 아이템을 찾아 script 반환 */
+  private findItemScript(formDef: FormDefinition, controlId: string, path: number[]): string | undefined {
+    const control = this.findControlById(formDef.controls, controlId);
+    if (!control) return undefined;
+
+    const items = control.properties.items as unknown[] | undefined;
+    if (!Array.isArray(items) || items.length === 0) return undefined;
+
+    let current: Record<string, unknown> | undefined;
+    let currentItems = items;
+
+    for (let i = 0; i < path.length; i++) {
+      const idx = path[i];
+      if (idx < 0 || idx >= currentItems.length) return undefined;
+      current = currentItems[idx] as Record<string, unknown>;
+      if (!current || typeof current !== 'object') return undefined;
+
+      if (i < path.length - 1) {
+        // MenuStrip uses 'children', ToolStrip dropdown uses 'items'
+        const next = (current.children ?? current.items) as unknown[] | undefined;
+        if (!Array.isArray(next)) return undefined;
+        currentItems = next;
+      }
+    }
+
+    return current?.script as string | undefined;
   }
 
   private extractSwaggerConnectors(controls: ControlDefinition[]): SwaggerConnectorInfo[] {

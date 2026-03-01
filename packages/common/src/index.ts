@@ -34,6 +34,7 @@ export type {
 
 // types/shell
 export type {
+  AuthSettings,
   ApplicationShellDefinition,
   AppLoadResponse,
   ShellProperties,

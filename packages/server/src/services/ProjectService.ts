@@ -233,6 +233,20 @@ export class ProjectService {
       await Form.insertMany(formDocs);
     }
 
+    if (input.shell) {
+      await this.shellService.createShell(
+        project._id.toString(),
+        {
+          name: input.shell.name,
+          properties: input.shell.properties,
+          controls: input.shell.controls,
+          eventHandlers: input.shell.eventHandlers,
+          startFormId: input.shell.startFormId,
+        },
+        userId,
+      );
+    }
+
     return project;
   }
 
