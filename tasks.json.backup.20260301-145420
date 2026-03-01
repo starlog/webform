@@ -1,0 +1,791 @@
+{
+  "projectName": "WebForm MCP Server",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "foundation-plan",
+      "title": "MCP 패키지 기반 구조 설계",
+      "description": "packages/mcp 패키지 초기화, MCP 서버 코어, API 클라이언트 구조 설계",
+      "phase": "phase1-foundation",
+      "category": "plan",
+      "done": false,
+      "prompt": "WebForm MCP 서버의 기반 패키지 구조를 설계하라.\n\n1. /home/felix/src/webform/MCP-SERVER.md 전체를 정독하라 (특히 섹션 1.1~1.4, 5.1, 5.5, 6.x).\n2. 기존 패키지 패턴 파악:\n   - /home/felix/src/webform/pnpm-workspace.yaml 읽기 (packages/* 이미 포함됨 확인)\n   - /home/felix/src/webform/package.json 읽기 (루트 scripts 확인)\n   - /home/felix/src/webform/packages/server/package.json 읽기 (type:module, tsx, vitest 패턴)\n   - /home/felix/src/webform/packages/server/tsconfig.json 읽기 (tsconfig 패턴)\n3. 다음 파일들의 상세 설계를 문서화하라:\n   a) packages/mcp/package.json: name='@webform/mcp', type='module', dependencies: @modelcontextprotocol/sdk ^1.0.0, zod ^3.24.0, node-fetch ^3.3.0, scripts: dev(tsx watch), build(tsc), start(node dist/index.js), test(vitest run), typecheck, clean\n   b) packages/mcp/tsconfig.json: 기존 서버 패턴과 동일한 설정\n   c) packages/mcp/src/index.ts: McpServer 인스턴스 생성 + StdioServerTransport + server.connect()\n   d) packages/mcp/src/server.ts: registerTools/registerResources/registerPrompts 함수 호출 구조\n   e) packages/mcp/src/utils/apiClient.ts: WebFormApiClient 클래스 설계\n   f) packages/mcp/src/utils/validators.ts: 공통 Zod 스키마\n4. 계획을 /home/felix/src/webform/plans/foundation-plan.md 에 작성하라.",
+      "dependsOn": null,
+      "outputFiles": [
+        "plans/foundation-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/foundation-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "foundation-impl",
+      "title": "MCP 패키지 기반 구조 구현",
+      "description": "packages/mcp 패키지 생성, 서버 코어, API 클라이언트 구현",
+      "phase": "phase1-foundation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. /home/felix/src/webform/plans/foundation-plan.md 를 읽어 설계를 파악하라.\n2. packages/mcp/package.json, tsconfig.json, src/index.ts, src/server.ts, src/utils/apiClient.ts, src/utils/validators.ts 생성\n3. WebFormApiClient: init(), get/post/put/patch/delete 메서드, withOptimisticRetry, toolError 구현\n4. /home/felix/src/webform/package.json 에 dev:mcp, build:mcp 스크립트 추가\n5. pnpm install 실행",
+      "dependsOn": [
+        "foundation-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/package.json",
+        "packages/mcp/tsconfig.json",
+        "packages/mcp/src/index.ts",
+        "packages/mcp/src/server.ts",
+        "packages/mcp/src/utils/apiClient.ts",
+        "packages/mcp/src/utils/validators.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/package.json",
+        "packages/mcp/tsconfig.json",
+        "packages/mcp/src/index.ts",
+        "packages/mcp/src/server.ts",
+        "packages/mcp/src/utils/apiClient.ts",
+        "packages/mcp/src/utils/validators.ts",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "foundation-test",
+      "title": "MCP 패키지 기반 구조 빌드 검증",
+      "description": "TypeScript 컴파일 및 패키지 구조 검증",
+      "phase": "phase1-foundation",
+      "category": "testing",
+      "done": false,
+      "prompt": "1. pnpm --filter @webform/mcp build 실행\n2. TypeScript 컴파일 에러 수정\n3. pnpm --filter @webform/mcp typecheck 실행\n4. dist/index.js 생성 확인",
+      "dependsOn": [
+        "foundation-impl"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/mcp/src/index.ts",
+        "packages/mcp/src/server.ts",
+        "packages/mcp/src/utils/apiClient.ts",
+        "packages/mcp/src/utils/validators.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "foundation-commit",
+      "title": "MCP 패키지 기반 구조 커밋",
+      "description": "기반 구조 구현 완료 후 git 커밋",
+      "phase": "phase1-foundation",
+      "category": "commit",
+      "done": false,
+      "prompt": "packages/mcp/ 전체 및 package.json, plans/foundation-plan.md 스테이징 후 커밋: 'feat: WebForm MCP 서버 패키지 기반 구조 및 API 클라이언트 구현'",
+      "dependsOn": [
+        "foundation-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "project-form-plan",
+      "title": "프로젝트/폼 관리 Tools 설계",
+      "description": "프로젝트 및 폼 관리 Tool과 기본 Resource 설계",
+      "phase": "phase1-foundation",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP 프로젝트/폼 관리 Tools와 기본 Resources를 설계하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 2.1, 2.2, 3.2, 5.6 정독\n2. /home/felix/src/webform/packages/server/src/routes/ 에서 실제 REST 엔드포인트 확인\n3. tools/projects.ts(8개), tools/forms.ts(8개), resources/projectResource.ts, resources/formResource.ts 설계\n4. 계획을 /home/felix/src/webform/plans/project-form-plan.md 에 작성",
+      "dependsOn": [
+        "foundation-commit"
+      ],
+      "outputFiles": [
+        "plans/project-form-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/project-form-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "project-form-impl",
+      "title": "프로젝트/폼 관리 Tools 구현",
+      "description": "프로젝트 및 폼 관리 Tool 파일과 기본 Resource 파일 구현",
+      "phase": "phase1-foundation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/project-form-plan.md 읽기\n2. packages/mcp/src/tools/projects.ts: list_projects, get_project, create_project, update_project, delete_project, export_project, import_project, publish_all\n3. packages/mcp/src/tools/forms.ts: list_forms, get_form, create_form, update_form(withOptimisticRetry), delete_form, publish_form, get_form_versions, get_form_version_snapshot\n4. packages/mcp/src/resources/projectResource.ts: webform://projects/{projectId}\n5. packages/mcp/src/resources/formResource.ts: webform://forms/{formId}, /controls, /events, /bindings, /versions\n6. server.ts 업데이트",
+      "dependsOn": [
+        "project-form-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/projects.ts",
+        "packages/mcp/src/tools/forms.ts",
+        "packages/mcp/src/resources/projectResource.ts",
+        "packages/mcp/src/resources/formResource.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/projects.ts",
+        "packages/mcp/src/tools/forms.ts",
+        "packages/mcp/src/resources/projectResource.ts",
+        "packages/mcp/src/resources/formResource.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "project-form-test",
+      "title": "프로젝트/폼 관리 Tools 빌드 검증",
+      "description": null,
+      "phase": "phase1-foundation",
+      "category": "testing",
+      "done": false,
+      "prompt": "pnpm --filter @webform/mcp build && pnpm --filter @webform/mcp typecheck 실행, 에러 수정",
+      "dependsOn": [
+        "project-form-impl"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/mcp/src/tools/projects.ts",
+        "packages/mcp/src/tools/forms.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "project-form-commit",
+      "title": "프로젝트/폼 관리 Tools 커밋",
+      "description": null,
+      "phase": "phase1-foundation",
+      "category": "commit",
+      "done": false,
+      "prompt": "tools/projects.ts, tools/forms.ts, resources/projectResource.ts, resources/formResource.ts, server.ts, plans/project-form-plan.md 스테이징 후 커밋: 'feat: MCP 프로젝트 및 폼 관리 Tools와 기본 Resources 구현'",
+      "dependsOn": [
+        "project-form-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "controls-plan",
+      "title": "컨트롤 조작 Tools 설계",
+      "description": "컨트롤 CRUD Tool, 기본값 맵(44종), 자동 배치 알고리즘 설계",
+      "phase": "phase2-controls-events",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP 컨트롤 조작 Tools를 설계하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 2.3, 5.2~5.4 정독\n2. /home/felix/src/webform/packages/common/src/ 에서 ControlType 44종 열거형 확인\n3. /home/felix/src/webform/packages/designer/src/ 에서 기존 기본 크기/속성 파악\n4. utils/controlDefaults.ts, utils/autoPosition.ts, tools/controls.ts 설계\n5. /home/felix/src/webform/plans/controls-plan.md 에 작성",
+      "dependsOn": [
+        "project-form-commit"
+      ],
+      "outputFiles": [
+        "plans/controls-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/controls-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "controls-impl",
+      "title": "컨트롤 조작 Tools 구현",
+      "description": null,
+      "phase": "phase2-controls-events",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/controls-plan.md 읽기\n2. packages/mcp/src/utils/controlDefaults.ts: CONTROL_DEFAULTS 44종, getDefaultSize(), getDefaultProperties()\n3. packages/mcp/src/utils/autoPosition.ts: autoPosition(existingControls, newSize) 16px 그리드 스냅\n4. packages/mcp/src/tools/controls.ts: add_control, update_control, remove_control, move_control, resize_control, batch_add_controls, list_control_types, get_control_schema (withOptimisticRetry 패턴)\n5. server.ts 업데이트",
+      "dependsOn": [
+        "controls-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/utils/controlDefaults.ts",
+        "packages/mcp/src/utils/autoPosition.ts",
+        "packages/mcp/src/tools/controls.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/utils/controlDefaults.ts",
+        "packages/mcp/src/utils/autoPosition.ts",
+        "packages/mcp/src/tools/controls.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "controls-test",
+      "title": "컨트롤 조작 Tools 테스트",
+      "description": null,
+      "phase": "phase2-controls-events",
+      "category": "testing",
+      "done": false,
+      "prompt": "1. pnpm --filter @webform/mcp build 실행\n2. src/__tests__/controlDefaults.test.ts: 44종 기본값 존재 및 반환값 검증\n3. src/__tests__/autoPosition.test.ts: 빈 배열 -> {x:16,y:16}, 겹침 회피, 16px 스냅 검증\n4. pnpm --filter @webform/mcp test 실행, 실패 시 수정",
+      "dependsOn": [
+        "controls-impl"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/__tests__/controlDefaults.test.ts",
+        "packages/mcp/src/__tests__/autoPosition.test.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/__tests__/controlDefaults.test.ts",
+        "packages/mcp/src/__tests__/autoPosition.test.ts",
+        "packages/mcp/src/utils/controlDefaults.ts",
+        "packages/mcp/src/utils/autoPosition.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "controls-commit",
+      "title": "컨트롤 조작 Tools 커밋",
+      "description": null,
+      "phase": "phase2-controls-events",
+      "category": "commit",
+      "done": false,
+      "prompt": "controls.ts, controlDefaults.ts, autoPosition.ts, 테스트 파일들, server.ts, plans/controls-plan.md 스테이징 후 커밋: 'feat: MCP 컨트롤 조작 Tools, 기본값 맵(44종), 자동 배치 알고리즘 구현'",
+      "dependsOn": [
+        "controls-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "events-plan",
+      "title": "이벤트 핸들러 Tools 설계",
+      "description": null,
+      "phase": "phase2-controls-events",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP 이벤트 핸들러 Tools를 설계하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 2.4 정독\n2. /home/felix/src/webform/packages/server/src/services/EventEngine.ts 읽기\n3. /home/felix/src/webform/packages/common/src/ 에서 EventHandler 타입 확인\n4. tools/events.ts: add_event_handler(ctx API 문서 포함), update_event_handler, remove_event_handler, list_event_handlers, list_available_events, test_event_handler 설계\n5. /home/felix/src/webform/plans/events-plan.md 에 작성",
+      "dependsOn": [
+        "project-form-commit"
+      ],
+      "outputFiles": [
+        "plans/events-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/events-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "events-impl",
+      "title": "이벤트 핸들러 Tools 구현",
+      "description": null,
+      "phase": "phase2-controls-events",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/events-plan.md 읽기\n2. packages/mcp/src/tools/events.ts: add_event_handler(description에 ctx API 전체 문서 포함), update_event_handler, remove_event_handler, list_event_handlers, list_available_events, test_event_handler 구현\n3. 이벤트 핸들러 조작은 get_form -> eventHandlers 수정 -> update_form (withOptimisticRetry) 패턴\n4. server.ts 업데이트",
+      "dependsOn": [
+        "events-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/events.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/events.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "events-test",
+      "title": "이벤트 핸들러 Tools 빌드 검증",
+      "description": null,
+      "phase": "phase2-controls-events",
+      "category": "testing",
+      "done": false,
+      "prompt": "pnpm --filter @webform/mcp build && pnpm --filter @webform/mcp typecheck 실행, 에러 수정",
+      "dependsOn": [
+        "events-impl"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/mcp/src/tools/events.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "events-commit",
+      "title": "이벤트 핸들러 Tools 커밋",
+      "description": null,
+      "phase": "phase2-controls-events",
+      "category": "commit",
+      "done": false,
+      "prompt": "tools/events.ts, server.ts, plans/events-plan.md 스테이징 후 커밋: 'feat: MCP 이벤트 핸들러 Tools 구현 (add/update/remove/list/test 6개 도구)'",
+      "dependsOn": [
+        "events-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "datasource-binding-plan",
+      "title": "데이터소스/데이터 바인딩 Tools 설계",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP 데이터소스 및 데이터 바인딩 Tools를 설계하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 2.5, 2.6 정독\n2. /home/felix/src/webform/packages/server/src/services/DataSourceService.ts 읽기\n3. /home/felix/src/webform/packages/common/src/ 에서 DataBinding 타입 확인\n4. tools/datasources.ts: list/get/create/update/delete/test/query 7개 + add/remove/list_data_bindings 3개 설계\n5. /home/felix/src/webform/plans/datasource-binding-plan.md 에 작성",
+      "dependsOn": [
+        "project-form-commit"
+      ],
+      "outputFiles": [
+        "plans/datasource-binding-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/datasource-binding-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "datasource-binding-impl",
+      "title": "데이터소스/데이터 바인딩 Tools 구현",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/datasource-binding-plan.md 읽기\n2. packages/mcp/src/tools/datasources.ts: list_datasources, get_datasource, create_datasource, update_datasource, delete_datasource, test_datasource_connection, query_datasource, add_data_binding, remove_data_binding, list_data_bindings 구현\n3. server.ts 업데이트",
+      "dependsOn": [
+        "datasource-binding-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/datasources.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/datasources.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "datasource-binding-test",
+      "title": "데이터소스/데이터 바인딩 Tools 빌드 검증",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "testing",
+      "done": false,
+      "prompt": "pnpm --filter @webform/mcp build && pnpm --filter @webform/mcp typecheck 실행, 에러 수정",
+      "dependsOn": [
+        "datasource-binding-impl"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/mcp/src/tools/datasources.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "datasource-binding-commit",
+      "title": "데이터소스/데이터 바인딩 Tools 커밋",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "commit",
+      "done": false,
+      "prompt": "tools/datasources.ts, server.ts, plans/datasource-binding-plan.md 스테이징 후 커밋: 'feat: MCP 데이터소스 및 데이터 바인딩 Tools 구현 (7+3개 도구)'",
+      "dependsOn": [
+        "datasource-binding-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "theme-shell-plan",
+      "title": "테마/Shell Tools 설계",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP 테마 및 ApplicationShell Tools를 설계하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 2.7, 2.8 정독\n2. /home/felix/src/webform/packages/common/src/ 에서 ThemeTokens, ShellProperties 타입 확인\n3. /home/felix/src/webform/packages/server/src/routes/ 에서 테마, shell 라우트 확인\n4. tools/themes.ts(6개), tools/shells.ts(5개), resources/themeResource.ts 설계\n5. /home/felix/src/webform/plans/theme-shell-plan.md 에 작성",
+      "dependsOn": [
+        "project-form-commit"
+      ],
+      "outputFiles": [
+        "plans/theme-shell-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/theme-shell-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "theme-shell-impl",
+      "title": "테마/Shell Tools 구현",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/theme-shell-plan.md 읽기\n2. packages/mcp/src/tools/themes.ts: list_themes, get_theme, create_theme, update_theme, delete_theme, apply_theme_to_form\n3. packages/mcp/src/tools/shells.ts: get_shell, create_shell, update_shell, delete_shell, publish_shell\n4. packages/mcp/src/resources/themeResource.ts: webform://themes/{themeId}, webform://shells/{projectId}\n5. server.ts 업데이트",
+      "dependsOn": [
+        "theme-shell-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/themes.ts",
+        "packages/mcp/src/tools/shells.ts",
+        "packages/mcp/src/resources/themeResource.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/themes.ts",
+        "packages/mcp/src/tools/shells.ts",
+        "packages/mcp/src/resources/themeResource.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "theme-shell-test",
+      "title": "테마/Shell Tools 빌드 검증",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "testing",
+      "done": false,
+      "prompt": "pnpm --filter @webform/mcp build && pnpm --filter @webform/mcp typecheck 실행, 에러 수정",
+      "dependsOn": [
+        "theme-shell-impl"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/mcp/src/tools/themes.ts",
+        "packages/mcp/src/tools/shells.ts",
+        "packages/mcp/src/resources/themeResource.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "theme-shell-commit",
+      "title": "테마/Shell Tools 커밋",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "commit",
+      "done": false,
+      "prompt": "tools/themes.ts, tools/shells.ts, resources/themeResource.ts, server.ts, plans/theme-shell-plan.md 스테이징 후 커밋: 'feat: MCP 테마 및 ApplicationShell Tools/Resources 구현 (6+5개 도구)'",
+      "dependsOn": [
+        "theme-shell-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "schema-resources-plan",
+      "title": "스키마/가이드 Resources 설계",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP 스키마 및 가이드 Resources를 설계하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 3.1, 3.2, 3.3 정독\n2. /home/felix/src/webform/packages/common/src/ 에서 FormProperties, ShellProperties, ThemeTokens 타입 읽기\n3. 정적 리소스 8개(schema/*, guide/*) + 동적 리소스(datasources/{id}) 설계\n4. 가이드 문서 내용(event-context ctx API, data-binding 단계, control-hierarchy parentId 사용법) 설계\n5. /home/felix/src/webform/plans/schema-resources-plan.md 에 작성",
+      "dependsOn": [
+        "project-form-commit"
+      ],
+      "outputFiles": [
+        "plans/schema-resources-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/schema-resources-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "schema-resources-impl",
+      "title": "스키마/가이드 Resources 구현",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/schema-resources-plan.md 읽기\n2. packages/mcp/src/resources/controlSchemaResource.ts: registerSchemaResources(server, api) - webform://schema/control-types, schema/events, schema/form-properties, schema/shell-properties, schema/theme-tokens(application/json), guide/event-context, guide/data-binding, guide/control-hierarchy(text/markdown), webform://datasources/{datasourceId}(동적)\n3. server.ts 업데이트",
+      "dependsOn": [
+        "schema-resources-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/resources/controlSchemaResource.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/resources/controlSchemaResource.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "schema-resources-test",
+      "title": "스키마/가이드 Resources 빌드 검증",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "testing",
+      "done": false,
+      "prompt": "pnpm --filter @webform/mcp build && pnpm --filter @webform/mcp typecheck 실행, 에러 수정",
+      "dependsOn": [
+        "schema-resources-impl"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/mcp/src/resources/controlSchemaResource.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "schema-resources-commit",
+      "title": "스키마/가이드 Resources 커밋",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "commit",
+      "done": false,
+      "prompt": "resources/controlSchemaResource.ts, server.ts, plans/schema-resources-plan.md 스테이징 후 커밋: 'feat: MCP 스키마 및 가이드 Resources 구현 (정적 8개 + 동적 datasource 리소스)'",
+      "dependsOn": [
+        "schema-resources-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "runtime-debug-plan",
+      "title": "런타임/디버그 Tools 설계",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP 런타임 및 디버그 Tools를 설계하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 2.9 정독\n2. /home/felix/src/webform/packages/server/src/routes/ 에서 runtime 라우트 확인\n3. /home/felix/src/webform/packages/server/src/services/EventEngine.ts 에서 debug 모드 지원 여부 확인\n4. tools/runtime.ts(execute_event, get_runtime_form, get_runtime_app), tools/debug.ts(debug_execute) 설계\n5. /home/felix/src/webform/plans/runtime-debug-plan.md 에 작성",
+      "dependsOn": [
+        "project-form-commit"
+      ],
+      "outputFiles": [
+        "plans/runtime-debug-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/runtime-debug-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "runtime-debug-impl",
+      "title": "런타임/디버그 Tools 구현",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/runtime-debug-plan.md 읽기\n2. packages/mcp/src/tools/runtime.ts: execute_event(POST /api/runtime/forms/:formId/events), get_runtime_form(GET /api/runtime/forms/:formId), get_runtime_app(GET 런타임 앱 엔드포인트)\n3. packages/mcp/src/tools/debug.ts: debug_execute(POST /api/runtime/forms/:formId/events?debug=true, 트레이스 포함 반환)\n4. server.ts 업데이트",
+      "dependsOn": [
+        "runtime-debug-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/runtime.ts",
+        "packages/mcp/src/tools/debug.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/runtime.ts",
+        "packages/mcp/src/tools/debug.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "runtime-debug-test",
+      "title": "런타임/디버그 Tools 빌드 검증",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "testing",
+      "done": false,
+      "prompt": "pnpm --filter @webform/mcp build && pnpm --filter @webform/mcp typecheck 실행, 에러 수정",
+      "dependsOn": [
+        "runtime-debug-impl"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/mcp/src/tools/runtime.ts",
+        "packages/mcp/src/tools/debug.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "runtime-debug-commit",
+      "title": "런타임/디버그 Tools 커밋",
+      "description": null,
+      "phase": "phase3-data-themes",
+      "category": "commit",
+      "done": false,
+      "prompt": "tools/runtime.ts, tools/debug.ts, server.ts, plans/runtime-debug-plan.md 스테이징 후 커밋: 'feat: MCP 런타임 이벤트 실행 및 디버그 Tools 구현 (execute_event, debug_execute 등)'",
+      "dependsOn": [
+        "runtime-debug-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "prompts-plan",
+      "title": "Prompt 템플릿 설계",
+      "description": "5개 워크플로우 Prompt 템플릿 설계",
+      "phase": "phase4-advanced",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP Prompt 템플릿을 설계하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 4.1~4.5, 8.x 정독\n2. /home/felix/src/webform/packages/mcp/src/tools/ 의 모든 파일 읽어 구현된 Tool 목록 파악\n3. 5개 Prompt 설계: create-form-wizard, add-crud-handlers, setup-navigation, clone-and-modify-form, design-theme\n4. /home/felix/src/webform/plans/prompts-plan.md 에 작성",
+      "dependsOn": [
+        "controls-commit",
+        "events-commit",
+        "datasource-binding-commit",
+        "theme-shell-commit",
+        "schema-resources-commit",
+        "runtime-debug-commit"
+      ],
+      "outputFiles": [
+        "plans/prompts-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/prompts-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "prompts-impl",
+      "title": "Prompt 템플릿 구현",
+      "description": null,
+      "phase": "phase4-advanced",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/prompts-plan.md 읽기\n2. packages/mcp/src/prompts/createForm.ts: create-form-wizard Prompt (PRD 4.1 기반)\n3. packages/mcp/src/prompts/addEventHandler.ts: add-crud-handlers Prompt (PRD 4.2 기반)\n4. packages/mcp/src/prompts/setupDataBinding.ts: setup-navigation(PRD 4.3), clone-and-modify-form(PRD 4.4), design-theme(PRD 4.5) 3개 Prompt\n5. server.ts 업데이트 (5개 Prompt 모두 등록)",
+      "dependsOn": [
+        "prompts-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/prompts/createForm.ts",
+        "packages/mcp/src/prompts/addEventHandler.ts",
+        "packages/mcp/src/prompts/setupDataBinding.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/prompts/createForm.ts",
+        "packages/mcp/src/prompts/addEventHandler.ts",
+        "packages/mcp/src/prompts/setupDataBinding.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "prompts-test",
+      "title": "Prompt 템플릿 빌드 검증",
+      "description": null,
+      "phase": "phase4-advanced",
+      "category": "testing",
+      "done": false,
+      "prompt": "pnpm --filter @webform/mcp build && pnpm --filter @webform/mcp typecheck && pnpm --filter @webform/mcp test 실행, 에러 수정",
+      "dependsOn": [
+        "prompts-impl"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [
+        "packages/mcp/src/prompts/createForm.ts",
+        "packages/mcp/src/prompts/addEventHandler.ts",
+        "packages/mcp/src/prompts/setupDataBinding.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "prompts-commit",
+      "title": "Prompt 템플릿 커밋",
+      "description": null,
+      "phase": "phase4-advanced",
+      "category": "commit",
+      "done": false,
+      "prompt": "prompts/ 전체, server.ts, plans/prompts-plan.md 스테이징 후 커밋: 'feat: MCP Prompt 템플릿 5종 구현 (폼 생성 마법사, CRUD 핸들러, 네비게이션, 클론, 테마 설계)'",
+      "dependsOn": [
+        "prompts-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "polish-plan",
+      "title": "유틸리티 Tools, 최적화, 통합 설정 설계",
+      "description": null,
+      "phase": "phase5-polish",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP 서버 폴리싱 계획을 수립하라.\n1. /home/felix/src/webform/MCP-SERVER.md 섹션 2.10, 6.x, 7(Phase 5) 정독\n2. /home/felix/src/webform/packages/mcp/src/server.ts 읽어 등록된 모든 Tool/Resource/Prompt 확인\n3. 설계: tools/utils.ts(validate_form, get_server_health, search_controls), apiClient.ts 캐시 추가(30초 TTL), .claude/settings.json MCP 설정, README.md, 통합 테스트\n4. /home/felix/src/webform/plans/polish-plan.md 에 작성",
+      "dependsOn": [
+        "prompts-commit"
+      ],
+      "outputFiles": [
+        "plans/polish-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/polish-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "polish-impl",
+      "title": "유틸리티 Tools, 최적화, 통합 설정 구현",
+      "description": null,
+      "phase": "phase5-polish",
+      "category": "implementation",
+      "done": false,
+      "prompt": "1. plans/polish-plan.md 읽기\n2. packages/mcp/src/tools/utils.ts: validate_form, get_server_health(GET /api/health), search_controls 구현\n3. packages/mcp/src/utils/apiClient.ts: Map 기반 30초 TTL 캐시 추가 (GET 캐시, POST/PUT/DELETE 시 무효화)\n4. server.ts 업데이트 (registerUtilityTools 추가)\n5. /home/felix/src/webform/.claude/settings.json: mcpServers.webform 설정 추가\n6. packages/mcp/README.md: 설치/실행/통합 방법 + Tool 목록 표 작성",
+      "dependsOn": [
+        "polish-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/utils.ts",
+        "packages/mcp/README.md"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/utils.ts",
+        "packages/mcp/src/utils/apiClient.ts",
+        "packages/mcp/src/server.ts",
+        ".claude/settings.json",
+        "packages/mcp/README.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "polish-test",
+      "title": "전체 MCP 서버 통합 테스트",
+      "description": null,
+      "phase": "phase5-polish",
+      "category": "testing",
+      "done": false,
+      "prompt": "1. pnpm --filter @webform/mcp build 실행\n2. src/__tests__/integration.test.ts: toolError 반환 형식, 캐시 동작 검증\n3. pnpm --filter @webform/mcp test 실행\n4. server.ts 읽어 모든 Tool/Resource/Prompt 등록 여부 확인 후 누락 수정\n5. 최종 빌드 성공 확인",
+      "dependsOn": [
+        "polish-impl"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/__tests__/integration.test.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/__tests__/integration.test.ts",
+        "packages/mcp/src/server.ts",
+        "packages/mcp/src/utils/apiClient.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "polish-commit",
+      "title": "MCP 서버 최종 커밋",
+      "description": null,
+      "phase": "phase5-polish",
+      "category": "commit",
+      "done": false,
+      "prompt": "tools/utils.ts, apiClient.ts, server.ts, __tests__/integration.test.ts, README.md, .claude/settings.json, plans/polish-plan.md 스테이징 (.env 제외) 후 커밋: 'feat: WebForm MCP 서버 유틸리티 Tools, 응답 캐싱, Claude 통합 설정 완성'",
+      "dependsOn": [
+        "polish-test"
+      ],
+      "outputFiles": null,
+      "modifiedFiles": [],
+      "subtasks": null
+    }
+  ],
+  "workflow": {
+    "onTaskComplete": {
+      "commitChanges": true,
+      "commitMessageTemplate": "[Task #{taskId}] {taskTitle}"
+    },
+    "parallel": {
+      "enabled": true,
+      "maxConcurrent": 4,
+      "conflictStrategy": "claude"
+    }
+  }
+}
