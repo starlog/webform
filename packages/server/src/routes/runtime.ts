@@ -136,10 +136,12 @@ runtimeRouter.post('/forms/:id/events', async (req, res, next) => {
       dataBindings: form.dataBindings,
     };
 
+    const debugMode = !!(req.body as { debugMode?: boolean }).debugMode;
     const result = await eventEngine.executeEvent(
       req.params.id,
       payload,
       formDef,
+      { debugMode },
     );
 
     res.json(result);

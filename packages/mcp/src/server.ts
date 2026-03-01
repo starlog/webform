@@ -8,6 +8,8 @@ import {
   registerDatabindingTools,
   registerThemeTools,
   registerShellTools,
+  registerRuntimeTools,
+  registerDebugTools,
 } from './tools/index.js';
 import {
   registerProjectResources,
@@ -32,6 +34,10 @@ export function registerTools(server: McpServer): void {
   registerDatabindingTools(server);
   registerThemeTools(server);
   registerShellTools(server);
+
+  // Phase 4: 런타임/디버그 Tools
+  registerRuntimeTools(server);
+  registerDebugTools(server);
 }
 
 export function registerResources(server: McpServer): void {

@@ -625,7 +625,7 @@
       "description": "런타임 이벤트 실행 및 디버그 Tools 구현",
       "phase": "phase4-advanced",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-runtime-debug-plan.md에 따라 런타임/디버그 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/runtime.ts: registerRuntimeTools(server, api)\n   - execute_event: POST /api/runtime/forms/:id/events\n   - get_runtime_form: GET /api/runtime/forms/:id\n   - get_runtime_app: GET /api/runtime/app/:projectId\n2. packages/mcp/src/tools/debug.ts: registerDebugTools(server, api)\n   - debug_execute: 디버그 모드 실행 (trace 포함 반환)\n3. packages/mcp/src/tools/index.ts, server.ts 업데이트",
       "dependsOn": [
         "mcp-runtime-debug-tools-plan"
