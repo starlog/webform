@@ -148,7 +148,7 @@
       "description": "EventEngine과 SandboxRunner에 SwaggerConnector 통합 계획",
       "phase": "phase3-backend",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "SandboxRunner와 EventEngine에 SwaggerConnector를 통합하는 계획을 수립하라.\n\n## 분석 대상 파일 (반드시 읽어라)\n1. `packages/server/src/services/SandboxRunner.ts` - 전체 파일 읽어 다음 파악:\n   - MongoConnectorInfo 인터페이스 구조\n   - runCode() 시그니처와 옵션 객체 구조\n   - injectContext() 메서드에서 __mongoHandler 주입 방식\n   - wrapHandlerCode() 메서드에서 ctx.controls 메서드 주입 코드 생성 방식\n   - validateSandboxUrl() 함수 사용 방식\n   - ivm.Reference와 applySyncPromise 사용 패턴\n\n2. `packages/server/src/services/EventEngine.ts` - 전체 파일 읽어 다음 파악:\n   - extractMongoConnectors() 구현 구조\n   - executeEvent()에서 mongoConnectors를 runCode에 전달하는 방식\n   - runCode 호출 위치와 옵션 객체\n\n## 계획 내용\n\n### SandboxRunner.ts 수정 계획\n- `SwaggerConnectorInfo` 인터페이스 추가 (controlName, operations, baseUrl, defaultHeaders, timeout)\n- runCode() 옵션에 `swaggerConnectors?: SwaggerConnectorInfo[]` 추가\n- injectContext()에 `__swaggerHandler` ivm.Reference 주입 코드 추가\n  - controlName, operationId, optionsJson 받아서 HTTP 요청 수행\n  - URL 구성 (path 파라미터 치환, query string 추가)\n  - validateSandboxUrl() 호출\n  - headers 병합 (defaultHeaders + extraHeaders)\n  - fetch() 호출 후 결과 { status, ok, data } 반환\n- wrapHandlerCode()에 각 operation마다 ctx.controls['name']['operationId'] 메서드 주입 코드 생성 추가\n\n### EventEngine.ts 수정 계획\n- `extractSwaggerConnectors(controls)` private 메서드 추가\n  - MongoDBConnector 패턴과 동일\n  - specYaml 파싱하여 SwaggerConnectorInfo 생성\n- executeEvent()에서 swaggerConnectors 추출 후 runCode에 전달\n\n계획을 `plans/sandbox-integration-plan.md`로 저장하라.",
       "dependsOn": [
         "swagger-parser-commit"
