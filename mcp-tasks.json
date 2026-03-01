@@ -155,7 +155,7 @@
       "description": "폼 CRUD + publish/versions Tools 구현",
       "phase": "phase1-foundation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-form-tools-plan.md에 따라 폼 관리 Tools를 구현하라.\n\nMCP-SERVER.md 섹션 2.2 및 5.6 참조.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/forms.ts: registerFormTools(server, api) 함수\n   - list_forms: 프로젝트별 필터, 페이지네이션, 상태 필터\n   - get_form: 폼 정의 전체 조회\n   - create_form: 이름, projectId, 선택적 속성(title, width, height, backgroundColor, theme)\n   - update_form: formId + version(낙관적 잠금) + properties/controls/eventHandlers/dataBindings\n   - delete_form: 폼 삭제\n   - publish_form: 폼 퍼블리시\n   - get_form_versions: 버전 히스토리 조회\n   - get_form_version_snapshot: 특정 버전 스냅샷\n2. packages/mcp/src/tools/index.ts에 export 추가\n3. packages/mcp/src/server.ts에 호출 추가",
       "dependsOn": [
         "mcp-form-tools-plan"
