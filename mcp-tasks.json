@@ -74,7 +74,7 @@
       "description": "WebFormApiClient 및 validators 구현",
       "phase": "phase1-foundation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-api-client-plan.md에 따라 API 클라이언트를 구현하라.\n\n생성할 파일:\n1. packages/mcp/src/utils/apiClient.ts: WebFormApiClient 클래스\n   - constructor: baseUrl 설정 (WEBFORM_API_URL || 'http://localhost:4000')\n   - init(): /auth/dev-token에서 토큰 자동 발급\n   - get/post/put/patch/delete 메서드 구현\n   - 에러 핸들링: HTTP 에러 코드별 의미있는 에러 메시지\n   - Authorization 헤더 자동 포함\n2. packages/mcp/src/utils/validators.ts: 공통 입력값 검증 함수\n   - validateObjectId(id): MongoDB ObjectId 형식 검증\n   - validateRequired(value, fieldName): 필수값 검증\n3. packages/mcp/src/utils/index.ts에 export 추가\n\n기존 서버 라우트를 확인하여 실제 API 경로와 응답 형식에 맞게 구현하라.",
       "dependsOn": [
         "mcp-api-client-plan"
