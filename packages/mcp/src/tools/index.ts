@@ -8,3 +8,4 @@ export { registerThemeTools } from './themes.js';
 export { registerShellTools } from './shells.js';
 export { registerRuntimeTools } from './runtime.js';
 export { registerDebugTools } from './debug.js';
+export { registerUtilityTools } from './utils.js';

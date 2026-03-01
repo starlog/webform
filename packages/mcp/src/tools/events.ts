@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { COMMON_EVENTS, CONTROL_EVENTS, FORM_EVENTS } from '@webform/common';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, withOptimisticRetry } from '../utils/index.js';
 
 // --- API 응답 타입 ---
 
@@ -92,26 +92,22 @@ async function withEventHandlerMutation<T>(
   mutate: (form: FormData) => T,
   maxRetries = 2,
 ): Promise<{ result: T; form: FormData; updatedVersion: number }> {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const res = await apiClient.get<GetFormResponse>(`/api/forms/${formId}`);
-    const form = res.data;
-
-    const result = mutate(form);
-
-    try {
+  const { result, data: form } = await withOptimisticRetry({
+    fetch: async () => {
+      const res = await apiClient.get<GetFormResponse>(`/api/forms/${formId}`);
+      return res.data;
+    },
+    mutate,
+    save: async (form) => {
       const updated = await apiClient.put<MutateFormResponse>(`/api/forms/${formId}`, {
         version: form.version,
         eventHandlers: form.eventHandlers,
       });
-      return { result, form, updatedVersion: updated.data.version };
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 409 && attempt < maxRetries) {
-        continue;
-      }
-      throw err;
-    }
-  }
-  throw new Error('최대 재시도 횟수 초과');
+      form.version = updated.data.version;
+    },
+    maxRetries,
+  });
+  return { result, form, updatedVersion: form.version };
 }
 
 // --- 공통 에러 핸들러 ---

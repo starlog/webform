@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CONTROL_TYPES, COMMON_EVENTS, CONTROL_EVENTS } from '@webform/common';
 import type { ControlType, ControlDefinition, DockStyle } from '@webform/common';
-import { apiClient, ApiError, validateObjectId } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, withOptimisticRetry } from '../utils/index.js';
 import { autoPosition, snapToGrid } from '../utils/autoPosition.js';
 import { CONTROL_DEFAULTS } from '../utils/controlDefaults.js';
 
@@ -126,27 +126,24 @@ async function withFormUpdate<T>(
   fn: (form: FormData) => T,
   maxRetries = 2,
 ): Promise<{ result: T; formVersion: number }> {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const res = await apiClient.get<GetFormResponse>(`/api/forms/${formId}`);
-    const form = res.data;
-    const result = fn(form);
-
-    try {
+  const { result, data: form } = await withOptimisticRetry({
+    fetch: async () => {
+      const res = await apiClient.get<GetFormResponse>(`/api/forms/${formId}`);
+      return res.data;
+    },
+    mutate: fn,
+    save: async (form) => {
       const updated = await apiClient.put<MutateFormResponse>(`/api/forms/${formId}`, {
         version: form.version,
         controls: form.controls,
         eventHandlers: form.eventHandlers,
         dataBindings: form.dataBindings,
       });
-      return { result, formVersion: updated.data.version };
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 409 && attempt < maxRetries) {
-        continue;
-      }
-      throw err;
-    }
-  }
-  throw new Error('최대 재시도 횟수 초과');
+      form.version = updated.data.version;
+    },
+    maxRetries,
+  });
+  return { result, formVersion: form.version };
 }
 
 // --- 컨트롤 조작 함수 ---

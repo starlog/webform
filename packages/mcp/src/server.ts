@@ -10,6 +10,7 @@ import {
   registerShellTools,
   registerRuntimeTools,
   registerDebugTools,
+  registerUtilityTools,
 } from './tools/index.js';
 import {
   registerProjectResources,
@@ -38,6 +39,9 @@ export function registerTools(server: McpServer): void {
   // Phase 4: 런타임/디버그 Tools
   registerRuntimeTools(server);
   registerDebugTools(server);
+
+  // Phase 5: 유틸리티 Tools
+  registerUtilityTools(server);
 }
 
 export function registerResources(server: McpServer): void {
