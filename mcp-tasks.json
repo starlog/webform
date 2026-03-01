@@ -759,7 +759,7 @@
       "description": "폼 조회 캐싱 등 성능 개선",
       "phase": "phase5-polishing",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 7 Phase 5 항목 24를 참조.\n\n성능 최적화를 구현하라:\n\n1. 폼 조회 캐싱:\n   - 컨트롤 조작 시 get_form → update_form 패턴에서 불필요한 반복 조회 방지\n   - 간단한 in-memory 캐시 (TTL 5초) 또는 요청 단위 캐시\n   - update_form 후 캐시 무효화\n2. 정적 리소스 캐싱:\n   - webform://schema/* 리소스는 서버 시작 시 1회 조회 후 캐싱\n   - 컨트롤 타입 목록, 이벤트 목록 등은 변하지 않는 데이터\n3. batch 연산 최적화:\n   - batch_add_controls: 한 번의 get_form + update_form으로 처리\n4. API 클라이언트 최적화:\n   - 커넥션 재사용 (keep-alive)\n   - 요청 타임아웃 설정\n\n수정 대상: packages/mcp/src/utils/apiClient.ts, packages/mcp/src/tools/controls.ts, packages/mcp/src/resources/controlSchemaResource.ts",
       "dependsOn": [
         "mcp-phase4-test"

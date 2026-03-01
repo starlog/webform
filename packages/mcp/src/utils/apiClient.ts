@@ -65,6 +65,9 @@ function extractResourceInfo(path: string): string {
   return path;
 }
 
+/** 요청 타임아웃 (밀리초) */
+const REQUEST_TIMEOUT_MS = 30_000;
+
 export class WebFormApiClient {
   private baseUrl: string;
   private token: string | null = null;
@@ -74,7 +77,10 @@ export class WebFormApiClient {
   }
 
   async init(): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/auth/dev-token`, { method: 'POST' });
+    const res = await fetch(`${this.baseUrl}/auth/dev-token`, {
+      method: 'POST',
+      keepalive: true,
+    });
     if (!res.ok) {
       throw new Error(`토큰 발급 실패: ${res.status} ${res.statusText}`);
     }
@@ -103,7 +109,9 @@ export class WebFormApiClient {
   }
 
   private getHeaders(hasBody: boolean = false): Record<string, string> {
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = {
+      Connection: 'keep-alive',
+    };
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
@@ -117,21 +125,41 @@ export class WebFormApiClient {
     const url = `${this.baseUrl}${path}`;
     const hasBody = body !== undefined;
 
-    const res = await fetch(url, {
-      method,
-      headers: this.getHeaders(hasBody),
-      body: hasBody ? JSON.stringify(body) : undefined,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-    if (!res.ok) {
-      await this.handleError(res, method, path);
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: this.getHeaders(hasBody),
+        body: hasBody ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+        keepalive: true,
+      });
+
+      if (!res.ok) {
+        await this.handleError(res, method, path);
+      }
+
+      if (res.status === 204) {
+        return undefined as T;
+      }
+
+      return res.json() as Promise<T>;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        throw new ApiError(
+          408,
+          'Request Timeout',
+          method,
+          path,
+          `요청이 ${REQUEST_TIMEOUT_MS / 1000}초 내에 완료되지 않았습니다. 서버 상태를 확인하세요`,
+        );
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    if (res.status === 204) {
-      return undefined as T;
-    }
-
-    return res.json() as Promise<T>;
   }
 
   private async handleError(res: Response, method: string, path: string): Promise<never> {

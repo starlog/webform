@@ -3,7 +3,8 @@ import crypto from 'node:crypto';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CONTROL_TYPES, COMMON_EVENTS, CONTROL_EVENTS } from '@webform/common';
 import type { ControlType, ControlDefinition, DockStyle } from '@webform/common';
-import { apiClient, ApiError, validateObjectId, withOptimisticRetry, toolResult, toolError } from '../utils/index.js';
+import { apiClient, ApiError, validateObjectId, toolResult, toolError } from '../utils/index.js';
+import { formCache } from '../utils/cache.js';
 import { autoPosition, snapToGrid } from '../utils/autoPosition.js';
 import { CONTROL_DEFAULTS } from '../utils/controlDefaults.js';
 
@@ -109,20 +110,33 @@ function findControlByName(
   return undefined;
 }
 
-// --- withFormUpdate: get → 조작 → put (낙관적 잠금 + 자동 재시도) ---
+// --- withFormUpdate: get → 조작 → put (낙관적 잠금 + 자동 재시도 + 캐싱) ---
 
 async function withFormUpdate<T>(
   formId: string,
   fn: (form: FormData) => T,
   maxRetries = 2,
 ): Promise<{ result: T; formVersion: number }> {
-  const { result, data: form } = await withOptimisticRetry({
-    fetch: async () => {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    // 첫 시도: 캐시 활용, 재시도: 항상 서버에서 새로 조회
+    let form: FormData;
+    if (attempt === 0) {
+      const cached = formCache.get(formId) as FormData | undefined;
+      if (cached) {
+        form = JSON.parse(JSON.stringify(cached));
+      } else {
+        const res = await apiClient.get<GetFormResponse>(`/api/forms/${formId}`);
+        form = res.data;
+      }
+    } else {
+      formCache.invalidate(formId);
       const res = await apiClient.get<GetFormResponse>(`/api/forms/${formId}`);
-      return res.data;
-    },
-    mutate: fn,
-    save: async (form) => {
+      form = res.data;
+    }
+
+    const result = fn(form);
+
+    try {
       const updated = await apiClient.put<MutateFormResponse>(`/api/forms/${formId}`, {
         version: form.version,
         controls: form.controls,
@@ -130,10 +144,19 @@ async function withFormUpdate<T>(
         dataBindings: form.dataBindings,
       });
       form.version = updated.data.version;
-    },
-    maxRetries,
-  });
-  return { result, formVersion: form.version };
+      // 성공 후 캐시 갱신 — 다음 조작 시 GET 생략 가능
+      formCache.set(formId, JSON.parse(JSON.stringify(form)));
+      return { result, formVersion: form.version };
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409 && attempt < maxRetries) {
+        formCache.invalidate(formId);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw new Error('최대 재시도 횟수 초과');
 }
 
 // --- 컨트롤 조작 함수 ---

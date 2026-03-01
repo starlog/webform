@@ -6,3 +6,4 @@ export type { ControlDefault } from './controlDefaults.js';
 export { withOptimisticRetry } from './retry.js';
 export { toolResult, toolError } from './toolHelpers.js';
 export type { ToolErrorOptions } from './toolHelpers.js';
+export { MemoryCache, formCache } from './cache.js';
