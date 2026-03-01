@@ -806,7 +806,7 @@
       "description": "Claude Desktop/Code 설정 파일 생성, MCP Inspector 종합 테스트",
       "phase": "phase5-polishing",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 6.1~6.3을 참조하여 Claude 통합 설정을 구성하고 최종 검증하라.\n\n1. 설정 파일 생성/업데이트:\n   - .claude/settings.json에 mcpServers.webform 추가\n   - 예시 claude_desktop_config.json 작성 (문서용)\n2. 빌드 및 실행 확인:\n   - pnpm --filter @webform/mcp build\n   - node packages/mcp/dist/index.js 실행 가능 확인\n3. MCP Inspector 종합 테스트:\n   - npx @modelcontextprotocol/inspector node packages/mcp/dist/index.js\n   - 전체 Tool 목록 확인 (약 50개)\n   - 전체 Resource 목록 확인\n   - 전체 Prompt 목록 확인\n4. 시나리오 테스트 (Express 서버 실행 상태에서):\n   - 시나리오 1: 프로젝트 생성 → 폼 생성 → 컨트롤 추가 → 이벤트 등록 → 퍼블리시\n   - 시나리오 2: 기존 폼에 DataGridView + 데이터 바인딩\n   - 시나리오 3: 테마 생성 → 적용\n5. 루트 package.json의 dev 스크립트에 mcp 패키지 포함 확인\n\n실패 시 즉시 수정하라.",
       "dependsOn": [
         "mcp-tests"

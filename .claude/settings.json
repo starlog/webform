@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "webform": {
+      "command": "npx",
+      "args": ["tsx", "packages/mcp/src/index.ts"],
+      "cwd": "/home/felix/src/webform",
+      "env": {
+        "WEBFORM_API_URL": "http://localhost:4000"
+      }
+    }
+  }
+}
