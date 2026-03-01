@@ -23,7 +23,7 @@
       "description": "CONTROL_TYPES와 CONTROL_EVENTS에 SwaggerConnector 추가",
       "phase": "phase1-foundation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "`plans/common-types-plan.md`의 계획을 참고하여 SwaggerConnector 공통 타입을 구현하라.\n\n## 구현 내용\n\n### 1. `packages/common/src/types/form.ts`\n- 파일 전체를 Read 도구로 읽어 현재 구조 파악\n- `CONTROL_TYPES` 배열에 `'SwaggerConnector'` 추가 (MongoDBConnector 근처 비-UI 컨트롤 그룹)\n- TypeScript as const 패턴 유지\n\n### 2. `packages/common/src/types/events.ts`\n- 파일 전체를 Read 도구로 읽어 현재 구조 파악\n- `CONTROL_EVENTS` 객체에 다음 추가 (MongoDBConnector 패턴과 동일):\n  ```typescript\n  SwaggerConnector: ['Connected', 'Error', 'RequestCompleted'],\n  ```\n\n## 주의사항\n- 파일을 먼저 Read 도구로 읽어 현재 구조를 파악한 후 수정\n- TypeScript as const 패턴 유지\n- 기존 코드 스타일(singleQuote, trailingComma) 준수",
       "dependsOn": [
         "common-types-plan"

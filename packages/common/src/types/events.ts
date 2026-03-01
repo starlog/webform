@@ -45,6 +45,7 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   SplitContainer: ['SplitterMoved'],
   BindingNavigator: ['PositionChanged', 'ItemClicked'],
   MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
+  SwaggerConnector: ['Connected', 'Error', 'RequestCompleted'],
   // Extra Elements
   Slider: ['ValueChanged'],
   Switch: ['CheckedChanged'],
