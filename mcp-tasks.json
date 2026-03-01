@@ -691,7 +691,7 @@
       "description": "Prompt, 런타임/디버그, 유틸리티 동작 검증",
       "phase": "phase4-advanced",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Phase 4 구현을 종합 검증하라.\n\n1. TypeScript 컴파일: tsc --noEmit\n2. Prompt 테스트:\n   - create-form-wizard 프롬프트 조회\n   - add-crud-handlers 프롬프트 조회\n   - setup-navigation 프롬프트 조회\n3. 런타임/디버그 Tools 테스트:\n   - get_runtime_form 호출 (퍼블리시된 폼 필요)\n   - execute_event 호출\n4. 유틸리티 Tools 테스트:\n   - get_server_health → MongoDB/Redis 상태 확인\n   - search_controls로 폼 내 컨트롤 검색\n   - validate_form으로 폼 유효성 검증\n5. 낙관적 잠금 재시도 테스트:\n   - 동시 업데이트 시뮬레이션 → 자동 재시도 동작 확인\n\n실패 시 즉시 수정하라.",
       "dependsOn": [
         "mcp-prompts-impl",
