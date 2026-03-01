@@ -44,7 +44,7 @@
       "description": "타입 변경 후 TypeScript 타입 체크 및 전체 빌드 검증",
       "phase": "phase1-foundation",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "SwaggerConnector 공통 타입 변경 후 타입 체크와 린트를 실행하라.\n\n## 검증 단계\n\n1. TypeScript 타입 체크 (루트에서):\n   ```bash\n   pnpm typecheck\n   ```\n\n2. ESLint 검사:\n   ```bash\n   pnpm lint\n   ```\n\n3. `packages/common/src/types/form.ts`를 읽어 `'SwaggerConnector'`가 올바르게 추가되었는지 확인\n4. `packages/common/src/types/events.ts`를 읽어 `SwaggerConnector` 이벤트가 올바르게 추가되었는지 확인\n\n## 오류 처리\n- TypeScript 오류 발생 시 즉시 수정\n- 린트 오류 발생 시 `pnpm lint:fix`로 자동 수정 후 재검증",
       "dependsOn": [
         "common-types-impl"
