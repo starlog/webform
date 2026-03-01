@@ -2,6 +2,8 @@
 
 웹 브라우저에서 Microsoft Visual Studio의 WinForm 디자이너 경험을 재현하는 **Server-Driven UI(SDUI)** 기반 로우코드 폼 빌더입니다.
 
+![WebForm Designer](image/sample.png)
+
 ## 주요 기능
 
 - **비주얼 폼 디자이너** — 드래그 앤 드롭으로 Button, TextBox, ComboBox, DataGridView 등 42종의 컨트롤을 배치하고 속성을 편집
