@@ -378,7 +378,7 @@
       "description": "list_datasources, get_datasource, create_datasource, update_datasource, delete_datasource, test_datasource_connection, query_datasource",
       "phase": "phase3-data-theme",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 2.6을 참조하여 데이터소스 Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트(packages/server/src/routes/) 및 DataSourceService(packages/server/src/services/DataSourceService.ts)를 확인하라.\n\n계획 내용:\n1. list_datasources: GET /api/datasources?projectId\n2. get_datasource: GET /api/datasources/:id\n3. create_datasource: POST /api/datasources (type: mongodb/rest/static)\n4. update_datasource: PUT /api/datasources/:id\n5. delete_datasource: DELETE /api/datasources/:id\n6. test_datasource_connection: POST /api/datasources/:id/test\n7. query_datasource: POST /api/datasources/:id/query\n\n각 Tool의 Zod 스키마, config 구조(type별 다른 설정), 반환값 설계.\n\n계획을 plans/mcp-datasource-tools-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-phase2-test"
@@ -418,7 +418,7 @@
       "description": "add_data_binding, remove_data_binding, list_data_bindings",
       "phase": "phase3-data-theme",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 2.5를 참조하여 데이터 바인딩 Tools 구현 계획을 수립하라.\n\n기존 서버의 데이터 바인딩 관련 구현을 확인하라:\n- packages/common의 DataBinding 타입\n- FormDefinition의 dataBindings 필드 구조\n\n계획 내용:\n1. add_data_binding: formId, controlId, controlProperty, dataSourceId, dataField, bindingMode?(oneWay/twoWay)\n   - get_form → dataBindings에 추가 → update_form 패턴\n2. remove_data_binding: formId, controlId, controlProperty\n3. list_data_bindings: formId → 전체 바인딩 목록\n\n계획을 plans/mcp-databinding-tools-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-phase2-test"
@@ -456,7 +456,7 @@
       "description": "list_themes, get_theme, create_theme, update_theme, delete_theme, apply_theme_to_form",
       "phase": "phase3-data-theme",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 2.8을 참조하여 테마 Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트에서 테마 관련 엔드포인트를 확인하라.\n\n계획 내용:\n1. list_themes: GET /api/themes?page&limit\n2. get_theme: GET /api/themes/:themeId\n3. create_theme: POST /api/themes (name, tokens)\n4. update_theme: PUT /api/themes/:themeId\n5. delete_theme: DELETE /api/themes/:themeId\n6. apply_theme_to_form: 폼의 theme 속성 변경 (get_form → properties.theme 수정 → update_form)\n7. ThemeTokens 구조 확인 (packages/common)\n\n계획을 plans/mcp-theme-tools-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-phase2-test"
@@ -499,7 +499,7 @@
       "description": "get_shell, create_shell, update_shell, delete_shell, publish_shell",
       "phase": "phase3-data-theme",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 2.7을 참조하여 ApplicationShell Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트에서 Shell 관련 엔드포인트를 확인하라.\n\n계획 내용:\n1. get_shell: GET /api/projects/:projectId/shell\n2. create_shell: POST /api/projects/:projectId/shell\n3. update_shell: PUT /api/projects/:projectId/shell\n4. delete_shell: DELETE /api/projects/:projectId/shell\n5. publish_shell: POST /api/projects/:projectId/shell/publish\n6. Shell 구조: name, properties, controls, eventHandlers, startFormId\n\n계획을 plans/mcp-shell-tools-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-phase2-test"
