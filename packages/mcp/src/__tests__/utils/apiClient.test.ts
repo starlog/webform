@@ -128,7 +128,7 @@ describe('WebFormApiClient', () => {
         statusText: 'Internal Server Error',
       });
 
-      await expect(client.init()).rejects.toThrow('토큰 발급 실패');
+      await expect(client.init(1)).rejects.toThrow('토큰 발급 실패');
     });
   });
 
