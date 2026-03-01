@@ -437,7 +437,7 @@
       "description": "데이터 바인딩 추가/삭제/조회 Tools 구현",
       "phase": "phase3-data-theme",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-databinding-tools-plan.md에 따라 데이터 바인딩 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/datasources.ts에 바인딩 Tool 추가 (또는 별도 파일)\n   - add_data_binding: get_form → dataBindings 배열에 추가 → update_form\n   - remove_data_binding: dataBindings에서 해당 바인딩 제거 → update_form\n   - list_data_bindings: get_form → dataBindings 반환\n2. packages/mcp/src/tools/index.ts, server.ts 업데이트",
       "dependsOn": [
         "mcp-databinding-tools-plan"

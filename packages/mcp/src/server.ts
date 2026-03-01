@@ -5,6 +5,7 @@ import {
   registerControlTools,
   registerEventTools,
   registerDatasourceTools,
+  registerDatabindingTools,
 } from './tools/index.js';
 import {
   registerProjectResources,
@@ -22,8 +23,9 @@ export function registerTools(server: McpServer): void {
   registerControlTools(server);
   registerEventTools(server);
 
-  // Phase 3: 데이터소스/테마/Shell Tools
+  // Phase 3: 데이터소스/데이터 바인딩/테마/Shell Tools
   registerDatasourceTools(server);
+  registerDatabindingTools(server);
   // registerThemeTools(server);
   // registerShellTools(server);
 }
