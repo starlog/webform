@@ -1,5 +1,11 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { registerProjectTools, registerFormTools, registerControlTools, registerEventTools } from './tools/index.js';
+import {
+  registerProjectTools,
+  registerFormTools,
+  registerControlTools,
+  registerEventTools,
+  registerDatasourceTools,
+} from './tools/index.js';
 import {
   registerProjectResources,
   registerFormResources,
@@ -17,7 +23,7 @@ export function registerTools(server: McpServer): void {
   registerEventTools(server);
 
   // Phase 3: 데이터소스/테마/Shell Tools
-  // registerDatasourceTools(server);
+  registerDatasourceTools(server);
   // registerThemeTools(server);
   // registerShellTools(server);
 }

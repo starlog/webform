@@ -397,7 +397,7 @@
       "description": "데이터소스 CRUD + test/query Tools 구현",
       "phase": "phase3-data-theme",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-datasource-tools-plan.md에 따라 데이터소스 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/datasources.ts: registerDatasourceTools(server, api)\n   - list_datasources: projectId 필터\n   - get_datasource: 상세 조회 (config 내 비밀정보 마스킹 주의)\n   - create_datasource: name, type(mongodb/rest/static), projectId, config, description?\n   - update_datasource: 부분 수정\n   - delete_datasource: 삭제\n   - test_datasource_connection: 연결 테스트\n   - query_datasource: 쿼리 실행\n2. packages/mcp/src/tools/index.ts, server.ts 업데이트",
       "dependsOn": [
         "mcp-datasource-tools-plan"
