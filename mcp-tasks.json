@@ -338,7 +338,7 @@
       "description": "정적 스키마 리소스 및 가이드 문서 리소스 구현",
       "phase": "phase2-controls-events",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-schema-resources-plan.md에 따라 스키마 및 가이드 Resources를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/resources/controlSchemaResource.ts:\n   - webform://schema/control-types: ControlType 목록 + 기본 속성\n   - webform://schema/events: 컨트롤 타입별 이벤트 목록\n   - webform://schema/form-properties: FormProperties 구조\n   - webform://schema/shell-properties: ShellProperties 구조\n   - webform://schema/theme-tokens: ThemeTokens 구조\n2. packages/mcp/src/resources/guideResource.ts:\n   - webform://guide/event-context: ctx API 마크다운 문서\n   - webform://guide/data-binding: 데이터 바인딩 가이드\n   - webform://guide/control-hierarchy: 컨테이너 계층 가이드\n3. packages/mcp/src/resources/index.ts 업데이트\n4. packages/mcp/src/server.ts 업데이트",
       "dependsOn": [
         "mcp-schema-resources-plan"
