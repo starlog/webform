@@ -9,8 +9,9 @@ import type {
   UIPatch,
 } from '@webform/common';
 import { SandboxRunner } from './SandboxRunner.js';
-import type { MongoConnectorInfo } from './SandboxRunner.js';
+import type { MongoConnectorInfo, SwaggerConnectorInfo } from './SandboxRunner.js';
 import { buildControlsContext } from './ControlProxy.js';
+import { parseSwaggerSpec } from './SwaggerParser.js';
 
 export interface ExecuteEventOptions {
   debugMode?: boolean;
@@ -87,10 +88,12 @@ export class EventEngine {
     };
 
     const mongoConnectors = this.extractMongoConnectors(formDef.controls);
+    const swaggerConnectors = this.extractSwaggerConnectors(formDef.controls);
 
     const result = await this.sandboxRunner.runCode(handler.handlerCode, ctx, {
       debugMode: options?.debugMode,
       mongoConnectors,
+      swaggerConnectors,
     });
 
     if (!result.success) {
@@ -156,10 +159,12 @@ export class EventEngine {
     };
 
     const mongoConnectors = this.extractMongoConnectors(shellDef.controls);
+    const swaggerConnectors = this.extractSwaggerConnectors(shellDef.controls);
 
     const result = await this.sandboxRunner.runCode(handler.handlerCode, ctx, {
       debugMode: options?.debugMode,
       mongoConnectors,
+      swaggerConnectors,
       shellMode: true,
       appState: appStateCopy,
       currentFormId: payload.currentFormId,
@@ -297,6 +302,59 @@ export class EventEngine {
     }
 
     return { patches, logs };
+  }
+
+  private extractSwaggerConnectors(controls: ControlDefinition[]): SwaggerConnectorInfo[] {
+    const connectors: SwaggerConnectorInfo[] = [];
+
+    function walk(ctrls: ControlDefinition[]) {
+      for (const ctrl of ctrls) {
+        if (ctrl.type === 'SwaggerConnector') {
+          const specYaml = (ctrl.properties.specYaml as string) || '';
+          if (!specYaml) {
+            if (ctrl.children) walk(ctrl.children);
+            continue;
+          }
+
+          let parsed;
+          try {
+            parsed = parseSwaggerSpec(specYaml);
+          } catch (err) {
+            console.warn(
+              `[EventEngine] SwaggerConnector "${ctrl.name}" specYaml 파싱 실패:`,
+              (err as Error).message,
+            );
+            if (ctrl.children) walk(ctrl.children);
+            continue;
+          }
+
+          // baseUrl 오버라이드: ctrl.properties.baseUrl이 있으면 우선 사용
+          const baseUrl = (ctrl.properties.baseUrl as string) || parsed.baseUrl;
+
+          // defaultHeaders 파싱
+          let defaultHeaders: Record<string, string> = {};
+          const headersStr = (ctrl.properties.defaultHeaders as string) || '{}';
+          try {
+            defaultHeaders = JSON.parse(headersStr);
+          } catch {
+            // JSON 파싱 실패 시 빈 객체
+          }
+
+          const timeout = (ctrl.properties.timeout as number) || 10000;
+
+          connectors.push({
+            controlName: ctrl.name,
+            operations: parsed.operations,
+            baseUrl,
+            defaultHeaders,
+            timeout,
+          });
+        }
+        if (ctrl.children) walk(ctrl.children);
+      }
+    }
+    walk(controls);
+    return connectors;
   }
 
   private extractMongoConnectors(controls: ControlDefinition[]): MongoConnectorInfo[] {

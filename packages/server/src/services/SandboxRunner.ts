@@ -5,6 +5,7 @@ import type { TraceEntry } from '@webform/common';
 import { env } from '../config/index.js';
 import { CodeInstrumenter } from './CodeInstrumenter.js';
 import { validateSandboxUrl } from './validateSandboxUrl.js';
+import type { SwaggerOperation } from './SwaggerParser.js';
 
 export interface MongoConnectorInfo {
   controlName: string;
@@ -15,11 +16,20 @@ export interface MongoConnectorInfo {
   maxResultCount: number;
 }
 
+export interface SwaggerConnectorInfo {
+  controlName: string;
+  operations: SwaggerOperation[];
+  baseUrl: string;
+  defaultHeaders: Record<string, string>;
+  timeout: number;
+}
+
 export interface SandboxOptions {
   timeout?: number;
   memoryLimit?: number;
   debugMode?: boolean;
   mongoConnectors?: MongoConnectorInfo[];
+  swaggerConnectors?: SwaggerConnectorInfo[];
   shellMode?: boolean;
   appState?: Record<string, unknown>;
   currentFormId?: string;
@@ -44,6 +54,7 @@ export class SandboxRunner {
     const memoryLimit = options?.memoryLimit ?? env.SANDBOX_MEMORY_LIMIT_MB;
     const debugMode = options?.debugMode ?? false;
     const mongoConnectors = options?.mongoConnectors ?? [];
+    const swaggerConnectors = options?.swaggerConnectors ?? [];
     const shellMode = options?.shellMode ?? false;
 
     // TypeScript → JavaScript 변환 (type annotations 제거)
@@ -73,6 +84,7 @@ export class SandboxRunner {
       codeToRun,
       debugMode,
       mongoConnectors,
+      swaggerConnectors,
       shellMode,
       options?.currentFormId,
       options?.params,
@@ -83,7 +95,7 @@ export class SandboxRunner {
       const jail = vmContext.global;
 
       await this.blockDangerousGlobals(jail, debugMode);
-      await this.injectContext(jail, context, mongoConnectors);
+      await this.injectContext(jail, context, mongoConnectors, swaggerConnectors);
 
       if (shellMode && options?.appState) {
         await this.injectAppState(jail, options.appState);
@@ -140,6 +152,7 @@ export class SandboxRunner {
     jail: ivm.Reference<Record<string, unknown>>,
     context: Record<string, unknown>,
     mongoConnectors: MongoConnectorInfo[] = [],
+    swaggerConnectors: SwaggerConnectorInfo[] = [],
   ): Promise<void> {
     await jail.set('__ctx__', new ivm.ExternalCopy(context).copyInto());
 
@@ -225,6 +238,93 @@ export class SandboxRunner {
       );
       await jail.set('__mongoHandler', mongoHandler);
     }
+
+    if (swaggerConnectors.length > 0) {
+      const connectorMap = new Map<string, SwaggerConnectorInfo>();
+      for (const sc of swaggerConnectors) {
+        connectorMap.set(sc.controlName, sc);
+      }
+
+      const swaggerHandler = new ivm.Reference(
+        async (controlName: string, operationId: string, optionsJson: string) => {
+          const info = connectorMap.get(controlName);
+          if (!info) {
+            throw new Error(`SwaggerConnector "${controlName}" not found`);
+          }
+
+          const op = info.operations.find((o) => o.operationId === operationId);
+          if (!op) {
+            throw new Error(
+              `SwaggerConnector "${controlName}": operation "${operationId}" not found`,
+            );
+          }
+
+          const opts = JSON.parse(optionsJson) as {
+            path?: Record<string, unknown>;
+            query?: Record<string, unknown>;
+            body?: unknown;
+            headers?: Record<string, string>;
+          };
+
+          // URL 구성: path 파라미터 치환
+          let resolvedPath = op.path;
+          if (opts.path) {
+            for (const [key, val] of Object.entries(opts.path)) {
+              resolvedPath = resolvedPath.replace(
+                `{${key}}`,
+                encodeURIComponent(String(val)),
+              );
+            }
+          }
+
+          // query string 추가
+          let queryString = '';
+          if (opts.query) {
+            const params = new URLSearchParams();
+            for (const [key, val] of Object.entries(opts.query)) {
+              if (val !== undefined && val !== null) {
+                params.append(key, String(val));
+              }
+            }
+            const qs = params.toString();
+            if (qs) queryString = '?' + qs;
+          }
+
+          const url = info.baseUrl + resolvedPath + queryString;
+
+          // SSRF 방어
+          await validateSandboxUrl(url);
+
+          // headers 병합: defaultHeaders + extraHeaders + Content-Type
+          const headers: Record<string, string> = { ...info.defaultHeaders };
+          if (opts.headers) {
+            Object.assign(headers, opts.headers);
+          }
+          if (opts.body !== undefined && !headers['Content-Type'] && !headers['content-type']) {
+            headers['Content-Type'] = 'application/json';
+          }
+
+          // HTTP 요청 수행
+          const res = await fetch(url, {
+            method: op.method,
+            headers,
+            body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+            signal: AbortSignal.timeout(info.timeout),
+          });
+
+          const text = await res.text();
+          let data: unknown;
+          try {
+            data = JSON.parse(text);
+          } catch {
+            data = text;
+          }
+
+          return new ivm.ExternalCopy({ status: res.status, ok: res.ok, data }).copyInto();
+        },
+      );
+      await jail.set('__swaggerHandler', swaggerHandler);
+    }
   }
 
   private async injectAppState(
@@ -238,6 +338,7 @@ export class SandboxRunner {
     code: string,
     debugMode?: boolean,
     mongoConnectors: MongoConnectorInfo[] = [],
+    swaggerConnectors: SwaggerConnectorInfo[] = [],
     shellMode?: boolean,
     currentFormId?: string,
     params?: Record<string, unknown>,
@@ -438,6 +539,16 @@ ${mongoConnectors.map((mc) => `
         ctx.controls['${mc.controlName}'].count = function(collection, filter) {
           return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'count', String(collection || ''), JSON.stringify(filter || {})]);
         };
+`).join('')}
+${(swaggerConnectors || []).map((sc) => `
+        ctx.controls['${sc.controlName}'] = ctx.controls['${sc.controlName}'] || {};
+${sc.operations.map((op) => `        ctx.controls['${sc.controlName}']['${op.operationId}'] = function(opts) {
+          return __swaggerHandler.applySyncPromise(undefined, [
+            '${sc.controlName}',
+            '${op.operationId}',
+            JSON.stringify(opts || {})
+          ]);
+        };`).join('\n')}
 `).join('')}
         ctx.getRadioGroupValue = function(groupName) {
           for (var name in ctx.controls) {
