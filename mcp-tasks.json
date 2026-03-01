@@ -1,0 +1,823 @@
+{
+  "projectName": "WebForm MCP Server",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "mcp-package-init-plan",
+      "title": "MCP 패키지 초기화 - 계획",
+      "description": "packages/mcp 패키지 구조, 의존성, 빌드 설정 계획 수립",
+      "phase": "phase1-foundation",
+      "category": "plan",
+      "done": true,
+      "prompt": "MCP-SERVER.md 섹션 1.1~1.4를 참조하여 packages/mcp 패키지 초기화 계획을 수립하라.\n\n계획 내용:\n1. package.json: name='@webform/mcp', 의존성(@modelcontextprotocol/sdk, zod, node-fetch), scripts(dev, build, start)\n2. tsconfig.json: tsconfig.base.json 확장, ES2022 target, NodeNext module\n3. src/index.ts: McpServer 인스턴스 + StdioServerTransport 엔트리포인트\n4. src/server.ts: registerTools, registerResources, registerPrompts 초기화 구조\n5. 디렉토리 구조: src/tools/, src/resources/, src/prompts/, src/utils/\n6. pnpm-workspace.yaml에 packages/mcp 추가 확인\n7. 루트 package.json에 dev:mcp 스크립트 추가\n\n계획을 plans/mcp-package-init-plan.md에 작성하라.",
+      "dependsOn": null,
+      "outputFiles": [
+        "plans/mcp-package-init-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-package-init-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-package-init-impl",
+      "title": "MCP 패키지 초기화 - 구현",
+      "description": "packages/mcp 패키지 생성 및 기본 구조 구현",
+      "phase": "phase1-foundation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-package-init-plan.md에 따라 packages/mcp 패키지를 생성하라.\n\n생성할 파일:\n1. packages/mcp/package.json: @webform/mcp, 의존성(@modelcontextprotocol/sdk ^1.x, zod ^3.24, node-fetch ^3.x, @webform/common workspace:*)\n2. packages/mcp/tsconfig.json: tsconfig.base.json 확장\n3. packages/mcp/src/index.ts: McpServer 생성(name: 'webform', version: '1.0.0'), StdioServerTransport 연결\n4. packages/mcp/src/server.ts: registerTools, registerResources, registerPrompts 함수 구조\n5. 빈 디렉토리 파일: src/tools/index.ts, src/resources/index.ts, src/prompts/index.ts, src/utils/index.ts\n6. pnpm-workspace.yaml 확인 (packages/* 이미 포함되어 있는지)\n7. 루트 package.json에 'dev:mcp' 스크립트 추가\n\npnpm install 실행하여 의존성 설치.",
+      "dependsOn": [
+        "mcp-package-init-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/package.json",
+        "packages/mcp/tsconfig.json",
+        "packages/mcp/src/index.ts",
+        "packages/mcp/src/server.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/resources/index.ts",
+        "packages/mcp/src/prompts/index.ts",
+        "packages/mcp/src/utils/index.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/package.json",
+        "packages/mcp/tsconfig.json",
+        "packages/mcp/src/index.ts",
+        "packages/mcp/src/server.ts",
+        "package.json"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-api-client-plan",
+      "title": "API 클라이언트 구현 - 계획",
+      "description": "기존 Express 서버 REST API 호출용 HTTP 클라이언트 계획",
+      "phase": "phase1-foundation",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 5.1을 참조하여 API 클라이언트 구현 계획을 수립하라.\n\n계획 내용:\n1. WebFormApiClient 클래스 설계:\n   - baseUrl: WEBFORM_API_URL 환경변수 또는 http://localhost:4000\n   - init(): /auth/dev-token에서 개발 토큰 자동 발급\n   - get<T>(path): GET 요청\n   - post<T>(path, body): POST 요청\n   - put<T>(path, body): PUT 요청\n   - patch<T>(path, body): PATCH 요청\n   - delete(path): DELETE 요청\n2. 에러 처리: HTTP 에러 → MCP 에러 변환\n3. 인증 헤더 자동 포함\n4. 입력값 검증 유틸리티 (validators.ts)\n\n기존 서버 API 라우트(packages/server/src/routes/)를 참조하여 실제 엔드포인트 경로 확인.\n\n계획을 plans/mcp-api-client-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-package-init-impl"
+      ],
+      "outputFiles": [
+        "plans/mcp-api-client-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-api-client-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-api-client-impl",
+      "title": "API 클라이언트 구현 - 구현",
+      "description": "WebFormApiClient 및 validators 구현",
+      "phase": "phase1-foundation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-api-client-plan.md에 따라 API 클라이언트를 구현하라.\n\n생성할 파일:\n1. packages/mcp/src/utils/apiClient.ts: WebFormApiClient 클래스\n   - constructor: baseUrl 설정 (WEBFORM_API_URL || 'http://localhost:4000')\n   - init(): /auth/dev-token에서 토큰 자동 발급\n   - get/post/put/patch/delete 메서드 구현\n   - 에러 핸들링: HTTP 에러 코드별 의미있는 에러 메시지\n   - Authorization 헤더 자동 포함\n2. packages/mcp/src/utils/validators.ts: 공통 입력값 검증 함수\n   - validateObjectId(id): MongoDB ObjectId 형식 검증\n   - validateRequired(value, fieldName): 필수값 검증\n3. packages/mcp/src/utils/index.ts에 export 추가\n\n기존 서버 라우트를 확인하여 실제 API 경로와 응답 형식에 맞게 구현하라.",
+      "dependsOn": [
+        "mcp-api-client-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/utils/apiClient.ts",
+        "packages/mcp/src/utils/validators.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/utils/apiClient.ts",
+        "packages/mcp/src/utils/validators.ts",
+        "packages/mcp/src/utils/index.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-project-tools-plan",
+      "title": "프로젝트 관리 Tools - 계획",
+      "description": "list_projects, get_project, create_project, update_project, delete_project, export_project, import_project, publish_all",
+      "phase": "phase1-foundation",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.1을 참조하여 프로젝트 관리 Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트(packages/server/src/routes/)를 확인하여 각 Tool에 매핑되는 REST API 엔드포인트를 파악하라.\n\n계획 내용:\n1. list_projects: GET /api/projects?page&limit&search\n2. get_project: GET /api/projects/:projectId\n3. create_project: POST /api/projects\n4. update_project: PUT /api/projects/:projectId\n5. delete_project: DELETE /api/projects/:projectId\n6. export_project: GET /api/projects/:projectId/export\n7. import_project: POST /api/projects/import\n8. publish_all: POST /api/projects/:projectId/publish-all\n\n각 Tool의 Zod 스키마, 설명(description), 반환값 형식을 설계하라.\n\n계획을 plans/mcp-project-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-api-client-impl"
+      ],
+      "outputFiles": [
+        "plans/mcp-project-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-project-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-project-tools-impl",
+      "title": "프로젝트 관리 Tools - 구현",
+      "description": "프로젝트 CRUD + export/import/publish Tools 구현",
+      "phase": "phase1-foundation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-project-tools-plan.md에 따라 프로젝트 관리 Tools를 구현하라.\n\nMCP-SERVER.md 섹션 2.1 및 5.6(Tool 등록 예시) 참조.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/projects.ts: registerProjectTools(server, api) 함수\n   - list_projects: 페이지네이션, 검색 지원\n   - get_project: 프로젝트 상세 + 폼 목록\n   - create_project: 이름, 설명으로 생성\n   - update_project: 이름, 설명 수정\n   - delete_project: 프로젝트 삭제\n   - export_project: JSON 내보내기\n   - import_project: JSON 가져오기\n   - publish_all: 전체 폼 퍼블리시\n2. packages/mcp/src/tools/index.ts에 registerProjectTools export 추가\n3. packages/mcp/src/server.ts에 registerProjectTools 호출 추가\n\n각 Tool은 Zod 스키마로 입력 검증, JSON.stringify로 결과 반환, 에러 시 toolError 형식 사용.",
+      "dependsOn": [
+        "mcp-project-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/projects.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/projects.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-form-tools-plan",
+      "title": "폼 관리 Tools - 계획",
+      "description": "list_forms, get_form, create_form, update_form, delete_form, publish_form, get_form_versions, get_form_version_snapshot",
+      "phase": "phase1-foundation",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.2를 참조하여 폼 관리 Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트(packages/server/src/routes/)를 확인하여 각 Tool에 매핑되는 REST API 엔드포인트를 파악하라.\n\n계획 내용:\n1. list_forms: GET /api/forms?projectId&page&limit&search&status\n2. get_form: GET /api/forms/:formId\n3. create_form: POST /api/forms\n4. update_form: PUT /api/forms/:formId (낙관적 잠금 - version 필수)\n5. delete_form: DELETE /api/forms/:formId\n6. publish_form: POST /api/forms/:formId/publish\n7. get_form_versions: GET /api/forms/:formId/versions\n8. get_form_version_snapshot: GET /api/forms/:formId/versions/:version\n\n각 Tool의 Zod 스키마, 설명, 반환값 형식을 설계하라. update_form의 낙관적 잠금 처리 방식도 포함.\n\n계획을 plans/mcp-form-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-api-client-impl"
+      ],
+      "outputFiles": [
+        "plans/mcp-form-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-form-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-form-tools-impl",
+      "title": "폼 관리 Tools - 구현",
+      "description": "폼 CRUD + publish/versions Tools 구현",
+      "phase": "phase1-foundation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-form-tools-plan.md에 따라 폼 관리 Tools를 구현하라.\n\nMCP-SERVER.md 섹션 2.2 및 5.6 참조.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/forms.ts: registerFormTools(server, api) 함수\n   - list_forms: 프로젝트별 필터, 페이지네이션, 상태 필터\n   - get_form: 폼 정의 전체 조회\n   - create_form: 이름, projectId, 선택적 속성(title, width, height, backgroundColor, theme)\n   - update_form: formId + version(낙관적 잠금) + properties/controls/eventHandlers/dataBindings\n   - delete_form: 폼 삭제\n   - publish_form: 폼 퍼블리시\n   - get_form_versions: 버전 히스토리 조회\n   - get_form_version_snapshot: 특정 버전 스냅샷\n2. packages/mcp/src/tools/index.ts에 export 추가\n3. packages/mcp/src/server.ts에 호출 추가",
+      "dependsOn": [
+        "mcp-form-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/forms.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/forms.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-basic-resources-plan",
+      "title": "기본 Resources 구현 - 계획",
+      "description": "프로젝트, 폼 동적 리소스 계획",
+      "phase": "phase1-foundation",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 3.2~3.3을 참조하여 기본 Resources 구현 계획을 수립하라.\n\n계획 내용:\n1. 동적 리소스 (ResourceTemplate 사용):\n   - webform://projects/{projectId}: 프로젝트 상세 + 폼 목록\n   - webform://forms/{formId}: 폼 정의 전체 (FormDefinition)\n   - webform://forms/{formId}/controls: 폼의 컨트롤 목록\n   - webform://forms/{formId}/events: 폼의 이벤트 핸들러 목록\n   - webform://forms/{formId}/bindings: 폼의 데이터 바인딩 목록\n   - webform://forms/{formId}/versions: 폼의 버전 히스토리\n2. Resource 구현 패턴: server.resource() 호출, URI 매핑, MIME type\n3. API 클라이언트를 통한 데이터 조회\n\n계획을 plans/mcp-basic-resources-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-api-client-impl"
+      ],
+      "outputFiles": [
+        "plans/mcp-basic-resources-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-basic-resources-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-basic-resources-impl",
+      "title": "기본 Resources 구현 - 구현",
+      "description": "프로젝트, 폼 동적 리소스 구현",
+      "phase": "phase1-foundation",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-basic-resources-plan.md에 따라 기본 Resources를 구현하라.\n\nMCP-SERVER.md 섹션 3.2~3.3 참조.\n\n생성/수정할 파일:\n1. packages/mcp/src/resources/projectResource.ts: 프로젝트 관련 리소스 등록\n   - webform://projects/{projectId}\n2. packages/mcp/src/resources/formResource.ts: 폼 관련 리소스 등록\n   - webform://forms/{formId}\n   - webform://forms/{formId}/controls\n   - webform://forms/{formId}/events\n   - webform://forms/{formId}/bindings\n   - webform://forms/{formId}/versions\n3. packages/mcp/src/resources/index.ts에 export 추가\n4. packages/mcp/src/server.ts에 registerResources 호출 추가\n\nResourceTemplate 사용, MIME type은 application/json.",
+      "dependsOn": [
+        "mcp-basic-resources-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/resources/projectResource.ts",
+        "packages/mcp/src/resources/formResource.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/resources/projectResource.ts",
+        "packages/mcp/src/resources/formResource.ts",
+        "packages/mcp/src/resources/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-phase1-test",
+      "title": "Phase 1 통합 테스트",
+      "description": "MCP 패키지 빌드, 서버 시작, 기본 Tool/Resource 동작 검증",
+      "phase": "phase1-foundation",
+      "category": "testing",
+      "done": false,
+      "prompt": "Phase 1 구현을 종합 검증하라.\n\n1. TypeScript 컴파일 검증: packages/mcp에서 tsc --noEmit\n2. MCP Inspector 테스트:\n   - npx @modelcontextprotocol/inspector node packages/mcp/dist/index.js\n   - Tool 목록 확인 (프로젝트 8개 + 폼 8개)\n   - Resource 목록 확인\n3. 기능 테스트 (Express 서버 실행 상태에서):\n   - list_projects 호출 → 프로젝트 목록 반환 확인\n   - create_project → get_project 흐름 확인\n   - create_form → get_form 흐름 확인\n   - Resource URI 조회 확인\n4. 에러 케이스 확인:\n   - 잘못된 ID로 get_project → 에러 응답\n   - 필수 파라미터 누락 → Zod 검증 에러\n\n실패 시 즉시 수정하라.",
+      "dependsOn": [
+        "mcp-project-tools-impl",
+        "mcp-form-tools-impl",
+        "mcp-basic-resources-impl"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-control-tools-plan",
+      "title": "컨트롤 조작 Tools - 계획",
+      "description": "add_control, update_control, remove_control, move_control, resize_control, batch_add_controls, list_control_types, get_control_schema",
+      "phase": "phase2-controls-events",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.3, 5.2~5.4를 참조하여 컨트롤 조작 Tools 구현 계획을 수립하라.\n\n계획 내용:\n1. 컨트롤 조작 헬퍼 함수 설계 (get_form → 변환 → update_form 패턴)\n   - addControlToForm(): 컨트롤 추가\n   - updateControlInForm(): 컨트롤 속성 수정\n   - removeControlFromForm(): 컨트롤 삭제\n2. 자동 배치 알고리즘 (autoPosition): 겹침 방지, 16px 그리드 스냅\n3. 컨트롤 타입별 기본값 (CONTROL_DEFAULTS): 44개 타입의 size, properties\n4. Tools 목록:\n   - add_control: 단일 컨트롤 추가\n   - update_control: 속성 수정\n   - remove_control: 삭제\n   - move_control: 위치 이동\n   - resize_control: 크기 변경\n   - batch_add_controls: 일괄 추가\n   - list_control_types: 사용 가능한 타입 목록\n   - get_control_schema: 타입별 속성 스키마\n5. packages/common의 ControlType 타입 참조\n\n계획을 plans/mcp-control-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase1-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-control-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-control-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-control-tools-impl",
+      "title": "컨트롤 조작 Tools - 구현",
+      "description": "컨트롤 CRUD, 자동 배치, 기본값, 스키마 Tools 구현",
+      "phase": "phase2-controls-events",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-control-tools-plan.md에 따라 컨트롤 조작 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/utils/autoPosition.ts: 자동 배치 알고리즘\n   - 기존 컨트롤 bounding box 계산\n   - 겹치지 않는 위치 찾기\n   - 16px 그리드 스냅\n2. packages/mcp/src/utils/controlDefaults.ts: CONTROL_DEFAULTS\n   - 44개 컨트롤 타입별 기본 size, properties\n   - packages/common 및 packages/designer의 기존 기본값 참조\n3. packages/mcp/src/tools/controls.ts: registerControlTools(server, api)\n   - add_control: formId, type, name, properties?, position?, size?, parentId?\n   - update_control: formId, controlId, properties?, position?, size?\n   - remove_control: formId, controlId\n   - move_control: formId, controlId, position\n   - resize_control: formId, controlId, size\n   - batch_add_controls: formId, controls[]\n   - list_control_types: 타입 목록 반환\n   - get_control_schema: 타입별 속성 스키마 반환\n4. packages/mcp/src/tools/index.ts, server.ts 업데이트",
+      "dependsOn": [
+        "mcp-control-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/utils/autoPosition.ts",
+        "packages/mcp/src/utils/controlDefaults.ts",
+        "packages/mcp/src/tools/controls.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/utils/autoPosition.ts",
+        "packages/mcp/src/utils/controlDefaults.ts",
+        "packages/mcp/src/tools/controls.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-event-tools-plan",
+      "title": "이벤트 핸들러 Tools - 계획",
+      "description": "add_event_handler, update_event_handler, remove_event_handler, list_event_handlers, list_available_events, test_event_handler",
+      "phase": "phase2-controls-events",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.4를 참조하여 이벤트 핸들러 Tools 구현 계획을 수립하라.\n\n기존 서버의 이벤트 관련 API 라우트를 확인하라:\n- packages/server/src/routes/ 에서 이벤트 핸들러 관련 엔드포인트\n- packages/server/src/services/EventEngine.ts 참조\n- packages/common의 EventHandler 타입 참조\n\n계획 내용:\n1. add_event_handler: 폼의 eventHandlers 배열에 핸들러 추가 (get_form → update_form 패턴)\n2. update_event_handler: 기존 핸들러 코드 수정\n3. remove_event_handler: 핸들러 삭제\n4. list_event_handlers: 폼의 모든 핸들러 조회\n5. list_available_events: 컨트롤 타입별 가능한 이벤트 목록 (COMMON_EVENTS + CONTROL_EVENTS)\n6. test_event_handler: 이벤트 핸들러 코드 테스트 실행 (POST /api/runtime/forms/:id/events)\n7. Tool description에 ctx 객체 사용법 가이드 포함\n\n계획을 plans/mcp-event-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase1-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-event-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-event-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-event-tools-impl",
+      "title": "이벤트 핸들러 Tools - 구현",
+      "description": "이벤트 핸들러 CRUD + 테스트 Tools 구현",
+      "phase": "phase2-controls-events",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-event-tools-plan.md에 따라 이벤트 핸들러 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/events.ts: registerEventTools(server, api)\n   - add_event_handler: formId, controlId, eventName, handlerCode, handlerType?\n   - update_event_handler: formId, controlId, eventName, handlerCode\n   - remove_event_handler: formId, controlId, eventName\n   - list_event_handlers: formId → 모든 핸들러 목록\n   - list_available_events: controlType → 사용 가능한 이벤트 목록\n   - test_event_handler: formId, controlId, eventName, mockFormState?\n2. Tool description에 ctx 객체 API 가이드 포함:\n   - ctx.controls[], ctx.sender, ctx.eventArgs\n   - ctx.showMessage(), ctx.navigate(), ctx.http\n3. packages/mcp/src/tools/index.ts, server.ts 업데이트",
+      "dependsOn": [
+        "mcp-event-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/events.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/events.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-schema-resources-plan",
+      "title": "스키마/가이드 Resources - 계획",
+      "description": "정적 스키마 리소스 및 가이드 문서 리소스 계획",
+      "phase": "phase2-controls-events",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 3.1을 참조하여 스키마 및 가이드 Resources 구현 계획을 수립하라.\n\n계획 내용:\n1. 정적 리소스:\n   - webform://schema/control-types: 전체 컨트롤 타입 목록 및 기본 속성 (packages/common의 ControlType 기반)\n   - webform://schema/events: 컨트롤 타입별 이벤트 목록 (COMMON_EVENTS + CONTROL_EVENTS)\n   - webform://schema/form-properties: FormProperties 스키마\n   - webform://schema/shell-properties: ShellProperties 스키마\n   - webform://schema/theme-tokens: ThemeTokens 구조\n2. 가이드 리소스 (text/markdown):\n   - webform://guide/event-context: ctx 객체 API 문서\n   - webform://guide/data-binding: 데이터 바인딩 설정 가이드\n   - webform://guide/control-hierarchy: 컨테이너 컨트롤 계층 구조 가이드\n3. packages/common 타입 정의 참조하여 스키마 데이터 추출\n\n계획을 plans/mcp-schema-resources-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase1-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-schema-resources-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-schema-resources-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-schema-resources-impl",
+      "title": "스키마/가이드 Resources - 구현",
+      "description": "정적 스키마 리소스 및 가이드 문서 리소스 구현",
+      "phase": "phase2-controls-events",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-schema-resources-plan.md에 따라 스키마 및 가이드 Resources를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/resources/controlSchemaResource.ts:\n   - webform://schema/control-types: ControlType 목록 + 기본 속성\n   - webform://schema/events: 컨트롤 타입별 이벤트 목록\n   - webform://schema/form-properties: FormProperties 구조\n   - webform://schema/shell-properties: ShellProperties 구조\n   - webform://schema/theme-tokens: ThemeTokens 구조\n2. packages/mcp/src/resources/guideResource.ts:\n   - webform://guide/event-context: ctx API 마크다운 문서\n   - webform://guide/data-binding: 데이터 바인딩 가이드\n   - webform://guide/control-hierarchy: 컨테이너 계층 가이드\n3. packages/mcp/src/resources/index.ts 업데이트\n4. packages/mcp/src/server.ts 업데이트",
+      "dependsOn": [
+        "mcp-schema-resources-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/resources/controlSchemaResource.ts",
+        "packages/mcp/src/resources/guideResource.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/resources/controlSchemaResource.ts",
+        "packages/mcp/src/resources/guideResource.ts",
+        "packages/mcp/src/resources/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-phase2-test",
+      "title": "Phase 2 통합 테스트",
+      "description": "컨트롤, 이벤트, 스키마 Tools/Resources 동작 검증",
+      "phase": "phase2-controls-events",
+      "category": "testing",
+      "done": false,
+      "prompt": "Phase 2 구현을 종합 검증하라.\n\n1. TypeScript 컴파일: tsc --noEmit\n2. 컨트롤 Tools 테스트:\n   - list_control_types → 44개 타입 확인\n   - get_control_schema('Button') → 속성 스키마 확인\n   - add_control로 버튼 추가 → get_form으로 확인\n   - batch_add_controls로 여러 컨트롤 추가\n   - move_control, resize_control 동작 확인\n   - remove_control 동작 확인\n3. 이벤트 Tools 테스트:\n   - list_available_events('Button') → Click 등 이벤트 목록\n   - add_event_handler로 Click 핸들러 추가\n   - list_event_handlers로 확인\n   - test_event_handler로 코드 실행 테스트\n4. 스키마 Resources 테스트:\n   - webform://schema/control-types 조회\n   - webform://schema/events 조회\n   - webform://guide/event-context 조회\n\n실패 시 즉시 수정하라.",
+      "dependsOn": [
+        "mcp-control-tools-impl",
+        "mcp-event-tools-impl",
+        "mcp-schema-resources-impl"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-datasource-tools-plan",
+      "title": "데이터소스 Tools - 계획",
+      "description": "list_datasources, get_datasource, create_datasource, update_datasource, delete_datasource, test_datasource_connection, query_datasource",
+      "phase": "phase3-data-theme",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.6을 참조하여 데이터소스 Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트(packages/server/src/routes/) 및 DataSourceService(packages/server/src/services/DataSourceService.ts)를 확인하라.\n\n계획 내용:\n1. list_datasources: GET /api/datasources?projectId\n2. get_datasource: GET /api/datasources/:id\n3. create_datasource: POST /api/datasources (type: mongodb/rest/static)\n4. update_datasource: PUT /api/datasources/:id\n5. delete_datasource: DELETE /api/datasources/:id\n6. test_datasource_connection: POST /api/datasources/:id/test\n7. query_datasource: POST /api/datasources/:id/query\n\n각 Tool의 Zod 스키마, config 구조(type별 다른 설정), 반환값 설계.\n\n계획을 plans/mcp-datasource-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase2-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-datasource-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-datasource-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-datasource-tools-impl",
+      "title": "데이터소스 Tools - 구현",
+      "description": "데이터소스 CRUD + test/query Tools 구현",
+      "phase": "phase3-data-theme",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-datasource-tools-plan.md에 따라 데이터소스 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/datasources.ts: registerDatasourceTools(server, api)\n   - list_datasources: projectId 필터\n   - get_datasource: 상세 조회 (config 내 비밀정보 마스킹 주의)\n   - create_datasource: name, type(mongodb/rest/static), projectId, config, description?\n   - update_datasource: 부분 수정\n   - delete_datasource: 삭제\n   - test_datasource_connection: 연결 테스트\n   - query_datasource: 쿼리 실행\n2. packages/mcp/src/tools/index.ts, server.ts 업데이트",
+      "dependsOn": [
+        "mcp-datasource-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/datasources.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/datasources.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-databinding-tools-plan",
+      "title": "데이터 바인딩 Tools - 계획",
+      "description": "add_data_binding, remove_data_binding, list_data_bindings",
+      "phase": "phase3-data-theme",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.5를 참조하여 데이터 바인딩 Tools 구현 계획을 수립하라.\n\n기존 서버의 데이터 바인딩 관련 구현을 확인하라:\n- packages/common의 DataBinding 타입\n- FormDefinition의 dataBindings 필드 구조\n\n계획 내용:\n1. add_data_binding: formId, controlId, controlProperty, dataSourceId, dataField, bindingMode?(oneWay/twoWay)\n   - get_form → dataBindings에 추가 → update_form 패턴\n2. remove_data_binding: formId, controlId, controlProperty\n3. list_data_bindings: formId → 전체 바인딩 목록\n\n계획을 plans/mcp-databinding-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase2-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-databinding-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-databinding-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-databinding-tools-impl",
+      "title": "데이터 바인딩 Tools - 구현",
+      "description": "데이터 바인딩 추가/삭제/조회 Tools 구현",
+      "phase": "phase3-data-theme",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-databinding-tools-plan.md에 따라 데이터 바인딩 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/datasources.ts에 바인딩 Tool 추가 (또는 별도 파일)\n   - add_data_binding: get_form → dataBindings 배열에 추가 → update_form\n   - remove_data_binding: dataBindings에서 해당 바인딩 제거 → update_form\n   - list_data_bindings: get_form → dataBindings 반환\n2. packages/mcp/src/tools/index.ts, server.ts 업데이트",
+      "dependsOn": [
+        "mcp-databinding-tools-plan"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/datasources.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-theme-tools-plan",
+      "title": "테마 Tools - 계획",
+      "description": "list_themes, get_theme, create_theme, update_theme, delete_theme, apply_theme_to_form",
+      "phase": "phase3-data-theme",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.8을 참조하여 테마 Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트에서 테마 관련 엔드포인트를 확인하라.\n\n계획 내용:\n1. list_themes: GET /api/themes?page&limit\n2. get_theme: GET /api/themes/:themeId\n3. create_theme: POST /api/themes (name, tokens)\n4. update_theme: PUT /api/themes/:themeId\n5. delete_theme: DELETE /api/themes/:themeId\n6. apply_theme_to_form: 폼의 theme 속성 변경 (get_form → properties.theme 수정 → update_form)\n7. ThemeTokens 구조 확인 (packages/common)\n\n계획을 plans/mcp-theme-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase2-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-theme-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-theme-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-theme-tools-impl",
+      "title": "테마 Tools - 구현",
+      "description": "테마 CRUD + apply Tools 구현",
+      "phase": "phase3-data-theme",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-theme-tools-plan.md에 따라 테마 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/themes.ts: registerThemeTools(server, api)\n   - list_themes, get_theme, create_theme, update_theme, delete_theme\n   - apply_theme_to_form: formId + themeId → 폼 속성 업데이트\n2. packages/mcp/src/resources/themeResource.ts:\n   - webform://themes/{themeId}: 테마 토큰 상세\n3. packages/mcp/src/tools/index.ts, resources/index.ts, server.ts 업데이트",
+      "dependsOn": [
+        "mcp-theme-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/themes.ts",
+        "packages/mcp/src/resources/themeResource.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/themes.ts",
+        "packages/mcp/src/resources/themeResource.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/resources/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-shell-tools-plan",
+      "title": "Shell Tools - 계획",
+      "description": "get_shell, create_shell, update_shell, delete_shell, publish_shell",
+      "phase": "phase3-data-theme",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.7을 참조하여 ApplicationShell Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트에서 Shell 관련 엔드포인트를 확인하라.\n\n계획 내용:\n1. get_shell: GET /api/projects/:projectId/shell\n2. create_shell: POST /api/projects/:projectId/shell\n3. update_shell: PUT /api/projects/:projectId/shell\n4. delete_shell: DELETE /api/projects/:projectId/shell\n5. publish_shell: POST /api/projects/:projectId/shell/publish\n6. Shell 구조: name, properties, controls, eventHandlers, startFormId\n\n계획을 plans/mcp-shell-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase2-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-shell-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-shell-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-shell-tools-impl",
+      "title": "Shell Tools - 구현",
+      "description": "ApplicationShell CRUD + publish Tools 구현",
+      "phase": "phase3-data-theme",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-shell-tools-plan.md에 따라 Shell Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/shells.ts: registerShellTools(server, api)\n   - get_shell: projectId → Shell 조회\n   - create_shell: projectId, name, properties?, controls?, startFormId?\n   - update_shell: projectId, properties?, controls?, eventHandlers?, startFormId?\n   - delete_shell: projectId\n   - publish_shell: projectId\n2. packages/mcp/src/resources/에 Shell 리소스 추가:\n   - webform://shells/{projectId}\n3. packages/mcp/src/tools/index.ts, server.ts 업데이트",
+      "dependsOn": [
+        "mcp-shell-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/shells.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/shells.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-phase3-test",
+      "title": "Phase 3 통합 테스트",
+      "description": "데이터소스, 바인딩, 테마, Shell Tools 동작 검증",
+      "phase": "phase3-data-theme",
+      "category": "testing",
+      "done": false,
+      "prompt": "Phase 3 구현을 종합 검증하라.\n\n1. TypeScript 컴파일: tsc --noEmit\n2. 데이터소스 Tools 테스트:\n   - create_datasource (static 타입) → get_datasource\n   - query_datasource 실행\n3. 데이터 바인딩 테스트:\n   - add_data_binding → list_data_bindings\n   - remove_data_binding\n4. 테마 Tools 테스트:\n   - list_themes → 프리셋 테마 확인\n   - create_theme → apply_theme_to_form\n5. Shell Tools 테스트:\n   - create_shell → get_shell\n   - update_shell → publish_shell\n6. 리소스 테스트:\n   - webform://themes/{themeId}\n   - webform://shells/{projectId}\n   - webform://datasources/{datasourceId}\n\n실패 시 즉시 수정하라.",
+      "dependsOn": [
+        "mcp-datasource-tools-impl",
+        "mcp-databinding-tools-impl",
+        "mcp-theme-tools-impl",
+        "mcp-shell-tools-impl"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-prompts-plan",
+      "title": "Prompt 템플릿 - 계획",
+      "description": "create-form-wizard, add-crud-handlers, setup-navigation, clone-and-modify-form, design-theme",
+      "phase": "phase4-advanced",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 4.1~4.5를 참조하여 Prompt 템플릿 구현 계획을 수립하라.\n\n계획 내용:\n1. create-form-wizard: 대화형 폼 생성 마법사\n   - 입력: projectId, description\n   - 단계: 설명 분석 → create_form → batch_add_controls → add_event_handler → add_data_binding\n2. add-crud-handlers: CRUD 이벤트 핸들러 자동 생성\n   - 입력: formId, dataSourceId, entityName\n   - 단계: 폼 분석 → 조회/추가/수정/삭제 버튼 핸들러 생성\n3. setup-navigation: Shell + 폼 네비게이션 구성\n   - 입력: projectId, formIds\n   - 단계: Shell 생성 → MenuStrip → 이벤트 → 퍼블리시\n4. clone-and-modify-form: 기존 폼 복제 후 수정\n   - 입력: sourceFormId, newName, modifications\n5. design-theme: 자연어로 테마 생성\n   - 입력: description, baseTheme?\n\n각 Prompt의 Zod 스키마, 메시지 템플릿 설계.\n\n계획을 plans/mcp-prompts-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase3-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-prompts-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-prompts-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-prompts-impl",
+      "title": "Prompt 템플릿 - 구현",
+      "description": "5개 Prompt 템플릿 구현",
+      "phase": "phase4-advanced",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-prompts-plan.md에 따라 Prompt 템플릿을 구현하라.\n\nMCP-SERVER.md 섹션 4.1~4.5의 코드 예시 참조.\n\n생성/수정할 파일:\n1. packages/mcp/src/prompts/createForm.ts: create-form-wizard 프롬프트\n2. packages/mcp/src/prompts/addEventHandler.ts: add-crud-handlers 프롬프트\n3. packages/mcp/src/prompts/setupNavigation.ts: setup-navigation 프롬프트\n4. packages/mcp/src/prompts/cloneForm.ts: clone-and-modify-form 프롬프트\n5. packages/mcp/src/prompts/designTheme.ts: design-theme 프롬프트\n6. packages/mcp/src/prompts/index.ts: registerPrompts(server) 함수\n7. packages/mcp/src/server.ts에 registerPrompts 호출 추가",
+      "dependsOn": [
+        "mcp-prompts-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/prompts/createForm.ts",
+        "packages/mcp/src/prompts/addEventHandler.ts",
+        "packages/mcp/src/prompts/setupNavigation.ts",
+        "packages/mcp/src/prompts/cloneForm.ts",
+        "packages/mcp/src/prompts/designTheme.ts",
+        "packages/mcp/src/prompts/index.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/prompts/createForm.ts",
+        "packages/mcp/src/prompts/addEventHandler.ts",
+        "packages/mcp/src/prompts/setupNavigation.ts",
+        "packages/mcp/src/prompts/cloneForm.ts",
+        "packages/mcp/src/prompts/designTheme.ts",
+        "packages/mcp/src/prompts/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-runtime-debug-tools-plan",
+      "title": "런타임/디버그 Tools - 계획",
+      "description": "execute_event, debug_execute, get_runtime_form, get_runtime_app",
+      "phase": "phase4-advanced",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.9를 참조하여 런타임/디버그 Tools 구현 계획을 수립하라.\n\n기존 서버의 런타임 API를 확인하라:\n- packages/server/src/routes/ 런타임 관련 엔드포인트\n- POST /api/runtime/forms/:id/events\n- GET /api/runtime/forms/:id\n\n계획 내용:\n1. execute_event: 런타임 이벤트 실행 (테스트용)\n   - formId, controlId, eventName, formState?, eventArgs?\n   - POST /api/runtime/forms/:id/events\n2. debug_execute: 디버그 모드 코드 실행 (트레이스 포함)\n   - formId, controlId, eventName, formState?\n3. get_runtime_form: 퍼블리시된 폼 로드\n   - GET /api/runtime/forms/:id\n4. get_runtime_app: Shell + 시작 폼 로드\n   - GET /api/runtime/app/:projectId\n\n계획을 plans/mcp-runtime-debug-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase3-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-runtime-debug-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-runtime-debug-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-runtime-debug-tools-impl",
+      "title": "런타임/디버그 Tools - 구현",
+      "description": "런타임 이벤트 실행 및 디버그 Tools 구현",
+      "phase": "phase4-advanced",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-runtime-debug-plan.md에 따라 런타임/디버그 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/runtime.ts: registerRuntimeTools(server, api)\n   - execute_event: POST /api/runtime/forms/:id/events\n   - get_runtime_form: GET /api/runtime/forms/:id\n   - get_runtime_app: GET /api/runtime/app/:projectId\n2. packages/mcp/src/tools/debug.ts: registerDebugTools(server, api)\n   - debug_execute: 디버그 모드 실행 (trace 포함 반환)\n3. packages/mcp/src/tools/index.ts, server.ts 업데이트",
+      "dependsOn": [
+        "mcp-runtime-debug-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/runtime.ts",
+        "packages/mcp/src/tools/debug.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/runtime.ts",
+        "packages/mcp/src/tools/debug.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-utility-tools-plan",
+      "title": "유틸리티 Tools - 계획",
+      "description": "validate_form, get_server_health, search_controls",
+      "phase": "phase4-advanced",
+      "category": "plan",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 2.10을 참조하여 유틸리티 Tools 구현 계획을 수립하라.\n\n계획 내용:\n1. validate_form: 폼 정의 유효성 검증\n   - 입력: formDefinition (JSON)\n   - 검증: 컨트롤 이름 중복, 필수 속성, 타입 유효성, 이벤트 핸들러 구문\n2. get_server_health: 서버 상태 확인\n   - GET /api/health 또는 직접 상태 확인\n   - MongoDB 연결, Redis 연결, 서버 업타임\n3. search_controls: 폼 내 컨트롤 검색\n   - formId, query?(이름 검색), type?(타입 필터), property?(속성 검색)\n   - get_form → 컨트롤 필터링\n4. 낙관적 잠금 자동 재시도 유틸리티 (withOptimisticRetry)\n\n계획을 plans/mcp-utility-tools-plan.md에 작성하라.",
+      "dependsOn": [
+        "mcp-phase3-test"
+      ],
+      "outputFiles": [
+        "plans/mcp-utility-tools-plan.md"
+      ],
+      "modifiedFiles": [
+        "plans/mcp-utility-tools-plan.md"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-utility-tools-impl",
+      "title": "유틸리티 Tools - 구현",
+      "description": "유틸리티 Tools + 낙관적 잠금 재시도 구현",
+      "phase": "phase4-advanced",
+      "category": "implementation",
+      "done": false,
+      "prompt": "plans/mcp-utility-tools-plan.md에 따라 유틸리티 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/utils.ts (또는 적절한 파일):\n   - validate_form: 폼 정의 유효성 검증\n   - get_server_health: 서버 상태 확인\n   - search_controls: 폼 내 컨트롤 검색 (이름/타입/속성)\n2. packages/mcp/src/utils/retry.ts: withOptimisticRetry 유틸리티\n   - 409 Conflict 에러 시 자동 재시도 (최대 2회)\n3. 기존 컨트롤 조작 Tool들에 withOptimisticRetry 적용\n4. packages/mcp/src/tools/index.ts, server.ts 업데이트",
+      "dependsOn": [
+        "mcp-utility-tools-plan"
+      ],
+      "outputFiles": [
+        "packages/mcp/src/tools/utils.ts",
+        "packages/mcp/src/utils/retry.ts"
+      ],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/utils.ts",
+        "packages/mcp/src/utils/retry.ts",
+        "packages/mcp/src/tools/controls.ts",
+        "packages/mcp/src/tools/index.ts",
+        "packages/mcp/src/server.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-phase4-test",
+      "title": "Phase 4 통합 테스트",
+      "description": "Prompt, 런타임/디버그, 유틸리티 동작 검증",
+      "phase": "phase4-advanced",
+      "category": "testing",
+      "done": false,
+      "prompt": "Phase 4 구현을 종합 검증하라.\n\n1. TypeScript 컴파일: tsc --noEmit\n2. Prompt 테스트:\n   - create-form-wizard 프롬프트 조회\n   - add-crud-handlers 프롬프트 조회\n   - setup-navigation 프롬프트 조회\n3. 런타임/디버그 Tools 테스트:\n   - get_runtime_form 호출 (퍼블리시된 폼 필요)\n   - execute_event 호출\n4. 유틸리티 Tools 테스트:\n   - get_server_health → MongoDB/Redis 상태 확인\n   - search_controls로 폼 내 컨트롤 검색\n   - validate_form으로 폼 유효성 검증\n5. 낙관적 잠금 재시도 테스트:\n   - 동시 업데이트 시뮬레이션 → 자동 재시도 동작 확인\n\n실패 시 즉시 수정하라.",
+      "dependsOn": [
+        "mcp-prompts-impl",
+        "mcp-runtime-debug-tools-impl",
+        "mcp-utility-tools-impl"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-error-i18n",
+      "title": "에러 메시지 한국어화 및 컨텍스트 보강",
+      "description": "모든 Tool의 에러 메시지를 한국어로 작성하고 컨텍스트 정보 추가",
+      "phase": "phase5-polishing",
+      "category": "implementation",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 7 Phase 5 항목 22를 참조.\n\n모든 Tool 파일을 순회하여 에러 메시지를 한국어로 개선하라:\n\n1. 에러 메시지 한국어화:\n   - 'Form not found' → '폼을 찾을 수 없습니다 (formId: xxx)'\n   - 'Invalid control type' → '유효하지 않은 컨트롤 타입입니다: xxx (사용 가능: Button, Label, ...)'\n   - 'Version conflict' → '버전 충돌이 발생했습니다. 현재 버전: xxx, 요청 버전: yyy'\n2. 컨텍스트 정보 추가:\n   - 에러 시 관련 ID, 현재 상태, 가능한 해결 방법 포함\n   - 404 에러: '해당 리소스가 존재하지 않습니다. ID를 확인해주세요.'\n   - 400 에러: 어떤 필드가 잘못되었는지 상세히\n3. toolError 함수 개선: 에러 코드, 메시지, 상세 정보 포함\n\n수정 대상: packages/mcp/src/tools/*.ts, packages/mcp/src/utils/apiClient.ts",
+      "dependsOn": [
+        "mcp-phase4-test"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/projects.ts",
+        "packages/mcp/src/tools/forms.ts",
+        "packages/mcp/src/tools/controls.ts",
+        "packages/mcp/src/tools/events.ts",
+        "packages/mcp/src/tools/datasources.ts",
+        "packages/mcp/src/tools/themes.ts",
+        "packages/mcp/src/tools/shells.ts",
+        "packages/mcp/src/tools/runtime.ts",
+        "packages/mcp/src/tools/debug.ts",
+        "packages/mcp/src/utils/apiClient.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-tool-descriptions",
+      "title": "Tool description 최적화",
+      "description": "AI가 올바르게 Tool을 선택할 수 있도록 description 개선",
+      "phase": "phase5-polishing",
+      "category": "implementation",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 7 Phase 5 항목 23을 참조.\n\n모든 Tool의 description을 최적화하여 AI가 올바른 Tool을 선택하도록 개선하라:\n\n1. description 개선 원칙:\n   - 어떤 상황에서 이 Tool을 사용해야 하는지 명확히\n   - 입력 파라미터의 의미와 예시 포함\n   - 관련 Tool 간의 차이점 명시 (예: update_form vs update_control)\n   - 반환값에 대한 설명 포함\n2. 특히 개선이 필요한 Tool:\n   - add_control vs batch_add_controls: 단일 vs 일괄 사용 시점\n   - update_form vs update_control: 전체 수정 vs 개별 수정\n   - execute_event vs test_event_handler: 런타임 실행 vs 테스트 실행\n3. list_control_types의 description에 44개 전체 타입 나열\n4. add_event_handler의 description에 ctx 객체 사용법 요약 포함\n\n수정 대상: packages/mcp/src/tools/*.ts",
+      "dependsOn": [
+        "mcp-phase4-test"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/mcp/src/tools/projects.ts",
+        "packages/mcp/src/tools/forms.ts",
+        "packages/mcp/src/tools/controls.ts",
+        "packages/mcp/src/tools/events.ts",
+        "packages/mcp/src/tools/datasources.ts",
+        "packages/mcp/src/tools/themes.ts",
+        "packages/mcp/src/tools/shells.ts",
+        "packages/mcp/src/tools/runtime.ts",
+        "packages/mcp/src/tools/debug.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-performance",
+      "title": "성능 최적화",
+      "description": "폼 조회 캐싱 등 성능 개선",
+      "phase": "phase5-polishing",
+      "category": "implementation",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 7 Phase 5 항목 24를 참조.\n\n성능 최적화를 구현하라:\n\n1. 폼 조회 캐싱:\n   - 컨트롤 조작 시 get_form → update_form 패턴에서 불필요한 반복 조회 방지\n   - 간단한 in-memory 캐시 (TTL 5초) 또는 요청 단위 캐시\n   - update_form 후 캐시 무효화\n2. 정적 리소스 캐싱:\n   - webform://schema/* 리소스는 서버 시작 시 1회 조회 후 캐싱\n   - 컨트롤 타입 목록, 이벤트 목록 등은 변하지 않는 데이터\n3. batch 연산 최적화:\n   - batch_add_controls: 한 번의 get_form + update_form으로 처리\n4. API 클라이언트 최적화:\n   - 커넥션 재사용 (keep-alive)\n   - 요청 타임아웃 설정\n\n수정 대상: packages/mcp/src/utils/apiClient.ts, packages/mcp/src/tools/controls.ts, packages/mcp/src/resources/controlSchemaResource.ts",
+      "dependsOn": [
+        "mcp-phase4-test"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        "packages/mcp/src/utils/apiClient.ts",
+        "packages/mcp/src/tools/controls.ts",
+        "packages/mcp/src/resources/controlSchemaResource.ts"
+      ],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-tests",
+      "title": "테스트 코드 작성",
+      "description": "주요 Tool 및 유틸리티 단위/통합 테스트",
+      "phase": "phase5-polishing",
+      "category": "testing",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 7 Phase 5 항목 25를 참조.\n\nVitest를 사용하여 MCP 서버 테스트를 작성하라:\n\n1. 유닛 테스트:\n   - packages/mcp/src/__tests__/utils/apiClient.test.ts: API 클라이언트 (mock fetch)\n   - packages/mcp/src/__tests__/utils/autoPosition.test.ts: 자동 배치 알고리즘\n   - packages/mcp/src/__tests__/utils/controlDefaults.test.ts: 컨트롤 기본값\n   - packages/mcp/src/__tests__/utils/validators.test.ts: 입력값 검증\n   - packages/mcp/src/__tests__/utils/retry.test.ts: 낙관적 잠금 재시도\n2. Tool 테스트 (API mock):\n   - packages/mcp/src/__tests__/tools/projects.test.ts\n   - packages/mcp/src/__tests__/tools/forms.test.ts\n   - packages/mcp/src/__tests__/tools/controls.test.ts\n   - packages/mcp/src/__tests__/tools/events.test.ts\n3. vitest.config.ts 설정\n4. pnpm --filter @webform/mcp test 실행하여 전체 통과 확인\n\n실패 시 즉시 수정하라.",
+      "dependsOn": [
+        "mcp-error-i18n",
+        "mcp-tool-descriptions",
+        "mcp-performance"
+      ],
+      "outputFiles": [
+        "packages/mcp/vitest.config.ts",
+        "packages/mcp/src/__tests__/utils/apiClient.test.ts",
+        "packages/mcp/src/__tests__/utils/autoPosition.test.ts",
+        "packages/mcp/src/__tests__/utils/controlDefaults.test.ts",
+        "packages/mcp/src/__tests__/utils/validators.test.ts",
+        "packages/mcp/src/__tests__/utils/retry.test.ts",
+        "packages/mcp/src/__tests__/tools/projects.test.ts",
+        "packages/mcp/src/__tests__/tools/forms.test.ts",
+        "packages/mcp/src/__tests__/tools/controls.test.ts",
+        "packages/mcp/src/__tests__/tools/events.test.ts"
+      ],
+      "modifiedFiles": [],
+      "subtasks": null
+    },
+    {
+      "id": "mcp-integration-config",
+      "title": "Claude 통합 설정 및 최종 검증",
+      "description": "Claude Desktop/Code 설정 파일 생성, MCP Inspector 종합 테스트",
+      "phase": "phase5-polishing",
+      "category": "testing",
+      "done": false,
+      "prompt": "MCP-SERVER.md 섹션 6.1~6.3을 참조하여 Claude 통합 설정을 구성하고 최종 검증하라.\n\n1. 설정 파일 생성/업데이트:\n   - .claude/settings.json에 mcpServers.webform 추가\n   - 예시 claude_desktop_config.json 작성 (문서용)\n2. 빌드 및 실행 확인:\n   - pnpm --filter @webform/mcp build\n   - node packages/mcp/dist/index.js 실행 가능 확인\n3. MCP Inspector 종합 테스트:\n   - npx @modelcontextprotocol/inspector node packages/mcp/dist/index.js\n   - 전체 Tool 목록 확인 (약 50개)\n   - 전체 Resource 목록 확인\n   - 전체 Prompt 목록 확인\n4. 시나리오 테스트 (Express 서버 실행 상태에서):\n   - 시나리오 1: 프로젝트 생성 → 폼 생성 → 컨트롤 추가 → 이벤트 등록 → 퍼블리시\n   - 시나리오 2: 기존 폼에 DataGridView + 데이터 바인딩\n   - 시나리오 3: 테마 생성 → 적용\n5. 루트 package.json의 dev 스크립트에 mcp 패키지 포함 확인\n\n실패 시 즉시 수정하라.",
+      "dependsOn": [
+        "mcp-tests"
+      ],
+      "outputFiles": [],
+      "modifiedFiles": [
+        ".claude/settings.json",
+        "package.json"
+      ],
+      "subtasks": null
+    }
+  ],
+  "workflow": null
+}
