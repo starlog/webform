@@ -778,7 +778,7 @@
       "description": "주요 Tool 및 유틸리티 단위/통합 테스트",
       "phase": "phase5-polishing",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 7 Phase 5 항목 25를 참조.\n\nVitest를 사용하여 MCP 서버 테스트를 작성하라:\n\n1. 유닛 테스트:\n   - packages/mcp/src/__tests__/utils/apiClient.test.ts: API 클라이언트 (mock fetch)\n   - packages/mcp/src/__tests__/utils/autoPosition.test.ts: 자동 배치 알고리즘\n   - packages/mcp/src/__tests__/utils/controlDefaults.test.ts: 컨트롤 기본값\n   - packages/mcp/src/__tests__/utils/validators.test.ts: 입력값 검증\n   - packages/mcp/src/__tests__/utils/retry.test.ts: 낙관적 잠금 재시도\n2. Tool 테스트 (API mock):\n   - packages/mcp/src/__tests__/tools/projects.test.ts\n   - packages/mcp/src/__tests__/tools/forms.test.ts\n   - packages/mcp/src/__tests__/tools/controls.test.ts\n   - packages/mcp/src/__tests__/tools/events.test.ts\n3. vitest.config.ts 설정\n4. pnpm --filter @webform/mcp test 실행하여 전체 통과 확인\n\n실패 시 즉시 수정하라.",
       "dependsOn": [
         "mcp-error-i18n",
