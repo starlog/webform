@@ -539,7 +539,7 @@
       "description": "데이터소스, 바인딩, 테마, Shell Tools 동작 검증",
       "phase": "phase3-data-theme",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Phase 3 구현을 종합 검증하라.\n\n1. TypeScript 컴파일: tsc --noEmit\n2. 데이터소스 Tools 테스트:\n   - create_datasource (static 타입) → get_datasource\n   - query_datasource 실행\n3. 데이터 바인딩 테스트:\n   - add_data_binding → list_data_bindings\n   - remove_data_binding\n4. 테마 Tools 테스트:\n   - list_themes → 프리셋 테마 확인\n   - create_theme → apply_theme_to_form\n5. Shell Tools 테스트:\n   - create_shell → get_shell\n   - update_shell → publish_shell\n6. 리소스 테스트:\n   - webform://themes/{themeId}\n   - webform://shells/{projectId}\n   - webform://datasources/{datasourceId}\n\n실패 시 즉시 수정하라.",
       "dependsOn": [
         "mcp-datasource-tools-impl",
