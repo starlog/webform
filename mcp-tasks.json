@@ -475,7 +475,7 @@
       "description": "테마 CRUD + apply Tools 구현",
       "phase": "phase3-data-theme",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-theme-tools-plan.md에 따라 테마 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/themes.ts: registerThemeTools(server, api)\n   - list_themes, get_theme, create_theme, update_theme, delete_theme\n   - apply_theme_to_form: formId + themeId → 폼 속성 업데이트\n2. packages/mcp/src/resources/themeResource.ts:\n   - webform://themes/{themeId}: 테마 토큰 상세\n3. packages/mcp/src/tools/index.ts, resources/index.ts, server.ts 업데이트",
       "dependsOn": [
         "mcp-theme-tools-plan"
