@@ -235,7 +235,7 @@
       "description": "add_control, update_control, remove_control, move_control, resize_control, batch_add_controls, list_control_types, get_control_schema",
       "phase": "phase2-controls-events",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 2.3, 5.2~5.4를 참조하여 컨트롤 조작 Tools 구현 계획을 수립하라.\n\n계획 내용:\n1. 컨트롤 조작 헬퍼 함수 설계 (get_form → 변환 → update_form 패턴)\n   - addControlToForm(): 컨트롤 추가\n   - updateControlInForm(): 컨트롤 속성 수정\n   - removeControlFromForm(): 컨트롤 삭제\n2. 자동 배치 알고리즘 (autoPosition): 겹침 방지, 16px 그리드 스냅\n3. 컨트롤 타입별 기본값 (CONTROL_DEFAULTS): 44개 타입의 size, properties\n4. Tools 목록:\n   - add_control: 단일 컨트롤 추가\n   - update_control: 속성 수정\n   - remove_control: 삭제\n   - move_control: 위치 이동\n   - resize_control: 크기 변경\n   - batch_add_controls: 일괄 추가\n   - list_control_types: 사용 가능한 타입 목록\n   - get_control_schema: 타입별 속성 스키마\n5. packages/common의 ControlType 타입 참조\n\n계획을 plans/mcp-control-tools-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-phase1-test"
@@ -279,7 +279,7 @@
       "description": "add_event_handler, update_event_handler, remove_event_handler, list_event_handlers, list_available_events, test_event_handler",
       "phase": "phase2-controls-events",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 2.4를 참조하여 이벤트 핸들러 Tools 구현 계획을 수립하라.\n\n기존 서버의 이벤트 관련 API 라우트를 확인하라:\n- packages/server/src/routes/ 에서 이벤트 핸들러 관련 엔드포인트\n- packages/server/src/services/EventEngine.ts 참조\n- packages/common의 EventHandler 타입 참조\n\n계획 내용:\n1. add_event_handler: 폼의 eventHandlers 배열에 핸들러 추가 (get_form → update_form 패턴)\n2. update_event_handler: 기존 핸들러 코드 수정\n3. remove_event_handler: 핸들러 삭제\n4. list_event_handlers: 폼의 모든 핸들러 조회\n5. list_available_events: 컨트롤 타입별 가능한 이벤트 목록 (COMMON_EVENTS + CONTROL_EVENTS)\n6. test_event_handler: 이벤트 핸들러 코드 테스트 실행 (POST /api/runtime/forms/:id/events)\n7. Tool description에 ctx 객체 사용법 가이드 포함\n\n계획을 plans/mcp-event-tools-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-phase1-test"
@@ -319,7 +319,7 @@
       "description": "정적 스키마 리소스 및 가이드 문서 리소스 계획",
       "phase": "phase2-controls-events",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 3.1을 참조하여 스키마 및 가이드 Resources 구현 계획을 수립하라.\n\n계획 내용:\n1. 정적 리소스:\n   - webform://schema/control-types: 전체 컨트롤 타입 목록 및 기본 속성 (packages/common의 ControlType 기반)\n   - webform://schema/events: 컨트롤 타입별 이벤트 목록 (COMMON_EVENTS + CONTROL_EVENTS)\n   - webform://schema/form-properties: FormProperties 스키마\n   - webform://schema/shell-properties: ShellProperties 스키마\n   - webform://schema/theme-tokens: ThemeTokens 구조\n2. 가이드 리소스 (text/markdown):\n   - webform://guide/event-context: ctx 객체 API 문서\n   - webform://guide/data-binding: 데이터 바인딩 설정 가이드\n   - webform://guide/control-hierarchy: 컨테이너 컨트롤 계층 구조 가이드\n3. packages/common 타입 정의 참조하여 스키마 데이터 추출\n\n계획을 plans/mcp-schema-resources-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-phase1-test"
