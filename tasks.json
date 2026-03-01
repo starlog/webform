@@ -205,7 +205,7 @@
       "description": "SandboxRunner/EventEngine SwaggerConnector 통합 커밋",
       "phase": "phase3-backend",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "SandboxRunner와 EventEngine의 SwaggerConnector 통합 변경사항을 커밋하라.\n\n## 커밋 절차\n\n1. 변경 파일 확인:\n   ```bash\n   git status\n   git diff packages/server/src/services/\n   ```\n\n2. 관련 파일 스테이징:\n   ```bash\n   git add packages/server/src/services/SandboxRunner.ts\n   git add packages/server/src/services/EventEngine.ts\n   git add packages/server/src/__tests__/SwaggerConnector.integration.test.ts\n   git add plans/sandbox-integration-plan.md\n   ```\n\n3. 한국어 커밋 메시지:\n   ```\n   feat(server): SandboxRunner/EventEngine에 SwaggerConnector 통합\n\n   - SwaggerConnectorInfo 인터페이스 추가 (SandboxRunner)\n   - __swaggerHandler ivm.Reference 주입 (HTTP 요청 수행)\n   - wrapHandlerCode()에 operation별 ctx.controls 메서드 주입\n   - EventEngine.extractSwaggerConnectors() 추가\n   - executeEvent()에서 swaggerConnectors 전달\n   - 통합 테스트 작성 및 통과\n   ```\n\n## 주의\n- .env 파일 포함 금지",
       "dependsOn": [
         "sandbox-integration-test"
