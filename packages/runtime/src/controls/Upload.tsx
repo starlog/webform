@@ -56,8 +56,32 @@ export function Upload({
       .slice(0, maxCount);
     const fileMeta = files.map((f) => ({ name: f.name, size: f.size, type: f.type }));
     setSelectedFiles(fileMeta);
-    updateControlState(id, 'selectedFiles', fileMeta);
-    onFileSelected?.();
+
+    // Read image files as dataUrl for preview support
+    const imageFiles = files.filter((f) => f.type.startsWith('image/'));
+    if (imageFiles.length > 0) {
+      let completed = 0;
+      const enriched = fileMeta.map((m) => ({ ...m, dataUrl: '' }));
+      files.forEach((file, idx) => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            enriched[idx].dataUrl = (e.target?.result as string) ?? '';
+            completed++;
+            if (completed === imageFiles.length) {
+              updateControlState(id, 'selectedFiles', enriched);
+              onFileSelected?.();
+            }
+          };
+          reader.readAsDataURL(file);
+        } else {
+          completed++;
+        }
+      });
+    } else {
+      updateControlState(id, 'selectedFiles', fileMeta);
+      onFileSelected?.();
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -76,16 +76,25 @@ export class WebFormApiClient {
     this.baseUrl = baseUrl || process.env.WEBFORM_API_URL || 'http://localhost:4000';
   }
 
-  async init(): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/auth/dev-token`, {
-      method: 'POST',
-      keepalive: true,
-    });
-    if (!res.ok) {
-      throw new Error(`토큰 발급 실패: ${res.status} ${res.statusText}`);
+  async init(maxRetries = 10, intervalMs = 2000): Promise<void> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const res = await fetch(`${this.baseUrl}/auth/dev-token`, {
+          method: 'POST',
+          keepalive: true,
+        });
+        if (!res.ok) {
+          throw new Error(`토큰 발급 실패: ${res.status} ${res.statusText}`);
+        }
+        const data = (await res.json()) as { token: string };
+        this.token = data.token;
+        return;
+      } catch (err) {
+        if (attempt === maxRetries) throw err;
+        console.error(`[mcp] 서버 연결 대기 중... (${attempt}/${maxRetries})`);
+        await new Promise((r) => setTimeout(r, intervalMs));
+      }
     }
-    const data = (await res.json()) as { token: string };
-    this.token = data.token;
   }
 
   async get<T>(path: string): Promise<T> {
