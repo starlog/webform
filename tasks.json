@@ -114,7 +114,7 @@
       "description": "SwaggerParser 단위 테스트 작성 및 실행",
       "phase": "phase2-parallel",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "SwaggerParser 단위 테스트를 작성하고 실행하라.\n\n## 테스트 파일 위치\n`packages/server/src/__tests__/SwaggerParser.test.ts` (신규 생성)\n\n먼저 기존 테스트 파일 구조 확인:\n```\nGlob: packages/server/src/__tests__/*.test.ts\nRead: 기존 테스트 파일 하나 읽어 describe/it 패턴 파악\n```\n\n## 테스트 케이스 구현\n\n```typescript\nimport { describe, it, expect } from 'vitest';\nimport { parseSwaggerSpec } from '../services/SwaggerParser';\n\n// OpenAPI 3.0 샘플 YAML\nconst openapi3Sample = `\nopenapi: '3.0.3'\ninfo:\n  title: Petstore API\n  version: '1.0'\nservers:\n  - url: https://petstore.example.com/v1\npaths:\n  /pets:\n    get:\n      operationId: listPets\n      summary: List all pets\n      parameters:\n        - name: limit\n          in: query\n          schema:\n            type: integer\n      responses:\n        '200':\n          description: OK\n    post:\n      operationId: createPet\n      requestBody:\n        content:\n          application/json:\n            schema:\n              type: object\n      responses:\n        '201':\n          description: Created\n  /pets/{petId}:\n    get:\n      operationId: getPetById\n      parameters:\n        - name: petId\n          in: path\n          required: true\n      responses:\n        '200':\n          description: OK\n`;\n\ndescribe('parseSwaggerSpec', () => {\n  it('OpenAPI 3.0 YAML을 파싱하여 operations 추출', () => {\n    const result = parseSwaggerSpec(openapi3Sample);\n    expect(result.title).toBe('Petstore API');\n    expect(result.baseUrl).toBe('https://petstore.example.com/v1');\n    expect(result.operations).toHaveLength(3);\n  });\n\n  it('명시적 operationId를 그대로 사용', () => {\n    const result = parseSwaggerSpec(openapi3Sample);\n    const listPets = result.operations.find(o => o.operationId === 'listPets');\n    expect(listPets).toBeDefined();\n    expect(listPets?.method).toBe('GET');\n    expect(listPets?.path).toBe('/pets');\n  });\n\n  it('path 파라미터 추출: /pets/{petId} → pathParams: [\"petId\"]', () => {\n    const result = parseSwaggerSpec(openapi3Sample);\n    const getPetById = result.operations.find(o => o.operationId === 'getPetById');\n    expect(getPetById?.pathParams).toContain('petId');\n  });\n\n  it('query 파라미터 추출', () => {\n    const result = parseSwaggerSpec(openapi3Sample);\n    const listPets = result.operations.find(o => o.operationId === 'listPets');\n    expect(listPets?.queryParams).toContain('limit');\n  });\n\n  it('requestBody 존재 시 hasRequestBody: true', () => {\n    const result = parseSwaggerSpec(openapi3Sample);\n    const createPet = result.operations.find(o => o.operationId === 'createPet');\n    expect(createPet?.hasRequestBody).toBe(true);\n  });\n\n  it('operationId 미지정 시 자동 생성', () => {\n    const yaml = `\nopenapi: '3.0.3'\ninfo:\n  title: Test\n  version: '1'\nservers:\n  - url: https://api.example.com\npaths:\n  /users:\n    get:\n      responses:\n        '200':\n          description: OK\n    post:\n      requestBody:\n        content:\n          application/json:\n            schema:\n              type: object\n      responses:\n        '201':\n          description: Created\n`;\n    const result = parseSwaggerSpec(yaml);\n    expect(result.operations[0].operationId).toMatch(/^get/i);\n    expect(result.operations[1].operationId).toMatch(/^(post|create)/i);\n  });\n\n  it('잘못된 YAML 입력 시 에러 throw', () => {\n    expect(() => parseSwaggerSpec('{ invalid yaml {')).toThrow();\n  });\n\n  it('paths 없는 스펙 → 빈 operations 배열', () => {\n    const yaml = `\nopenapi: '3.0.3'\ninfo:\n  title: Empty\n  version: '1'\nservers:\n  - url: https://api.example.com\n`;\n    const result = parseSwaggerSpec(yaml);\n    expect(result.operations).toHaveLength(0);\n  });\n});\n```\n\n## 테스트 실행\n```bash\ncd packages/server && npx vitest run src/__tests__/SwaggerParser.test.ts\n```\n\n모든 테스트가 통과해야 한다. 실패하면 SwaggerParser.ts를 수정하여 통과시켜라.",
       "dependsOn": [
         "swagger-parser-impl"
@@ -257,7 +257,7 @@
       "description": "Runtime 컴포넌트 TypeScript 타입 체크 및 린트",
       "phase": "phase2-parallel",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Runtime SwaggerConnector 컴포넌트 구현 후 타입 체크와 린트를 실행하라.\n\n## 검증 단계\n\n1. TypeScript 타입 체크:\n   ```bash\n   pnpm typecheck\n   ```\n\n2. ESLint:\n   ```bash\n   pnpm lint\n   ```\n\n3. 파일 내용 확인:\n   - `packages/runtime/src/controls/SwaggerConnector.tsx` 읽어 내용 확인\n   - `packages/runtime/src/controls/registry.ts` 읽어 SwaggerConnector 등록 확인\n\n## 오류 처리\n- TypeScript 오류 → 즉시 수정\n- lint 오류 → `pnpm lint:fix` 실행 후 재검증",
       "dependsOn": [
         "runtime-component-impl"
@@ -327,7 +327,7 @@
       "description": "Designer 컴포넌트 TypeScript 타입 체크 및 린트",
       "phase": "phase2-parallel",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Designer SwaggerConnector UI 구현 후 타입 체크와 린트를 실행하라.\n\n## 검증 단계\n\n1. TypeScript 타입 체크:\n   ```bash\n   pnpm typecheck\n   ```\n\n2. ESLint:\n   ```bash\n   pnpm lint\n   ```\n\n3. 파일 내용 확인:\n   - `packages/designer/src/controls/SwaggerConnectorControl.tsx` 읽어 확인\n   - `packages/designer/src/controls/registry.ts` 읽어 SwaggerConnector 등록 확인\n   - `packages/designer/src/components/PropertyPanel/controlProperties.ts` 읽어 swaggerConnectorProps 확인\n\n4. designer 테스트 실행 (있는 경우):\n   ```bash\n   pnpm --filter @webform/designer test\n   ```\n\n## 오류 처리\n- TypeScript 오류 → 즉시 수정\n- lint 오류 → `pnpm lint:fix` 실행",
       "dependsOn": [
         "designer-ui-impl"
@@ -391,7 +391,7 @@
       "description": "MCP 기본값 변경 후 타입 체크 및 린트",
       "phase": "phase2-parallel",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "MCP SwaggerConnector 기본값 추가 후 검증을 수행하라.\n\n## 검증 단계\n\n1. TypeScript 타입 체크:\n   ```bash\n   pnpm typecheck\n   ```\n\n2. ESLint:\n   ```bash\n   pnpm lint\n   ```\n\n3. 파일 확인:\n   - `packages/mcp/src/utils/controlDefaults.ts` 읽어 SwaggerConnector 항목 확인\n\n4. MCP 패키지 테스트 (있는 경우):\n   ```bash\n   pnpm --filter @webform/mcp test\n   ```\n\n## 오류 처리\n- TypeScript 오류 → 즉시 수정\n- lint 오류 → `pnpm lint:fix`",
       "dependsOn": [
         "mcp-defaults-impl"
