@@ -518,7 +518,7 @@
       "description": "ApplicationShell CRUD + publish Tools 구현",
       "phase": "phase3-data-theme",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-shell-tools-plan.md에 따라 Shell Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/shells.ts: registerShellTools(server, api)\n   - get_shell: projectId → Shell 조회\n   - create_shell: projectId, name, properties?, controls?, startFormId?\n   - update_shell: projectId, properties?, controls?, eventHandlers?, startFormId?\n   - delete_shell: projectId\n   - publish_shell: projectId\n2. packages/mcp/src/resources/에 Shell 리소스 추가:\n   - webform://shells/{projectId}\n3. packages/mcp/src/tools/index.ts, server.ts 업데이트",
       "dependsOn": [
         "mcp-shell-tools-plan"

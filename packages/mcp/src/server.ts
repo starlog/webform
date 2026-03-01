@@ -7,6 +7,7 @@ import {
   registerDatasourceTools,
   registerDatabindingTools,
   registerThemeTools,
+  registerShellTools,
 } from './tools/index.js';
 import {
   registerProjectResources,
@@ -14,6 +15,7 @@ import {
   registerSchemaResources,
   registerGuideResources,
   registerThemeResources,
+  registerShellResources,
 } from './resources/index.js';
 
 export function registerTools(server: McpServer): void {
@@ -29,7 +31,7 @@ export function registerTools(server: McpServer): void {
   registerDatasourceTools(server);
   registerDatabindingTools(server);
   registerThemeTools(server);
-  // registerShellTools(server);
+  registerShellTools(server);
 }
 
 export function registerResources(server: McpServer): void {
@@ -41,8 +43,9 @@ export function registerResources(server: McpServer): void {
   registerSchemaResources(server);
   registerGuideResources(server);
 
-  // Phase 3: 테마 Resources
+  // Phase 3: 테마/Shell Resources
   registerThemeResources(server);
+  registerShellResources(server);
 }
 
 export function registerPrompts(_server: McpServer): void {

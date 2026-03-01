@@ -3,3 +3,4 @@ export { registerFormResources } from './formResource.js';
 export { registerSchemaResources } from './schemaResource.js';
 export { registerGuideResources } from './guideResource.js';
 export { registerThemeResources } from './themeResource.js';
+export { registerShellResources } from './shellResource.js';
