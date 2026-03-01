@@ -55,7 +55,7 @@
       "description": "기존 Express 서버 REST API 호출용 HTTP 클라이언트 계획",
       "phase": "phase1-foundation",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 5.1을 참조하여 API 클라이언트 구현 계획을 수립하라.\n\n계획 내용:\n1. WebFormApiClient 클래스 설계:\n   - baseUrl: WEBFORM_API_URL 환경변수 또는 http://localhost:4000\n   - init(): /auth/dev-token에서 개발 토큰 자동 발급\n   - get<T>(path): GET 요청\n   - post<T>(path, body): POST 요청\n   - put<T>(path, body): PUT 요청\n   - patch<T>(path, body): PATCH 요청\n   - delete(path): DELETE 요청\n2. 에러 처리: HTTP 에러 → MCP 에러 변환\n3. 인증 헤더 자동 포함\n4. 입력값 검증 유틸리티 (validators.ts)\n\n기존 서버 API 라우트(packages/server/src/routes/)를 참조하여 실제 엔드포인트 경로 확인.\n\n계획을 plans/mcp-api-client-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-package-init-impl"
