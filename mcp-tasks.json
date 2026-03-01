@@ -218,7 +218,7 @@
       "description": "MCP 패키지 빌드, 서버 시작, 기본 Tool/Resource 동작 검증",
       "phase": "phase1-foundation",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Phase 1 구현을 종합 검증하라.\n\n1. TypeScript 컴파일 검증: packages/mcp에서 tsc --noEmit\n2. MCP Inspector 테스트:\n   - npx @modelcontextprotocol/inspector node packages/mcp/dist/index.js\n   - Tool 목록 확인 (프로젝트 8개 + 폼 8개)\n   - Resource 목록 확인\n3. 기능 테스트 (Express 서버 실행 상태에서):\n   - list_projects 호출 → 프로젝트 목록 반환 확인\n   - create_project → get_project 흐름 확인\n   - create_form → get_form 흐름 확인\n   - Resource URI 조회 확인\n4. 에러 케이스 확인:\n   - 잘못된 ID로 get_project → 에러 응답\n   - 필수 파라미터 누락 → Zod 검증 에러\n\n실패 시 즉시 수정하라.",
       "dependsOn": [
         "mcp-project-tools-impl",
