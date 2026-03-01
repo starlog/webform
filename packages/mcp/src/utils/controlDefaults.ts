@@ -9,7 +9,7 @@ export interface ControlDefault {
 }
 
 /**
- * 44개 컨트롤 타입별 기본 크기, 속성, 설명, 카테고리.
+ * 45개 컨트롤 타입별 기본 크기, 속성, 설명, 카테고리.
  * packages/designer/src/stores/designerStore.ts의 getDefaultSize() / getDefaultProperties() 기반.
  */
 export const CONTROL_DEFAULTS: Record<ControlType, ControlDefault> = {
@@ -165,7 +165,7 @@ export const CONTROL_DEFAULTS: Record<ControlType, ControlDefault> = {
     isContainer: false,
   },
 
-  // ── 고급 컨트롤 (10종) ──
+  // ── 고급 컨트롤 (11종) ──
   MenuStrip: {
     size: { width: 800, height: 24 },
     properties: {
@@ -296,6 +296,18 @@ export const CONTROL_DEFAULTS: Record<ControlType, ControlDefault> = {
       maxResultCount: 1000,
     },
     description: 'MongoDB 연결',
+    category: '고급',
+    isContainer: false,
+  },
+  SwaggerConnector: {
+    size: { width: 180, height: 40 },
+    properties: {
+      specYaml: '',
+      baseUrl: '',
+      defaultHeaders: '{}',
+      timeout: 10000,
+    },
+    description: 'Swagger/OpenAPI REST 클라이언트',
     category: '고급',
     isContainer: false,
   },
