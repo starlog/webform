@@ -96,7 +96,7 @@
       "description": "list_projects, get_project, create_project, update_project, delete_project, export_project, import_project, publish_all",
       "phase": "phase1-foundation",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 2.1을 참조하여 프로젝트 관리 Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트(packages/server/src/routes/)를 확인하여 각 Tool에 매핑되는 REST API 엔드포인트를 파악하라.\n\n계획 내용:\n1. list_projects: GET /api/projects?page&limit&search\n2. get_project: GET /api/projects/:projectId\n3. create_project: POST /api/projects\n4. update_project: PUT /api/projects/:projectId\n5. delete_project: DELETE /api/projects/:projectId\n6. export_project: GET /api/projects/:projectId/export\n7. import_project: POST /api/projects/import\n8. publish_all: POST /api/projects/:projectId/publish-all\n\n각 Tool의 Zod 스키마, 설명(description), 반환값 형식을 설계하라.\n\n계획을 plans/mcp-project-tools-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-api-client-impl"
@@ -136,7 +136,7 @@
       "description": "list_forms, get_form, create_form, update_form, delete_form, publish_form, get_form_versions, get_form_version_snapshot",
       "phase": "phase1-foundation",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 2.2를 참조하여 폼 관리 Tools 구현 계획을 수립하라.\n\n기존 서버 API 라우트(packages/server/src/routes/)를 확인하여 각 Tool에 매핑되는 REST API 엔드포인트를 파악하라.\n\n계획 내용:\n1. list_forms: GET /api/forms?projectId&page&limit&search&status\n2. get_form: GET /api/forms/:formId\n3. create_form: POST /api/forms\n4. update_form: PUT /api/forms/:formId (낙관적 잠금 - version 필수)\n5. delete_form: DELETE /api/forms/:formId\n6. publish_form: POST /api/forms/:formId/publish\n7. get_form_versions: GET /api/forms/:formId/versions\n8. get_form_version_snapshot: GET /api/forms/:formId/versions/:version\n\n각 Tool의 Zod 스키마, 설명, 반환값 형식을 설계하라. update_form의 낙관적 잠금 처리 방식도 포함.\n\n계획을 plans/mcp-form-tools-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-api-client-impl"
@@ -176,7 +176,7 @@
       "description": "프로젝트, 폼 동적 리소스 계획",
       "phase": "phase1-foundation",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 3.2~3.3을 참조하여 기본 Resources 구현 계획을 수립하라.\n\n계획 내용:\n1. 동적 리소스 (ResourceTemplate 사용):\n   - webform://projects/{projectId}: 프로젝트 상세 + 폼 목록\n   - webform://forms/{formId}: 폼 정의 전체 (FormDefinition)\n   - webform://forms/{formId}/controls: 폼의 컨트롤 목록\n   - webform://forms/{formId}/events: 폼의 이벤트 핸들러 목록\n   - webform://forms/{formId}/bindings: 폼의 데이터 바인딩 목록\n   - webform://forms/{formId}/versions: 폼의 버전 히스토리\n2. Resource 구현 패턴: server.resource() 호출, URI 매핑, MIME type\n3. API 클라이언트를 통한 데이터 조회\n\n계획을 plans/mcp-basic-resources-plan.md에 작성하라.",
       "dependsOn": [
         "mcp-api-client-impl"
