@@ -32,6 +32,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [loading, setLoading] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [renamingFormId, setRenamingFormId] = useState<string | null>(null);
   const [renamingValue, setRenamingValue] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -417,16 +418,27 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
           padding: '4px 8px',
           borderBottom: '1px solid #ddd',
           backgroundColor: '#e8e8e8',
           fontSize: 11,
           fontWeight: 600,
+          gap: 4,
         }}
       >
-        <span>프로젝트 탐색기</span>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <span
+          style={{ cursor: 'pointer', userSelect: 'none', fontSize: 10 }}
+          onClick={() => setCollapsed((v) => !v)}
+        >
+          {collapsed ? '\u25B6' : '\u25BC'}
+        </span>
+        <span
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+          onClick={() => setCollapsed((v) => !v)}
+        >
+          프로젝트 탐색기
+        </span>
+        <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
           <button
             onClick={handleNewProject}
             title="새 프로젝트"
@@ -476,7 +488,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
       </div>
 
       {/* 트리뷰 */}
-      <div role="tree" aria-label="프로젝트 탐색기" style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
+      {!collapsed && <div role="tree" aria-label="프로젝트 탐색기" style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
         {loading && <div style={{ padding: 8, color: '#888' }}>로딩 중...</div>}
 
         {!loading && projects.length === 0 && (
@@ -648,7 +660,7 @@ export function ProjectExplorer({ onFormSelect, onPublishAll, refreshKey }: Proj
             </div>
           );
         })}
-      </div>
+      </div>}
 
       {/* 컨텍스트 메뉴 */}
       {contextMenu?.visible && (

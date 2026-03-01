@@ -14,6 +14,7 @@ import { MongoColumnsEditor } from './editors/MongoColumnsEditor';
 import { MongoConnectionStringEditor } from './editors/MongoConnectionStringEditor';
 import { SampleDataEditor } from './editors/SampleDataEditor';
 import { SwaggerSpecEditor } from './editors/SwaggerSpecEditor';
+import { SwaggerApisEditor } from './editors/SwaggerApisEditor';
 import { MenuItemEditor } from '../Editors/MenuItemEditor';
 import { ToolStripItemEditor } from '../Editors/ToolStripItemEditor';
 import { StatusStripItemEditor } from '../Editors/StatusStripItemEditor';
@@ -75,7 +76,7 @@ interface PropertyRowProps {
 }
 
 function PropertyRow({ meta, value, onChange }: PropertyRowProps) {
-  if (meta.editorType === 'graphSample') {
+  if (meta.editorType === 'graphSample' || meta.editorType === 'swaggerApis') {
     return (
       <div style={{ padding: '4px 6px', borderBottom: '1px solid #f0f0f0', fontSize: 12 }}>
         <PropertyEditor meta={meta} value={value} onChange={onChange} />
@@ -151,6 +152,8 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
       return <StatusStripItemEditor value={value as any[] ?? []} onChange={onChange} />;
     case 'swaggerSpec':
       return <SwaggerSpecEditor value={value as string ?? ''} onChange={onChange} />;
+    case 'swaggerApis':
+      return <SwaggerApisEditor value={value as string ?? ''} />;
     default:
       return <TextEditor value={String(value ?? '')} onChange={onChange} />;
   }

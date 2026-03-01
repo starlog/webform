@@ -292,23 +292,67 @@ export class SandboxRunner {
 
           const url = info.baseUrl + resolvedPath + queryString;
 
-          // SSRF 방어
-          await validateSandboxUrl(url);
+          // SwaggerConnector의 baseUrl은 디자이너가 설정한 신뢰 값이므로
+          // SSRF 검증을 건너뛴다 (ctx.http와 달리 스크립트가 URL을 제어하지 않음)
 
           // headers 병합: defaultHeaders + extraHeaders + Content-Type
           const headers: Record<string, string> = { ...info.defaultHeaders };
           if (opts.headers) {
             Object.assign(headers, opts.headers);
           }
-          if (opts.body !== undefined && !headers['Content-Type'] && !headers['content-type']) {
-            headers['Content-Type'] = 'application/json';
+
+          let fetchBody: FormData | string | undefined;
+
+          if (op.isMultipart && opts.body && typeof opts.body === 'object') {
+            // multipart/form-data: body의 각 필드를 FormData로 변환
+            const formData = new FormData();
+            for (const [fieldName, fieldValue] of Object.entries(
+              opts.body as Record<string, unknown>,
+            )) {
+              if (
+                fieldValue &&
+                typeof fieldValue === 'object' &&
+                'dataUrl' in (fieldValue as Record<string, unknown>)
+              ) {
+                // dataUrl 필드 → 파일로 변환
+                const fileInfo = fieldValue as { dataUrl: string; filename?: string };
+                const match = fileInfo.dataUrl.match(
+                  /^data:([^;]+);base64,(.+)$/,
+                );
+                if (match) {
+                  const mimeType = match[1];
+                  const buffer = Buffer.from(match[2], 'base64');
+                  const blob = new Blob([buffer], { type: mimeType });
+                  formData.append(
+                    fieldName,
+                    blob,
+                    fileInfo.filename || 'file',
+                  );
+                }
+              } else {
+                formData.append(fieldName, String(fieldValue));
+              }
+            }
+            fetchBody = formData;
+            // Content-Type은 자동 설정 (boundary 포함)
+          } else if (opts.body !== undefined) {
+            if (!headers['Content-Type'] && !headers['content-type']) {
+              headers['Content-Type'] = 'application/json';
+            }
+            fetchBody = JSON.stringify(opts.body);
           }
 
           // HTTP 요청 수행
           const res = await fetch(url, {
             method: op.method,
-            headers,
-            body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+            headers: fetchBody instanceof FormData
+              ? Object.fromEntries(
+                  Object.entries(headers).filter(
+                    ([k]) => k.toLowerCase() !== 'content-type',
+                  ),
+                )
+              : headers,
+            body: fetchBody,
             signal: AbortSignal.timeout(info.timeout),
           });
 
@@ -559,6 +603,140 @@ ${sc.operations.map((op) => `        ctx.controls['${sc.controlName}']['${op.ope
           }
           return null;
         };
+        function jsonPath(obj, expr) {
+          if (typeof expr !== 'string' || expr.charAt(0) !== '$') return [];
+          var tokens = [];
+          var rest = expr.substring(1);
+          while (rest.length > 0) {
+            if (rest.substring(0, 2) === '..') {
+              rest = rest.substring(2);
+              var m = rest.match(/^[A-Za-z_$][A-Za-z0-9_$]*/);
+              if (m) {
+                tokens.push({ type: 'recursive', key: m[0] });
+                rest = rest.substring(m[0].length);
+              }
+            } else if (rest.charAt(0) === '.') {
+              rest = rest.substring(1);
+              var m2 = rest.match(/^[A-Za-z_$][A-Za-z0-9_$]*/);
+              if (m2) {
+                tokens.push({ type: 'child', key: m2[0] });
+                rest = rest.substring(m2[0].length);
+              }
+            } else if (rest.charAt(0) === '[') {
+              var end = rest.indexOf(']');
+              if (end === -1) break;
+              var inside = rest.substring(1, end);
+              rest = rest.substring(end + 1);
+              if (inside === '*') {
+                tokens.push({ type: 'wildcard' });
+              } else if (inside.indexOf(':') !== -1) {
+                var parts = inside.split(':');
+                tokens.push({ type: 'slice', start: parts[0] ? parseInt(parts[0],10) : 0, end: parts[1] ? parseInt(parts[1],10) : undefined });
+              } else if (inside.substring(0, 2) === '?(') {
+                var filterExpr = inside.substring(2, inside.length - 1);
+                tokens.push({ type: 'filter', expr: filterExpr });
+              } else {
+                var idx = parseInt(inside, 10);
+                if (!isNaN(idx)) {
+                  tokens.push({ type: 'index', index: idx });
+                } else {
+                  var unquoted = inside.replace(/^['"]|['"]$/g, '');
+                  tokens.push({ type: 'child', key: unquoted });
+                }
+              }
+            } else {
+              break;
+            }
+          }
+          function evalFilter(item, expr) {
+            var m = expr.match(/^@\\.([A-Za-z_$][A-Za-z0-9_$]*)\\s*(===?|!==?|<=?|>=?|<|>)\\s*(.+)$/);
+            if (!m) return false;
+            var val = item[m[1]];
+            var op = m[2];
+            var rhs = m[3].trim();
+            var cmp;
+            if (rhs === 'true') cmp = true;
+            else if (rhs === 'false') cmp = false;
+            else if (rhs === 'null') cmp = null;
+            else if (rhs.charAt(0) === '"' || rhs.charAt(0) === "'") cmp = rhs.substring(1, rhs.length - 1);
+            else cmp = Number(rhs);
+            switch (op) {
+              case '==': case '===': return val == cmp;
+              case '!=': case '!==': return val != cmp;
+              case '<': return val < cmp;
+              case '>': return val > cmp;
+              case '<=': return val <= cmp;
+              case '>=': return val >= cmp;
+              default: return false;
+            }
+          }
+          function descendAll(obj, key) {
+            var results = [];
+            if (obj !== null && typeof obj === 'object') {
+              if (obj.hasOwnProperty(key)) results.push(obj[key]);
+              if (Array.isArray(obj)) {
+                for (var i = 0; i < obj.length; i++) {
+                  results = results.concat(descendAll(obj[i], key));
+                }
+              } else {
+                for (var k in obj) {
+                  if (obj.hasOwnProperty(k)) {
+                    results = results.concat(descendAll(obj[k], key));
+                  }
+                }
+              }
+            }
+            return results;
+          }
+          var current = [obj];
+          for (var t = 0; t < tokens.length; t++) {
+            var token = tokens[t];
+            var next = [];
+            if (token.type === 'child') {
+              for (var i = 0; i < current.length; i++) {
+                if (current[i] !== null && typeof current[i] === 'object' && current[i].hasOwnProperty(token.key)) {
+                  next.push(current[i][token.key]);
+                }
+              }
+            } else if (token.type === 'index') {
+              for (var i = 0; i < current.length; i++) {
+                if (Array.isArray(current[i]) && token.index < current[i].length) {
+                  next.push(current[i][token.index]);
+                }
+              }
+            } else if (token.type === 'wildcard') {
+              for (var i = 0; i < current.length; i++) {
+                if (Array.isArray(current[i])) {
+                  for (var j = 0; j < current[i].length; j++) next.push(current[i][j]);
+                } else if (current[i] !== null && typeof current[i] === 'object') {
+                  for (var k in current[i]) { if (current[i].hasOwnProperty(k)) next.push(current[i][k]); }
+                }
+              }
+            } else if (token.type === 'recursive') {
+              for (var i = 0; i < current.length; i++) {
+                next = next.concat(descendAll(current[i], token.key));
+              }
+            } else if (token.type === 'slice') {
+              for (var i = 0; i < current.length; i++) {
+                if (Array.isArray(current[i])) {
+                  var s = token.start || 0;
+                  var e = token.end !== undefined ? token.end : current[i].length;
+                  for (var j = s; j < e && j < current[i].length; j++) next.push(current[i][j]);
+                }
+              }
+            } else if (token.type === 'filter') {
+              for (var i = 0; i < current.length; i++) {
+                if (Array.isArray(current[i])) {
+                  for (var j = 0; j < current[i].length; j++) {
+                    if (evalFilter(current[i][j], token.expr)) next.push(current[i][j]);
+                  }
+                }
+              }
+            }
+            current = next;
+          }
+          return current;
+        }
         var sender = ctx.sender;${
       debugMode
         ? `

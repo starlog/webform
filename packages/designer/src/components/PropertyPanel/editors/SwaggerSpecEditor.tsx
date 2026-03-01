@@ -6,6 +6,14 @@ interface SwaggerSpecEditorProps {
   onChange: (value: string) => void;
 }
 
+export const METHOD_COLORS: Record<string, string> = {
+  GET: '#61affe',
+  POST: '#49cc90',
+  PUT: '#fca130',
+  PATCH: '#50e3c2',
+  DELETE: '#f93e3e',
+};
+
 export function SwaggerSpecEditor({ value, onChange }: SwaggerSpecEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [validationInfo, setValidationInfo] = useState<string>('');

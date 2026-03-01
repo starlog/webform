@@ -29,6 +29,7 @@ export function ElementList() {
 
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set([FORM_NODE_ID]));
   const [contextMenu, setContextMenu] = useState<ZOrderContextMenuState | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   // 트리 구축
   const tree = useMemo<TreeNode | null>(() => {
@@ -183,19 +184,23 @@ export function ElementList() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
           padding: '4px 8px',
           borderBottom: '1px solid #ddd',
           backgroundColor: '#e8e8e8',
           fontSize: 11,
           fontWeight: 600,
+          cursor: 'pointer',
+          userSelect: 'none',
+          gap: 4,
         }}
+        onClick={() => setCollapsed((v) => !v)}
       >
+        <span style={{ fontSize: 10 }}>{collapsed ? '\u25B6' : '\u25BC'}</span>
         <span>요소 목록</span>
       </div>
 
       {/* 트리뷰 */}
-      <div role="tree" aria-label="요소 트리" style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
+      {!collapsed && <div role="tree" aria-label="요소 트리" style={{ flex: 1, overflow: 'auto', fontSize: 12 }}>
         {!currentFormId && (
           <div style={{ padding: 8, color: '#888', fontSize: 11 }}>폼을 열어주세요</div>
         )}
@@ -210,7 +215,7 @@ export function ElementList() {
             onContextMenu={handleContextMenu}
           />
         )}
-      </div>
+      </div>}
 
       {contextMenu && (
         <ZOrderContextMenu menu={contextMenu} onClose={() => setContextMenu(null)} />

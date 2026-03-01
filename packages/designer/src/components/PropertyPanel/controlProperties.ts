@@ -17,9 +17,10 @@ export type EditorType =
   | 'menuEditor'
   | 'toolStripEditor'
   | 'statusStripEditor'
-  | 'swaggerSpec';
+  | 'swaggerSpec'
+  | 'swaggerApis';
 
-export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data' | 'Sample';
+export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data' | 'APIs' | 'Sample';
 
 export interface PropertyMeta {
   name: string;
@@ -333,6 +334,7 @@ const swaggerConnectorProps: PropertyMeta[] = [
   { name: 'properties.specYaml',        label: 'Spec (YAML)',     category: 'Data',     editorType: 'swaggerSpec' },
   { name: 'properties.baseUrl',         label: 'Base URL',        category: 'Data',     editorType: 'text' },
   { name: 'properties.defaultHeaders',  label: 'DefaultHeaders',  category: 'Data',     editorType: 'text' },
+  { name: 'properties.specYaml',        label: 'APIs',            category: 'APIs',     editorType: 'swaggerApis' },
   { name: 'properties.timeout',         label: 'Timeout (ms)',    category: 'Behavior', editorType: 'number', min: 1000, max: 60000, defaultValue: 10000 },
 ];
 

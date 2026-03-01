@@ -104,7 +104,7 @@ export interface ControlMeta {
   type: ControlType;
   displayName: string;
   icon: string;
-  category: 'basic' | 'container' | 'data' | 'database';
+  category: 'basic' | 'container' | 'data' | 'api' | 'database';
 }
 
 export const controlMetadata: ControlMeta[] = [
@@ -143,7 +143,7 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'BindingNavigator', displayName: 'BindingNavigator', icon: '\u23E9', category: 'data' },
 
   { type: 'MongoDBConnector', displayName: 'MongoDBConnector', icon: '\uD83D\uDDC4', category: 'database' },
-  { type: 'SwaggerConnector', displayName: 'SwaggerConnector', icon: '🔗', category: 'database' },
+  { type: 'SwaggerConnector', displayName: 'SwaggerConnector', icon: '🔗', category: 'api' },
 
   { type: 'Slider',  displayName: 'Slider',  icon: '\u23AF', category: 'basic' },
   { type: 'Switch',  displayName: 'Switch',  icon: '\u2298', category: 'basic' },
@@ -164,6 +164,7 @@ export const TOOLBOX_CATEGORIES = [
   { id: 'basic',     name: '기본 컨트롤',  collapsed: false },
   { id: 'container', name: '컨테이너',      collapsed: false },
   { id: 'data',      name: '데이터',        collapsed: false },
+  { id: 'api',       name: 'APIs',          collapsed: false },
   { id: 'database',  name: '데이터베이스',  collapsed: false },
 ] as const;
 

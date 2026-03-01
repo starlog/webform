@@ -39,21 +39,18 @@ function generateOperationId(method: string, path: string): string {
   const capitalized = singular.charAt(0).toUpperCase() + singular.slice(1);
 
   if (lastIsParam && singular) {
-    // GET /pets/{petId} → getPetById, but PUT/DELETE/PATCH → updatePet, deletePet, patchPet
     if (method === 'get') {
       return `${prefix}${capitalized}ById`;
     }
     return `${prefix}${capitalized}`;
   } else if (lastResource) {
     if (method === 'get') {
-      // GET /pets → getPets (복수 유지)
       const cap = lastResource.charAt(0).toUpperCase() + lastResource.slice(1);
       return `${prefix}${cap}`;
     }
     return `${prefix}${capitalized}`;
   }
 
-  // fallback: method + 전체 path를 camelCase
   const camelSegments = resourceSegments
     .map((s, i) => (i === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1)))
     .join('');
@@ -61,13 +58,11 @@ function generateOperationId(method: string, path: string): string {
 }
 
 function extractBaseUrl(spec: Record<string, unknown>): string {
-  // OpenAPI 3.x
   if (spec.openapi) {
     const servers = spec.servers as Array<{ url: string }> | undefined;
     return servers?.[0]?.url ?? '';
   }
 
-  // Swagger 2.x
   if (spec.swagger) {
     const scheme = ((spec.schemes as string[]) ?? ['https'])[0];
     const host = (spec.host as string) ?? '';
@@ -78,17 +73,15 @@ function extractBaseUrl(spec: Record<string, unknown>): string {
   return '';
 }
 
-export function parseSwaggerSpec(specYaml: string): ParsedSwaggerSpec {
+export function parseSwaggerSpec(specYaml: string): ParsedSwaggerSpec | null {
   let spec: Record<string, unknown>;
   try {
     spec = yaml.load(specYaml) as Record<string, unknown>;
-  } catch (err) {
-    throw new Error(`SwaggerParser: YAML 파싱 실패: ${(err as Error).message}`);
+  } catch {
+    return null;
   }
 
-  if (!spec || typeof spec !== 'object') {
-    throw new Error('SwaggerParser: YAML 파싱 실패: 유효한 객체가 아닙니다');
-  }
+  if (!spec || typeof spec !== 'object') return null;
 
   const info = (spec.info as Record<string, unknown>) ?? {};
   const title = (info.title as string) ?? '';
@@ -130,12 +123,10 @@ export function parseSwaggerSpec(specYaml: string): ParsedSwaggerSpec {
       ];
       const queryParams = allParams.filter((p) => p.in === 'query').map((p) => p.name as string);
 
-      // hasRequestBody: OpenAPI 3.x uses requestBody, Swagger 2.x uses in=body parameter
       const hasRequestBody = spec.openapi
         ? !!operation.requestBody
         : allParams.some((p) => p.in === 'body');
 
-      // isMultipart: OpenAPI 3.x requestBody content에 multipart/form-data가 있는 경우
       let isMultipart = false;
       if (spec.openapi && operation.requestBody) {
         const rb = operation.requestBody as Record<string, unknown>;
@@ -144,7 +135,6 @@ export function parseSwaggerSpec(specYaml: string): ParsedSwaggerSpec {
           isMultipart = true;
         }
       } else if (spec.swagger) {
-        // Swagger 2.x: consumes에 multipart/form-data가 있는 경우
         const consumes =
           (operation.consumes as string[]) ?? (spec.consumes as string[]) ?? [];
         if (consumes.includes('multipart/form-data')) {

@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { List } from 'react-window';
 import { useBindingStore } from '../bindings/bindingStore';
+import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -241,6 +242,7 @@ export function DataGridView({
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const setSelectedRow = useBindingStore((s) => s.setSelectedRow);
+  const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const styles = useDataGridStyles();
   const colors = useControlColors('DataGridView', { backColor, foreColor });
 
@@ -317,9 +319,10 @@ export function DataGridView({
     (rowIndex: number) => {
       setSelectedRowIndex(rowIndex);
       setSelectedRow(id, rowIndex);
+      updateControlState(id, 'selectedIndex', rowIndex);
       onSelectionChanged?.(rowIndex);
     },
-    [id, setSelectedRow, onSelectionChanged],
+    [id, setSelectedRow, updateControlState, onSelectionChanged],
   );
 
   // 셀 클릭

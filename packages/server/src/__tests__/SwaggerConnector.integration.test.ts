@@ -23,6 +23,7 @@ const petStoreConnector: SwaggerConnectorInfo = {
       pathParams: [],
       queryParams: ['limit'],
       hasRequestBody: false,
+      isMultipart: false,
       summary: 'List all pets',
     },
     {
@@ -32,6 +33,7 @@ const petStoreConnector: SwaggerConnectorInfo = {
       pathParams: ['petId'],
       queryParams: [],
       hasRequestBody: false,
+      isMultipart: false,
     },
     {
       operationId: 'createPet',
@@ -40,6 +42,7 @@ const petStoreConnector: SwaggerConnectorInfo = {
       pathParams: [],
       queryParams: [],
       hasRequestBody: true,
+      isMultipart: false,
     },
   ],
   baseUrl: 'https://petstore.example.com/v1',

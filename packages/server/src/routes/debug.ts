@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { env } from '../config/index.js';
 import { SandboxRunner } from '../services/SandboxRunner.js';
-import type { MongoConnectorInfo } from '../services/SandboxRunner.js';
+import type { MongoConnectorInfo, SwaggerConnectorInfo } from '../services/SandboxRunner.js';
 import { buildControlsContext } from '../services/ControlProxy.js';
+import { parseSwaggerSpec } from '../services/SwaggerParser.js';
 
 export const debugRouter = Router();
 
@@ -47,8 +48,9 @@ debugRouter.post('/execute', async (req, res, next) => {
 
     const startTime = performance.now();
 
-    // MongoDBConnector 추출
+    // MongoDBConnector / SwaggerConnector 추출
     const mongoConnectors: MongoConnectorInfo[] = [];
+    const swaggerConnectors: SwaggerConnectorInfo[] = [];
     if (formControls) {
       const walk = (ctrls: typeof formControls) => {
         for (const ctrl of ctrls) {
@@ -62,6 +64,28 @@ debugRouter.post('/execute', async (req, res, next) => {
               maxResultCount: (ctrl.properties.maxResultCount as number) || 1000,
             });
           }
+          if (ctrl.type === 'SwaggerConnector') {
+            const specYaml = (ctrl.properties.specYaml as string) || '';
+            if (specYaml) {
+              try {
+                const parsed = parseSwaggerSpec(specYaml);
+                const baseUrl = (ctrl.properties.baseUrl as string) || parsed.baseUrl;
+                let defaultHeaders: Record<string, string> = {};
+                try {
+                  defaultHeaders = JSON.parse((ctrl.properties.defaultHeaders as string) || '{}');
+                } catch { /* ignore */ }
+                swaggerConnectors.push({
+                  controlName: ctrl.name,
+                  operations: parsed.operations,
+                  baseUrl,
+                  defaultHeaders,
+                  timeout: (ctrl.properties.timeout as number) || 10000,
+                });
+              } catch {
+                // specYaml 파싱 실패 시 무시
+              }
+            }
+          }
           if (Array.isArray(ctrl.children)) walk(ctrl.children as typeof formControls);
         }
       };
@@ -73,6 +97,7 @@ debugRouter.post('/execute', async (req, res, next) => {
       memoryLimit: env.SANDBOX_MEMORY_LIMIT_MB,
       debugMode: enableDebug,
       mongoConnectors,
+      swaggerConnectors,
     });
 
     const executionTime = Math.round((performance.now() - startTime) * 100) / 100;

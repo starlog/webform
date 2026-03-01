@@ -15,22 +15,24 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@webform/common": "workspace:*",
+    "immer": "^10.1.0",
+    "js-yaml": "^4.1.1",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "@monaco-editor/react": "^4.7.0",
-    "zustand": "^5.0.0",
-    "immer": "^10.1.0",
-    "@webform/common": "workspace:*"
+    "react-dom": "^18.3.0",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",
-    "vite": "^6.0.0",
-    "@testing-library/react": "^16.1.0",
-    "@testing-library/jest-dom": "^6.6.0",
-    "jsdom": "^25.0.0"
+    "jsdom": "^25.0.0",
+    "vite": "^6.0.0"
   }
 }

@@ -4,6 +4,7 @@ import { useDesignerStore } from '../../stores/designerStore';
 import type { ControlDefinition } from '@webform/common';
 import { CONTROL_PROPERTY_META, type PropertyMeta } from '../PropertyPanel/controlProperties';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { parseSwaggerSpec } from '../../utils/swaggerParser';
 
 type MonacoInstance = Parameters<OnMount>[1];
 
@@ -79,6 +80,11 @@ interface Console {
   error(...args: any[]): void;
   info(...args: any[]): void;
 }
+
+/** JSONPath 표현식으로 JSON 데이터에서 값을 추출합니다.
+ * 지원 문법: $.key, [n], [*], ..key, [start:end], [?(@.key==val)]
+ */
+declare function jsonPath(obj: any, expr: string): any[];
 `;
 
 function metaToTsType(meta: PropertyMeta): string {
@@ -115,17 +121,65 @@ function buildControlTypeInterface(controlType: string): { name: string; body: s
   return { name: ifaceName, body: `interface ${ifaceName} {\n${props.join('\n')}\n}` };
 }
 
+function buildSwaggerConnectorInterface(ctrl: ControlDefinition): { name: string; body: string } {
+  const ifaceName = `__SwaggerConnector_${ctrl.name}`;
+  const props: string[] = [];
+
+  const specYaml = (ctrl.properties.specYaml as string) || '';
+  const parsed = specYaml ? parseSwaggerSpec(specYaml) : null;
+
+  if (parsed) {
+    for (const op of parsed.operations) {
+      const optFields: string[] = [];
+      if (op.pathParams.length > 0) {
+        const pathFields = op.pathParams.map((p) => `${p}?: string | number`).join('; ');
+        optFields.push(`path?: { ${pathFields} }`);
+      }
+      if (op.queryParams.length > 0) {
+        const queryFields = op.queryParams.map((p) => `${p}?: string | number`).join('; ');
+        optFields.push(`query?: { ${queryFields} }`);
+      } else {
+        optFields.push('query?: Record<string, unknown>');
+      }
+      if (op.hasRequestBody) {
+        optFields.push('body?: unknown');
+      }
+      optFields.push('headers?: Record<string, string>');
+
+      const optsType = `{ ${optFields.join('; ')} }`;
+      const doc = op.summary ? `  /** ${op.summary} — ${op.method} ${op.path} */\n` : `  /** ${op.method} ${op.path} */\n`;
+      props.push(`${doc}  ${op.operationId}(opts?: ${optsType}): HttpResponse;`);
+    }
+  }
+
+  props.push('  specYaml: string;');
+  props.push('  baseUrl: string;');
+  props.push('  defaultHeaders: string;');
+  props.push('  timeout: number;');
+  props.push('  visible: boolean;');
+  props.push('  enabled: boolean;');
+  props.push('  [key: string]: any;');
+
+  return { name: ifaceName, body: `interface ${ifaceName} {\n${props.join('\n')}\n}` };
+}
+
 function buildFormContextTypes(controls: ControlDefinition[]): string {
   const typeInterfaces = new Map<string, string>();
   const controlEntries: string[] = [];
 
   function walk(ctrls: ControlDefinition[]) {
     for (const ctrl of ctrls) {
-      const { name: ifaceName, body } = buildControlTypeInterface(ctrl.type);
-      if (!typeInterfaces.has(ifaceName)) {
+      if (ctrl.type === 'SwaggerConnector') {
+        const { name: ifaceName, body } = buildSwaggerConnectorInterface(ctrl);
         typeInterfaces.set(ifaceName, body);
+        controlEntries.push(`  ${ctrl.name}: ${ifaceName};`);
+      } else {
+        const { name: ifaceName, body } = buildControlTypeInterface(ctrl.type);
+        if (!typeInterfaces.has(ifaceName)) {
+          typeInterfaces.set(ifaceName, body);
+        }
+        controlEntries.push(`  ${ctrl.name}: ${ifaceName};`);
       }
-      controlEntries.push(`  ${ctrl.name}: ${ifaceName};`);
       if (ctrl.children) walk(ctrl.children);
     }
   }
@@ -1345,6 +1399,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
               automaticLayout: true,
               tabSize: 2,
               glyphMargin: true,
+              fixedOverflowWidgets: true,
             }}
           />
         </div>
@@ -1964,8 +2019,10 @@ function getValueColor(type: string): string {
   }
 }
 
+type VariableContextMenuHandler = (e: React.MouseEvent, name: string, value: string) => void;
+
 /** 펼쳐진 객체/배열 속성 행 (재귀 가능) */
-function ExpandedObjectEntries({ value, depth }: { value: unknown; depth: number }) {
+function ExpandedObjectEntries({ value, depth, onContextMenu }: { value: unknown; depth: number; onContextMenu?: VariableContextMenuHandler }) {
   if (value === null || typeof value !== 'object') return null;
 
   const entries = Array.isArray(value)
@@ -1975,7 +2032,7 @@ function ExpandedObjectEntries({ value, depth }: { value: unknown; depth: number
   return (
     <>
       {entries.map(([key, val]) => (
-        <ExpandedPropertyRow key={key} propKey={key} propValue={val} depth={depth} />
+        <ExpandedPropertyRow key={key} propKey={key} propValue={val} depth={depth} onContextMenu={onContextMenu} />
       ))}
     </>
   );
@@ -1986,10 +2043,12 @@ function ExpandedPropertyRow({
   propKey,
   propValue,
   depth,
+  onContextMenu,
 }: {
   propKey: string;
   propValue: unknown;
   depth: number;
+  onContextMenu?: VariableContextMenuHandler;
 }) {
   const [expanded, setExpanded] = useState(false);
   const isObject = typeof propValue === 'object' && propValue !== null;
@@ -2003,6 +2062,7 @@ function ExpandedPropertyRow({
   return (
     <>
       <div
+        onContextMenu={onContextMenu ? (e) => onContextMenu(e, propKey, strVal) : undefined}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -2039,10 +2099,17 @@ function ExpandedPropertyRow({
         </span>
       </div>
       {expanded && isObject && (
-        <ExpandedObjectEntries value={propValue} depth={depth + 1} />
+        <ExpandedObjectEntries value={propValue} depth={depth + 1} onContextMenu={onContextMenu} />
       )}
     </>
   );
+}
+
+interface ContextMenuState {
+  x: number;
+  y: number;
+  name: string;
+  value: string;
 }
 
 /** Variables 패널 */
@@ -2056,6 +2123,47 @@ function VariablesPanel({
   selectedLineOverride?: number;
 }) {
   const [selectedLine, setSelectedLine] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
+
+  // 컨텍스트 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleClick = () => setContextMenu(null);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContextMenu(null);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [contextMenu]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent, name: string, value: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, name, value });
+  }, []);
+
+  const handleCopyValue = useCallback(() => {
+    if (!contextMenu) return;
+    navigator.clipboard.writeText(contextMenu.value);
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  const handleCopyName = useCallback(() => {
+    if (!contextMenu) return;
+    navigator.clipboard.writeText(contextMenu.name);
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  const handleCopyAll = useCallback(() => {
+    if (!contextMenu) return;
+    navigator.clipboard.writeText(`${contextMenu.name} = ${contextMenu.value}`);
+    setContextMenu(null);
+  }, [contextMenu]);
 
   // 줄별 변수 스냅샷 계산
   const lineSnapshots = useMemo<LineVariableSnapshot[]>(() => {
@@ -2234,6 +2342,7 @@ function VariablesPanel({
                 type={type}
                 isChanged={!!isChanged}
                 parsedObj={parsedObj}
+                onContextMenu={handleContextMenu}
               />
             );
           })
@@ -2249,6 +2358,66 @@ function VariablesPanel({
           </div>
         )}
       </div>
+
+      {/* 우클릭 컨텍스트 메뉴 */}
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            left: contextMenu.x,
+            top: contextMenu.y,
+            backgroundColor: '#252526',
+            border: '1px solid #454545',
+            borderRadius: 4,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            zIndex: 10000,
+            minWidth: 160,
+            padding: '4px 0',
+            fontFamily: 'Segoe UI, sans-serif',
+            fontSize: 12,
+          }}
+        >
+          <div
+            onClick={handleCopyValue}
+            style={{
+              padding: '6px 16px',
+              cursor: 'pointer',
+              color: '#ccc',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#094771')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            Copy Value
+          </div>
+          <div
+            onClick={handleCopyName}
+            style={{
+              padding: '6px 16px',
+              cursor: 'pointer',
+              color: '#ccc',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#094771')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            Copy Name
+          </div>
+          <div style={{ height: 1, backgroundColor: '#454545', margin: '4px 0' }} />
+          <div
+            onClick={handleCopyAll}
+            style={{
+              padding: '6px 16px',
+              cursor: 'pointer',
+              color: '#ccc',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#094771')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            Copy Name = Value
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2260,12 +2429,14 @@ function VariableRow({
   type,
   isChanged,
   parsedObj,
+  onContextMenu,
 }: {
   name: string;
   value: string;
   type: string;
   isChanged: boolean;
   parsedObj: unknown | null;
+  onContextMenu: (e: React.MouseEvent, name: string, value: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const hasChildren = parsedObj !== null;
@@ -2273,6 +2444,7 @@ function VariableRow({
   return (
     <>
       <div
+        onContextMenu={(e) => onContextMenu(e, name, value)}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -2342,7 +2514,7 @@ function VariableRow({
           borderBottom: '1px solid #2a2a2a',
           backgroundColor: '#1a1a2e',
         }}>
-          <ExpandedObjectEntries value={parsedObj} depth={1} />
+          <ExpandedObjectEntries value={parsedObj} depth={1} onContextMenu={onContextMenu} />
         </div>
       )}
     </>
