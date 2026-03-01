@@ -30,6 +30,7 @@ import { ChartControl } from './ChartControl';
 import { SplitContainerControl } from './SplitContainerControl';
 import { BindingNavigatorControl } from './BindingNavigatorControl';
 import { MongoDBConnectorControl } from './MongoDBConnectorControl';
+import { SwaggerConnectorControl } from './SwaggerConnectorControl';
 import { SliderControl } from './SliderControl';
 import { SwitchControl } from './SwitchControl';
 import { UploadControl } from './UploadControl';
@@ -84,6 +85,7 @@ export const designerControlRegistry: Partial<
   SplitContainer: SplitContainerControl,
   BindingNavigator: BindingNavigatorControl,
   MongoDBConnector: MongoDBConnectorControl,
+  SwaggerConnector: SwaggerConnectorControl,
   Slider: SliderControl,
   Switch: SwitchControl,
   Upload: UploadControl,
@@ -141,6 +143,7 @@ export const controlMetadata: ControlMeta[] = [
   { type: 'BindingNavigator', displayName: 'BindingNavigator', icon: '\u23E9', category: 'data' },
 
   { type: 'MongoDBConnector', displayName: 'MongoDBConnector', icon: '\uD83D\uDDC4', category: 'database' },
+  { type: 'SwaggerConnector', displayName: 'SwaggerConnector', icon: '🔗', category: 'database' },
 
   { type: 'Slider',  displayName: 'Slider',  icon: '\u23AF', category: 'basic' },
   { type: 'Switch',  displayName: 'Switch',  icon: '\u2298', category: 'basic' },
