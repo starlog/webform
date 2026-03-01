@@ -298,7 +298,7 @@
       "description": "이벤트 핸들러 CRUD + 테스트 Tools 구현",
       "phase": "phase2-controls-events",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-event-tools-plan.md에 따라 이벤트 핸들러 Tools를 구현하라.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/events.ts: registerEventTools(server, api)\n   - add_event_handler: formId, controlId, eventName, handlerCode, handlerType?\n   - update_event_handler: formId, controlId, eventName, handlerCode\n   - remove_event_handler: formId, controlId, eventName\n   - list_event_handlers: formId → 모든 핸들러 목록\n   - list_available_events: controlType → 사용 가능한 이벤트 목록\n   - test_event_handler: formId, controlId, eventName, mockFormState?\n2. Tool description에 ctx 객체 API 가이드 포함:\n   - ctx.controls[], ctx.sender, ctx.eventArgs\n   - ctx.showMessage(), ctx.navigate(), ctx.http\n3. packages/mcp/src/tools/index.ts, server.ts 업데이트",
       "dependsOn": [
         "mcp-event-tools-plan"
