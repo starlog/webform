@@ -13,7 +13,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SERVER_ENTRY = resolve(__dirname, '../../dist/index.js');
+const SERVER_ENTRY = resolve(__dirname, '../index.ts');
 
 // --- 테스트 유틸 ---
 
@@ -51,8 +51,8 @@ async function main() {
   // 1. MCP 클라이언트 연결
   console.log('[1] MCP 서버 연결');
   const transport = new StdioClientTransport({
-    command: 'node',
-    args: [SERVER_ENTRY],
+    command: 'npx',
+    args: ['tsx', SERVER_ENTRY],
     env: { ...process.env, WEBFORM_API_URL: 'http://localhost:4000' },
   });
 
@@ -263,7 +263,7 @@ async function main() {
     formResource.contents.length > 0,
     'Resource webform://forms/{formId}: 내용 반환',
   );
-  const formResContent = JSON.parse(formResource.contents[0].text as string);
+  const formResContent = JSON.parse((formResource.contents[0] as { uri: string; text: string }).text);
   assert(formResContent?._id === formId, 'Resource: 올바른 폼 데이터');
 
   const projectResource = await client.readResource({

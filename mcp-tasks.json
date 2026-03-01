@@ -361,7 +361,7 @@
       "description": "컨트롤, 이벤트, 스키마 Tools/Resources 동작 검증",
       "phase": "phase2-controls-events",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "Phase 2 구현을 종합 검증하라.\n\n1. TypeScript 컴파일: tsc --noEmit\n2. 컨트롤 Tools 테스트:\n   - list_control_types → 44개 타입 확인\n   - get_control_schema('Button') → 속성 스키마 확인\n   - add_control로 버튼 추가 → get_form으로 확인\n   - batch_add_controls로 여러 컨트롤 추가\n   - move_control, resize_control 동작 확인\n   - remove_control 동작 확인\n3. 이벤트 Tools 테스트:\n   - list_available_events('Button') → Click 등 이벤트 목록\n   - add_event_handler로 Click 핸들러 추가\n   - list_event_handlers로 확인\n   - test_event_handler로 코드 실행 테스트\n4. 스키마 Resources 테스트:\n   - webform://schema/control-types 조회\n   - webform://schema/events 조회\n   - webform://guide/event-context 조회\n\n실패 시 즉시 수정하라.",
       "dependsOn": [
         "mcp-control-tools-impl",
