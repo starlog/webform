@@ -1,240 +1,291 @@
-# ProjectExplorer Publish All UI 구현 계획
+# [Phase2] Designer SwaggerConnector UI 구현 계획
 
-## 1. 기존 코드 분석
+## 분석 결과 요약
 
-### 1.1 컨텍스트 메뉴 구조
+### 기존 패턴 분석
 
-**`ProjectExplorer.tsx:330-364`** — `getContextMenuItems()` 함수가 `contextMenu.targetType`에 따라 메뉴 항목 배열을 반환한다.
+#### 1. MongoDBConnectorControl.tsx (비-UI 컨트롤 디자이너 표시 패턴)
+- `useTheme()` 훅으로 테마 색상 참조
+- 점선 테두리 (`border: 1px dashed ...`)
+- 아이콘 + 상태 텍스트 (연결 여부) 표시
+- `DesignerControlProps` 타입 사용 (`{ properties, size }`)
+- 파일 위치: `packages/designer/src/controls/MongoDBConnectorControl.tsx`
 
-프로젝트 노드 (`case 'project'`) 현재 메뉴 항목 순서:
-```
-1. '새 폼'          → handleNewForm(projectId)
-2. '기본 폰트 설정'  → handleOpenDefaultFontDialog(projectId, projName)
-3. '폰트 일괄 적용'  → handleOpenFontDialog(projectId, projName)
-4. '내보내기'        → handleExportProject(projectId)
-5. '삭제'           → handleDeleteProject(projectId, projName)
-```
+#### 2. controlProperties.ts (PropertyMeta 정의 패턴)
+- `EditorType` 유니온 타입에 커스텀 에디터 타입 선언 (예: `'mongoConnectionString'`, `'mongoColumns'`)
+- MongoDBConnector는 `withCommon()` 미사용, 직접 배열 정의 (비-UI 컨트롤이므로 공통 Layout/Behavior 속성 최소화)
+- `CONTROL_PROPERTY_META` 객체에 등록
 
-메뉴 항목 타입: `{ label: string; action: () => void }` (인터페이스 미정의, 인라인 객체)
+#### 3. PropertyCategory.tsx (editorType 분기 처리)
+- `PropertyEditor` 함수 내 `switch (meta.editorType)` 문에서 각 타입별 에디터 컴포넌트 렌더링
+- 커스텀 에디터는 `./editors/` 디렉토리에서 import
+- 각 에디터 컴포넌트는 `{ value, onChange }` props 패턴 사용
 
-### 1.2 formStatus 상태 관리
+#### 4. Monaco Editor 사용 패턴
+- `@monaco-editor/react` 패키지의 `Editor` 컴포넌트 사용 (이미 designer 패키지 의존성에 포함)
+- `import Editor, { type OnMount } from '@monaco-editor/react'` 패턴
+- EventEditor.tsx에서 JavaScript 모드로 사용 중
 
-**위치**: `App.tsx:30` — `App` 컴포넌트의 로컬 state
-```typescript
-const [formStatus, setFormStatus] = useState<'draft' | 'published'>('draft');
-```
-
-**업데이트 시점**:
-- 폼 로드 시: `App.tsx:136` — `setFormStatus(data.status)`
-- 퍼블리시 후: `App.tsx:90` — `setFormStatus(data.status)`
-
-**표시**: `App.tsx:182-188` — 메뉴바에 'Published' / 'Draft' 텍스트
-
-**핵심**: `formStatus`는 `App.tsx`에 있고, `ProjectExplorer`에서 직접 접근 불가. 콜백 prop이 필요.
-
-### 1.3 explorerRefreshKey 메커니즘
-
-**위치**: `App.tsx:31` — `App` 컴포넌트의 로컬 state
-```typescript
-const [explorerRefreshKey, setExplorerRefreshKey] = useState(0);
-```
-
-**증가 시점**: `App.tsx:91` — `setExplorerRefreshKey((k) => k + 1)` (퍼블리시 후)
-
-**전달**: `App.tsx:257` — `<ProjectExplorer refreshKey={explorerRefreshKey} />`
-
-**사용**: `ProjectExplorer.tsx:72-74` — `refreshKey` 변경 시 `loadProjects()` 재실행
-```typescript
-useEffect(() => { loadProjects(); }, [loadProjects, refreshKey]);
-```
-
-**핵심**: ProjectExplorer 내부에서 `loadProjects()`를 직접 호출하면 트리 새로고침이 가능하므로, 외부 `explorerRefreshKey`를 증가시키지 않아도 됨.
-
-### 1.4 현재 폼의 projectId 확인 방법
-
-**`App.tsx:27`**:
-```typescript
-const currentProjectId = useDesignerStore((s) => s.currentProjectId);
-```
-
-**`ProjectExplorer.tsx`에서도 동일하게 접근 가능** (designerStore import 이미 존재):
-```typescript
-const state = useDesignerStore.getState();
-state.currentProjectId  // 현재 열린 폼/셸의 프로젝트 ID
-state.currentFormId     // 현재 열린 폼 ID (editMode === 'form'일 때)
-```
-
-기존 사용 패턴 (`ProjectExplorer.tsx:214-218` — handleApplyProjectFont 참고):
-```typescript
-const state = useDesignerStore.getState();
-if (state.currentFormId && state.currentProjectId === fontDialog.projectId) {
-  // 현재 열린 폼이 해당 프로젝트에 속하면 리로드
-}
-```
-
-### 1.5 알림/메시지 표시 방법
-
-| 방법 | 사용처 | 비고 |
-|------|--------|------|
-| `alert()` | `ProjectExplorer.tsx:212,222,259` | 폰트 적용 결과, 에러 |
-| `prompt()` | `ProjectExplorer.tsx:112,205-206` | 사용자 입력 |
-| `confirm()` | `ProjectExplorer.tsx:151,161` | 삭제 확인 |
-| `showStatus()` | `App.tsx:37-40` | 메뉴바 임시 메시지 (3초) |
-
-**ProjectExplorer 내에서는 `alert()`를 사용하는 것이 기존 패턴과 일치**.
-
-### 1.6 apiService.publishAll 메서드
-
-**`apiService.ts:300-302`**:
-```typescript
-async publishAll(projectId: string): Promise<{ data: PublishAllResult }>
-```
-
-**PublishAllResult 타입** (`apiService.ts:118-121`):
-```typescript
-interface PublishAllResult {
-  forms: { publishedCount: number; skippedCount: number; totalCount: number };
-  shell: { published: boolean; skipped: boolean };
-}
-```
-
-**API 엔드포인트**: `POST /projects/:projectId/publish-all`
+#### 5. registry.ts (컨트롤 등록 패턴)
+- `ControlMeta.category` 타입: `'basic' | 'container' | 'data' | 'database'`
+- **주의**: task에서 `category: 'advanced'` 지정되어 있으나, 현재 타입에 'advanced'가 없음
+- MongoDBConnector는 `category: 'database'` 사용 → SwaggerConnector도 `'database'` 사용
+- `TOOLBOX_CATEGORIES`에 `{ id: 'database', name: '데이터베이스' }` 존재
 
 ---
 
-## 2. 구현 계획
+## 구현 계획
 
-### 2.1 수정 파일 목록
+### 1. SwaggerConnectorControl.tsx (신규 생성)
 
-| 파일 | 변경 내용 |
-|------|-----------|
-| `packages/designer/src/components/ProjectExplorer/ProjectExplorer.tsx` | handlePublishAll 함수 추가, 컨텍스트 메뉴에 'Publish All' 항목 추가 |
-| `packages/designer/src/App.tsx` | onPublishAll 콜백 prop 전달, formStatus 업데이트 |
+**파일**: `packages/designer/src/controls/SwaggerConnectorControl.tsx`
 
-### 2.2 ProjectExplorer.tsx 변경
-
-#### 2.2.1 Props 인터페이스 확장 (`ProjectExplorer.tsx:8-11`)
+MongoDBConnectorControl 패턴을 따라 구현:
 
 ```typescript
-interface ProjectExplorerProps {
-  onFormSelect: (formId: string) => void;
-  onPublishAll?: (projectId: string) => void;  // 추가
-  refreshKey?: number;
+import { useTheme } from '../theme/ThemeContext';
+import type { DesignerControlProps } from './registry';
+
+export function SwaggerConnectorControl({ properties, size }: DesignerControlProps) {
+  const theme = useTheme();
+  const specYaml = (properties.specYaml as string) || '';
+  const baseUrl = (properties.baseUrl as string) || '';
+  const hasSpec = specYaml.length > 0;
+
+  // 간이 파싱: title 추출
+  let title = 'Swagger API';
+  let endpointCount = 0;
+  if (hasSpec) {
+    const titleMatch = specYaml.match(/title:\s*['"]?([^'"\n]+)/);
+    if (titleMatch) title = titleMatch[1].trim();
+    // HTTP 메서드 라인 카운트로 endpoint 수 추정
+    endpointCount = (specYaml.match(/^\s+(get|post|put|patch|delete):/gm) || []).length;
+  }
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 6,
+      padding: '4px 8px',
+      border: `1px dashed ${theme.controls.panel.border}`,
+      borderRadius: theme.controls.panel.borderRadius,
+      backgroundColor: theme.controls.panel.background,
+      width: size.width, height: size.height,
+      boxSizing: 'border-box', overflow: 'hidden', whiteSpace: 'nowrap',
+    }}>
+      <span style={{ fontSize: 16, flexShrink: 0 }}>🔗</span>
+      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: 1 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#334E68' }}>
+          {title}
+        </span>
+        <span style={{ fontSize: 9, color: hasSpec ? '#627D98' : '#D64545' }}>
+          {hasSpec
+            ? `${endpointCount} endpoints` + (baseUrl ? ` · ${baseUrl}` : '')
+            : 'Not configured'}
+        </span>
+      </div>
+    </div>
+  );
 }
 ```
 
-#### 2.2.2 handlePublishAll 함수 추가
+**핵심 포인트:**
+- `useTheme()` 훅 사용 (MongoDBConnectorControl과 동일)
+- specYaml에서 title/endpoint count 정규식으로 간이 추출 (정확한 파싱은 서버의 SwaggerParser 담당)
+- 아이콘: 🔗
+- 미설정 시 'Not configured' 빨간색 표시
 
-위치: `handleExportProject` 함수 뒤 (line 183 이후)
+---
 
-```typescript
-const handlePublishAll = async (projectId: string) => {
-  try {
-    const { data: result } = await apiService.publishAll(projectId);
-    const { forms, shell } = result;
+### 2. SwaggerSpecEditor.tsx (신규 생성)
 
-    // 트리 새로고침 (폼 status 변경 반영)
-    await loadProjects();
+**파일**: `packages/designer/src/components/PropertyPanel/editors/SwaggerSpecEditor.tsx`
 
-    // App.tsx에 알림 (formStatus 업데이트 등)
-    onPublishAll?.(projectId);
-
-    // 결과 메시지
-    let msg = `${forms.publishedCount}개 폼 퍼블리시 완료`;
-    if (forms.skippedCount > 0) {
-      msg += ` (${forms.skippedCount}개 스킵)`;
-    }
-    if (shell.published) {
-      msg += '\nShell 퍼블리시 완료';
-    }
-    alert(msg);
-  } catch (error) {
-    console.error('Failed to publish all:', error);
-    alert('전체 퍼블리시에 실패했습니다.');
-  }
-};
-```
-
-#### 2.2.3 컨텍스트 메뉴에 항목 추가 (`ProjectExplorer.tsx:336-342`)
-
-'새 폼' 다음 위치에 'Publish All' 추가:
+Monaco Editor 기반 YAML 에디터:
 
 ```typescript
-case 'project': {
-  const proj = projects.find((p) => p.project._id === contextMenu.projectId);
-  const projName = proj?.project.name ?? '';
-  return [
-    { label: '새 폼', action: () => handleNewForm(contextMenu.projectId) },
-    { label: 'Publish All', action: () => handlePublishAll(contextMenu.projectId) },  // 추가
-    { label: '기본 폰트 설정', action: () => handleOpenDefaultFontDialog(contextMenu.projectId, projName) },
-    { label: '폰트 일괄 적용', action: () => handleOpenFontDialog(contextMenu.projectId, projName) },
-    { label: '내보내기', action: () => handleExportProject(contextMenu.projectId) },
-    { label: '삭제', action: () => handleDeleteProject(contextMenu.projectId, projName) },
-  ];
+import { useState, useCallback, useRef } from 'react';
+import Editor from '@monaco-editor/react';
+
+interface SwaggerSpecEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export function SwaggerSpecEditor({ value, onChange }: SwaggerSpecEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [validationInfo, setValidationInfo] = useState<string>('');
+
+  // YAML 간이 검증 (title, endpoint count 추출)
+  const validate = useCallback((yaml: string) => {
+    if (!yaml.trim()) { setValidationInfo(''); return; }
+    const titleMatch = yaml.match(/title:\s*['"]?([^'"\n]+)/);
+    const title = titleMatch ? titleMatch[1].trim() : 'Unknown';
+    const endpoints = (yaml.match(/^\s+(get|post|put|patch|delete):/gm) || []).length;
+    setValidationInfo(`${title} — ${endpoints} endpoints`);
+  }, []);
+
+  const handleEditorChange = useCallback((val: string | undefined) => {
+    const newVal = val ?? '';
+    onChange(newVal);
+    validate(newVal);
+  }, [onChange, validate]);
+
+  const handleFileImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      onChange(text);
+      validate(text);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, [onChange, validate]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {validationInfo && (
+          <span style={{ fontSize: 10, color: '#2e7d32', flex: 1 }}>{validationInfo}</span>
+        )}
+        <button type="button" onClick={() => fileInputRef.current?.click()}
+          style={{
+            border: '1px solid #0078d4', borderRadius: 2, backgroundColor: '#0078d4',
+            color: '#fff', fontSize: 10, padding: '1px 6px', cursor: 'pointer',
+            whiteSpace: 'nowrap', flex: '0 0 auto',
+          }}>
+          Import
+        </button>
+        <input ref={fileInputRef} type="file" accept=".yaml,.yml"
+          onChange={handleFileImport} style={{ display: 'none' }} />
+      </div>
+      <Editor
+        height={200}
+        language="yaml"
+        value={value}
+        onChange={handleEditorChange}
+        options={{
+          minimap: { enabled: false }, lineNumbers: 'off', fontSize: 11,
+          scrollBeyondLastLine: false, wordWrap: 'on', tabSize: 2,
+        }}
+      />
+    </div>
+  );
 }
 ```
 
-### 2.3 App.tsx 변경
+**핵심 포인트:**
+- `@monaco-editor/react`의 `Editor` 컴포넌트 사용 (EventEditor.tsx 패턴)
+- language: `'yaml'`
+- 파일 Import: `<input type="file" accept=".yaml,.yml">` hidden + button 트리거
+- 간이 검증 결과 (title + endpoint count) 표시
+- 높이 200px 고정 (PropertyPanel 내 적절한 크기)
+- Import 버튼 스타일: MongoConnectionStringEditor의 Test 버튼 스타일 참고
 
-#### 2.3.1 onPublishAll 콜백 정의
+---
 
-위치: `handleFormSelect` 함수 근처
+### 3. controlProperties.ts 수정
+
+**파일**: `packages/designer/src/components/PropertyPanel/controlProperties.ts`
+
+#### 3-1. EditorType 유니온에 'swaggerSpec' 추가 (line 19 근처)
 
 ```typescript
-const handlePublishAll = useCallback((projectId: string) => {
-  // 현재 열린 폼이 해당 프로젝트에 속하면 formStatus를 'published'로 업데이트
-  if (currentProjectId === projectId && currentFormId) {
-    setFormStatus('published');
-  }
-  setExplorerRefreshKey((k) => k + 1);
-}, [currentProjectId, currentFormId]);
+// 변경 전:
+  | 'statusStripEditor';
+
+// 변경 후:
+  | 'statusStripEditor'
+  | 'swaggerSpec';
 ```
 
-#### 2.3.2 ProjectExplorer에 prop 전달 (`App.tsx:257`)
+#### 3-2. swaggerConnectorProps 배열 추가 (mongoDBConnectorProps 뒤, line 328 이후)
 
 ```typescript
-<ProjectExplorer
-  onFormSelect={handleFormSelect}
-  onPublishAll={handlePublishAll}
-  refreshKey={explorerRefreshKey}
-/>
+const swaggerConnectorProps: PropertyMeta[] = [
+  { name: 'name',                       label: 'Name',            category: 'Design',   editorType: 'text' },
+  { name: 'properties.specYaml',        label: 'Spec (YAML)',     category: 'Data',     editorType: 'swaggerSpec' },
+  { name: 'properties.baseUrl',         label: 'Base URL',        category: 'Data',     editorType: 'text' },
+  { name: 'properties.defaultHeaders',  label: 'DefaultHeaders',  category: 'Data',     editorType: 'text' },
+  { name: 'properties.timeout',         label: 'Timeout (ms)',    category: 'Behavior', editorType: 'number', min: 1000, max: 60000, defaultValue: 10000 },
+];
+```
+
+**참고:** MongoDBConnector와 동일하게 `withCommon()` 미사용 (비-UI 컨트롤)
+
+#### 3-3. CONTROL_PROPERTY_META에 등록 (MongoDBConnector 항목 아래)
+
+```typescript
+SwaggerConnector: swaggerConnectorProps,
 ```
 
 ---
 
-## 3. 구현 흐름 요약
+### 4. PropertyCategory.tsx 수정
 
-```
-사용자: 프로젝트 노드 우클릭 → 'Publish All' 클릭
-  ↓
-ProjectExplorer.handlePublishAll(projectId)
-  ↓
-apiService.publishAll(projectId)  →  POST /projects/:projectId/publish-all
-  ↓ (성공)
-loadProjects()  →  트리뷰 새로고침 (폼 status 아이콘 갱신)
-  ↓
-onPublishAll?.(projectId)  →  App.tsx에서 formStatus, explorerRefreshKey 업데이트
-  ↓
-alert(`${publishedCount}개 폼 퍼블리시 완료 (${skippedCount}개 스킵)`)
+**파일**: `packages/designer/src/components/PropertyPanel/PropertyCategory.tsx`
+
+#### 4-1. SwaggerSpecEditor import 추가 (line 15 근처, 다른 에디터 import들과 함께)
+
+```typescript
+import { SwaggerSpecEditor } from './editors/SwaggerSpecEditor';
 ```
 
-## 4. 에러 처리
+#### 4-2. PropertyEditor switch문에 case 추가 (line 150 statusStripEditor case 아래)
 
-- `apiService.publishAll()` 실패 시: `alert('전체 퍼블리시에 실패했습니다.')` + console.error
-- 기존 패턴과 동일한 try-catch 구조 사용 (handleExportProject, handleApplyProjectFont 참고)
-
-## 5. formStatus 업데이트 조건
-
-`App.tsx`의 `handlePublishAll` 콜백에서:
-```
-조건: currentProjectId === publishAll의 projectId && currentFormId가 존재
-결과: setFormStatus('published')
+```typescript
+case 'swaggerSpec':
+  return <SwaggerSpecEditor value={value as string ?? ''} onChange={onChange} />;
 ```
 
-이유: publishAll은 해당 프로젝트의 모든 draft 폼을 퍼블리시하므로, 현재 열린 폼이 해당 프로젝트에 속하면 반드시 published 상태가 됨.
+---
 
-## 6. 주의사항
+### 5. registry.ts 수정
 
-- `explorerRefreshKey` 증가는 `loadProjects()` 직접 호출과 중복될 수 있으나, App.tsx 측에서도 증가시켜 일관성 유지
-- `onPublishAll` prop은 옵셔널(`?`)로 처리하여 기존 사용에 영향 없음
-- 이미 모두 published인 프로젝트에서도 API 호출은 성공하며 `skippedCount`로 결과 확인 가능
+**파일**: `packages/designer/src/controls/registry.ts`
+
+#### 5-1. import 추가 (line 32 MongoDBConnectorControl import 근처)
+
+```typescript
+import { SwaggerConnectorControl } from './SwaggerConnectorControl';
+```
+
+#### 5-2. designerControlRegistry에 등록 (line 86 MongoDBConnector 항목 아래)
+
+```typescript
+SwaggerConnector: SwaggerConnectorControl,
+```
+
+#### 5-3. controlMetadata 배열에 추가 (line 143 MongoDBConnector 항목 아래)
+
+```typescript
+{ type: 'SwaggerConnector', displayName: 'SwaggerConnector', icon: '🔗', category: 'database' },
+```
+
+**주의:** `category: 'database'` 사용 — task에서 'advanced' 지정되었으나 현재 `ControlMeta.category` 타입 유니온에 `'advanced'`가 없어 `'database'` 사용. MongoDBConnector와 같은 카테고리에 배치.
+
+---
+
+## 수정 파일 요약
+
+| 파일 | 작업 | 변경 내용 |
+|------|------|-----------|
+| `packages/designer/src/controls/SwaggerConnectorControl.tsx` | **신규** | 디자이너 캔버스 표시 컴포넌트 |
+| `packages/designer/src/components/PropertyPanel/editors/SwaggerSpecEditor.tsx` | **신규** | Monaco YAML 에디터 + Import 버튼 |
+| `packages/designer/src/components/PropertyPanel/controlProperties.ts` | **수정** | EditorType에 'swaggerSpec' 추가, swaggerConnectorProps 정의, CONTROL_PROPERTY_META 등록 |
+| `packages/designer/src/components/PropertyPanel/PropertyCategory.tsx` | **수정** | SwaggerSpecEditor import + switch case 추가 |
+| `packages/designer/src/controls/registry.ts` | **수정** | import, designerControlRegistry, controlMetadata 추가 |
+
+## 의존성
+
+- `@monaco-editor/react` — 이미 designer 패키지에 설치됨 (EventEditor에서 사용 중)
+- `@webform/common` — Phase1에서 'SwaggerConnector' ControlType 이미 추가됨
+
+## 주의사항
+
+1. MongoDBConnectorControl 패턴 충실히 따를 것 (useTheme, 점선 테두리, 상태 표시)
+2. 기존 editorType 처리 파이프라인 유지 (PropertyMeta → PropertyCategory → PropertyEditor switch)
+3. category는 'database' 사용 (ControlMeta 타입 제약)
+4. specYaml 간이 파싱은 정규식으로만 수행 (정확한 파싱은 서버의 SwaggerParser 담당)
+5. 기존 코드 스타일 준수 (singleQuote, trailingComma: all, printWidth: 100, tabWidth: 2)
