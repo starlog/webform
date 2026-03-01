@@ -186,7 +186,7 @@
       "description": "SwaggerConnector SandboxRunner 통합 테스트 작성 및 실행",
       "phase": "phase3-backend",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "SwaggerConnector SandboxRunner 통합 테스트를 작성하고 실행하라.\n\n## 사전 작업\n먼저 기존 통합 테스트 파일 확인:\n```\nGlob: packages/server/src/__tests__/*.integration.test.ts\nRead: 기존 통합 테스트 파일 읽어 패턴 파악\n```\n\n## 테스트 파일\n`packages/server/src/__tests__/SwaggerConnector.integration.test.ts` (신규)\n\n## 테스트 구현\n\n기존 테스트 패턴을 참고하여 다음 시나리오 테스트:\n\n1. **ctx.controls에 메서드 주입 확인**\n   - swaggerConnectors가 있을 때 ctx.controls.{name}.{operationId}가 함수인지 확인\n   - 코드: `typeof ctx.controls.petApi.listPets === 'function'`\n\n2. **GET 요청 수행**\n   - fetch mock 설정 (vitest vi.fn())\n   - listPets({ query: { limit: 10 } }) 호출\n   - fetch가 올바른 URL로 호출되었는지 확인\n\n3. **path 파라미터 치환**\n   - getPetById({ path: { petId: 123 } })\n   - URL이 `/pets/123`으로 치환되었는지 확인\n\n4. **응답 형식 확인**\n   - { status, ok, data } 구조 반환\n\n5. **HTTP 에러 응답 (4xx)**\n   - 404 응답도 throw하지 않고 { status: 404, ok: false, data } 반환\n\n6. **SwaggerConnector 없는 경우**\n   - swaggerConnectors: [] 전달 시 정상 동작\n\n## 테스트 실행\n```bash\ncd packages/server && npx vitest run src/__tests__/SwaggerConnector.integration.test.ts\n```\n\n기존 테스트도 함께 확인:\n```bash\npnpm --filter @webform/server test\n```\n\n실패 시 SandboxRunner.ts 또는 EventEngine.ts를 수정하여 통과시켜라.",
       "dependsOn": [
         "sandbox-integration-impl"
