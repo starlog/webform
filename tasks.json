@@ -77,7 +77,7 @@
       "description": "OpenAPI/Swagger YAML 파싱 서비스 구현 계획",
       "phase": "phase2-parallel",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "SwaggerParser 서비스 구현 계획을 수립하라.\n\n## 목표\n`packages/server/src/services/SwaggerParser.ts` 신규 파일을 생성하고, js-yaml 의존성을 추가하는 계획을 작성한다.\n\n## 분석 대상 파일\n1. `packages/server/package.json` - 현재 의존성 확인, js-yaml 추가 위치 파악\n2. `packages/server/src/services/EventEngine.ts` - 기존 서비스 구조와 임포트 패턴 확인\n3. `packages/server/src/services/SandboxRunner.ts` - MongoConnectorInfo 인터페이스 패턴 확인\n\n## 계획 내용\n\n### SwaggerParser.ts 설계\n- `SwaggerOperation` 인터페이스 (operationId, method, path, pathParams, queryParams, hasRequestBody, summary)\n- `ParsedSwaggerSpec` 인터페이스 (title, version, baseUrl, operations)\n- `parseSwaggerSpec(specYaml: string): ParsedSwaggerSpec` 함수\n- OpenAPI 3.x 지원 (paths → get/post/put/patch/delete)\n- Swagger 2.x 지원 (host + basePath → baseUrl)\n- operationId 자동 생성 규칙:\n  - GET /pets → getPets\n  - GET /pets/{petId} → getPetById\n  - POST /pets → createPet\n  - PUT /pets/{petId} → updatePet\n  - DELETE /pets/{petId} → deletePet\n  - PATCH /pets/{petId} → patchPet\n  - fallback: METHOD + path segments in camelCase\n- 중복 operationId → 숫자 접미사 처리\n- 잘못된 YAML → 명확한 에러 메시지\n\n계획을 `plans/swagger-parser-plan.md` 파일로 저장하라.",
       "dependsOn": [
         "common-types-commit"
@@ -220,7 +220,7 @@
       "description": "Runtime SwaggerConnector 컴포넌트 및 레지스트리 등록 계획",
       "phase": "phase2-parallel",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "Runtime SwaggerConnector 컴포넌트 구현 계획을 수립하라.\n\n## 분석 대상 파일\n1. `packages/runtime/src/controls/registry.ts` - 전체 읽어 등록 패턴 파악\n2. `packages/runtime/src/controls/` 디렉토리의 MongoDBConnector.tsx 읽어 비-UI 컨트롤 패턴 파악\n\n## 계획 내용\n\n### SwaggerConnector.tsx\n- MongoDBConnector.tsx와 동일한 패턴\n- 런타임에서 렌더링하지 않으므로 `return null`\n- 컴포넌트 이름: `SwaggerConnector`\n- props 타입은 MongoDBConnector와 동일 패턴\n\n### registry.ts 수정\n- import 추가 위치 (MongoDBConnector import 근처)\n- runtimeControlRegistry 객체에 SwaggerConnector 추가 위치\n\n계획을 `plans/runtime-component-plan.md`로 저장하라.",
       "dependsOn": [
         "common-types-commit"
@@ -287,7 +287,7 @@
       "description": "Designer SwaggerConnector UI 컴포넌트, 속성 편집기, 레지스트리 등록 계획",
       "phase": "phase2-parallel",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "Designer SwaggerConnector UI 구현 계획을 수립하라.\n\n## 분석 대상 파일 (반드시 읽어라)\n1. `packages/designer/src/controls/registry.ts` - 컨트롤 등록 패턴\n2. `packages/designer/src/controls/MongoDBConnectorControl.tsx` - 비-UI 컨트롤 디자이너 표시 패턴\n3. `packages/designer/src/components/PropertyPanel/controlProperties.ts` - PropertyMeta 정의 패턴 (MongoDBConnector 항목 중점)\n4. `packages/designer/src/components/PropertyPanel/` 디렉토리 목록 확인 - 커스텀 에디터 파일 파악\n5. 존재하는 커스텀 에디터 파일 하나 읽기 - Monaco 에디터 사용 패턴 파악\n6. PropertyPanel.tsx 또는 관련 렌더러 파일 읽기 - editorType 분기 처리 방식 파악\n\n## 계획 내용\n\n### SwaggerConnectorControl.tsx\n- MongoDBConnectorControl 패턴 따라 구현\n- 점선 테두리 비시각적 인디케이터\n- specYaml에서 title과 endpoint count 간이 추출하여 표시\n- 아이콘: \uD83D\uDD17\n\n### SwaggerSpecEditor.tsx\n- Monaco Editor 기반 YAML 에디터 (기존 Monaco 에디터 패턴 참고)\n- YAML 언어 모드\n- 파일 Import 버튼 (input type=file, accept='.yaml,.yml')\n- 검증 결과 표시\n\n### controlProperties.ts\n- swaggerConnectorProps 배열 정의\n- CONTROL_PROPERTY_META['SwaggerConnector'] 추가\n- editorType: 'swaggerSpec' (SwaggerSpecEditor용)\n\n### PropertyPanel editorType 처리\n- PropertyPanel에서 editorType 분기하는 코드 위치 파악\n- 'swaggerSpec' 타입 처리 추가 방법\n\n### registry.ts\n- import 추가\n- designerControlRegistry 등록\n- controlMetadata 추가: { type: 'SwaggerConnector', displayName: 'SwaggerConnector', icon: '\uD83D\uDD17', category: 'advanced' }\n\n계획을 `plans/designer-ui-plan.md`로 저장하라.",
       "dependsOn": [
         "common-types-commit"
@@ -357,7 +357,7 @@
       "description": "MCP controlDefaults에 SwaggerConnector 기본값 추가 계획",
       "phase": "phase2-parallel",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "MCP SwaggerConnector 기본값 추가 계획을 수립하라.\n\n## 분석 대상 파일\n1. `packages/mcp/src/utils/controlDefaults.ts` - 전체 읽어 MongoDBConnector 기본값 패턴 파악\n\n## 계획 내용\n\nSwaggerConnector 기본값:\n```typescript\nSwaggerConnector: {\n  size: { width: 180, height: 40 },\n  properties: {\n    specYaml: '',\n    baseUrl: '',\n    defaultHeaders: '{}',\n    timeout: 10000,\n  },\n  description: 'Swagger/OpenAPI REST 클라이언트',\n  category: '고급',\n  isContainer: false,\n},\n```\n\n추가 위치: MongoDBConnector 항목 근처\n\n계획을 `plans/mcp-defaults-plan.md`로 저장하라.",
       "dependsOn": [
         "common-types-commit"
