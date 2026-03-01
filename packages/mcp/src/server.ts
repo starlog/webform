@@ -1,8 +1,9 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { registerProjectTools } from './tools/index.js';
 
-export function registerTools(_server: McpServer): void {
+export function registerTools(server: McpServer): void {
   // Phase 1: 프로젝트/폼 관리 Tools
-  // registerProjectTools(server);
+  registerProjectTools(server);
   // registerFormTools(server);
 
   // Phase 2: 컨트롤/이벤트 Tools

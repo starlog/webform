@@ -115,7 +115,7 @@
       "description": "프로젝트 CRUD + export/import/publish Tools 구현",
       "phase": "phase1-foundation",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "plans/mcp-project-tools-plan.md에 따라 프로젝트 관리 Tools를 구현하라.\n\nMCP-SERVER.md 섹션 2.1 및 5.6(Tool 등록 예시) 참조.\n\n생성/수정할 파일:\n1. packages/mcp/src/tools/projects.ts: registerProjectTools(server, api) 함수\n   - list_projects: 페이지네이션, 검색 지원\n   - get_project: 프로젝트 상세 + 폼 목록\n   - create_project: 이름, 설명으로 생성\n   - update_project: 이름, 설명 수정\n   - delete_project: 프로젝트 삭제\n   - export_project: JSON 내보내기\n   - import_project: JSON 가져오기\n   - publish_all: 전체 폼 퍼블리시\n2. packages/mcp/src/tools/index.ts에 registerProjectTools export 추가\n3. packages/mcp/src/server.ts에 registerProjectTools 호출 추가\n\n각 Tool은 Zod 스키마로 입력 검증, JSON.stringify로 결과 반환, 에러 시 toolError 형식 사용.",
       "dependsOn": [
         "mcp-project-tools-plan"
