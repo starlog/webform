@@ -107,15 +107,17 @@ export function registerUtilityTools(server: McpServer): void {
   // 1. validate_form
   server.tool(
     'validate_form',
-    `폼 정의 JSON의 유효성을 검증합니다.
+    `폼 정의 JSON의 유효성을 검증합니다. update_form으로 전체 교체하기 전에 데이터 무결성을 확인할 때 사용하세요.
+서버에 저장하지 않고 클라이언트 측에서만 검증합니다.
 
 검증 항목:
-- 컨트롤 ID/이름 중복
-- 필수 속성 존재 확인 (id, type, name, position, size)
-- 컨트롤 타입 유효성 (CONTROL_TYPES 확인)
-- 이벤트 핸들러 코드 구문 검증 (JavaScript 파싱)
-- 이벤트 핸들러 controlId 참조 유효성
-- 데이터 바인딩 controlId 참조 유효성`,
+- 컨트롤 ID/이름 중복 검사
+- 필수 속성 존재 확인 (id, type, name)
+- 컨트롤 타입 유효성 (42개 CONTROL_TYPES 확인)
+- 이벤트 핸들러 코드 JavaScript 구문 검증
+- 이벤트 핸들러/데이터 바인딩의 controlId 참조 유효성
+
+반환값: { valid: boolean, errors: [{type, message, controlId?}], warnings: [{type, message}], summary: {totalControls, errorCount, warningCount} }`,
     {
       formDefinition: z
         .object({
@@ -274,10 +276,10 @@ export function registerUtilityTools(server: McpServer): void {
   // 2. get_server_health
   server.tool(
     'get_server_health',
-    `WebForm 서버의 상태를 확인합니다.
+    `WebForm 서버의 상태를 확인합니다. 다른 Tool 호출 전에 서버가 정상 동작 중인지 확인할 때 사용하세요.
+서버 연결 실패 시 "pnpm dev:server" 또는 "./run.sh"로 서버를 시작하세요.
 
-MongoDB 연결 상태, Redis 연결 상태, 서버 응답 시간을 반환합니다.
-서버가 비정상이면 status: 'degraded'를 반환합니다.`,
+반환값: { status: 'ok'|'degraded', mongodb, redis, responseTime, serverUrl }`,
     {},
     async () => {
       const startTime = Date.now();
@@ -315,10 +317,13 @@ MongoDB 연결 상태, Redis 연결 상태, 서버 응답 시간을 반환합니
   // 3. search_controls
   server.tool(
     'search_controls',
-    `폼 내 컨트롤을 조건에 따라 검색합니다.
+    `폼 내 컨트롤을 조건에 따라 검색합니다. 특정 컨트롤의 ID를 찾거나, 특정 타입/속성의 컨트롤을 필터링할 때 사용하세요.
+get_form은 전체 컨트롤을 반환하지만, search_controls는 조건에 맞는 컨트롤만 반환합니다.
 
-이름, 타입, 속성 값으로 컨트롤을 필터링합니다. 중첩된 컨테이너 내 컨트롤도 재귀적으로 검색합니다.
-여러 조건을 동시에 지정하면 AND 조건으로 동작합니다.`,
+이름 검색(부분 일치, 대소문자 무시), 타입 필터, 속성 값 검색을 지원합니다.
+중첩된 컨테이너(Panel, GroupBox 등) 내부도 재귀 탐색합니다. 여러 조건은 AND 동작.
+
+반환값: { formId, formName, totalControls, matchCount, controls: [{id, name, type, position, size, parentId, depth}] }`,
     {
       formId: z.string().describe('폼 ID (MongoDB ObjectId)'),
       query: z.string().optional().describe('컨트롤 이름 검색 (부분 일치, 대소문자 무시)'),

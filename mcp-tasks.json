@@ -734,7 +734,7 @@
       "description": "AI가 올바르게 Tool을 선택할 수 있도록 description 개선",
       "phase": "phase5-polishing",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "MCP-SERVER.md 섹션 7 Phase 5 항목 23을 참조.\n\n모든 Tool의 description을 최적화하여 AI가 올바른 Tool을 선택하도록 개선하라:\n\n1. description 개선 원칙:\n   - 어떤 상황에서 이 Tool을 사용해야 하는지 명확히\n   - 입력 파라미터의 의미와 예시 포함\n   - 관련 Tool 간의 차이점 명시 (예: update_form vs update_control)\n   - 반환값에 대한 설명 포함\n2. 특히 개선이 필요한 Tool:\n   - add_control vs batch_add_controls: 단일 vs 일괄 사용 시점\n   - update_form vs update_control: 전체 수정 vs 개별 수정\n   - execute_event vs test_event_handler: 런타임 실행 vs 테스트 실행\n3. list_control_types의 description에 44개 전체 타입 나열\n4. add_event_handler의 description에 ctx 객체 사용법 요약 포함\n\n수정 대상: packages/mcp/src/tools/*.ts",
       "dependsOn": [
         "mcp-phase4-test"

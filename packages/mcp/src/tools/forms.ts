@@ -66,7 +66,10 @@ export function registerFormTools(server: McpServer): void {
   // 1. list_forms
   server.tool(
     'list_forms',
-    '프로젝트의 폼 목록을 조회합니다. 검색, 상태 필터, 페이지네이션을 지원합니다.',
+    `프로젝트의 폼 목록을 조회합니다. 폼 ID를 찾거나, 폼 상태(draft/published)를 확인할 때 사용하세요.
+이름 검색, 상태 필터, 페이지네이션을 지원합니다. projectId 미지정 시 전체 프로젝트의 폼을 반환합니다.
+
+반환값: { forms: [{id, name, version, status, projectId, updatedAt}], meta: {total, page, limit, totalPages} }`,
     {
       projectId: z.string().optional().describe('프로젝트 ID (미지정 시 전체 프로젝트)'),
       page: z
@@ -120,7 +123,9 @@ export function registerFormTools(server: McpServer): void {
   // 2. get_form
   server.tool(
     'get_form',
-    '폼의 전체 정의(속성, 컨트롤, 이벤트 핸들러, 데이터 바인딩)를 조회합니다.',
+    `폼의 전체 정의를 조회합니다. 폼 수정(update_form) 전 현재 version을 확인하거나, 컨트롤/이벤트 핸들러/데이터 바인딩 구조를 파악할 때 사용하세요.
+
+반환값: { id, name, version, status, projectId, properties, controls, eventHandlers, dataBindings, controlCount, eventHandlerCount, createdAt, updatedAt }`,
     {
       formId: z.string().describe('폼 ID (MongoDB ObjectId)'),
     },
@@ -166,7 +171,10 @@ export function registerFormTools(server: McpServer): void {
   // 3. create_form
   server.tool(
     'create_form',
-    '프로젝트에 새 폼을 생성합니다. properties로 폼의 초기 설정(제목, 크기, 배경색, 테마 등)을 지정할 수 있습니다.',
+    `프로젝트에 새 폼을 생성합니다. 먼저 create_project로 프로젝트를 생성한 후 사용하세요.
+properties로 폼의 초기 설정(제목, 크기, 배경색, 테마 등)을 지정할 수 있습니다. 미지정 시 기본값(800x600) 적용.
+
+반환값: { id, name, version, status }`,
     {
       name: z.string().min(1).max(200).describe('폼 이름 (1~200자)'),
       projectId: z.string().describe('프로젝트 ID'),
@@ -226,7 +234,18 @@ export function registerFormTools(server: McpServer): void {
   // 4. update_form (낙관적 잠금)
   server.tool(
     'update_form',
-    '폼 정의를 수정합니다. 낙관적 잠금을 위해 version이 필수이며, 현재 version과 불일치 시 409 충돌 에러가 발생합니다. get_form으로 최신 version을 먼저 확인하세요.',
+    `폼 전체 정의를 직접 수정합니다. 폼의 name, properties(title, width, height, theme 등), 또는 controls/eventHandlers/dataBindings 배열 전체를 교체할 때 사용하세요.
+
+개별 컨트롤의 속성/위치/크기만 수정하려면 update_control을 사용하세요 (병합 방식, 더 안전).
+개별 이벤트 핸들러를 추가/수정하려면 add_event_handler / update_event_handler를 사용하세요.
+
+update_form vs update_control 차이:
+- update_form: 폼 속성(title 등) 수정, 또는 controls/eventHandlers/dataBindings 배열 전체 교체. version 필수.
+- update_control: 특정 컨트롤 1개의 properties/position/size를 병합 수정. version 자동 처리.
+
+낙관적 잠금: version 필수이며, 서버의 현재 version과 불일치 시 409 충돌 에러. get_form으로 최신 version을 먼저 조회하세요.
+
+반환값: { id, name, version, status, controlCount }`,
     {
       formId: z.string().describe('폼 ID'),
       version: z
@@ -338,7 +357,9 @@ export function registerFormTools(server: McpServer): void {
   // 5. delete_form
   server.tool(
     'delete_form',
-    '폼을 삭제합니다 (soft delete).',
+    `폼을 삭제합니다 (soft delete). 삭제된 폼은 복원할 수 없습니다.
+
+반환값: { deleted: true, formId }`,
     {
       formId: z.string().describe('삭제할 폼 ID'),
     },
@@ -368,7 +389,11 @@ export function registerFormTools(server: McpServer): void {
   // 6. publish_form
   server.tool(
     'publish_form',
-    '폼을 퍼블리시합니다. 퍼블리시된 폼은 런타임에서 사용할 수 있습니다. 이미 published 상태면 409 에러가 발생합니다.',
+    `폼을 퍼블리시합니다. 런타임에서 폼을 실행(execute_event, test_event_handler, get_runtime_form)하려면 반드시 먼저 퍼블리시해야 합니다.
+이미 published 상태이면 409 에러. 폼을 수정하면 자동으로 draft 상태로 전환되므로 재퍼블리시가 필요합니다.
+프로젝트의 모든 폼을 한꺼번에 퍼블리시하려면 publish_all을 사용하세요.
+
+반환값: { id, name, version, status: 'published' }`,
     {
       formId: z.string().describe('퍼블리시할 폼 ID'),
     },
@@ -414,7 +439,10 @@ export function registerFormTools(server: McpServer): void {
   // 7. get_form_versions
   server.tool(
     'get_form_versions',
-    '폼의 버전 히스토리를 조회합니다. 각 버전의 번호, 저장 시간, 변경 노트를 확인할 수 있습니다.',
+    `폼의 버전 히스토리를 조회합니다. 이전 버전으로 복원하거나 변경 이력을 추적할 때 사용하세요.
+특정 버전의 전체 스냅샷을 조회하려면 get_form_version_snapshot을 사용하세요.
+
+반환값: { formId, versions: [{version, savedAt, note?}] }`,
     {
       formId: z.string().describe('폼 ID'),
     },
@@ -450,7 +478,11 @@ export function registerFormTools(server: McpServer): void {
   // 8. get_form_version_snapshot
   server.tool(
     'get_form_version_snapshot',
-    '특정 버전의 폼 스냅샷(전체 정의)을 조회합니다. 이전 버전의 상태를 확인하거나 복원할 때 사용합니다.',
+    `특정 버전 시점의 폼 전체 스냅샷(properties, controls, eventHandlers, dataBindings)을 조회합니다.
+이전 버전의 상태를 확인하거나 update_form으로 복원할 때 사용합니다.
+버전 목록은 get_form_versions로 먼저 확인하세요.
+
+반환값: { formId, version, snapshot: {name, properties, controls, eventHandlers, dataBindings}, savedAt }`,
     {
       formId: z.string().describe('폼 ID'),
       version: z.number().int().positive().describe('조회할 버전 번호'),

@@ -166,18 +166,44 @@ export function registerEventTools(server: McpServer): void {
   // 1. add_event_handler
   server.tool(
     'add_event_handler',
-    `폼의 컨트롤에 이벤트 핸들러를 등록합니다. 내부적으로 get_form → eventHandlers 배열 추가 → update_form 패턴으로 동작합니다.
+    `폼의 컨트롤에 새 이벤트 핸들러를 등록합니다. 이미 등록된 핸들러를 수정하려면 update_event_handler를 사용하세요.
 
-핸들러 코드는 TypeScript로 작성하며, ctx 객체를 통해 컨트롤 조작/메시지 표시/HTTP 요청 등을 수행합니다:
-- ctx.controls['컨트롤이름'].text/checked/value/... (읽기/쓰기)
-- ctx.sender: 이벤트 발생 컨트롤의 현재 상태
-- ctx.eventArgs: 이벤트 인자 ({type, timestamp, ...})
-- ctx.showMessage(text, title?, type?): 메시지 대화상자 ('info'|'warning'|'error')
-- ctx.navigate(formId, params?): 다른 폼으로 이동
-- ctx.http.get/post/put/patch/delete(url, body?): HTTP 요청 → {status, ok, data}
-- ctx.getRadioGroupValue(groupName): 라디오 그룹 선택값
+controlId에 "_form"을 지정하면 폼 레벨 이벤트(Load, Shown 등)를 등록합니다.
+사용 가능한 이벤트 목록은 list_available_events로 확인하세요.
 
-예시: ctx.controls.txtName.text = ''; ctx.showMessage('저장 완료', '알림', 'info');`,
+핸들러 코드는 JavaScript/TypeScript로 작성하며, ctx 객체를 통해 런타임 기능을 사용합니다:
+
+■ 컨트롤 조작 (읽기/쓰기):
+  ctx.controls['컨트롤이름'].text = '새 값';
+  ctx.controls.txtName.visible = false;
+  ctx.controls.chkAgree.checked = true;
+  ctx.controls.numAge.value = 25;
+  ctx.controls.cmbCity.selectedValue = 'Seoul';
+  ctx.controls.grid1.dataSource = [...];
+
+■ 이벤트 정보:
+  ctx.sender — 이벤트를 발생시킨 컨트롤의 현재 속성
+  ctx.eventArgs — 이벤트 인자 ({type, timestamp, ...})
+
+■ UI 함수:
+  ctx.showMessage(text, title?, type?) — 메시지 대화상자 (type: 'info'|'warning'|'error')
+  ctx.navigate(formId, params?) — 다른 폼으로 이동
+
+■ HTTP 요청:
+  const res = await ctx.http.get(url) → {status, ok, data}
+  const res = await ctx.http.post(url, body)
+  ctx.http.put / ctx.http.patch / ctx.http.delete 도 사용 가능
+
+■ 유틸리티:
+  ctx.getRadioGroupValue(groupName) — 라디오 그룹의 선택값 반환
+
+코드 예시:
+  ctx.controls.txtName.text = '';
+  const res = await ctx.http.get('/api/users');
+  ctx.controls.grid1.dataSource = res.data;
+  ctx.showMessage('데이터 로드 완료', '알림', 'info');
+
+반환값: { formId, controlId, eventName, handlerType, totalHandlers, version }`,
     {
       formId: z.string().describe('폼 ID (MongoDB ObjectId)'),
       controlId: z
@@ -232,9 +258,12 @@ export function registerEventTools(server: McpServer): void {
   // 2. update_event_handler
   server.tool(
     'update_event_handler',
-    `기존 이벤트 핸들러의 코드를 수정합니다. controlId + eventName으로 대상 핸들러를 식별합니다.
+    `기존 이벤트 핸들러의 코드를 수정합니다. 새 핸들러를 등록하려면 add_event_handler를 사용하세요.
+controlId + eventName 조합으로 수정할 핸들러를 식별합니다. 핸들러가 존재하지 않으면 에러를 반환합니다.
 
-ctx 객체 사용법은 add_event_handler 설명을 참고하세요.`,
+ctx 객체 사용법은 add_event_handler 설명을 참고하세요.
+
+반환값: { formId, controlId, eventName, updated: true, version }`,
     {
       formId: z.string().describe('폼 ID'),
       controlId: z.string().describe('컨트롤 ID'),
@@ -272,7 +301,9 @@ ctx 객체 사용법은 add_event_handler 설명을 참고하세요.`,
   // 3. remove_event_handler
   server.tool(
     'remove_event_handler',
-    '이벤트 핸들러를 삭제합니다. controlId + eventName으로 대상을 식별합니다.',
+    `이벤트 핸들러를 삭제합니다. controlId + eventName 조합으로 삭제할 핸들러를 식별합니다.
+
+반환값: { formId, controlId, eventName, removed: true, remainingHandlers, version }`,
     {
       formId: z.string().describe('폼 ID'),
       controlId: z.string().describe('컨트롤 ID'),
@@ -310,7 +341,9 @@ ctx 객체 사용법은 add_event_handler 설명을 참고하세요.`,
   // 4. list_event_handlers
   server.tool(
     'list_event_handlers',
-    '폼에 등록된 모든 이벤트 핸들러를 조회합니다. 각 핸들러의 controlId, eventName, handlerType, handlerCode를 포함합니다.',
+    `폼에 등록된 모든 이벤트 핸들러 목록을 조회합니다. 핸들러 추가/수정 전 현재 상태를 확인할 때 사용하세요.
+
+반환값: { formId, handlers: [{controlId, controlName, eventName, handlerType, handlerCode}], totalCount }`,
     {
       formId: z.string().describe('폼 ID'),
     },
@@ -361,7 +394,12 @@ ctx 객체 사용법은 add_event_handler 설명을 참고하세요.`,
   // 5. list_available_events
   server.tool(
     'list_available_events',
-    '특정 컨트롤 타입에서 사용 가능한 이벤트 목록을 반환합니다. COMMON_EVENTS(모든 컨트롤 공통) + CONTROL_EVENTS(타입별 특화)를 합산합니다. controlType을 "Form"으로 지정하면 폼 레벨 이벤트(Load, Shown 등)를 반환합니다.',
+    `특정 컨트롤 타입에서 사용 가능한 이벤트 목록을 반환합니다. add_event_handler에서 eventName에 사용할 값을 확인할 때 호출하세요.
+
+공통 이벤트(Click, DoubleClick 등) + 타입별 특화 이벤트(예: TextBox → TextChanged)를 합산합니다.
+controlType을 "Form"으로 지정하면 폼 레벨 이벤트(Load, Shown, FormClosing 등)를 반환합니다.
+
+반환값: { controlType, commonEvents, specificEvents, allEvents, totalCount }`,
     {
       controlType: z
         .string()
@@ -392,9 +430,17 @@ ctx 객체 사용법은 add_event_handler 설명을 참고하세요.`,
   // 6. test_event_handler
   server.tool(
     'test_event_handler',
-    `이벤트 핸들러 코드를 실제 런타임 환경에서 테스트 실행합니다. isolated-vm 샌드박스에서 격리 실행되며, 실행 결과로 UI 패치(UIPatch) 배열과 콘솔 로그를 반환합니다.
+    `폼에 등록된 이벤트 핸들러를 테스트 목적으로 실행합니다. 디자인 타임에 핸들러 동작을 검증할 때 사용하세요.
+실제 런타임에서 사용자 이벤트를 시뮬레이션하려면 execute_event를 사용하세요.
 
-폼이 반드시 published 상태여야 합니다 (publish_form 먼저 호출). mockFormState를 제공하면 해당 상태로 시작하고, 미지정 시 빈 상태로 실행합니다.`,
+execute_event와의 차이점:
+- test_event_handler: mockFormState로 초기 상태를 지정하여 격리 테스트. eventArgs 지정 불가.
+- execute_event: formState와 eventArgs를 모두 지정 가능. 실제 런타임 시나리오 재현용.
+
+폼이 published 상태여야 합니다 (publish_form 먼저 호출).
+실행 오류 발생 시 debug_execute로 라인별 트레이스를 확인할 수 있습니다.
+
+반환값: { success, patches: [UIPatch], logs: [{level, message}], patchCount }`,
     {
       formId: z.string().describe('폼 ID (published 상태여야 함)'),
       controlId: z.string().describe('이벤트를 발생시킬 컨트롤 ID'),

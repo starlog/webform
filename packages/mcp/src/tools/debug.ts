@@ -10,12 +10,15 @@ export function registerDebugTools(server: McpServer): void {
   // 1. debug_execute
   server.tool(
     'debug_execute',
-    `이벤트 핸들러를 디버그 모드로 실행합니다. 일반 실행 결과(패치, 로그)에 추가로 실행 트레이스(라인별 변수 상태 캡처)를 반환합니다.
+    `이벤트 핸들러를 디버그 모드로 실행합니다. execute_event/test_event_handler에서 오류가 발생했을 때 원인을 추적할 때 사용하세요.
 
-CodeInstrumenter가 각 statement 앞에 추적 코드를 삽입하여, 실행 중 변수 값과 ctx.controls 상태를 기록합니다.
-핸들러 코드 디버깅, 변수 흐름 추적, 성능 분석에 활용합니다.
+일반 실행 결과(patches, logs)에 추가로 실행 트레이스(traces)를 반환합니다.
+트레이스에는 각 statement 실행 시점의 라인 번호, 변수 값, ctx.controls 상태가 기록됩니다.
+에러 발생 시에도 에러 직전까지의 트레이스를 포함하여 반환합니다.
 
-폼이 published 상태여야 합니다.`,
+폼이 published 상태여야 합니다 (publish_form 먼저 호출).
+
+반환값: { success, patches?, error?, errorLine?, traces: [{line, column, timestamp, variables, ctxControls}], logs, patchCount, traceCount }`,
     {
       formId: z.string().describe('폼 ID (published 상태여야 함)'),
       controlId: z.string().describe('이벤트를 발생시킬 컨트롤 ID'),

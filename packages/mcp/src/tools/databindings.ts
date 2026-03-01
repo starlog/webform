@@ -188,14 +188,17 @@ export function registerDatabindingTools(server: McpServer): void {
   // 1. add_data_binding
   server.tool(
     'add_data_binding',
-    `폼의 컨트롤 속성에 데이터 바인딩을 추가합니다. 내부적으로 get_form → dataBindings 배열 추가 → update_form 패턴으로 동작합니다.
+    `폼의 컨트롤 속성을 데이터소스 필드에 바인딩합니다. 데이터소스를 먼저 create_datasource로 생성한 후 사용하세요.
+기존 바인딩을 변경하려면 remove_data_binding 후 다시 추가하세요. 현재 바인딩 목록은 list_data_bindings로 확인하세요.
 
-데이터 바인딩은 컨트롤의 특정 속성(예: text, value, dataSource)을 데이터소스의 필드와 연결합니다.
-- oneWay: 데이터소스 → 컨트롤 (단방향, 기본값)
-- twoWay: 양방향 바인딩 (컨트롤 값 변경 시 데이터소스에도 반영)
-- oneTime: 초기 로드 시점에만 바인딩
+바인딩 모드:
+- oneWay (기본): 데이터소스 → 컨트롤 (단방향). 데이터 변경 시 컨트롤 자동 업데이트.
+- twoWay: 양방향. 컨트롤 값 변경 시 데이터소스에도 반영.
+- oneTime: 초기 로드 시 1회만 바인딩.
 
-예시: DataGridView의 dataSource 속성을 데이터소스의 users 필드에 바인딩`,
+예시: DataGridView.dataSource ← 데이터소스.users, TextBox.text ← 데이터소스.userName
+
+반환값: { formId, controlId, controlProperty, dataSourceId, dataField, bindingMode, totalBindings, formVersion }`,
     {
       formId: z.string().describe('폼 ID (MongoDB ObjectId)'),
       controlId: z.string().describe('바인딩할 컨트롤 ID'),
@@ -259,7 +262,10 @@ export function registerDatabindingTools(server: McpServer): void {
   // 2. remove_data_binding
   server.tool(
     'remove_data_binding',
-    '데이터 바인딩을 삭제합니다. controlId + controlProperty로 대상 바인딩을 식별합니다.',
+    `데이터 바인딩을 삭제합니다. controlId + controlProperty 조합으로 삭제할 바인딩을 식별합니다.
+바인딩을 변경하려면 삭제 후 add_data_binding으로 재생성하세요.
+
+반환값: { formId, controlId, controlProperty, removed: true, remainingBindings, formVersion }`,
     {
       formId: z.string().describe('폼 ID'),
       controlId: z.string().describe('컨트롤 ID'),
@@ -297,7 +303,9 @@ export function registerDatabindingTools(server: McpServer): void {
   // 3. list_data_bindings
   server.tool(
     'list_data_bindings',
-    '폼에 설정된 모든 데이터 바인딩 목록을 조회합니다. 각 바인딩의 controlId, controlProperty, dataSourceId, dataField, bindingMode를 포함합니다.',
+    `폼에 설정된 모든 데이터 바인딩 목록을 조회합니다. 바인딩 추가/삭제 전 현재 상태를 확인할 때 사용하세요.
+
+반환값: { formId, bindings: [{controlId, controlName, controlProperty, dataSourceId, dataField, bindingMode}], totalCount }`,
     {
       formId: z.string().describe('폼 ID'),
     },

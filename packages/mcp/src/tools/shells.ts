@@ -58,7 +58,10 @@ export function registerShellTools(server: McpServer): void {
   // 1. get_shell
   server.tool(
     'get_shell',
-    '프로젝트의 ApplicationShell 정의를 조회합니다. Shell이 없는 프로젝트는 data: null을 반환합니다.',
+    `프로젝트의 ApplicationShell 정의를 조회합니다. Shell 수정(update_shell) 전 현재 상태를 확인하거나 존재 여부를 파악할 때 사용하세요.
+Shell이 없는 프로젝트는 shell: null을 반환합니다.
+
+반환값: { projectId, shell: {id, name, version, published, properties, controls, eventHandlers, startFormId, createdAt, updatedAt} | null }`,
     {
       projectId: z.string().describe('프로젝트 ID (MongoDB ObjectId)'),
     },
@@ -99,10 +102,13 @@ export function registerShellTools(server: McpServer): void {
   // 2. create_shell
   server.tool(
     'create_shell',
-    `프로젝트에 ApplicationShell을 생성합니다. 프로젝트당 하나의 Shell만 허용됩니다.
+    `프로젝트에 ApplicationShell을 생성합니다. 프로젝트당 하나의 Shell만 허용됩니다 (이미 존재하면 409 에러, update_shell 사용).
 
 Shell은 앱 수준의 UI 프레임(MenuStrip, ToolStrip, StatusStrip 등)을 정의합니다.
-properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId로 시작 폼을 지정합니다.`,
+properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId로 앱 시작 시 표시할 폼을 지정합니다.
+생성 후 publish_shell로 퍼블리시해야 런타임에서 사용할 수 있습니다.
+
+반환값: { projectId, shellId, name, version, published: false }`,
     {
       projectId: z.string().describe('프로젝트 ID (MongoDB ObjectId)'),
       name: z.string().describe('Shell 이름'),
@@ -169,8 +175,11 @@ properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId
   // 3. update_shell
   server.tool(
     'update_shell',
-    `프로젝트 Shell을 수정합니다. 수정 시 version이 증가하고 published가 false로 전환됩니다.
-재배포하려면 publish_shell을 다시 호출하세요.`,
+    `프로젝트 Shell의 속성, 컨트롤, 이벤트 핸들러, 시작 폼을 수정합니다.
+수정 시 version이 증가하고 published가 false로 전환됩니다. 재배포하려면 publish_shell을 다시 호출하세요.
+Shell이 없으면 404 에러 (create_shell로 먼저 생성).
+
+반환값: { projectId, shellId, name, version, published: false }`,
     {
       projectId: z.string().describe('프로젝트 ID'),
       properties: z
@@ -246,7 +255,9 @@ properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId
   // 4. delete_shell
   server.tool(
     'delete_shell',
-    '프로젝트의 Shell을 삭제합니다 (soft delete). 삭제 후 create_shell로 새 Shell을 생성할 수 있습니다.',
+    `프로젝트의 Shell을 삭제합니다 (soft delete). 삭제 후 create_shell로 새 Shell을 생성할 수 있습니다.
+
+반환값: { projectId, deleted: true }`,
     {
       projectId: z.string().describe('프로젝트 ID'),
     },
@@ -272,8 +283,11 @@ properties로 Shell 창의 크기/제목/테마 등을 설정하고, startFormId
   // 5. publish_shell
   server.tool(
     'publish_shell',
-    `Shell을 퍼블리시합니다. 퍼블리시된 Shell은 런타임에서 사용 가능합니다.
-이미 published 상태이면 409 에러를 반환합니다. 수정 후 재퍼블리시하려면 update_shell로 수정 후 다시 호출하세요.`,
+    `Shell을 퍼블리시합니다. 런타임에서 Shell을 사용(get_runtime_app)하려면 반드시 퍼블리시해야 합니다.
+이미 published 상태이면 409 에러. Shell을 수정하면 자동으로 unpublished 상태로 전환되므로 재퍼블리시가 필요합니다.
+프로젝트의 폼과 Shell을 한꺼번에 퍼블리시하려면 publish_all을 사용하세요.
+
+반환값: { projectId, shellId, name, version, published: true }`,
     {
       projectId: z.string().describe('프로젝트 ID'),
     },

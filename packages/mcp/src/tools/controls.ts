@@ -247,7 +247,12 @@ export function registerControlTools(server: McpServer): void {
   // 1. add_control
   server.tool(
     'add_control',
-    '폼에 컨트롤을 추가합니다. position 미지정 시 자동 배치, size 미지정 시 타입별 기본 크기 적용. 사용 가능한 타입: Button, Label, TextBox, CheckBox, RadioButton, ComboBox, ListBox, NumericUpDown, DateTimePicker, ProgressBar, PictureBox, Panel, GroupBox, TabControl, SplitContainer, DataGridView, Chart, TreeView, ListView, MenuStrip, ToolStrip, StatusStrip, RichTextBox, WebBrowser, SpreadsheetView, JsonEditor, MongoDBView, GraphView, MongoDBConnector, Slider, Switch, Upload, Alert, Tag, Divider, Card, Badge, Avatar, Tooltip, Collapse, Statistic 등 44종',
+    `폼에 단일 컨트롤을 추가합니다. 컨트롤 1개만 추가할 때 사용하세요. 여러 컨트롤을 한꺼번에 추가하려면 batch_add_controls를 사용하세요.
+
+position 미지정 시 기존 컨트롤과 겹치지 않도록 자동 배치(16px 그리드 스냅). size 미지정 시 타입별 기본 크기 적용.
+parentId를 지정하면 Panel, GroupBox 등 컨테이너 내부에 배치됩니다.
+
+반환값: { controlId, controlName, controlType, position, size, formVersion }`,
     {
       formId: z.string().describe('폼 ID'),
       type: z.string().describe('컨트롤 타입 (예: Button, TextBox, Label, DataGridView)'),
@@ -337,7 +342,13 @@ export function registerControlTools(server: McpServer): void {
   // 2. update_control
   server.tool(
     'update_control',
-    '컨트롤의 속성, 위치, 크기를 수정합니다. 속성은 병합 방식으로 적용됩니다 (기존 속성 유지, 전달된 속성만 덮어쓰기).',
+    `개별 컨트롤의 속성, 위치, 크기를 수정합니다. 특정 컨트롤 하나를 수정할 때 사용하세요.
+폼 전체 속성(title, width, height, theme 등)을 수정하려면 update_form을 사용하세요.
+
+속성은 병합(merge) 방식: 기존 속성을 유지하면서 전달된 속성만 덮어씁니다.
+예: properties: { text: '저장' } → text만 변경, 나머지 속성 유지.
+
+반환값: { controlId, controlName, updated: ['properties'|'position'|'size'], formVersion }`,
     {
       formId: z.string().describe('폼 ID'),
       controlId: z.string().describe('수정할 컨트롤 ID'),
@@ -413,7 +424,9 @@ export function registerControlTools(server: McpServer): void {
   // 3. remove_control
   server.tool(
     'remove_control',
-    '폼에서 컨트롤을 삭제합니다. 관련 이벤트 핸들러와 데이터 바인딩도 함께 삭제됩니다.',
+    `폼에서 컨트롤을 삭제합니다. 해당 컨트롤에 연결된 이벤트 핸들러와 데이터 바인딩도 자동으로 함께 삭제됩니다.
+
+반환값: { removedControlId, removedName, formVersion }`,
     {
       formId: z.string().describe('폼 ID'),
       controlId: z.string().describe('삭제할 컨트롤 ID'),
@@ -460,7 +473,10 @@ export function registerControlTools(server: McpServer): void {
   // 4. move_control
   server.tool(
     'move_control',
-    '컨트롤을 새 위치로 이동합니다. 16px 그리드에 스냅됩니다.',
+    `컨트롤을 새 위치로 이동합니다. 좌표는 16px 그리드에 자동 스냅됩니다.
+위치만 변경할 때 사용하세요. 속성/크기도 함께 변경하려면 update_control을 사용하세요.
+
+반환값: { controlId, controlName, position: {x, y}, formVersion }`,
     {
       formId: z.string().describe('폼 ID'),
       controlId: z.string().describe('이동할 컨트롤 ID'),
@@ -514,7 +530,10 @@ export function registerControlTools(server: McpServer): void {
   // 5. resize_control
   server.tool(
     'resize_control',
-    '컨트롤의 크기를 변경합니다.',
+    `컨트롤의 크기를 변경합니다. 크기만 변경할 때 사용하세요.
+속성/위치도 함께 변경하려면 update_control을 사용하세요.
+
+반환값: { controlId, controlName, size: {width, height}, formVersion }`,
     {
       formId: z.string().describe('폼 ID'),
       controlId: z.string().describe('크기를 변경할 컨트롤 ID'),
@@ -568,7 +587,12 @@ export function registerControlTools(server: McpServer): void {
   // 6. batch_add_controls
   server.tool(
     'batch_add_controls',
-    '여러 컨트롤을 한 번에 일괄 추가합니다. 하나의 update_form 호출로 처리되어 효율적입니다. position 미지정 시 순차 자동 배치됩니다.',
+    `여러 컨트롤을 한 번에 일괄 추가합니다 (1~50개). 2개 이상의 컨트롤을 추가할 때는 add_control을 반복 호출하지 말고 이 Tool을 사용하세요.
+하나의 API 호출로 원자적으로 처리되어 add_control 반복 대비 훨씬 효율적입니다.
+
+position 미지정 시 이전 컨트롤 위치를 고려하여 순차 자동 배치됩니다.
+
+반환값: { addedControls: [{controlId, name, type, position, size}], count, formVersion }`,
     {
       formId: z.string().describe('폼 ID'),
       controls: z
@@ -694,7 +718,18 @@ export function registerControlTools(server: McpServer): void {
   // 7. list_control_types
   server.tool(
     'list_control_types',
-    '사용 가능한 컨트롤 타입 목록을 카테고리별로 조회합니다. 각 타입의 설명, 기본 크기, 컨테이너 여부를 포함합니다.',
+    `사용 가능한 컨트롤 타입 목록을 카테고리별로 조회합니다. 각 타입의 설명, 기본 크기, 컨테이너 여부를 포함합니다.
+add_control 또는 batch_add_controls에서 type 파라미터에 사용할 값을 확인할 때 호출하세요.
+
+전체 42개 타입:
+- 기본 컨트롤: Button, Label, TextBox, CheckBox, RadioButton, ComboBox, ListBox, NumericUpDown, DateTimePicker, ProgressBar, PictureBox
+- 컨테이너: Panel, GroupBox, TabControl, SplitContainer
+- 데이터: DataGridView, BindingNavigator, Chart, TreeView, ListView
+- 메뉴/도구: MenuStrip, ToolStrip, StatusStrip
+- 고급: RichTextBox, WebBrowser, SpreadsheetView, JsonEditor, MongoDBView, GraphView, MongoDBConnector
+- 추가 요소: Slider, Switch, Upload, Alert, Tag, Divider, Card, Badge, Avatar, Tooltip, Collapse, Statistic
+
+반환값: { totalTypes, categories: { [카테고리]: [{type, description, defaultSize, isContainer}] } }`,
     {},
     async () => {
       const categories: Record<
@@ -723,7 +758,10 @@ export function registerControlTools(server: McpServer): void {
   // 8. get_control_schema
   server.tool(
     'get_control_schema',
-    '특정 컨트롤 타입의 속성 스키마를 조회합니다. 설정 가능한 속성명, 타입, 기본값, 옵션 등을 확인할 수 있습니다.',
+    `특정 컨트롤 타입의 속성 스키마를 조회합니다. 컨트롤의 properties에 어떤 값을 설정할 수 있는지 확인할 때 사용하세요.
+설정 가능한 속성명, 타입, 기본값, 사용 가능한 이벤트 목록을 반환합니다.
+
+반환값: { type, description, category, isContainer, defaultSize, defaultProperties, availableProperties, events }`,
     {
       controlType: z
         .string()

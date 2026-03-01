@@ -54,7 +54,10 @@ export function registerDatasourceTools(server: McpServer): void {
   // 1. list_datasources
   server.tool(
     'list_datasources',
-    '데이터소스 목록을 조회합니다. 프로젝트, 타입 필터, 이름 검색, 페이지네이션을 지원합니다.',
+    `데이터소스 목록을 조회합니다. 데이터 바인딩(add_data_binding)이나 이벤트 핸들러에서 사용할 데이터소스 ID를 찾을 때 사용하세요.
+프로젝트, 타입(database/restApi/static) 필터, 이름 검색, 페이지네이션을 지원합니다.
+
+반환값: { datasources: [{id, name, type, projectId, description, meta, updatedAt}], meta: {total, page, limit, totalPages} }`,
     {
       projectId: z.string().optional().describe('프로젝트 ID (미지정 시 전체)'),
       type: z
@@ -112,7 +115,10 @@ export function registerDatasourceTools(server: McpServer): void {
   // 2. get_datasource
   server.tool(
     'get_datasource',
-    '데이터소스의 상세 정보를 조회합니다. 복호화된 config 설정을 포함합니다.',
+    `데이터소스의 상세 정보를 조회합니다. 연결 설정(config)을 확인하거나 수정 전 현재 상태를 파악할 때 사용하세요.
+config에는 복호화된 연결 정보(connectionString, baseUrl, 인증 정보 등)가 포함됩니다.
+
+반환값: { id, name, type, projectId, description, config, meta, createdAt, updatedAt }`,
     {
       datasourceId: z.string().describe('데이터소스 ID (MongoDB ObjectId)'),
     },
@@ -152,7 +158,15 @@ export function registerDatasourceTools(server: McpServer): void {
   // 3. create_datasource
   server.tool(
     'create_datasource',
-    `새 데이터소스를 생성합니다. type에 따라 config 구조가 다릅니다: database(MongoDB 연결), restApi(REST API 엔드포인트), static(정적 JSON 데이터).`,
+    `새 데이터소스를 생성합니다. 생성 후 test_datasource_connection으로 연결을 테스트하세요.
+데이터소스를 컨트롤에 연결하려면 add_data_binding을 사용하세요.
+
+type별 config 구조:
+- database: MongoDB 연결 { dialect: "mongodb", connectionString: "mongodb://...", database: "dbName" }
+- restApi: REST API 엔드포인트 { baseUrl: "https://api.example.com", headers?: {}, auth?: {type: "bearer", token: "..."} }
+- static: 정적 JSON 데이터 { data: [{...}, ...] }
+
+반환값: { id, name, type, projectId, description }`,
     {
       name: z.string().min(1).max(200).describe('데이터소스 이름 (1~200자)'),
       type: z.enum(['database', 'restApi', 'static']).describe('데이터소스 타입'),
@@ -200,7 +214,10 @@ export function registerDatasourceTools(server: McpServer): void {
   // 4. update_datasource
   server.tool(
     'update_datasource',
-    '데이터소스를 수정합니다. name, description, config를 개별적으로 업데이트할 수 있습니다.',
+    `데이터소스의 이름, 설명, 연결 설정(config)을 수정합니다. 변경할 필드만 전달하세요.
+수정 후 test_datasource_connection으로 연결을 재검증하는 것을 권장합니다.
+
+반환값: { id, name, type, projectId }`,
     {
       datasourceId: z.string().describe('데이터소스 ID'),
       name: z.string().min(1).max(200).optional().describe('새 이름'),
@@ -252,7 +269,9 @@ export function registerDatasourceTools(server: McpServer): void {
   // 5. delete_datasource
   server.tool(
     'delete_datasource',
-    '데이터소스를 삭제합니다 (soft delete).',
+    `데이터소스를 삭제합니다 (soft delete). 주의: 이 데이터소스를 참조하는 데이터 바인딩이 있으면 런타임에서 오류가 발생할 수 있습니다.
+
+반환값: { deleted: true, datasourceId }`,
     {
       datasourceId: z.string().describe('삭제할 데이터소스 ID'),
     },
@@ -282,7 +301,10 @@ export function registerDatasourceTools(server: McpServer): void {
   // 6. test_datasource_connection
   server.tool(
     'test_datasource_connection',
-    '데이터소스의 연결을 테스트합니다. database 타입은 DB 연결을, restApi 타입은 API 호출을 테스트합니다. static 타입은 항상 성공합니다.',
+    `데이터소스의 연결을 테스트합니다. create_datasource 또는 update_datasource 후 연결이 정상인지 검증할 때 사용하세요.
+database 타입: DB 연결 테스트, restApi 타입: API 호출 테스트, static 타입: 항상 성공.
+
+반환값: { success: boolean, message: string }`,
     {
       datasourceId: z.string().describe('테스트할 데이터소스 ID'),
     },
@@ -315,7 +337,14 @@ export function registerDatasourceTools(server: McpServer): void {
   // 7. query_datasource
   server.tool(
     'query_datasource',
-    `데이터소스에 쿼리를 실행합니다. type별 쿼리 형식이 다릅니다: database는 MongoDB 쿼리, restApi는 HTTP 요청 설정, static은 필터 조건.`,
+    `데이터소스에 쿼리를 실행하고 결과 데이터를 반환합니다. 데이터 확인, 디버깅, 또는 이벤트 핸들러에서 사용할 데이터 구조 파악 시 사용하세요.
+
+type별 쿼리 형식:
+- database(MongoDB): { collection: "users", filter?: {age: {$gt: 20}}, sort?: {name: 1}, limit?: 10 }
+- restApi: { method?: "GET", path?: "/users", params?: {page: 1}, body?: {...} }
+- static: { filter?: {status: "active"}, sort?: {name: 1}, limit?: 10 }
+
+반환값: { data: [...], rowCount: number }`,
     {
       datasourceId: z.string().describe('데이터소스 ID'),
       query: z

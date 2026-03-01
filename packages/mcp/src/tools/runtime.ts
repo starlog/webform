@@ -85,13 +85,18 @@ export function registerRuntimeTools(server: McpServer): void {
   // 1. execute_event
   server.tool(
     'execute_event',
-    `폼의 이벤트를 런타임 환경에서 실행합니다. published 상태의 폼에서만 동작합니다.
+    `폼의 이벤트를 실제 런타임 환경에서 실행합니다. 사용자 인터랙션을 시뮬레이션하거나 런타임 동작을 검증할 때 사용하세요.
+디자인 타임에 핸들러 코드만 테스트하려면 test_event_handler를 사용하세요.
+실행 오류를 디버깅하려면 debug_execute를 사용하세요 (라인별 트레이스 포함).
 
-isolated-vm 샌드박스에서 서버 핸들러 코드를 실행하고, UI 패치(UIPatch) 배열과 콘솔 로그를 반환합니다.
-formState를 제공하면 해당 상태에서 시작하고, 미지정 시 빈 상태로 실행합니다.
-eventArgs를 제공하면 ctx.eventArgs에 전달됩니다.
+test_event_handler와의 차이점:
+- execute_event: formState + eventArgs를 모두 지정 가능. 실제 런타임 시나리오 재현에 적합.
+- test_event_handler: mockFormState만 지정 가능 (eventArgs 미지원). 단순 핸들러 검증용.
 
-폼이 published 상태가 아니면 404 에러를 반환합니다 (publish_form 먼저 호출).`,
+isolated-vm 샌드박스에서 서버 핸들러 코드를 격리 실행합니다.
+폼이 published 상태여야 합니다 (publish_form 먼저 호출).
+
+반환값: { success, patches: [UIPatch], logs: [{type, args, timestamp}], patchCount }`,
     {
       formId: z.string().describe('폼 ID (published 상태여야 함)'),
       controlId: z.string().describe('이벤트를 발생시킬 컨트롤 ID'),
@@ -143,10 +148,13 @@ eventArgs를 제공하면 ctx.eventArgs에 전달됩니다.
   // 2. get_runtime_form
   server.tool(
     'get_runtime_form',
-    `퍼블리시된 폼을 런타임 형식으로 로드합니다. published 상태가 아닌 폼은 404를 반환합니다.
+    `퍼블리시된 폼을 런타임 형식으로 로드합니다. execute_event 전에 폼 구조를 확인하거나, 런타임 렌더링에 필요한 데이터를 가져올 때 사용하세요.
+디자인 타임의 폼 전체 정의(핸들러 코드 포함)를 보려면 get_form을 사용하세요.
 
-런타임 형식은 서버 핸들러만 노출하며(코드 미포함), 데이터 바인딩 정보를 포함합니다.
-폼의 현재 상태를 확인하거나 런타임 테스트 전 폼 구조를 검토할 때 사용합니다.`,
+런타임 형식: 핸들러 코드 미포함(보안), 이벤트 바인딩 정보만 노출, 데이터 바인딩 포함.
+published 상태가 아닌 폼은 404를 반환합니다 (publish_form 먼저 호출).
+
+반환값: { id, name, version, properties, controls, eventHandlers: [{controlId, eventName, handlerType}], dataBindings }`,
     {
       formId: z.string().describe('폼 ID (published 상태여야 함)'),
     },
@@ -168,11 +176,14 @@ eventArgs를 제공하면 ctx.eventArgs에 전달됩니다.
   // 3. get_runtime_app
   server.tool(
     'get_runtime_app',
-    `프로젝트의 앱을 런타임 형식으로 로드합니다. Shell 정의(있으면)와 시작 폼을 일괄 반환합니다.
+    `프로젝트의 전체 앱을 런타임 형식으로 로드합니다. Shell(있으면) + 시작 폼을 한 번의 호출로 일괄 반환합니다.
+개별 폼만 로드하려면 get_runtime_form을 사용하세요.
 
 Shell이 없는 프로젝트는 shell: null로 반환됩니다.
 formId를 지정하면 shell.startFormId 대신 해당 폼을 시작 폼으로 사용합니다.
-Shell과 시작 폼 모두 published 상태여야 합니다.`,
+Shell과 시작 폼 모두 published 상태여야 합니다.
+
+반환값: { shell: {id, name, properties, controls, eventHandlers, startFormId} | null, startForm: RuntimeFormDefinition }`,
     {
       projectId: z.string().describe('프로젝트 ID (MongoDB ObjectId)'),
       formId: z.string().optional().describe('시작 폼 ID (미지정 시 shell.startFormId 사용)'),

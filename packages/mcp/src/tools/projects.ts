@@ -85,7 +85,10 @@ export function registerProjectTools(server: McpServer): void {
   // 1. list_projects
   server.tool(
     'list_projects',
-    '프로젝트 목록을 조회합니다. 페이징과 이름 검색을 지원합니다.',
+    `프로젝트 목록을 조회합니다. 작업할 프로젝트 ID를 찾거나 프로젝트 현황을 파악할 때 사용하세요.
+페이징과 이름 검색을 지원합니다.
+
+반환값: { projects: [{id, name, description, createdAt, updatedAt}], meta: {total, page, limit, totalPages} }`,
     {
       page: z
         .number()
@@ -134,7 +137,9 @@ export function registerProjectTools(server: McpServer): void {
   // 2. get_project
   server.tool(
     'get_project',
-    '프로젝트 상세 정보와 소속 폼 목록을 조회합니다.',
+    `프로젝트 상세 정보와 소속 폼 목록을 조회합니다. 프로젝트의 폼 구성을 확인하거나 폼 ID를 찾을 때 사용하세요.
+
+반환값: { project: {id, name, description, defaultFont, createdAt, updatedAt}, forms: [{id, name, status, version, publishedVersion}] }`,
     {
       projectId: z.string().describe('프로젝트 ID (MongoDB ObjectId)'),
     },
@@ -181,7 +186,9 @@ export function registerProjectTools(server: McpServer): void {
   // 3. create_project
   server.tool(
     'create_project',
-    '새 프로젝트를 생성합니다. 폼을 추가하려면 먼저 프로젝트를 생성해야 합니다.',
+    `새 프로젝트를 생성합니다. 폼(create_form), 데이터소스(create_datasource), Shell(create_shell)을 추가하려면 먼저 프로젝트를 생성해야 합니다.
+
+반환값: { project: {id, name, description, createdAt} }`,
     {
       name: z.string().min(1).max(200).describe('프로젝트명'),
       description: z.string().max(1000).optional().describe('프로젝트 설명'),
@@ -213,7 +220,9 @@ export function registerProjectTools(server: McpServer): void {
   // 4. update_project
   server.tool(
     'update_project',
-    '프로젝트의 이름이나 설명을 수정합니다.',
+    `프로젝트의 이름이나 설명을 수정합니다. 폼을 수정하려면 update_form 또는 update_control을 사용하세요.
+
+반환값: { project: {id, name, description, updatedAt} }`,
     {
       projectId: z.string().describe('프로젝트 ID'),
       name: z.string().min(1).max(200).optional().describe('변경할 프로젝트명'),
@@ -261,7 +270,9 @@ export function registerProjectTools(server: McpServer): void {
   // 5. delete_project
   server.tool(
     'delete_project',
-    '프로젝트를 삭제합니다. 소속된 모든 폼도 함께 삭제됩니다.',
+    `프로젝트를 삭제합니다. 주의: 소속된 모든 폼, 데이터소스, Shell도 함께 삭제됩니다.
+
+반환값: { deleted: true, projectId }`,
     {
       projectId: z.string().describe('삭제할 프로젝트 ID'),
     },
@@ -290,7 +301,10 @@ export function registerProjectTools(server: McpServer): void {
   // 6. export_project
   server.tool(
     'export_project',
-    '프로젝트와 모든 폼을 JSON으로 내보냅니다. import_project로 다시 가져올 수 있습니다.',
+    `프로젝트와 모든 폼을 JSON으로 내보냅니다. 백업, 이관, 복제 시 사용하세요.
+내보낸 데이터는 import_project로 다시 가져올 수 있습니다.
+
+반환값: { exportVersion, exportedAt, project: {name, description}, forms: [{name, properties, controls, eventHandlers, dataBindings}] }`,
     {
       projectId: z.string().describe('내보낼 프로젝트 ID'),
     },
@@ -321,7 +335,9 @@ export function registerProjectTools(server: McpServer): void {
   // 7. import_project
   server.tool(
     'import_project',
-    'export_project로 내보낸 JSON 데이터를 가져와 새 프로젝트를 생성합니다.',
+    `export_project로 내보낸 JSON 데이터를 가져와 새 프로젝트를 생성합니다. 기존 프로젝트를 복제하거나 다른 환경에서 이관할 때 사용하세요.
+
+반환값: { project: {id, name, description, createdAt} }`,
     {
       data: z
         .object({
@@ -380,7 +396,10 @@ export function registerProjectTools(server: McpServer): void {
   // 8. publish_all
   server.tool(
     'publish_all',
-    '프로젝트의 모든 draft 폼을 한 번에 퍼블리시합니다.',
+    `프로젝트의 모든 draft 폼과 Shell을 한 번에 퍼블리시합니다. 개별 폼만 퍼블리시하려면 publish_form을 사용하세요.
+이미 published 상태인 폼은 건너뜁니다.
+
+반환값: { forms: {publishedCount, skippedCount, totalCount}, shell: {published, skipped} }`,
     {
       projectId: z.string().describe('전체 퍼블리시할 프로젝트 ID'),
     },
