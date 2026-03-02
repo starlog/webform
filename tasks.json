@@ -218,7 +218,7 @@
       "description": "SQL 공통 베이스 클래스 구현 관련 변경사항 커밋",
       "phase": "phase2-sequential",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "SQL 공통 베이스 클래스 구현 관련 변경사항을 검토하고 git commit을 생성하라.\n\n## 커밋할 파일들\n- `packages/server/src/services/adapters/BaseSqlAdapter.ts` (신규)\n- `packages/server/src/__tests__/BaseSqlAdapter.test.ts` (신규)\n- `plans/sql-base-plan.md` (신규)\n\n## 커밋 실행\n\n```bash\ngit add packages/server/src/services/adapters/BaseSqlAdapter.ts \\\n        packages/server/src/__tests__/BaseSqlAdapter.test.ts \\\n        plans/sql-base-plan.md\ngit commit -m \"feat: SQL 공통 BaseSqlAdapter 추상 클래스 구현 (parameterized query, SQL injection 방지)\"\n```\n\n민감한 파일(.env 등)은 절대 커밋하지 말 것.",
       "dependsOn": [
         "sql-base-test"
