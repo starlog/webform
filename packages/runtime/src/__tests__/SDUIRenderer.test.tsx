@@ -22,7 +22,6 @@ function createMockFormDef(overrides?: Partial<FormDefinition>): FormDefinition 
     },
     controls: [],
     eventHandlers: [],
-    dataBindings: [],
     ...overrides,
   };
 }

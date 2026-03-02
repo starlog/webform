@@ -16,13 +16,6 @@ interface FormData {
     handlerType: string;
     handlerCode: string;
   }>;
-  dataBindings: Array<{
-    controlId: string;
-    controlProperty: string;
-    dataSourceId: string;
-    dataField: string;
-    bindingMode: string;
-  }>;
   properties: Record<string, unknown>;
 }
 
@@ -115,7 +108,7 @@ export function registerUtilityTools(server: McpServer): void {
 - 필수 속성 존재 확인 (id, type, name)
 - 컨트롤 타입 유효성 (42개 CONTROL_TYPES 확인)
 - 이벤트 핸들러 코드 JavaScript 구문 검증
-- 이벤트 핸들러/데이터 바인딩의 controlId 참조 유효성
+- 이벤트 핸들러의 controlId 참조 유효성
 
 반환값: { valid: boolean, errors: [{type, message, controlId?}], warnings: [{type, message}], summary: {totalControls, errorCount, warningCount} }`,
     {
@@ -133,18 +126,6 @@ export function registerUtilityTools(server: McpServer): void {
                 eventName: z.string(),
                 handlerType: z.enum(['server', 'client']).optional(),
                 handlerCode: z.string(),
-              }),
-            )
-            .optional()
-            .default([]),
-          dataBindings: z
-            .array(
-              z.object({
-                controlId: z.string(),
-                controlProperty: z.string(),
-                dataSourceId: z.string(),
-                dataField: z.string(),
-                bindingMode: z.enum(['oneWay', 'twoWay', 'oneTime']).optional(),
               }),
             )
             .optional()
@@ -246,16 +227,6 @@ export function registerUtilityTools(server: McpServer): void {
         }
       }
 
-      // 7. 데이터 바인딩 참조 검증
-      for (const binding of formDefinition.dataBindings || []) {
-        if (!controlIds.has(binding.controlId)) {
-          errors.push({
-            type: 'invalid_binding_ref',
-            message: `데이터 바인딩의 controlId '${binding.controlId}'가 존재하지 않는 컨트롤을 참조합니다`,
-          });
-        }
-      }
-
       // 결과 반환
       const valid = errors.length === 0;
       return toolResult({
@@ -265,7 +236,6 @@ export function registerUtilityTools(server: McpServer): void {
         summary: {
           totalControls: allControls.length,
           totalEventHandlers: (formDefinition.eventHandlers || []).length,
-          totalDataBindings: (formDefinition.dataBindings || []).length,
           errorCount: errors.length,
           warningCount: warnings.length,
         },

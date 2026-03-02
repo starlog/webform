@@ -64,7 +64,7 @@ function parseResult(result: { content: Array<{ type: string; text: string }> })
 
 const VALID_FORM_ID = 'aabbccddee112233ff445566';
 
-function makeFormResponse(controls: unknown[] = [], eventHandlers: unknown[] = [], dataBindings: unknown[] = []) {
+function makeFormResponse(controls: unknown[] = [], eventHandlers: unknown[] = []) {
   return {
     data: {
       _id: VALID_FORM_ID,
@@ -72,7 +72,6 @@ function makeFormResponse(controls: unknown[] = [], eventHandlers: unknown[] = [
       version: 1,
       controls,
       eventHandlers,
-      dataBindings,
       properties: {},
     },
   };
@@ -326,7 +325,6 @@ describe('Control Tools', () => {
             },
           ],
           [{ controlId: 'ctrl-1', eventName: 'Click', handlerType: 'server', handlerCode: '' }],
-          [{ controlId: 'ctrl-1', controlProperty: 'text', dataSourceId: 'ds1', dataField: 'name', bindingMode: 'oneWay' }],
         ),
       );
       mockPut.mockResolvedValue(makePutResponse());
@@ -339,10 +337,9 @@ describe('Control Tools', () => {
 
       expect(data.removedName).toBe('btnDelete');
 
-      // put에 전달된 데이터에서 핸들러/바인딩 제거 확인
+      // put에 전달된 데이터에서 핸들러 제거 확인
       const putBody = mockPut.mock.calls[0][1] as Record<string, unknown[]>;
       expect(putBody.eventHandlers).toHaveLength(0);
-      expect(putBody.dataBindings).toHaveLength(0);
     });
   });
 

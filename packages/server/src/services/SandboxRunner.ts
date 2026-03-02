@@ -1,6 +1,7 @@
 import ivm from 'isolated-vm';
 import ts from 'typescript';
 import { getMongoClient } from './adapters/MongoClientPool.js';
+import './adapters/index.js'; // 어댑터 팩토리 등록 side-effect
 import type { TraceEntry } from '@webform/common';
 import { env } from '../config/index.js';
 import { CodeInstrumenter } from './CodeInstrumenter.js';
@@ -24,12 +25,32 @@ export interface SwaggerConnectorInfo {
   timeout: number;
 }
 
+export interface DataSourceConnectorInfo {
+  controlName: string;
+  dsType: 'database' | 'restApi' | 'static';
+  dialect?: string;
+  host?: string;
+  port?: number;
+  user?: string;
+  password?: string;
+  database?: string;
+  ssl?: boolean;
+  baseUrl?: string;
+  headers?: Record<string, string>;
+  authType?: string;
+  authCredentials?: Record<string, string>;
+  data?: unknown[];
+  queryTimeout: number;
+  maxResultCount: number;
+}
+
 export interface SandboxOptions {
   timeout?: number;
   memoryLimit?: number;
   debugMode?: boolean;
   mongoConnectors?: MongoConnectorInfo[];
   swaggerConnectors?: SwaggerConnectorInfo[];
+  dataSourceConnectors?: DataSourceConnectorInfo[];
   shellMode?: boolean;
   appState?: Record<string, unknown>;
   currentFormId?: string;
@@ -92,6 +113,7 @@ export class SandboxRunner {
     const debugMode = options?.debugMode ?? false;
     const mongoConnectors = options?.mongoConnectors ?? [];
     const swaggerConnectors = options?.swaggerConnectors ?? [];
+    const dataSourceConnectors = options?.dataSourceConnectors ?? [];
     const shellMode = options?.shellMode ?? false;
 
     // TypeScript → JavaScript 변환 (type annotations 제거)
@@ -122,6 +144,7 @@ export class SandboxRunner {
       debugMode,
       mongoConnectors,
       swaggerConnectors,
+      dataSourceConnectors,
       shellMode,
       options?.currentFormId,
       options?.params,
@@ -132,7 +155,7 @@ export class SandboxRunner {
       const jail = vmContext.global;
 
       await this.blockDangerousGlobals(jail, debugMode);
-      await this.injectContext(jail, context, mongoConnectors, swaggerConnectors);
+      await this.injectContext(jail, context, mongoConnectors, swaggerConnectors, dataSourceConnectors);
 
       if (shellMode && options?.appState) {
         await this.injectAppState(jail, options.appState);
@@ -190,6 +213,7 @@ export class SandboxRunner {
     context: Record<string, unknown>,
     mongoConnectors: MongoConnectorInfo[] = [],
     swaggerConnectors: SwaggerConnectorInfo[] = [],
+    dataSourceConnectors: DataSourceConnectorInfo[] = [],
   ): Promise<void> {
     await jail.set('__ctx__', new ivm.ExternalCopy(context).copyInto());
 
@@ -422,6 +446,139 @@ export class SandboxRunner {
         },
       );
       await jail.set('__swaggerHandler', swaggerHandler);
+    }
+
+    if (dataSourceConnectors.length > 0) {
+      const dsConnectorMap = new Map<string, DataSourceConnectorInfo>();
+      for (const dc of dataSourceConnectors) {
+        dsConnectorMap.set(dc.controlName, dc);
+      }
+
+      const dataSourceHandler = new ivm.Reference(
+        async (controlName: string, operation: string, arg1?: string, arg2?: string) => {
+          const info = dsConnectorMap.get(controlName);
+          if (!info) {
+            throw new Error(`DataSourceConnector "${controlName}" not found`);
+          }
+
+          if (info.dsType === 'database') {
+            if (!info.host && !info.dialect) {
+              throw new Error(`DataSourceConnector "${controlName}": database not configured`);
+            }
+            // DB host는 서버 어댑터를 통해 접근하므로 SSRF 검증 불필요
+            // (MongoDBConnector와 동일 패턴)
+            const { getSqlAdapter } = await import('./adapters/SqlAdapterPool.js');
+            const config = {
+              host: info.host,
+              port: info.port,
+              user: info.user,
+              password: info.password,
+              database: info.database,
+              ssl: info.ssl,
+            };
+            const adapter = getSqlAdapter(controlName, info.dialect!, config);
+            const params = arg1 ? JSON.parse(arg1) : {};
+            const arg2Parsed = arg2 ? JSON.parse(arg2) : undefined;
+
+            let result: unknown;
+            switch (operation) {
+              case 'query': {
+                result = await adapter.executeQuery(params);
+                break;
+              }
+              case 'rawQuery': {
+                const sql = params.sql || params;
+                const queryParams = arg2Parsed || [];
+                result = await adapter.executeRawQuery(typeof sql === 'string' ? sql : JSON.stringify(sql), queryParams);
+                break;
+              }
+              case 'tables': {
+                result = await adapter.listTables();
+                break;
+              }
+              case 'execute': {
+                const sql = params.sql || params;
+                const queryParams = arg2Parsed || [];
+                result = await adapter.execute(typeof sql === 'string' ? sql : JSON.stringify(sql), queryParams);
+                break;
+              }
+              case 'testConnection': {
+                result = await adapter.testConnection();
+                break;
+              }
+              default:
+                throw new Error(`Unknown DataSource operation: ${operation}`);
+            }
+            return new ivm.ExternalCopy(result).copyInto();
+          } else if (info.dsType === 'restApi') {
+            if (!info.baseUrl) {
+              throw new Error(`DataSourceConnector "${controlName}": baseUrl not configured`);
+            }
+            await validateSandboxUrl(info.baseUrl);
+            const params = arg1 ? JSON.parse(arg1) : {};
+            const method = (params.method || 'GET').toUpperCase();
+            const path = params.path || '';
+            const url = info.baseUrl + path;
+            const queryParams = params.params;
+            let fullUrl = url;
+            if (queryParams && typeof queryParams === 'object') {
+              const sp = new URLSearchParams();
+              for (const [k, v] of Object.entries(queryParams)) {
+                if (v !== undefined && v !== null) sp.append(k, String(v));
+              }
+              const qs = sp.toString();
+              if (qs) fullUrl += '?' + qs;
+            }
+            const headers: Record<string, string> = { ...info.headers };
+            if (info.authType === 'bearer' && info.authCredentials?.token) {
+              headers['Authorization'] = `Bearer ${info.authCredentials.token}`;
+            } else if (info.authType === 'basic' && info.authCredentials?.username) {
+              const basic = Buffer.from(`${info.authCredentials.username}:${info.authCredentials.password || ''}`).toString('base64');
+              headers['Authorization'] = `Basic ${basic}`;
+            } else if (info.authType === 'apiKey' && info.authCredentials?.key) {
+              headers[info.authCredentials.headerName || 'X-API-Key'] = info.authCredentials.key;
+            }
+            const fetchBody = params.body ? JSON.stringify(params.body) : undefined;
+            if (fetchBody && !headers['Content-Type']) {
+              headers['Content-Type'] = 'application/json';
+            }
+            const res = await fetch(fullUrl, {
+              method,
+              headers,
+              body: fetchBody,
+              signal: AbortSignal.timeout(info.queryTimeout),
+            });
+            const text = await res.text();
+            let data: unknown;
+            try { data = JSON.parse(text); } catch { data = text; }
+            return new ivm.ExternalCopy({ status: res.status, ok: res.ok, data }).copyInto();
+          } else if (info.dsType === 'static') {
+            const params = arg1 ? JSON.parse(arg1) : {};
+            let data: unknown[];
+            try {
+              data = typeof info.data === 'string' ? JSON.parse(info.data as unknown as string) : (info.data || []);
+            } catch {
+              data = [];
+            }
+            // Simple filter support
+            if (params.filter && typeof params.filter === 'object') {
+              data = data.filter((item: unknown) => {
+                if (!item || typeof item !== 'object') return false;
+                for (const [key, value] of Object.entries(params.filter)) {
+                  if ((item as Record<string, unknown>)[key] !== value) return false;
+                }
+                return true;
+              });
+            }
+            if (params.limit && typeof params.limit === 'number') {
+              data = data.slice(0, params.limit);
+            }
+            return new ivm.ExternalCopy(data).copyInto();
+          }
+          throw new Error(`Unknown dsType: ${info.dsType}`);
+        },
+      );
+      await jail.set('__dataSourceHandler', dataSourceHandler);
     }
   }
 
@@ -756,11 +913,33 @@ ${sc.operations.map((op) => `        ctx.controls['${sc.controlName}']['${op.ope
 `).join('');
   }
 
+  private buildDataSourceBindings(dataSourceConnectors: DataSourceConnectorInfo[]): string {
+    return (dataSourceConnectors || []).map((dc) => `
+        ctx.controls['${dc.controlName}'] = ctx.controls['${dc.controlName}'] || {};
+        ctx.controls['${dc.controlName}'].query = function(params) {
+          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'query', JSON.stringify(params || {})]);
+        };
+        ctx.controls['${dc.controlName}'].rawQuery = function(sql, params) {
+          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'rawQuery', JSON.stringify(sql || ''), JSON.stringify(params || [])]);
+        };
+        ctx.controls['${dc.controlName}'].execute = function(sql, params) {
+          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'execute', JSON.stringify(sql || ''), JSON.stringify(params || [])]);
+        };
+        ctx.controls['${dc.controlName}'].tables = function() {
+          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'tables']);
+        };
+        ctx.controls['${dc.controlName}'].testConnection = function() {
+          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'testConnection']);
+        };
+`).join('');
+  }
+
   private wrapHandlerCode(
     code: string,
     debugMode?: boolean,
     mongoConnectors: MongoConnectorInfo[] = [],
     swaggerConnectors: SwaggerConnectorInfo[] = [],
+    dataSourceConnectors: DataSourceConnectorInfo[] = [],
     shellMode?: boolean,
     currentFormId?: string,
     params?: Record<string, unknown>,
@@ -838,6 +1017,7 @@ ${this.buildConsoleShim()}${traceSetup}
         };
 ${this.buildMongoBindings(mongoConnectors)}
 ${this.buildSwaggerBindings(swaggerConnectors)}
+${this.buildDataSourceBindings(dataSourceConnectors)}
         ctx.getRadioGroupValue = function(groupName) {
           for (var name in ctx.controls) {
             var ctrl = ctx.controls[name];

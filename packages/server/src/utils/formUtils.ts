@@ -7,7 +7,6 @@ export function toFormDef(form: {
   properties: unknown;
   controls: unknown[];
   eventHandlers: unknown[];
-  dataBindings?: unknown[];
 }): FormDefinition {
   return {
     id: form._id.toString(),
@@ -16,6 +15,5 @@ export function toFormDef(form: {
     properties: form.properties,
     controls: form.controls,
     eventHandlers: form.eventHandlers,
-    dataBindings: form.dataBindings,
   } as FormDefinition;
 }

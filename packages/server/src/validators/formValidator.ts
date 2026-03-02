@@ -58,21 +58,12 @@ const eventHandlerSchema = z.object({
   handlerCode: z.string(),
 });
 
-const dataBindingSchema = z.object({
-  controlId: z.string().min(1),
-  controlProperty: z.string().min(1),
-  dataSourceId: z.string().min(1),
-  dataField: z.string(),
-  bindingMode: z.enum(['oneWay', 'twoWay', 'oneTime']),
-});
-
 export const createFormSchema = z.object({
   name: z.string().min(1).max(200),
   projectId: z.string().min(1),
   properties: formPropertiesSchema.default({}),
   controls: z.array(controlDefinitionSchema).default([]),
   eventHandlers: z.array(eventHandlerSchema).default([]),
-  dataBindings: z.array(dataBindingSchema).default([]),
 });
 
 export type CreateFormInput = z.infer<typeof createFormSchema>;
@@ -82,7 +73,6 @@ export const updateFormSchema = z.object({
   properties: formPropertiesSchema.partial().optional(),
   controls: z.array(controlDefinitionSchema).optional(),
   eventHandlers: z.array(eventHandlerSchema).optional(),
-  dataBindings: z.array(dataBindingSchema).optional(),
   version: z.number().int().positive().optional(), // 낙관적 잠금용
 });
 

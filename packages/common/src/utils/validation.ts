@@ -158,26 +158,6 @@ export function validateFormDefinition(form: unknown): ValidationResult {
     }
   }
 
-  if (!Array.isArray(f.dataBindings)) {
-    errors.push('FormDefinition dataBindings must be an array');
-  } else {
-    for (let i = 0; i < f.dataBindings.length; i++) {
-      const binding = f.dataBindings[i];
-      if (!isObject(binding)) {
-        errors.push(`dataBindings[${i}] must be an object`);
-        continue;
-      }
-      const b = binding as Record<string, unknown>;
-      if (typeof b.controlId !== 'string') errors.push(`dataBindings[${i}].controlId must be a string`);
-      if (typeof b.controlProperty !== 'string') errors.push(`dataBindings[${i}].controlProperty must be a string`);
-      if (typeof b.dataSourceId !== 'string') errors.push(`dataBindings[${i}].dataSourceId must be a string`);
-      if (typeof b.dataField !== 'string') errors.push(`dataBindings[${i}].dataField must be a string`);
-      if (!['oneWay', 'twoWay', 'oneTime'].includes(b.bindingMode as string)) {
-        errors.push(`dataBindings[${i}].bindingMode must be 'oneWay', 'twoWay', or 'oneTime'`);
-      }
-    }
-  }
-
   return { valid: errors.length === 0, errors };
 }
 

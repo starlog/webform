@@ -39,7 +39,6 @@ interface RuntimeFormDefinition {
     eventName: string;
     handlerType: string;
   }>;
-  dataBindings?: Array<Record<string, unknown>>;
 }
 
 interface AppLoadResponse {
@@ -151,10 +150,10 @@ isolated-vm 샌드박스에서 서버 핸들러 코드를 격리 실행합니다
     `퍼블리시된 폼을 런타임 형식으로 로드합니다. execute_event 전에 폼 구조를 확인하거나, 런타임 렌더링에 필요한 데이터를 가져올 때 사용하세요.
 디자인 타임의 폼 전체 정의(핸들러 코드 포함)를 보려면 get_form을 사용하세요.
 
-런타임 형식: 핸들러 코드 미포함(보안), 이벤트 바인딩 정보만 노출, 데이터 바인딩 포함.
+런타임 형식: 핸들러 코드 미포함(보안), 이벤트 바인딩 정보만 노출.
 published 상태가 아닌 폼은 404를 반환합니다 (publish_form 먼저 호출).
 
-반환값: { id, name, version, properties, controls, eventHandlers: [{controlId, eventName, handlerType}], dataBindings }`,
+반환값: { id, name, version, properties, controls, eventHandlers: [{controlId, eventName, handlerType}] }`,
     {
       formId: z.string().describe('폼 ID (published 상태여야 함)'),
     },

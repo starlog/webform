@@ -81,6 +81,24 @@ export abstract class BaseSqlAdapter implements DataSourceAdapter {
     return this.rawQuery(trimmed, params);
   }
 
+  async execute(raw: string, params?: unknown[]): Promise<{ affectedRows: number }> {
+    const trimmed = raw.trim().replace(/;\s*$/, '');
+    if (/;\s*\S/.test(trimmed)) {
+      throw new AppError(400, 'Multiple statements are not allowed');
+    }
+    const allowed = /^(INSERT|UPDATE|DELETE|REPLACE)\b/i;
+    if (!allowed.test(trimmed)) {
+      throw new AppError(400, 'Only INSERT/UPDATE/DELETE statements are allowed in execute()');
+    }
+    const result = await this.rawQuery(trimmed, params);
+    // mysql2 returns ResultSetHeader for write queries with affectedRows
+    const resultObj = result as unknown as Record<string, unknown>;
+    if (resultObj && typeof resultObj === 'object' && 'affectedRows' in resultObj) {
+      return { affectedRows: resultObj.affectedRows as number };
+    }
+    return { affectedRows: Array.isArray(result) ? result.length : 1 };
+  }
+
   abstract listTables(): Promise<string[]>;
 
   protected abstract escapeId(identifier: string): string;

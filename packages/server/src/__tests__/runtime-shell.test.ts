@@ -111,7 +111,6 @@ const publishedFormData = {
       handlerCode: "console.log('client handler');",
     },
   ],
-  dataBindings: [],
   createdBy: 'user-1',
   updatedBy: 'user-1',
 };

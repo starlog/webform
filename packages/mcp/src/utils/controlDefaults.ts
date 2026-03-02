@@ -311,6 +311,29 @@ export const CONTROL_DEFAULTS: Record<ControlType, ControlDefault> = {
     category: '고급',
     isContainer: false,
   },
+  DataSourceConnector: {
+    size: { width: 160, height: 40 },
+    properties: {
+      dsType: 'database',
+      dialect: 'postgresql',
+      host: '',
+      port: 5432,
+      user: '',
+      password: '',
+      database: '',
+      ssl: false,
+      baseUrl: '',
+      headers: '{}',
+      authType: 'none',
+      authCredentials: '{}',
+      data: '[]',
+      queryTimeout: 10000,
+      maxResultCount: 1000,
+    },
+    description: '데이터소스 커넥터 (SQL DB, REST API, Static)',
+    category: '고급',
+    isContainer: false,
+  },
 
   // ── Extra Elements — Step 1 (6종) ──
   Slider: {

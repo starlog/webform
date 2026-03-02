@@ -16,7 +16,6 @@ interface FormData {
   version: number;
   controls: ControlDefinition[];
   eventHandlers: { controlId: string; eventName: string; handlerType: string; handlerCode: string }[];
-  dataBindings: { controlId: string; controlProperty: string; dataSourceId: string; dataField: string; bindingMode: string }[];
   properties: Record<string, unknown>;
 }
 
@@ -141,7 +140,6 @@ async function withFormUpdate<T>(
         version: form.version,
         controls: form.controls,
         eventHandlers: form.eventHandlers,
-        dataBindings: form.dataBindings,
       });
       form.version = updated.data.version;
       // 성공 후 캐시 갱신 — 다음 조작 시 GET 생략 가능
@@ -259,7 +257,6 @@ function removeControlFromForm(
   }
 
   form.eventHandlers = form.eventHandlers.filter((h) => h.controlId !== controlId);
-  form.dataBindings = form.dataBindings.filter((b) => b.controlId !== controlId);
 
   return { removedName };
 }
@@ -447,7 +444,7 @@ parentId를 지정하면 Panel, GroupBox 등 컨테이너 내부에 배치됩니
   // 3. remove_control
   server.tool(
     'remove_control',
-    `폼에서 컨트롤을 삭제합니다. 해당 컨트롤에 연결된 이벤트 핸들러와 데이터 바인딩도 자동으로 함께 삭제됩니다.
+    `폼에서 컨트롤을 삭제합니다. 해당 컨트롤에 연결된 이벤트 핸들러도 자동으로 함께 삭제됩니다.
 
 반환값: { removedControlId, removedName, formVersion }`,
     {

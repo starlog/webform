@@ -137,6 +137,7 @@ function getDefaultSize(type: ControlType): { width: number; height: number } {
     RichTextBox:     { width: 300, height: 150 },
     WebBrowser:      { width: 400, height: 300 },
     MongoDBConnector: { width: 120, height: 40 },
+    DataSourceConnector: { width: 160, height: 40 },
     Slider:          { width: 200, height: 30 },
     Switch:          { width: 120, height: 30 },
     Upload:          { width: 300, height: 120 },
@@ -285,6 +286,24 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
       return { panels: [{ title: 'Panel 1', key: '1' }, { title: 'Panel 2', key: '2' }], activeKeys: '1', accordion: false, bordered: true, expandIconPosition: 'Start' };
     case 'Statistic':
       return { title: 'Statistic', value: '0', prefix: '', suffix: '', precision: 0, showGroupSeparator: true, valueColor: '' };
+    case 'DataSourceConnector':
+      return {
+        dsType: 'database',
+        dialect: 'postgresql',
+        host: '',
+        port: 5432,
+        user: '',
+        password: '',
+        database: '',
+        ssl: false,
+        baseUrl: '',
+        headers: '{}',
+        authType: 'none',
+        authCredentials: '{}',
+        data: '[]',
+        queryTimeout: 10000,
+        maxResultCount: 1000,
+      };
     default:
       return {};
   }

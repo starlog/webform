@@ -4,8 +4,10 @@ import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { Form } from '../models/Form.js';
 import { EventEngine } from '../services/EventEngine.js';
-import { DataSourceService } from '../services/DataSourceService.js';
 import { MongoDBAdapter } from '../services/adapters/MongoDBAdapter.js';
+import '../services/adapters/index.js'; // 팩토리 등록 보장
+import { adapterRegistry } from '../services/adapters/AdapterRegistry.js';
+import { RestApiAdapter } from '../services/adapters/RestApiAdapter.js';
 import { AppError, NotFoundError } from '../middleware/errorHandler.js';
 import { toFormDef } from '../utils/formUtils.js';
 import { ShellService } from '../services/ShellService.js';
@@ -34,7 +36,6 @@ function convertIds(obj: Record<string, unknown>): Record<string, unknown> {
 
 export const runtimeRouter = Router();
 const eventEngine = new EventEngine();
-const dataSourceService = new DataSourceService();
 const shellService = new ShellService();
 const themeService = new ThemeService();
 
@@ -107,7 +108,6 @@ function toRuntimeFormDef(form: {
   properties: unknown;
   controls: unknown[];
   eventHandlers: Array<{ controlId: string; eventName: string; handlerType: string }>;
-  dataBindings?: unknown[];
 }) {
   return {
     id: form._id.toString(),
@@ -122,7 +122,6 @@ function toRuntimeFormDef(form: {
         eventName: h.eventName,
         handlerType: h.handlerType,
       })),
-    dataBindings: form.dataBindings,
   };
 }
 
@@ -181,67 +180,6 @@ runtimeRouter.post('/forms/:id/events', async (req, res, next) => {
     );
 
     res.json(result);
-  } catch (err) {
-    next(err);
-  }
-});
-
-/**
- * POST /api/runtime/forms/:id/data
- * 데이터소스 쿼리를 실행한다.
- *
- * Body:
- *   - dataSourceId: string (직접 지정)
- *   - query?: Record<string, unknown> (쿼리 파라미터: collection, filter, skip, limit 등)
- *
- * 또는 dataSourceId 없이 호출하면 폼의 dataBindings에서 사용하는
- * 모든 데이터소스를 조회하여 결과를 맵으로 반환한다.
- */
-runtimeRouter.post('/forms/:id/data', async (req, res, next) => {
-  try {
-    const form = await Form.findById(req.params.id);
-
-    if (!form) {
-      throw new NotFoundError('Form not found');
-    }
-
-    const { dataSourceId, query } = req.body as {
-      dataSourceId?: string;
-      query?: Record<string, unknown>;
-    };
-
-    // 특정 데이터소스를 직접 지정한 경우
-    if (dataSourceId) {
-      const data = await dataSourceService.executeQuery(dataSourceId, query || {});
-      res.json({ success: true, data });
-      return;
-    }
-
-    // dataSourceId 미지정 시: 폼의 모든 dataBindings에서 사용하는 데이터소스 일괄 조회
-    const bindings = form.dataBindings || [];
-    const uniqueDataSourceIds = [...new Set(bindings.map((b) => b.dataSourceId))];
-
-    if (uniqueDataSourceIds.length === 0) {
-      res.json({ success: true, data: {} });
-      return;
-    }
-
-    const results: Record<string, unknown[]> = {};
-    await Promise.all(
-      uniqueDataSourceIds.map(async (dsId) => {
-        try {
-          results[dsId] = await dataSourceService.executeQuery(dsId, query || {});
-        } catch (err) {
-          console.error(
-            `[runtime] Data source query failed — formId=${req.params.id}, dsId=${dsId}`,
-            err instanceof Error ? err.message : err,
-          );
-          results[dsId] = [];
-        }
-      }),
-    );
-
-    res.json({ success: true, data: results });
   } catch (err) {
     next(err);
   }
@@ -372,6 +310,150 @@ runtimeRouter.post('/mongodb/delete', async (req, res, next) => {
     const adapter = new MongoDBAdapter(connectionString, database);
     const result = await adapter.deleteOne(collection, convertIds(filter));
     res.json({ success: true, ...result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── DataSourceConnector Test API ─────────────────────────────────────────────
+
+/**
+ * POST /api/runtime/datasource/test-connection
+ * DataSourceConnector 연결 테스트
+ */
+runtimeRouter.post('/datasource/test-connection', async (req, res, next) => {
+  try {
+    const { dsType, dialect, host, port, user, password, database, ssl,
+            baseUrl, headers, authType, authCredentials,
+            connectionString } = req.body as Record<string, unknown>;
+
+    if (dsType === 'database') {
+      if (dialect === 'mongodb') {
+        if (!connectionString || !database) {
+          throw new AppError(400, 'connectionString and database are required');
+        }
+        const adapter = new MongoDBAdapter(connectionString as string, database as string);
+        const result = await adapter.testConnection();
+        res.json(result);
+        return;
+      }
+      const config = { host, port, user, password, database, ssl } as Record<string, unknown>;
+      const adapter = adapterRegistry.create(dialect as string, config);
+      try {
+        const result = await adapter.testConnection();
+        res.json(result);
+      } finally {
+        await adapter.disconnect();
+      }
+    } else if (dsType === 'restApi') {
+      const config: Record<string, unknown> = { baseUrl, headers };
+      if (authType && authCredentials) {
+        config.auth = { type: authType, ...(authCredentials as object) };
+      }
+      const adapter = new RestApiAdapter(config as { baseUrl: string; headers?: Record<string, string> });
+      const result = await adapter.testConnection();
+      res.json(result);
+    } else if (dsType === 'static') {
+      res.json({ success: true, message: 'Static data source — always connected' });
+    } else {
+      throw new AppError(400, `Unsupported dsType: ${dsType}`);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/runtime/datasource/list-tables
+ * DataSourceConnector 테이블/컬렉션 목록 조회
+ */
+runtimeRouter.post('/datasource/list-tables', async (req, res, next) => {
+  try {
+    const { dsType, dialect, host, port, user, password, database, ssl,
+            connectionString } = req.body as Record<string, unknown>;
+
+    if (dsType !== 'database') {
+      throw new AppError(400, 'list-tables is only supported for database dsType');
+    }
+
+    if (dialect === 'mongodb') {
+      if (!connectionString || !database) {
+        throw new AppError(400, 'connectionString and database are required');
+      }
+      const adapter = new MongoDBAdapter(connectionString as string, database as string);
+      const tables = await adapter.listTables();
+      res.json({ success: true, tables });
+      return;
+    }
+
+    const config = { host, port, user, password, database, ssl } as Record<string, unknown>;
+    const adapter = adapterRegistry.create(dialect as string, config);
+    try {
+      const tables = await adapter.listTables();
+      res.json({ success: true, tables });
+    } finally {
+      await adapter.disconnect();
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/runtime/datasource/query
+ * DataSourceConnector 쿼리 실행
+ */
+runtimeRouter.post('/datasource/query', async (req, res, next) => {
+  try {
+    const { dsType, dialect, host, port, user, password, database, ssl,
+            baseUrl, headers, authType, authCredentials,
+            connectionString, query, params, data } = req.body as Record<string, unknown>;
+
+    if (!dsType) {
+      throw new AppError(400, 'dsType is required');
+    }
+
+    if (dsType === 'database') {
+      if (dialect === 'mongodb') {
+        if (!connectionString || !database) {
+          throw new AppError(400, 'connectionString and database are required');
+        }
+        const adapter = new MongoDBAdapter(connectionString as string, database as string);
+        const parsed = JSON.parse(query as string) as Record<string, unknown>;
+        const result = await adapter.executeQuery(parsed);
+        res.json({ success: true, data: result, rowCount: result.length });
+        return;
+      }
+      if (!query || typeof query !== 'string') {
+        throw new AppError(400, 'query is required for database dsType');
+      }
+      const config = { host, port, user, password, database, ssl } as Record<string, unknown>;
+      const adapter = adapterRegistry.create(dialect as string, config);
+      try {
+        const result = await adapter.executeRawQuery(query as string, params as unknown[] | undefined);
+        res.json({ success: true, data: result, rowCount: result.length });
+      } finally {
+        await adapter.disconnect();
+      }
+    } else if (dsType === 'restApi') {
+      if (!query || typeof query !== 'string') {
+        throw new AppError(400, 'query (JSON string) is required for restApi dsType');
+      }
+      const config: Record<string, unknown> = { baseUrl, headers };
+      if (authType && authCredentials) {
+        config.auth = { type: authType, ...(authCredentials as object) };
+      }
+      const adapter = new RestApiAdapter(config as { baseUrl: string; headers?: Record<string, string> });
+      const parsed = JSON.parse(query as string) as Record<string, unknown>;
+      const result = await adapter.executeQuery(parsed);
+      res.json({ success: true, data: result, rowCount: result.length });
+    } else if (dsType === 'static') {
+      const parsed = data ? (typeof data === 'string' ? JSON.parse(data) : data) : [];
+      const arr = Array.isArray(parsed) ? parsed : [parsed];
+      res.json({ success: true, data: arr, rowCount: arr.length });
+    } else {
+      throw new AppError(400, `Unsupported dsType: ${dsType}`);
+    }
   } catch (err) {
     next(err);
   }

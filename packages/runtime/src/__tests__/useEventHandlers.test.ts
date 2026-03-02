@@ -47,7 +47,6 @@ function createMockFormDef(): FormDefinition {
       },
     ],
     eventHandlers: [],
-    dataBindings: [],
   };
 }
 

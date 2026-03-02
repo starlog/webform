@@ -31,6 +31,7 @@ export interface PropertyMeta {
   options?: (string | { label: string; value: string })[];
   min?: number;
   max?: number;
+  condition?: { property: string; values: string[] };
 }
 
 // 공통 속성 — 모든 컨트롤에 적용
@@ -338,6 +339,25 @@ const swaggerConnectorProps: PropertyMeta[] = [
   { name: 'properties.timeout',         label: 'Timeout (ms)',    category: 'Behavior', editorType: 'number', min: 1000, max: 60000, defaultValue: 10000 },
 ];
 
+const dataSourceConnectorProps: PropertyMeta[] = [
+  { name: 'name', label: 'Name', category: 'Design', editorType: 'text' },
+  { name: 'properties.dsType', label: 'DsType', category: 'Data', editorType: 'dropdown', options: ['database', 'restApi', 'static'] },
+  { name: 'properties.dialect', label: 'Dialect', category: 'Data', editorType: 'dropdown', options: ['mysql', 'postgresql', 'mssql'], condition: { property: 'properties.dsType', values: ['database'] } },
+  { name: 'properties.host', label: 'Host', category: 'Data', editorType: 'text', condition: { property: 'properties.dsType', values: ['database'] } },
+  { name: 'properties.port', label: 'Port', category: 'Data', editorType: 'number', min: 1, max: 65535, condition: { property: 'properties.dsType', values: ['database'] } },
+  { name: 'properties.user', label: 'User', category: 'Data', editorType: 'text', condition: { property: 'properties.dsType', values: ['database'] } },
+  { name: 'properties.password', label: 'Password', category: 'Data', editorType: 'text', condition: { property: 'properties.dsType', values: ['database'] } },
+  { name: 'properties.database', label: 'Database', category: 'Data', editorType: 'text', condition: { property: 'properties.dsType', values: ['database'] } },
+  { name: 'properties.ssl', label: 'SSL', category: 'Data', editorType: 'boolean', condition: { property: 'properties.dsType', values: ['database'] } },
+  { name: 'properties.baseUrl', label: 'BaseUrl', category: 'Data', editorType: 'text', condition: { property: 'properties.dsType', values: ['restApi'] } },
+  { name: 'properties.headers', label: 'Headers', category: 'Data', editorType: 'text', condition: { property: 'properties.dsType', values: ['restApi'] } },
+  { name: 'properties.authType', label: 'AuthType', category: 'Data', editorType: 'dropdown', options: ['none', 'basic', 'bearer', 'apiKey'], condition: { property: 'properties.dsType', values: ['restApi'] } },
+  { name: 'properties.authCredentials', label: 'AuthCredentials', category: 'Data', editorType: 'text', condition: { property: 'properties.dsType', values: ['restApi'] } },
+  { name: 'properties.data', label: 'Data', category: 'Data', editorType: 'text', condition: { property: 'properties.dsType', values: ['static'] } },
+  { name: 'properties.queryTimeout', label: 'QueryTimeout', category: 'Behavior', editorType: 'number', min: 1000, max: 60000 },
+  { name: 'properties.maxResultCount', label: 'MaxResultCount', category: 'Behavior', editorType: 'number', min: 1, max: 100000 },
+];
+
 const sliderProps: PropertyMeta[] = withCommon(
   { name: 'properties.value',       label: 'Value',       category: 'Behavior',   editorType: 'number',   defaultValue: 0 },
   { name: 'properties.minimum',     label: 'Minimum',     category: 'Behavior',   editorType: 'number',   defaultValue: 0 },
@@ -492,6 +512,7 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   BindingNavigator: bindingNavigatorProps,
   MongoDBConnector: mongoDBConnectorProps,
   SwaggerConnector: swaggerConnectorProps,
+  DataSourceConnector: dataSourceConnectorProps,
   Slider:  sliderProps,
   Switch:  switchProps,
   Upload:  uploadProps,

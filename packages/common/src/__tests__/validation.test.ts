@@ -39,9 +39,6 @@ function makeValidFormDefinition(overrides?: Partial<FormDefinition>): FormDefin
     eventHandlers: [
       { controlId: 'ctrl-1', eventName: 'Click', handlerType: 'server', handlerCode: 'console.log("clicked")' },
     ],
-    dataBindings: [
-      { controlId: 'ctrl-1', controlProperty: 'text', dataSourceId: 'ds-1', dataField: 'name', bindingMode: 'oneWay' },
-    ],
     ...overrides,
   };
 }

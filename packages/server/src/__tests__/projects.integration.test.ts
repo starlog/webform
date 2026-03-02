@@ -101,7 +101,6 @@ describe('Projects API Integration', () => {
             properties: { title: 'IF' },
             controls: [],
             eventHandlers: [],
-            dataBindings: [],
           },
         ],
       };

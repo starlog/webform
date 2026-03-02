@@ -48,7 +48,6 @@ describe('ProjectService', () => {
           properties: { title: 'A', width: 800, height: 600 },
           controls: [{ id: 'ctrl-1', type: 'Button', name: 'btn1', properties: {}, position: { x: 0, y: 0 }, size: { width: 75, height: 23 } }],
           eventHandlers: [],
-          dataBindings: [],
           versions: [],
           createdBy: userId,
           updatedBy: userId,
@@ -61,7 +60,6 @@ describe('ProjectService', () => {
           properties: { title: 'B', width: 640, height: 480 },
           controls: [],
           eventHandlers: [{ event: 'click', handler: 'onBtnClick' }],
-          dataBindings: [],
           versions: [],
           createdBy: userId,
           updatedBy: userId,
@@ -96,15 +94,13 @@ describe('ProjectService', () => {
             properties: { title: 'IF1' },
             controls: [{ id: 'c1', type: 'Label', name: 'label1', properties: { text: 'Hello' }, position: { x: 10, y: 20 }, size: { width: 100, height: 23 } }],
             eventHandlers: [],
-            dataBindings: [],
-          },
+            },
           {
             name: 'Imported Form 2',
             properties: {},
             controls: [],
             eventHandlers: [],
-            dataBindings: [],
-          },
+            },
         ],
       };
 

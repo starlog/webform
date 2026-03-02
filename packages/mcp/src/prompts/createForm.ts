@@ -23,8 +23,7 @@ ${description}
 2. create_form으로 폼 생성
 3. batch_add_controls로 컨트롤 일괄 배치 (적절한 position/size 자동 계산)
 4. 필요 시 이벤트 핸들러 추가 (add_event_handler)
-5. 데이터 바인딩 설정 (add_data_binding)
-6. 결과 폼 요약 출력`,
+5. 결과 폼 요약 출력`,
           },
         },
       ],

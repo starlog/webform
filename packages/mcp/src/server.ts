@@ -4,8 +4,6 @@ import {
   registerFormTools,
   registerControlTools,
   registerEventTools,
-  registerDatasourceTools,
-  registerDatabindingTools,
   registerThemeTools,
   registerShellTools,
   registerRuntimeTools,
@@ -30,9 +28,7 @@ export function registerTools(server: McpServer): void {
   registerControlTools(server);
   registerEventTools(server);
 
-  // Phase 3: 데이터소스/데이터 바인딩/테마/Shell Tools
-  registerDatasourceTools(server);
-  registerDatabindingTools(server);
+  // Phase 3: 테마/Shell Tools
   registerThemeTools(server);
   registerShellTools(server);
 

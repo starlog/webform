@@ -118,7 +118,6 @@ describe('Form Tools', () => {
           properties: { title: 'Login' },
           controls: [{ id: 'c1' }, { id: 'c2' }],
           eventHandlers: [{ controlId: 'c1', eventName: 'Click' }],
-          dataBindings: [],
           createdAt: '2024-01-01',
           updatedAt: '2024-01-02',
         },
@@ -300,8 +299,7 @@ describe('Form Tools', () => {
             properties: {},
             controls: [],
             eventHandlers: [],
-            dataBindings: [],
-          },
+            },
           savedAt: '2024-01-02',
         },
       });

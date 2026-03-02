@@ -1,4 +1,3 @@
-import type { DataBindingDefinition } from './datasource';
 import type { EventHandlerDefinition } from './events';
 import type { ThemeId } from './theme';
 
@@ -39,6 +38,7 @@ export const CONTROL_TYPES = [
   'SpreadsheetView', 'JsonEditor', 'MongoDBView', 'GraphView',
   'MongoDBConnector',
   'SwaggerConnector',
+  'DataSourceConnector',
   // Extra Elements — Step 1 (폼 필수 요소)
   'Slider', 'Switch', 'Upload', 'Alert', 'Tag', 'Divider',
   // Extra Elements — Step 2 (모던 UI 강화)
@@ -88,5 +88,4 @@ export interface FormDefinition {
   properties: FormProperties;
   controls: ControlDefinition[];
   eventHandlers: EventHandlerDefinition[];
-  dataBindings: DataBindingDefinition[];
 }

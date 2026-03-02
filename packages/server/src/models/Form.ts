@@ -2,7 +2,6 @@ import mongoose, { Schema } from 'mongoose';
 import type {
   ControlDefinition,
   EventHandlerDefinition,
-  DataBindingDefinition,
   FormProperties,
 } from '@webform/common';
 
@@ -13,7 +12,6 @@ export interface FormVersionSnapshot {
     properties: FormProperties;
     controls: ControlDefinition[];
     eventHandlers: EventHandlerDefinition[];
-    dataBindings: DataBindingDefinition[];
   };
   savedAt: Date;
 }
@@ -28,7 +26,6 @@ export interface FormDocument {
   properties: FormProperties;
   controls: ControlDefinition[];
   eventHandlers: EventHandlerDefinition[];
-  dataBindings: DataBindingDefinition[];
   versions: FormVersionSnapshot[];
   createdBy: string;
   updatedBy: string;

@@ -1,7 +1,6 @@
-import type { ControlDefinition, DataBindingDefinition, EventHandlerDefinition } from '@webform/common';
+import type { ControlDefinition, EventHandlerDefinition } from '@webform/common';
 import { runtimeControlRegistry } from '../controls/registry';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useDataBinding } from '../hooks/useDataBinding';
 import { useEventHandlers } from '../hooks/useEventHandlers';
 import { computeLayoutStyle, getContainerClientSize } from './layoutUtils';
 import { useFormScale } from './FormScaleContext';
@@ -10,14 +9,12 @@ const EMPTY_STATE: Record<string, unknown> = {};
 
 interface ControlRendererProps {
   definition: ControlDefinition;
-  bindings: DataBindingDefinition[];
   events: EventHandlerDefinition[];
   parentSize?: { width: number; height: number };
 }
 
-export function ControlRenderer({ definition, bindings, events, parentSize }: ControlRendererProps) {
+export function ControlRenderer({ definition, events, parentSize }: ControlRendererProps) {
   const controlState = useRuntimeStore((s) => s.controlStates[definition.id] ?? EMPTY_STATE);
-  const boundProps = useDataBinding(definition.id, bindings);
   const eventHandlers = useEventHandlers(definition.id, events);
   const scale = useFormScale();
 
@@ -47,7 +44,6 @@ export function ControlRenderer({ definition, bindings, events, parentSize }: Co
     <ControlRenderer
       key={child.id}
       definition={child}
-      bindings={bindings}
       events={events}
       parentSize={childParentSize}
     />
@@ -74,7 +70,6 @@ export function ControlRenderer({ definition, bindings, events, parentSize }: Co
       id={definition.id}
       name={definition.name}
       {...controlState}
-      {...boundProps}
       {...eventHandlers}
       style={layoutStyle}
       enabled={controlState.enabled ?? definition.enabled}

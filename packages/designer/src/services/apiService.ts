@@ -6,7 +6,6 @@ import type {
   FontDefinition,
   FormProperties,
   EventHandlerDefinition,
-  DataBindingDefinition,
   ShellProperties,
   CustomThemeDocument,
   ThemeTokens,
@@ -34,7 +33,6 @@ interface FormDocument extends FormSummary {
   properties: FormProperties;
   controls: ControlDefinition[];
   eventHandlers: EventHandlerDefinition[];
-  dataBindings: DataBindingDefinition[];
   createdBy: string;
   updatedBy: string;
   createdAt: string;
@@ -61,7 +59,6 @@ interface UpdateFormPayload {
   properties?: Partial<FormProperties>;
   controls?: ControlDefinition[];
   eventHandlers?: EventHandlerDefinition[];
-  dataBindings?: DataBindingDefinition[];
   version?: number; // 낙관적 잠금용
 }
 
@@ -101,7 +98,6 @@ interface ImportProjectPayload {
     properties?: Record<string, unknown>;
     controls?: unknown[];
     eventHandlers?: unknown[];
-    dataBindings?: unknown[];
   }>;
 }
 
@@ -114,7 +110,6 @@ interface ExportProjectData {
     properties: Record<string, unknown>;
     controls: unknown[];
     eventHandlers: unknown[];
-    dataBindings: unknown[];
   }>;
 }
 
@@ -138,7 +133,6 @@ interface FormVersionSnapshot {
     properties: FormProperties;
     controls: ControlDefinition[];
     eventHandlers: EventHandlerDefinition[];
-    dataBindings: DataBindingDefinition[];
   };
   savedAt: string;
 }
@@ -376,6 +370,35 @@ export const apiService = {
 
   async deleteTheme(id: string): Promise<void> {
     return request(`/themes/${id}`, { method: 'DELETE' });
+  },
+
+  // --- DataSource Test API ---
+
+  async testDataSourceConnection(
+    config: Record<string, unknown>,
+  ): Promise<{ success: boolean; message: string }> {
+    return request('/runtime/datasource/test-connection', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    });
+  },
+
+  async listDataSourceTables(
+    config: Record<string, unknown>,
+  ): Promise<{ success: boolean; tables: string[] }> {
+    return request('/runtime/datasource/list-tables', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    });
+  },
+
+  async queryDataSource(
+    config: Record<string, unknown>,
+  ): Promise<{ success: boolean; data: unknown[]; rowCount: number }> {
+    return request('/runtime/datasource/query', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    });
   },
 
   // --- Version API ---

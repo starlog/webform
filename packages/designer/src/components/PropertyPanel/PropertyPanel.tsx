@@ -10,6 +10,7 @@ import type { PropertyMeta } from './controlProperties';
 import { PropertyCategory } from './PropertyCategory';
 import { groupByCategory } from './utils/groupByCategory';
 import { EventsTab } from './EventsTab';
+import { DataSourceTestPanel } from './DataSourceTestPanel';
 
 type TabType = 'properties' | 'events';
 type SortMode = 'category' | 'alphabetical';
@@ -93,7 +94,17 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
 
   const propertyMetas = useMemo(() => {
     if (!selectedControl) return [];
-    return getPropertyMeta(selectedControl.type);
+    const allMetas = getPropertyMeta(selectedControl.type);
+    return allMetas.filter((meta) => {
+      if (!meta.condition) return true;
+      const parts = meta.condition.property.split('.');
+      let current: unknown = selectedControl;
+      for (const part of parts) {
+        if (current == null || typeof current !== 'object') return false;
+        current = (current as Record<string, unknown>)[part];
+      }
+      return meta.condition.values.includes(String(current ?? ''));
+    });
   }, [selectedControl]);
 
   // 다중 선택 시 공통 속성 메타 (교집합)
@@ -645,6 +656,9 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
                 onValueChange={handleValueChange}
               />
             ))}
+            {selectedControl?.type === 'DataSourceConnector' && (
+              <DataSourceTestPanel control={selectedControl} />
+            )}
           </div>
         )}
         {activeTab === 'events' && selectedControl && (

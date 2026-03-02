@@ -13,7 +13,6 @@ interface FormDocument {
   properties: Record<string, unknown>;
   controls: Record<string, unknown>[];
   eventHandlers: Record<string, unknown>[];
-  dataBindings: Record<string, unknown>[];
   createdAt: string;
   updatedAt: string;
 }
@@ -54,7 +53,6 @@ interface GetSnapshotResponse {
       properties: Record<string, unknown>;
       controls: Record<string, unknown>[];
       eventHandlers: Record<string, unknown>[];
-      dataBindings: Record<string, unknown>[];
     };
     savedAt: string;
   };
@@ -123,9 +121,9 @@ export function registerFormTools(server: McpServer): void {
   // 2. get_form
   server.tool(
     'get_form',
-    `폼의 전체 정의를 조회합니다. 폼 수정(update_form) 전 현재 version을 확인하거나, 컨트롤/이벤트 핸들러/데이터 바인딩 구조를 파악할 때 사용하세요.
+    `폼의 전체 정의를 조회합니다. 폼 수정(update_form) 전 현재 version을 확인하거나, 컨트롤/이벤트 핸들러 구조를 파악할 때 사용하세요.
 
-반환값: { id, name, version, status, projectId, properties, controls, eventHandlers, dataBindings, controlCount, eventHandlerCount, createdAt, updatedAt }`,
+반환값: { id, name, version, status, projectId, properties, controls, eventHandlers, controlCount, eventHandlerCount, createdAt, updatedAt }`,
     {
       formId: z.string().describe('폼 ID (MongoDB ObjectId)'),
     },
@@ -144,7 +142,6 @@ export function registerFormTools(server: McpServer): void {
           properties: f.properties,
           controls: f.controls,
           eventHandlers: f.eventHandlers,
-          dataBindings: f.dataBindings,
           controlCount: f.controls?.length ?? 0,
           eventHandlerCount: f.eventHandlers?.length ?? 0,
           createdAt: f.createdAt,
@@ -234,13 +231,13 @@ properties로 폼의 초기 설정(제목, 크기, 배경색, 테마 등)을 지
   // 4. update_form (낙관적 잠금)
   server.tool(
     'update_form',
-    `폼 전체 정의를 직접 수정합니다. 폼의 name, properties(title, width, height, theme 등), 또는 controls/eventHandlers/dataBindings 배열 전체를 교체할 때 사용하세요.
+    `폼 전체 정의를 직접 수정합니다. 폼의 name, properties(title, width, height, theme 등), 또는 controls/eventHandlers 배열 전체를 교체할 때 사용하세요.
 
 개별 컨트롤의 속성/위치/크기만 수정하려면 update_control을 사용하세요 (병합 방식, 더 안전).
 개별 이벤트 핸들러를 추가/수정하려면 add_event_handler / update_event_handler를 사용하세요.
 
 update_form vs update_control 차이:
-- update_form: 폼 속성(title 등) 수정, 또는 controls/eventHandlers/dataBindings 배열 전체 교체. version 필수.
+- update_form: 폼 속성(title 등) 수정, 또는 controls/eventHandlers 배열 전체 교체. version 필수.
 - update_control: 특정 컨트롤 1개의 properties/position/size를 병합 수정. version 자동 처리.
 
 낙관적 잠금: version 필수이며, 서버의 현재 version과 불일치 시 409 충돌 에러. get_form으로 최신 version을 먼저 조회하세요.
@@ -292,20 +289,8 @@ update_form vs update_control 차이:
         )
         .optional()
         .describe('전체 이벤트 핸들러 배열 (교체)'),
-      dataBindings: z
-        .array(
-          z.object({
-            controlId: z.string(),
-            controlProperty: z.string(),
-            dataSourceId: z.string(),
-            dataField: z.string(),
-            bindingMode: z.enum(['oneWay', 'twoWay', 'oneTime']),
-          }),
-        )
-        .optional()
-        .describe('전체 데이터 바인딩 배열 (교체)'),
     },
-    async ({ formId, version, name, properties, controls, eventHandlers, dataBindings }) => {
+    async ({ formId, version, name, properties, controls, eventHandlers }) => {
       try {
         validateObjectId(formId, 'formId');
 
@@ -314,7 +299,6 @@ update_form vs update_control 차이:
         if (properties !== undefined) body.properties = properties;
         if (controls !== undefined) body.controls = controls;
         if (eventHandlers !== undefined) body.eventHandlers = eventHandlers;
-        if (dataBindings !== undefined) body.dataBindings = dataBindings;
 
         const res = await apiClient.put<MutateFormResponse>(`/api/forms/${formId}`, body);
 
@@ -478,11 +462,11 @@ update_form vs update_control 차이:
   // 8. get_form_version_snapshot
   server.tool(
     'get_form_version_snapshot',
-    `특정 버전 시점의 폼 전체 스냅샷(properties, controls, eventHandlers, dataBindings)을 조회합니다.
+    `특정 버전 시점의 폼 전체 스냅샷(properties, controls, eventHandlers)을 조회합니다.
 이전 버전의 상태를 확인하거나 update_form으로 복원할 때 사용합니다.
 버전 목록은 get_form_versions로 먼저 확인하세요.
 
-반환값: { formId, version, snapshot: {name, properties, controls, eventHandlers, dataBindings}, savedAt }`,
+반환값: { formId, version, snapshot: {name, properties, controls, eventHandlers}, savedAt }`,
     {
       formId: z.string().describe('폼 ID'),
       version: z.number().int().positive().describe('조회할 버전 번호'),

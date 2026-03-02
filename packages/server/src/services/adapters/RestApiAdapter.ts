@@ -72,6 +72,10 @@ export class RestApiAdapter implements DataSourceAdapter {
     throw new AppError(400, 'Raw query is not supported for REST API data sources');
   }
 
+  async execute(_sql: string, _params?: unknown[]): Promise<{ affectedRows: number }> {
+    throw new AppError(400, 'SQL execute is not supported for REST API data sources');
+  }
+
   async listTables(): Promise<string[]> {
     return [];
   }

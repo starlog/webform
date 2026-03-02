@@ -74,7 +74,6 @@ describe('DataGridView dataSource 패치 생성', () => {
           `,
         },
       ],
-      dataBindings: [],
       createdBy: 'user1',
       updatedBy: 'user1',
     });
@@ -165,7 +164,6 @@ describe('DataGridView dataSource 패치 생성', () => {
           `,
         },
       ],
-      dataBindings: [],
       createdBy: 'user1',
       updatedBy: 'user1',
     });

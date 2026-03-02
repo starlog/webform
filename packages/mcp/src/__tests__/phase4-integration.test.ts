@@ -647,7 +647,6 @@ async function main() {
             handlerCode: 'console.log("clicked");',
           },
         ],
-        dataBindings: [],
       },
     },
   });
@@ -758,7 +757,6 @@ async function main() {
       formDefinition: {
         controls: [],
         eventHandlers: [],
-        dataBindings: [],
       },
     },
   });

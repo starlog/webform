@@ -31,7 +31,6 @@ export type {
   RestApiConfig,
   AuthConfig,
   StaticConfig,
-  DataBindingDefinition,
 } from './types/datasource';
 
 // types/shell

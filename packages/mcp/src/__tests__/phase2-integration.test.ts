@@ -110,7 +110,6 @@ async function main() {
 
   const expectedGuideResources = [
     'webform://guide/event-context',
-    'webform://guide/data-binding',
     'webform://guide/control-hierarchy',
   ];
 
@@ -626,16 +625,6 @@ async function main() {
 
   // 7-4. 추가 가이드 리소스 확인
   console.log('  --- 7-4. 추가 가이드 리소스 ---');
-  const bindingGuide = await client.readResource({
-    uri: 'webform://guide/data-binding',
-  });
-  assert(bindingGuide.contents.length > 0, 'guide/data-binding: 내용 반환');
-  const bindingText = (bindingGuide.contents[0] as { uri: string; text: string }).text;
-  assert(
-    bindingText?.includes('DataBindingDefinition'),
-    'guide/data-binding: DataBindingDefinition 포함',
-  );
-
   const hierarchyGuide = await client.readResource({
     uri: 'webform://guide/control-hierarchy',
   });

@@ -32,6 +32,7 @@ import { SplitContainer } from './SplitContainer';
 import { BindingNavigator } from './BindingNavigator';
 import { MongoDBConnector } from './MongoDBConnector';
 import { SwaggerConnector } from './SwaggerConnector';
+import { DataSourceConnector } from './DataSourceConnector';
 import { Slider } from './Slider';
 import { Switch } from './Switch';
 import { Upload } from './Upload';
@@ -78,6 +79,7 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   BindingNavigator,
   MongoDBConnector,
   SwaggerConnector,
+  DataSourceConnector,
   Slider,
   Switch,
   Upload,

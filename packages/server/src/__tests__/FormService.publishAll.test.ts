@@ -13,7 +13,6 @@ function makeInput(overrides: Partial<CreateFormInput> = {}): CreateFormInput {
     properties: {},
     controls: [],
     eventHandlers: [],
-    dataBindings: [],
     ...overrides,
   } as unknown as CreateFormInput;
 }

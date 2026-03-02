@@ -109,7 +109,6 @@ export function SDUIRenderer({ formDefinition, enableDrag, themeIdOverride }: SD
     [formDefinition.controls],
   );
 
-  const bindings = formDefinition.dataBindings;
   const events = formDefinition.eventHandlers;
   const formSize = {
     width: formDefinition.properties.width,
@@ -120,7 +119,6 @@ export function SDUIRenderer({ formDefinition, enableDrag, themeIdOverride }: SD
     <ControlRenderer
       key={control.id}
       definition={control}
-      bindings={bindings}
       events={events}
       parentSize={formSize}
     />

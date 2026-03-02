@@ -45,7 +45,6 @@ export interface ExportProjectData {
     properties: Record<string, unknown>;
     controls: unknown[];
     eventHandlers: unknown[];
-    dataBindings: unknown[];
   }>;
 }
 
@@ -153,7 +152,6 @@ export class ProjectService {
         properties: f.properties as unknown as Record<string, unknown>,
         controls: f.controls as unknown[],
         eventHandlers: f.eventHandlers as unknown[],
-        dataBindings: f.dataBindings as unknown[],
       })),
     };
   }
@@ -227,7 +225,6 @@ export class ProjectService {
               ? { ...handler, controlId: formId.toString() }
               : handler;
           }),
-          dataBindings: f.dataBindings,
           projectId: project._id.toString(),
           version: 1,
           status: 'draft' as const,

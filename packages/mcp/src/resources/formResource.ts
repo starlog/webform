@@ -61,26 +61,6 @@ export function registerFormResources(server: McpServer): void {
     },
   );
 
-  // webform://forms/{formId}/bindings — 데이터 바인딩 목록
-  server.resource(
-    'form-bindings',
-    new ResourceTemplate('webform://forms/{formId}/bindings', { list: undefined }),
-    async (uri, { formId }) => {
-      const response = await apiClient.get<{ data: { dataBindings: unknown[] } }>(
-        `/api/forms/${formId}`,
-      );
-      return {
-        contents: [
-          {
-            uri: uri.href,
-            mimeType: 'application/json',
-            text: JSON.stringify(response.data.dataBindings, null, 2),
-          },
-        ],
-      };
-    },
-  );
-
   // webform://forms/{formId}/versions — 버전 히스토리
   server.resource(
     'form-versions',

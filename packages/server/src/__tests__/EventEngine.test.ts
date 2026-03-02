@@ -20,7 +20,6 @@ function makeFormDef(handlers: FormDefinition['eventHandlers']): FormDefinition 
     },
     controls: [],
     eventHandlers: handlers,
-    dataBindings: [],
   };
 }
 

@@ -6,8 +6,6 @@ import { apiClient } from './communication/apiClient';
 import { wsClient } from './communication/wsClient';
 import { setupPatchListener } from './communication/patchApplier';
 import { useRuntimeStore, type DialogMessage } from './stores/runtimeStore';
-import { useBindingStore } from './bindings/bindingStore';
-
 import { ensureAuthToken, getAuthToken } from './communication/authToken';
 
 // WebSocket 인증 토큰 설정
@@ -79,9 +77,6 @@ function LegacyFormApp({ formId: initialFormId }: { formId: string | null }) {
 
       setLoading(true);
       setError(null);
-
-      // 폼 전환 시 바인딩 상태(에러, 로딩, 데이터) 초기화
-      useBindingStore.getState().reset();
 
       // 기존 패치 구독 해제 및 WebSocket 연결 해제
       unsubPatchRef.current?.();

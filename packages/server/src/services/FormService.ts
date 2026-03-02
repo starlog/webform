@@ -126,7 +126,6 @@ export class FormService {
         properties: existing.properties,
         controls: existing.controls,
         eventHandlers: existing.eventHandlers,
-        dataBindings: existing.dataBindings,
       },
       savedAt: new Date(),
     };

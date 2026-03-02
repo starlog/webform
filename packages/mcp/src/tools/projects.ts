@@ -61,7 +61,6 @@ interface ExportProjectResponse {
     properties?: Record<string, unknown>;
     controls?: unknown[];
     eventHandlers?: unknown[];
-    dataBindings?: unknown[];
   }>;
 }
 
@@ -304,7 +303,7 @@ export function registerProjectTools(server: McpServer): void {
     `프로젝트와 모든 폼을 JSON으로 내보냅니다. 백업, 이관, 복제 시 사용하세요.
 내보낸 데이터는 import_project로 다시 가져올 수 있습니다.
 
-반환값: { exportVersion, exportedAt, project: {name, description}, forms: [{name, properties, controls, eventHandlers, dataBindings}] }`,
+반환값: { exportVersion, exportedAt, project: {name, description}, forms: [{name, properties, controls, eventHandlers}] }`,
     {
       projectId: z.string().describe('내보낼 프로젝트 ID'),
     },
@@ -365,7 +364,6 @@ export function registerProjectTools(server: McpServer): void {
                 properties: z.record(z.unknown()).optional().describe('폼 속성'),
                 controls: z.array(z.unknown()).optional().describe('컨트롤 배열'),
                 eventHandlers: z.array(z.unknown()).optional().describe('이벤트 핸들러 배열'),
-                dataBindings: z.array(z.unknown()).optional().describe('데이터 바인딩 배열'),
               }),
             )
             .describe('가져올 폼 목록'),

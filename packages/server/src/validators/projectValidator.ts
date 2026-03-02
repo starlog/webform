@@ -44,7 +44,6 @@ export const importProjectSchema = z.object({
     properties: z.record(z.unknown()).default({}),
     controls: z.array(z.unknown()).default([]),
     eventHandlers: z.array(z.unknown()).default([]),
-    dataBindings: z.array(z.unknown()).default([]),
   })),
   shell: z.object({
     name: z.string().min(1),

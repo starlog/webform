@@ -10,7 +10,7 @@ import type {
   UIPatch,
 } from '@webform/common';
 import { SandboxRunner } from './SandboxRunner.js';
-import type { MongoConnectorInfo, SwaggerConnectorInfo } from './SandboxRunner.js';
+import type { MongoConnectorInfo, SwaggerConnectorInfo, DataSourceConnectorInfo } from './SandboxRunner.js';
 import { buildControlsContext } from './ControlProxy.js';
 import { parseSwaggerSpec } from './SwaggerParser.js';
 
@@ -18,17 +18,19 @@ export interface ExecuteEventOptions {
   debugMode?: boolean;
 }
 
-/** formDef.controls를 한 번 순회하여 id↔name 매핑, MongoConnector, SwaggerConnector를 모두 수집 */
+/** formDef.controls를 한 번 순회하여 id↔name 매핑, MongoConnector, SwaggerConnector, DataSourceConnector를 모두 수집 */
 function analyzeControls(controls: ControlDefinition[]): {
   idToName: Map<string, string>;
   nameToId: Map<string, string>;
   mongoConnectors: MongoConnectorInfo[];
   swaggerConnectors: SwaggerConnectorInfo[];
+  dataSourceConnectors: DataSourceConnectorInfo[];
 } {
   const idToName = new Map<string, string>();
   const nameToId = new Map<string, string>();
   const mongoConnectors: MongoConnectorInfo[] = [];
   const swaggerConnectors: SwaggerConnectorInfo[] = [];
+  const dataSourceConnectors: DataSourceConnectorInfo[] = [];
 
   function walk(ctrls: ControlDefinition[]) {
     for (const ctrl of ctrls) {
@@ -89,11 +91,43 @@ function analyzeControls(controls: ControlDefinition[]): {
         }
       }
 
+      // DataSourceConnector 수집
+      if (ctrl.type === 'DataSourceConnector') {
+        let headers: Record<string, string> = {};
+        try { headers = JSON.parse((ctrl.properties.headers as string) || '{}'); } catch { /* ignore */ }
+        let authCredentials: Record<string, string> = {};
+        try { authCredentials = JSON.parse((ctrl.properties.authCredentials as string) || '{}'); } catch { /* ignore */ }
+        let data: unknown[] = [];
+        try {
+          const raw = ctrl.properties.data;
+          data = typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
+        } catch { /* ignore */ }
+
+        dataSourceConnectors.push({
+          controlName: ctrl.name,
+          dsType: (ctrl.properties.dsType as 'database' | 'restApi' | 'static') || 'database',
+          dialect: (ctrl.properties.dialect as string) || undefined,
+          host: (ctrl.properties.host as string) || undefined,
+          port: (ctrl.properties.port as number) || undefined,
+          user: (ctrl.properties.user as string) || undefined,
+          password: (ctrl.properties.password as string) || undefined,
+          database: (ctrl.properties.database as string) || undefined,
+          ssl: (ctrl.properties.ssl as boolean) || false,
+          baseUrl: (ctrl.properties.baseUrl as string) || undefined,
+          headers,
+          authType: (ctrl.properties.authType as string) || 'none',
+          authCredentials,
+          data,
+          queryTimeout: (ctrl.properties.queryTimeout as number) || 10000,
+          maxResultCount: (ctrl.properties.maxResultCount as number) || 1000,
+        });
+      }
+
       if (ctrl.children) walk(ctrl.children);
     }
   }
   walk(controls);
-  return { idToName, nameToId, mongoConnectors, swaggerConnectors };
+  return { idToName, nameToId, mongoConnectors, swaggerConnectors, dataSourceConnectors };
 }
 
 /** ID 키 formState → NAME 키 formState로 변환 */
@@ -227,7 +261,7 @@ export class EventEngine {
     const { handlerCode } = resolved;
 
     // 2. 컨트롤 트리 한 번 순회로 ID↔NAME 매핑 + 커넥터 정보 수집
-    const { idToName, nameToId, mongoConnectors, swaggerConnectors } = analyzeControls(controls);
+    const { idToName, nameToId, mongoConnectors, swaggerConnectors, dataSourceConnectors } = analyzeControls(controls);
 
     // 3. formState를 NAME 키로 변환 (사용자 코드가 ctx.controls.lblStatus 로 접근)
     const formStateById = JSON.parse(JSON.stringify(formState)) as Record<string, Record<string, unknown>>;
@@ -255,6 +289,7 @@ export class EventEngine {
       debugMode: options.debugMode,
       mongoConnectors,
       swaggerConnectors,
+      dataSourceConnectors,
     };
     if (options.isShell) {
       runnerOptions.shellMode = true;

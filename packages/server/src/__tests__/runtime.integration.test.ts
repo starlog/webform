@@ -51,7 +51,6 @@ const publishedFormData = {
       handlerCode: "ctx.controls.lblStatus.text = '클릭됨'",
     },
   ],
-  dataBindings: [],
   createdBy: 'user1',
   updatedBy: 'user1',
 };

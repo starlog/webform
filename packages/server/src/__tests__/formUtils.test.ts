@@ -13,9 +13,6 @@ describe('toFormDef', () => {
     eventHandlers: [
       { controlId: 'btn-1', eventName: 'Click', handlerType: 'server', code: 'console.log("hi")' },
     ],
-    dataBindings: [
-      { controlId: 'grid-1', controlProperty: 'dataSource', dataSourceId: 'ds-1', dataField: '', bindingMode: 'oneWay' },
-    ],
   };
 
   it('_id를 id 문자열로 변환한다', () => {
@@ -43,17 +40,6 @@ describe('toFormDef', () => {
   it('eventHandlers 배열을 그대로 전달한다', () => {
     const result = toFormDef(mockForm);
     expect(result.eventHandlers).toHaveLength(1);
-  });
-
-  it('dataBindings 배열을 그대로 전달한다', () => {
-    const result = toFormDef(mockForm);
-    expect(result.dataBindings).toHaveLength(1);
-  });
-
-  it('dataBindings가 undefined이면 undefined를 반환한다', () => {
-    const { dataBindings: _, ...formWithoutBindings } = mockForm;
-    const result = toFormDef(formWithoutBindings);
-    expect(result.dataBindings).toBeUndefined();
   });
 
   it('ObjectId-like _id를 처리한다', () => {

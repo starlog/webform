@@ -11,7 +11,6 @@ const baseInput = {
   properties: {},
   controls: [],
   eventHandlers: [],
-  dataBindings: [],
 } as unknown as CreateFormInput;
 
 const userId = 'user-1';

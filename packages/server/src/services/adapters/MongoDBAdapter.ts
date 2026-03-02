@@ -97,6 +97,10 @@ export class MongoDBAdapter implements DataSourceAdapter {
     return { deletedCount: result.deletedCount };
   }
 
+  async execute(_sql: string, _params?: unknown[]): Promise<{ affectedRows: number }> {
+    throw new AppError(400, 'SQL execute is not supported for MongoDB — use insertOne/updateOne/deleteOne');
+  }
+
   async executeRawQuery(raw: string, _params?: unknown[]): Promise<unknown[]> {
     let query: Record<string, unknown>;
     try {

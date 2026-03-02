@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DataGridView } from '../controls/DataGridView';
-import { useBindingStore } from '../bindings/bindingStore';
 
 describe('DataGridView', () => {
   beforeEach(() => {
-    useBindingStore.getState().reset();
+    vi.clearAllMocks();
   });
 
   describe('데이터 렌더링', () => {
@@ -115,10 +114,6 @@ describe('DataGridView', () => {
 
       // onSelectionChanged 콜백 확인
       expect(onSelectionChanged).toHaveBeenCalledWith(1);
-
-      // bindingStore의 selectedRows 확인
-      const state = useBindingStore.getState();
-      expect(state.selectedRows['grid1']).toBe(1);
     });
   });
 

@@ -39,10 +39,3 @@ export type DataSourceDefinition =
   | (DataSourceBase & { type: 'restApi'; config: RestApiConfig })
   | (DataSourceBase & { type: 'static'; config: StaticConfig });
 
-export interface DataBindingDefinition {
-  controlId: string;
-  controlProperty: string;
-  dataSourceId: string;
-  dataField: string;
-  bindingMode: 'oneWay' | 'twoWay' | 'oneTime';
-}

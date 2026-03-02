@@ -7,7 +7,6 @@ import { apiClient } from '../communication/apiClient';
 import { wsClient } from '../communication/wsClient';
 import { setupPatchListener } from '../communication/patchApplier';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useBindingStore } from '../bindings/bindingStore';
 import { ensureAuthToken } from '../communication/authToken';
 import { extractAuthTokenFromUrl, clearRuntimeAuthToken } from '../communication/runtimeAuth';
 import { LoginRequiredPage } from '../components/LoginRequiredPage';
@@ -71,9 +70,6 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
       if (currentFormIdRef.current) {
         pushFormHistory(currentFormIdRef.current);
       }
-
-      // 폼 전환 시 바인딩 상태(에러, 로딩, 데이터) 초기화
-      useBindingStore.getState().reset();
 
       try {
         const def = await apiClient.fetchForm(formId);

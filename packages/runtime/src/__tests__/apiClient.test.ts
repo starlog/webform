@@ -27,7 +27,6 @@ describe('apiClient', () => {
         properties: {},
         controls: [],
         eventHandlers: [],
-        dataBindings: [],
       };
 
       mockFetch.mockResolvedValue({

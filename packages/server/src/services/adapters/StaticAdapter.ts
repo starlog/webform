@@ -33,6 +33,10 @@ export class StaticAdapter implements DataSourceAdapter {
     throw new Error('Raw query is not supported for static data sources');
   }
 
+  async execute(_sql: string, _params?: unknown[]): Promise<{ affectedRows: number }> {
+    throw new Error('Execute is not supported for static data sources');
+  }
+
   async listTables(): Promise<string[]> {
     return [];
   }

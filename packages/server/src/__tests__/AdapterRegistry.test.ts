@@ -20,6 +20,9 @@ function createStubFactory(dialect: string, displayName?: string): AdapterFactor
         async executeRawQuery() {
           return [];
         },
+        async execute() {
+          return { affectedRows: 0 };
+        },
         async listTables() {
           return [];
         },

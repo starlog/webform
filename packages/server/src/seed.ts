@@ -303,7 +303,6 @@ async function seed() {
         },
       ],
       eventHandlers: [],
-      dataBindings: [],
     });
     console.log('[seed] 폼 생성:', form._id.toString());
   } else {

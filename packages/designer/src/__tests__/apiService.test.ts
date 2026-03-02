@@ -40,7 +40,6 @@ describe('apiService', () => {
           properties: { title: 'Test', width: 800, height: 600 },
           controls: [{ id: 'c1', type: 'Button', name: 'btn1' }],
           eventHandlers: [],
-          dataBindings: [],
           createdBy: 'user-1',
           updatedBy: 'user-1',
           updatedAt: '2025-01-01',

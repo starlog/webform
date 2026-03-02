@@ -46,6 +46,7 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   BindingNavigator: ['PositionChanged', 'ItemClicked'],
   MongoDBConnector: ['Connected', 'Error', 'QueryCompleted'],
   SwaggerConnector: ['Connected', 'Error', 'RequestCompleted'],
+  DataSourceConnector: ['Connected', 'Error', 'QueryCompleted'],
   // Extra Elements
   Slider: ['ValueChanged'],
   Switch: ['CheckedChanged'],
