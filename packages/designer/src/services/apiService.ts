@@ -163,6 +163,11 @@ export function getAuthToken(): string | null {
   return authToken;
 }
 
+/** 테스트용: 인증 토큰 초기화 */
+export function _resetAuthToken(): void {
+  authToken = null;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   await ensureAuth();
 

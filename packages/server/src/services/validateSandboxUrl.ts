@@ -66,7 +66,7 @@ export async function validateSandboxUrl(url: string): Promise<void> {
 /**
  * 내부/예약 IP 대역인지 확인
  */
-function isBlockedIP(ip: string): boolean {
+export function isBlockedIP(ip: string): boolean {
   // IPv4
   const parts = ip.split('.').map(Number);
   if (parts.length === 4 && parts.every((p) => !isNaN(p))) {

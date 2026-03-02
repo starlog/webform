@@ -467,13 +467,15 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
       const loginUrl = `${env.RUNTIME_BASE_URL}/auth/google/login?projectId=${req.params.projectId}${formIdParam}`;
 
       const header = req.headers.authorization;
-      if (!header?.startsWith('Bearer ')) {
+      const cookieToken = req.cookies?.runtime_auth_token;
+      const token = header?.startsWith('Bearer ') ? header.slice(7) : cookieToken;
+      if (!token) {
         res.status(401).json({ authRequired: true, loginUrl });
         return;
       }
 
       try {
-        const payload = jwt.verify(header.slice(7), env.JWT_SECRET) as {
+        const payload = jwt.verify(token, env.JWT_SECRET) as {
           role: string;
           projectId: string;
           email: string;

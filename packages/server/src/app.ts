@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
@@ -23,6 +24,7 @@ export function createApp() {
     origin: env.CORS_ORIGINS,
     credentials: true,
   }));
+  app.use(cookieParser());
   app.use(express.json({ limit: '5mb' }));
   app.use(morgan('short'));
 

@@ -4,7 +4,7 @@ import { MongoClient } from 'mongodb';
 import type { TraceEntry } from '@webform/common';
 import { env } from '../config/index.js';
 import { CodeInstrumenter } from './CodeInstrumenter.js';
-import { validateSandboxUrl } from './validateSandboxUrl.js';
+import { validateSandboxUrl, isBlockedIP } from './validateSandboxUrl.js';
 import type { SwaggerOperation } from './SwaggerParser.js';
 
 export interface MongoConnectorInfo {
@@ -42,6 +42,43 @@ export interface SandboxResult {
   error?: string;
   errorLine?: number;
   traces?: TraceEntry[];
+}
+
+/**
+ * MongoDB 연결 문자열의 호스트가 내부 네트워크를 가리키는지 검증한다.
+ * SSRF를 통한 내부 DB 무단 접근을 차단한다.
+ */
+async function validateMongoConnectionString(connectionString: string): Promise<void> {
+  let parsed: URL;
+  try {
+    parsed = new URL(connectionString);
+  } catch {
+    throw new Error(`Invalid MongoDB connection string`);
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  if (hostname === 'localhost' || hostname === '::1') {
+    throw new Error(`Blocked MongoDB host: internal address not allowed`);
+  }
+
+  const { isIP } = await import('node:net');
+  if (isIP(hostname)) {
+    if (isBlockedIP(hostname)) {
+      throw new Error(`Blocked MongoDB host: internal address not allowed`);
+    }
+  } else {
+    // DNS 해석하여 실제 IP 확인
+    const { lookup } = await import('node:dns/promises');
+    try {
+      const { address } = await lookup(hostname);
+      if (isBlockedIP(address)) {
+        throw new Error(`Blocked MongoDB host: internal address not allowed`);
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith('Blocked')) throw err;
+      throw new Error(`DNS resolution failed for MongoDB host: ${hostname}`);
+    }
+  }
 }
 
 export class SandboxRunner {
@@ -206,6 +243,9 @@ export class SandboxRunner {
           if (!info.connectionString) {
             throw new Error(`MongoDBConnector "${controlName}": connectionString is empty`);
           }
+
+          // SSRF 방어: 내부 네트워크 주소 차단
+          await validateMongoConnectionString(info.connectionString);
 
           const client = new MongoClient(info.connectionString);
           try {

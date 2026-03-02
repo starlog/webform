@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DataSourcePanel } from '../components/DataSourcePanel/DataSourcePanel';
+import { _resetAuthToken } from '../services/apiService';
 
 // ─── fetch 모킹 헬퍼 ────────────────────────────────
 
@@ -15,6 +16,13 @@ function mockFetchResponses() {
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string) => {
+      // 개발 토큰 (POST /auth/dev-token)
+      if (url.includes('/auth/dev-token')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ token: 'test-token' }),
+        });
+      }
       // 데이터소스 목록 (GET /api/datasources)
       if (url.includes('/datasources') && !url.includes('/dialects')) {
         return Promise.resolve({
@@ -42,6 +50,7 @@ function mockFetchResponses() {
 describe('DataSourcePanel', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    _resetAuthToken();
     mockFetchResponses();
   });
 

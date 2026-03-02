@@ -181,7 +181,13 @@ googleAuthRouter.get('/google/callback', async (req, res, next) => {
     if (stateParams.formId) {
       redirectUrl.searchParams.set('formId', stateParams.formId);
     }
-    res.redirect(`${redirectUrl.toString()}#auth_token=${runtimeToken}`);
+    res.cookie('runtime_auth_token', runtimeToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, // 1일
+    });
+    res.redirect(redirectUrl.toString());
   } catch (err) {
     next(err);
   }

@@ -377,10 +377,11 @@ export const useRuntimeStore = create<RuntimeState>()(
       }),
 
     popFormHistory: () => {
-      const history = get().formHistory;
-      if (history.length === 0) return null;
-      const last = history[history.length - 1];
+      let last: { formId: string; params?: Record<string, unknown> } | null = null;
       set((state) => {
+        if (state.formHistory.length === 0) return;
+        const entry = state.formHistory[state.formHistory.length - 1];
+        last = { formId: entry.formId, ...(entry.params && { params: { ...entry.params } }) };
         state.formHistory.pop();
       });
       return last;

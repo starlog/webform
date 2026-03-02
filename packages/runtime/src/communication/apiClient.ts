@@ -115,7 +115,7 @@ class ApiClient {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    const res = await fetch(`${this.baseUrl}/runtime/app/${projectId}${params}`, { headers });
+    const res = await fetch(`${this.baseUrl}/runtime/app/${projectId}${params}`, { headers, credentials: 'include' });
     if (res.status === 401) {
       const body = await res.json();
       const err = new Error('Authentication required') as Error & {

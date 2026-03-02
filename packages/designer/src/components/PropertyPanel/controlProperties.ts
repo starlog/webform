@@ -230,7 +230,7 @@ const graphViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.font',       label: 'Font',       category: 'Appearance', editorType: 'font' },
   { name: 'properties.foreColor',  label: 'ForeColor',  category: 'Appearance', editorType: 'color' },
   { name: 'properties.backColor',  label: 'BackColor',  category: 'Appearance', editorType: 'color' },
-  { name: 'properties.graphType',  label: 'Data Format', category: 'Sample',     editorType: 'graphSample' },
+  { name: 'type',                  label: 'Data Format', category: 'Sample',     editorType: 'graphSample' },
 );
 
 const treeViewProps: PropertyMeta[] = withCommon(
