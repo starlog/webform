@@ -1,7 +1,16 @@
+export type DatabaseDialect = 'mongodb' | 'postgresql' | 'mysql' | 'mssql' | 'sqlite';
+
 export interface DatabaseConfig {
-  dialect: 'mongodb' | 'mysql' | 'mssql' | 'sqlite';
-  connectionString: string;
+  dialect: DatabaseDialect;
+  // MongoDB용
+  connectionString?: string;
+  // SQL DB 공통
+  host?: string;
+  port?: number;
+  user?: string;
+  password?: string;
   database: string;
+  ssl?: boolean;
 }
 
 export interface AuthConfig {

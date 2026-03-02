@@ -15,7 +15,7 @@ export interface DataSourceDocument {
 
   // 메타데이터 (비민감 정보)
   meta: {
-    dialect?: 'mongodb';
+    dialect?: 'mongodb' | 'postgresql' | 'mysql' | 'mssql' | 'sqlite';
     baseUrl?: string;
   };
 
@@ -35,7 +35,7 @@ const dataSourceSchema = new Schema(
     encryptedConfig: { type: String, default: null },
     staticData: { type: Schema.Types.Mixed, default: null },
     meta: {
-      dialect: { type: String, enum: ['mongodb'], default: null },
+      dialect: { type: String, enum: ['mongodb', 'postgresql', 'mysql', 'mssql', 'sqlite'], default: null },
       baseUrl: { type: String, default: null },
     },
     createdBy: { type: String, required: true },

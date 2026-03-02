@@ -1,11 +1,39 @@
 import { z } from 'zod';
 
-// Database config (현재 MongoDB만 지원)
-const databaseConfigSchema = z.object({
-  dialect: z.literal('mongodb'),
-  connectionString: z.string().min(1),
-  database: z.string().min(1),
-});
+// SQL DB 공통 필드
+const sqlCommonFields = {
+  host: z.string().min(1, '호스트는 필수입니다'),
+  port: z.number().int().positive().max(65535).optional(),
+  user: z.string().min(1, '사용자명은 필수입니다'),
+  password: z.string(),
+  database: z.string().min(1, '데이터베이스명은 필수입니다'),
+  ssl: z.boolean().optional(),
+};
+
+// Database config (discriminated union on 'dialect')
+const databaseConfigSchema = z.discriminatedUnion('dialect', [
+  z.object({
+    dialect: z.literal('mongodb'),
+    connectionString: z.string().min(1, '연결 문자열은 필수입니다'),
+    database: z.string().min(1, '데이터베이스명은 필수입니다'),
+  }),
+  z.object({
+    dialect: z.literal('postgresql'),
+    ...sqlCommonFields,
+  }),
+  z.object({
+    dialect: z.literal('mysql'),
+    ...sqlCommonFields,
+  }),
+  z.object({
+    dialect: z.literal('mssql'),
+    ...sqlCommonFields,
+  }),
+  z.object({
+    dialect: z.literal('sqlite'),
+    database: z.string().min(1, '데이터베이스 경로는 필수입니다'),
+  }),
+]);
 
 // REST API auth config
 const authConfigSchema = z.object({

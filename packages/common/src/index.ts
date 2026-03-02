@@ -25,6 +25,7 @@ export { COMMON_EVENTS, CONTROL_EVENTS, FORM_EVENTS } from './types/events';
 // types/datasource
 export type {
   DataSourceDefinition,
+  DatabaseDialect,
   DatabaseConfig,
   RestApiConfig,
   AuthConfig,
