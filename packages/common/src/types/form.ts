@@ -56,11 +56,21 @@ export interface AnchorStyle {
 
 export type DockStyle = 'None' | 'Top' | 'Bottom' | 'Left' | 'Right' | 'Fill';
 
+export interface CommonControlProperties {
+  text?: string;
+  visible?: boolean;
+  enabled?: boolean;
+  font?: FontDefinition;
+  foreColor?: string;
+  backColor?: string;
+  [key: string]: unknown;
+}
+
 export interface ControlDefinition {
   id: string;
   type: ControlType;
   name: string;
-  properties: Record<string, unknown>;
+  properties: CommonControlProperties;
   position: { x: number; y: number };
   size: { width: number; height: number };
   children?: ControlDefinition[];

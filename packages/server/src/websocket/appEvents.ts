@@ -8,6 +8,7 @@ import type {
 import { Form } from '../models/Form.js';
 import { ShellService } from '../services/ShellService.js';
 import { EventEngine } from '../services/EventEngine.js';
+import { toFormDef } from '../utils/formUtils.js';
 import type { ShellDocument } from '../models/Shell.js';
 
 const eventEngine = new EventEngine();
@@ -163,15 +164,7 @@ async function handleFormEvent(ws: WebSocket, payload: EventRequest): Promise<vo
     return;
   }
 
-  const formDef = {
-    id: form._id.toString(),
-    name: form.name,
-    version: form.version,
-    properties: form.properties,
-    controls: form.controls,
-    eventHandlers: form.eventHandlers,
-    dataBindings: form.dataBindings,
-  };
+  const formDef = toFormDef(form);
 
   const result = await eventEngine.executeEvent(formId, payload, formDef);
 

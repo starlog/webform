@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { List } from 'react-window';
 import { useBindingStore } from '../bindings/bindingStore';
+import { computeFontStyle } from '../renderer/layoutUtils';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -246,20 +247,7 @@ export function DataGridView({
   const styles = useDataGridStyles();
   const colors = useControlColors('DataGridView', { backColor, foreColor });
 
-  const fontStyle = useMemo<CSSProperties>(() => {
-    if (!font) return {};
-    const textDecoration = [
-      font.underline ? 'underline' : '',
-      font.strikethrough ? 'line-through' : '',
-    ].filter(Boolean).join(' ');
-    return {
-      fontFamily: font.family || undefined,
-      fontSize: font.size ? `${font.size}pt` : undefined,
-      fontWeight: font.bold ? 'bold' : undefined,
-      fontStyle: font.italic ? 'italic' : undefined,
-      textDecoration: textDecoration || undefined,
-    };
-  }, [font]);
+  const fontStyle = useMemo(() => computeFontStyle(font), [font]);
 
   const rows = useMemo(() => (dataSource ?? rowsProp ?? []) as Record<string, unknown>[], [dataSource, rowsProp]);
 

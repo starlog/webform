@@ -432,19 +432,20 @@ export class SandboxRunner {
     await jail.set('__appState__', new ivm.ExternalCopy(appState).copyInto());
   }
 
-  private wrapHandlerCode(
-    code: string,
-    debugMode?: boolean,
-    mongoConnectors: MongoConnectorInfo[] = [],
-    swaggerConnectors: SwaggerConnectorInfo[] = [],
-    shellMode?: boolean,
-    currentFormId?: string,
-    params?: Record<string, unknown>,
-  ): string {
-    const traceSetup = debugMode
-      ? `
-        var __traces = [];
-        function __trace(line, col, vars) {
+  /**
+   * debugMode 시 trace 함수(__traces, __trace, __captureVars)를 정의하는 코드를 생성한다.
+   * CodeInstrumenter.generateTraceWrapper()를 기반으로 하되,
+   * __trace에 ctx.controls 스냅샷 캡처 로직을 추가한다.
+   */
+  private buildTraceSetup(): string {
+    // CodeInstrumenter의 기본 래퍼에서 __traces, __captureVars를 가져오되
+    // __trace 함수는 ctx.controls 스냅샷을 포함하는 확장 버전으로 오버라이드한다.
+    const baseWrapper = CodeInstrumenter.generateTraceWrapper();
+
+    // 기본 __trace 함수를 ctx.controls 스냅샷을 포함하는 버전으로 교체
+    const enhancedTrace = `
+        var __origTrace = __trace;
+        __trace = function(line, col, vars) {
           var __cc = {};
           try {
             var __ks = Object.keys(ctx.controls);
@@ -460,37 +461,22 @@ export class SandboxRunner {
             variables: vars || {},
             ctxControls: __cc
           });
-        }
-        function __captureVars(names, evalFn) {
-          var result = {};
-          for (var i = 0; i < names.length; i++) {
-            try {
-              var val = evalFn(names[i]);
-              try {
-                result[names[i]] = JSON.stringify(val);
-              } catch(e) {
-                result[names[i]] = String(val);
-              }
-            } catch(e) {
-              // 변수가 아직 선언되지 않은 경우 무시
-            }
-          }
-          return result;
-        }`
-      : '';
+        };`;
 
-    const returnValue = debugMode
-      ? shellMode
-        ? '{ operations: __operations, logs: __logs, traces: __traces, appState: ctx.appState }'
-        : '{ operations: __operations, logs: __logs, traces: __traces }'
-      : shellMode
-        ? '{ operations: __operations, logs: __logs, appState: ctx.appState }'
-        : '{ operations: __operations, logs: __logs }';
+    return baseWrapper + enhancedTrace;
+  }
 
-    const shellSetup = shellMode
-      ? `
-        ctx.currentFormId = ${JSON.stringify(currentFormId ?? '')};
-        ctx.params = ${JSON.stringify(params ?? {})};
+  /**
+   * Shell 모드 시 네비게이션 함수(navigateBack, navigateReplace, closeApp) 등을 정의하는 코드를 생성한다.
+   */
+  private buildShellSetup(shellDef: {
+    currentFormId?: string;
+    appState?: Record<string, unknown>;
+    params?: Record<string, unknown>;
+  }): string {
+    return `
+        ctx.currentFormId = ${JSON.stringify(shellDef.currentFormId ?? '')};
+        ctx.params = ${JSON.stringify(shellDef.params ?? {})};
         ctx.appState = typeof __appState__ !== 'undefined'
           ? JSON.parse(JSON.stringify(__appState__))
           : {};
@@ -521,14 +507,27 @@ export class SandboxRunner {
             target: '_system',
             payload: {}
           });
-        };`
-      : '';
+        };`;
+  }
 
+  /**
+   * console.log/warn/error/info를 __logs 배열에 기록하도록 오버라이드하는 코드를 생성한다.
+   */
+  private buildConsoleShim(): string {
     return `
-      (function(ctx) {
-        ctx.controls = ctx.controls || {};
-        var __operations = [];
-        var __logs = [];
+        var console = {
+          log: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'log', args: a, timestamp: Date.now() }); },
+          warn: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'warn', args: a, timestamp: Date.now() }); },
+          error: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'error', args: a, timestamp: Date.now() }); },
+          info: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'info', args: a, timestamp: Date.now() }); }
+        };`;
+  }
+
+  /**
+   * __deepEqual, __stringify, __flushChanges 헬퍼 함수를 정의하는 코드를 생성한다.
+   */
+  private buildFlushChangesHelper(): string {
+    return `
         var __lastSnapshot = JSON.parse(JSON.stringify(ctx.controls));
         var __stringify = function(val) {
           if (val === undefined) return 'undefined';
@@ -570,103 +569,14 @@ export class SandboxRunner {
             }
           }
           __lastSnapshot = JSON.parse(JSON.stringify(ctx.controls));
-        };
-        var console = {
-          log: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'log', args: a, timestamp: Date.now() }); },
-          warn: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'warn', args: a, timestamp: Date.now() }); },
-          error: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'error', args: a, timestamp: Date.now() }); },
-          info: function() { var a = []; for (var i = 0; i < arguments.length; i++) a.push(__stringify(arguments[i])); __logs.push({ type: 'info', args: a, timestamp: Date.now() }); }
-        };${traceSetup}
-        ctx.showMessage = function(text, title, type) {
-          __flushChanges();
-          __operations.push({
-            type: 'showDialog',
-            target: '_system',
-            payload: {
-              text: String(text ?? ''),
-              title: String(title ?? ''),
-              dialogType: String(type ?? 'info')
-            }
-          });
-        };
-        ctx.navigate = function(formId, params) {
-          __flushChanges();
-          __operations.push({
-            type: 'navigate',
-            target: '_system',
-            payload: {
-              formId: String(formId ?? ''),
-              params: params || {}
-            }
-          });
-        };
-        ctx.auth = {
-          logout: function() {
-            __flushChanges();
-            __operations.push({
-              type: 'authLogout',
-              target: '_system',
-              payload: {}
-            });
-          }
-        };${shellSetup}
-        ctx.http = {
-          get: function(url) {
-            return __httpHandler.applySyncPromise(undefined, ['GET', String(url)]);
-          },
-          post: function(url, body) {
-            return __httpHandler.applySyncPromise(undefined, ['POST', String(url), JSON.stringify(body)]);
-          },
-          put: function(url, body) {
-            return __httpHandler.applySyncPromise(undefined, ['PUT', String(url), JSON.stringify(body)]);
-          },
-          patch: function(url, body) {
-            return __httpHandler.applySyncPromise(undefined, ['PATCH', String(url), JSON.stringify(body)]);
-          },
-          delete: function(url) {
-            return __httpHandler.applySyncPromise(undefined, ['DELETE', String(url)]);
-          }
-        };
-${mongoConnectors.map((mc) => `
-        ctx.controls['${mc.controlName}'] = ctx.controls['${mc.controlName}'] || {};
-        ctx.controls['${mc.controlName}'].find = function(collection, filter) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'find', String(collection || ''), JSON.stringify(filter || {})]);
-        };
-        ctx.controls['${mc.controlName}'].findOne = function(collection, filter) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'findOne', String(collection || ''), JSON.stringify(filter || {})]);
-        };
-        ctx.controls['${mc.controlName}'].insertOne = function(collection, doc) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'insertOne', String(collection || ''), JSON.stringify(doc || {})]);
-        };
-        ctx.controls['${mc.controlName}'].updateOne = function(collection, filter, update) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'updateOne', String(collection || ''), JSON.stringify(filter || {}), JSON.stringify(update || {})]);
-        };
-        ctx.controls['${mc.controlName}'].deleteOne = function(collection, filter) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'deleteOne', String(collection || ''), JSON.stringify(filter || {})]);
-        };
-        ctx.controls['${mc.controlName}'].count = function(collection, filter) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'count', String(collection || ''), JSON.stringify(filter || {})]);
-        };
-`).join('')}
-${(swaggerConnectors || []).map((sc) => `
-        ctx.controls['${sc.controlName}'] = ctx.controls['${sc.controlName}'] || {};
-${sc.operations.map((op) => `        ctx.controls['${sc.controlName}']['${op.operationId}'] = function(opts) {
-          return __swaggerHandler.applySyncPromise(undefined, [
-            '${sc.controlName}',
-            '${op.operationId}',
-            JSON.stringify(opts || {})
-          ]);
-        };`).join('\n')}
-`).join('')}
-        ctx.getRadioGroupValue = function(groupName) {
-          for (var name in ctx.controls) {
-            var ctrl = ctx.controls[name];
-            if (ctrl.groupName === groupName && ctrl.checked === true) {
-              return ctrl.text;
-            }
-          }
-          return null;
-        };
+        };`;
+  }
+
+  /**
+   * JSONPath 구현 함수를 정의하는 코드를 생성한다.
+   */
+  private buildJsonPathImpl(): string {
+    return `
         function jsonPath(obj, expr) {
           if (typeof expr !== 'string' || expr.charAt(0) !== '$') return [];
           var tokens = [];
@@ -800,7 +710,144 @@ ${sc.operations.map((op) => `        ctx.controls['${sc.controlName}']['${op.ope
             current = next;
           }
           return current;
-        }
+        }`;
+  }
+
+  /**
+   * MongoDB 커넥터별 메서드 바인딩 코드를 생성한다.
+   */
+  private buildMongoBindings(mongoConnectors: MongoConnectorInfo[]): string {
+    return mongoConnectors.map((mc) => `
+        ctx.controls['${mc.controlName}'] = ctx.controls['${mc.controlName}'] || {};
+        ctx.controls['${mc.controlName}'].find = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'find', String(collection || ''), JSON.stringify(filter || {})]);
+        };
+        ctx.controls['${mc.controlName}'].findOne = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'findOne', String(collection || ''), JSON.stringify(filter || {})]);
+        };
+        ctx.controls['${mc.controlName}'].insertOne = function(collection, doc) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'insertOne', String(collection || ''), JSON.stringify(doc || {})]);
+        };
+        ctx.controls['${mc.controlName}'].updateOne = function(collection, filter, update) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'updateOne', String(collection || ''), JSON.stringify(filter || {}), JSON.stringify(update || {})]);
+        };
+        ctx.controls['${mc.controlName}'].deleteOne = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'deleteOne', String(collection || ''), JSON.stringify(filter || {})]);
+        };
+        ctx.controls['${mc.controlName}'].count = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'count', String(collection || ''), JSON.stringify(filter || {})]);
+        };
+`).join('');
+  }
+
+  /**
+   * Swagger 커넥터별 operation 메서드 바인딩 코드를 생성한다.
+   */
+  private buildSwaggerBindings(swaggerConnectors: SwaggerConnectorInfo[]): string {
+    return (swaggerConnectors || []).map((sc) => `
+        ctx.controls['${sc.controlName}'] = ctx.controls['${sc.controlName}'] || {};
+${sc.operations.map((op) => `        ctx.controls['${sc.controlName}']['${op.operationId}'] = function(opts) {
+          return __swaggerHandler.applySyncPromise(undefined, [
+            '${sc.controlName}',
+            '${op.operationId}',
+            JSON.stringify(opts || {})
+          ]);
+        };`).join('\n')}
+`).join('');
+  }
+
+  private wrapHandlerCode(
+    code: string,
+    debugMode?: boolean,
+    mongoConnectors: MongoConnectorInfo[] = [],
+    swaggerConnectors: SwaggerConnectorInfo[] = [],
+    shellMode?: boolean,
+    currentFormId?: string,
+    params?: Record<string, unknown>,
+  ): string {
+    const traceSetup = debugMode ? this.buildTraceSetup() : '';
+
+    const returnValue = debugMode
+      ? shellMode
+        ? '{ operations: __operations, logs: __logs, traces: __traces, appState: ctx.appState }'
+        : '{ operations: __operations, logs: __logs, traces: __traces }'
+      : shellMode
+        ? '{ operations: __operations, logs: __logs, appState: ctx.appState }'
+        : '{ operations: __operations, logs: __logs }';
+
+    const shellSetup = shellMode
+      ? this.buildShellSetup({ currentFormId, params })
+      : '';
+
+    return `
+      (function(ctx) {
+        ctx.controls = ctx.controls || {};
+        var __operations = [];
+        var __logs = [];
+${this.buildFlushChangesHelper()}
+${this.buildConsoleShim()}${traceSetup}
+        ctx.showMessage = function(text, title, type) {
+          __flushChanges();
+          __operations.push({
+            type: 'showDialog',
+            target: '_system',
+            payload: {
+              text: String(text ?? ''),
+              title: String(title ?? ''),
+              dialogType: String(type ?? 'info')
+            }
+          });
+        };
+        ctx.navigate = function(formId, params) {
+          __flushChanges();
+          __operations.push({
+            type: 'navigate',
+            target: '_system',
+            payload: {
+              formId: String(formId ?? ''),
+              params: params || {}
+            }
+          });
+        };
+        ctx.auth = {
+          logout: function() {
+            __flushChanges();
+            __operations.push({
+              type: 'authLogout',
+              target: '_system',
+              payload: {}
+            });
+          }
+        };${shellSetup}
+        ctx.http = {
+          get: function(url) {
+            return __httpHandler.applySyncPromise(undefined, ['GET', String(url)]);
+          },
+          post: function(url, body) {
+            return __httpHandler.applySyncPromise(undefined, ['POST', String(url), JSON.stringify(body)]);
+          },
+          put: function(url, body) {
+            return __httpHandler.applySyncPromise(undefined, ['PUT', String(url), JSON.stringify(body)]);
+          },
+          patch: function(url, body) {
+            return __httpHandler.applySyncPromise(undefined, ['PATCH', String(url), JSON.stringify(body)]);
+          },
+          delete: function(url) {
+            return __httpHandler.applySyncPromise(undefined, ['DELETE', String(url)]);
+          }
+        };
+${this.buildMongoBindings(mongoConnectors)}
+${this.buildSwaggerBindings(swaggerConnectors)}
+        ctx.getRadioGroupValue = function(groupName) {
+          for (var name in ctx.controls) {
+            var ctrl = ctx.controls[name];
+            if (ctrl.groupName === groupName && ctrl.checked === true) {
+              return ctrl.text;
+            }
+          }
+          return null;
+        };
+${this.buildJsonPathImpl()}
         var sender = ctx.sender;${
       debugMode
         ? `

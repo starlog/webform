@@ -166,8 +166,8 @@ const DEFAULT_FONT: FontDefinition = {
   strikethrough: false,
 };
 
-export function computeFontStyle(font: FontDefinition | undefined): CSSProperties {
-  const f = font ?? DEFAULT_FONT;
+export function computeFontStyle(font: Partial<FontDefinition> | undefined): CSSProperties {
+  const f = { ...DEFAULT_FONT, ...font };
   const textDecoration = [
     f.underline ? 'underline' : '',
     f.strikethrough ? 'line-through' : '',

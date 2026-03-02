@@ -150,26 +150,26 @@ describe('CodeInstrumenter', () => {
 
   describe('generateTraceWrapper()', () => {
     it('__traces 배열 정의를 포함해야 한다', () => {
-      const wrapper = instrumenter.generateTraceWrapper();
+      const wrapper = CodeInstrumenter.generateTraceWrapper();
       expect(wrapper).toContain('__traces');
       expect(wrapper).toContain('[]');
     });
 
     it('__trace 함수 정의를 포함해야 한다', () => {
-      const wrapper = instrumenter.generateTraceWrapper();
+      const wrapper = CodeInstrumenter.generateTraceWrapper();
       expect(wrapper).toContain('function __trace');
       expect(wrapper).toContain('line');
       expect(wrapper).toContain('timestamp');
     });
 
     it('__captureVars 헬퍼 정의를 포함해야 한다', () => {
-      const wrapper = instrumenter.generateTraceWrapper();
+      const wrapper = CodeInstrumenter.generateTraceWrapper();
       expect(wrapper).toContain('function __captureVars');
       expect(wrapper).toContain('JSON.stringify');
     });
 
     it('순환 참조 대비 try/catch가 있어야 한다', () => {
-      const wrapper = instrumenter.generateTraceWrapper();
+      const wrapper = CodeInstrumenter.generateTraceWrapper();
       expect(wrapper).toContain('try');
       expect(wrapper).toContain('catch');
     });
@@ -179,7 +179,7 @@ describe('CodeInstrumenter', () => {
     it('계측된 코드가 eval로 실행 가능해야 한다', () => {
       const code = 'var x = 1;\nvar y = x + 1;';
       const { instrumentedCode } = instrumenter.instrument(code);
-      const wrapper = instrumenter.generateTraceWrapper();
+      const wrapper = CodeInstrumenter.generateTraceWrapper();
 
       // wrapper + 계측된 코드를 합쳐서 실행
       const fullCode = wrapper + '\n' + instrumentedCode + '\n__traces;';

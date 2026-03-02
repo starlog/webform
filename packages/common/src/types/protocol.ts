@@ -1,12 +1,29 @@
 import type { ControlDefinition, FormDefinition, FormProperties } from './form';
 import type { EventArgs } from './events';
 
-export interface UIPatch {
-  type: 'updateProperty' | 'addControl' | 'removeControl' | 'showDialog' | 'navigate'
-    | 'updateShell' | 'updateAppState' | 'closeApp' | 'authLogout';
-  target: string;
-  payload: Record<string, unknown>;
-}
+export type UIPatch =
+  | { type: 'updateProperty'; target: string; payload: Record<string, unknown> }
+  | { type: 'addControl'; target: string; payload: { control: ControlDefinition; parentId?: string } }
+  | { type: 'removeControl'; target: string; payload: Record<string, never> }
+  | {
+      type: 'showDialog';
+      target: string;
+      payload: {
+        text: string;
+        title?: string;
+        dialogType?: 'info' | 'warning' | 'error' | 'success';
+        buttons?: string[];
+      };
+    }
+  | {
+      type: 'navigate';
+      target: string;
+      payload: { formId?: string; params?: Record<string, unknown>; back?: boolean };
+    }
+  | { type: 'updateShell'; target: string; payload: Record<string, unknown> }
+  | { type: 'updateAppState'; target: string; payload: Record<string, unknown> }
+  | { type: 'closeApp'; target: string; payload: Record<string, never> }
+  | { type: 'authLogout'; target: string; payload: Record<string, never> };
 
 export interface EventRequest {
   formId: string;

@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { computeFontStyle } from '../renderer/layoutUtils';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -239,20 +240,7 @@ export function JsonEditor({
   const controlColors = useControlColors('JsonEditor', { backColor, foreColor });
   const parsed = useMemo(() => parseValue(rawValue), [rawValue]);
 
-  const fontStyle = useMemo<CSSProperties>(() => {
-    if (!font) return {};
-    const textDecoration = [
-      font.underline ? 'underline' : '',
-      font.strikethrough ? 'line-through' : '',
-    ].filter(Boolean).join(' ');
-    return {
-      fontFamily: font.family || undefined,
-      fontSize: font.size ? `${font.size}pt` : undefined,
-      fontWeight: font.bold ? 'bold' : undefined,
-      fontStyle: font.italic ? 'italic' : undefined,
-      textDecoration: textDecoration || undefined,
-    };
-  }, [font]);
+  const fontStyle = useMemo(() => computeFontStyle(font), [font]);
 
   const commit = useCallback(
     (updated: unknown) => {

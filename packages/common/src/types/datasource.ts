@@ -28,12 +28,16 @@ export interface StaticConfig {
   data: unknown[];
 }
 
-export interface DataSourceDefinition {
+interface DataSourceBase {
   id: string;
   name: string;
-  type: 'database' | 'restApi' | 'static';
-  config: DatabaseConfig | RestApiConfig | StaticConfig;
+  description?: string;
 }
+
+export type DataSourceDefinition =
+  | (DataSourceBase & { type: 'database'; config: DatabaseConfig })
+  | (DataSourceBase & { type: 'restApi'; config: RestApiConfig })
+  | (DataSourceBase & { type: 'static'; config: StaticConfig });
 
 export interface DataBindingDefinition {
   controlId: string;

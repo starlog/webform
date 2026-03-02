@@ -6,8 +6,9 @@ import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
 import { apiService } from '../../services/apiService';
 import { getPropertyMeta, getControlEvents, SHELL_PROPERTIES } from './controlProperties';
-import type { PropertyCategory as PropertyCategoryName, PropertyMeta } from './controlProperties';
+import type { PropertyMeta } from './controlProperties';
 import { PropertyCategory } from './PropertyCategory';
+import { groupByCategory } from './utils/groupByCategory';
 import { EventsTab } from './EventsTab';
 
 type TabType = 'properties' | 'events';
@@ -239,46 +240,16 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   }, [selectedControl, onOpenEventEditor]);
 
   // 카테고리별 그룹화
-  const groupedProperties = useMemo(() => {
-    if (sortMode === 'alphabetical') {
-      const sorted = [...propertyMetas].sort((a, b) => a.label.localeCompare(b.label));
-      return [{ category: 'All', properties: sorted }];
-    }
-
-    const categoryOrder: PropertyCategoryName[] = ['Design', 'Appearance', 'Behavior', 'Data', 'APIs', 'Sample', 'Layout'];
-    const groups = new Map<string, PropertyMeta[]>();
-
-    for (const meta of propertyMetas) {
-      const list = groups.get(meta.category) ?? [];
-      list.push(meta);
-      groups.set(meta.category, list);
-    }
-
-    return categoryOrder
-      .filter((cat) => groups.has(cat))
-      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
-  }, [propertyMetas, sortMode]);
+  const groupedProperties = useMemo(
+    () => groupByCategory(propertyMetas, { sortMode }),
+    [propertyMetas, sortMode],
+  );
 
   // 다중 선택 카테고리별 그룹화
-  const multiGroupedProperties = useMemo(() => {
-    if (sortMode === 'alphabetical') {
-      const sorted = [...multiPropertyMetas].sort((a, b) => a.label.localeCompare(b.label));
-      return [{ category: 'All', properties: sorted }];
-    }
-
-    const categoryOrder: PropertyCategoryName[] = ['Design', 'Appearance', 'Behavior', 'Data', 'APIs', 'Sample', 'Layout'];
-    const groups = new Map<string, PropertyMeta[]>();
-
-    for (const meta of multiPropertyMetas) {
-      const list = groups.get(meta.category) ?? [];
-      list.push(meta);
-      groups.set(meta.category, list);
-    }
-
-    return categoryOrder
-      .filter((cat) => groups.has(cat))
-      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
-  }, [multiPropertyMetas, sortMode]);
+  const multiGroupedProperties = useMemo(
+    () => groupByCategory(multiPropertyMetas, { sortMode }),
+    [multiPropertyMetas, sortMode],
+  );
 
   // --- 폼 속성 getValue / handleValueChange ---
   const getFormValue = useCallback((name: string): unknown => {
@@ -294,18 +265,10 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     setFormProperties({ [name]: value } as Partial<FormProperties>);
   }, [setFormProperties, pushSnapshot, projectShellTheme]);
 
-  const formGroupedProperties = useMemo(() => {
-    const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior'];
-    const groups = new Map<string, PropertyMeta[]>();
-    for (const meta of FORM_PROPERTY_METAS) {
-      const list = groups.get(meta.category) ?? [];
-      list.push(meta);
-      groups.set(meta.category, list);
-    }
-    return categoryOrder
-      .filter((cat) => groups.has(cat))
-      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
-  }, [FORM_PROPERTY_METAS]);
+  const formGroupedProperties = useMemo(
+    () => groupByCategory(FORM_PROPERTY_METAS, { categoryOrder: ['Layout', 'Appearance', 'Behavior'] }),
+    [FORM_PROPERTY_METAS],
+  );
 
   // 폼 이벤트 관련 store
   const formEventHandlers = useDesignerStore((s) => s.formEventHandlers);
@@ -388,18 +351,13 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
   }, [themeOptions]);
 
   // Shell 속성 그룹화
-  const shellGroupedProperties = useMemo(() => {
-    const categoryOrder: PropertyCategoryName[] = ['Layout', 'Appearance', 'Behavior', 'Authentication'];
-    const groups = new Map<string, PropertyMeta[]>();
-    for (const meta of shellPropertyMetas) {
-      const list = groups.get(meta.category) ?? [];
-      list.push(meta);
-      groups.set(meta.category, list);
-    }
-    return categoryOrder
-      .filter((cat) => groups.has(cat))
-      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
-  }, [shellPropertyMetas]);
+  const shellGroupedProperties = useMemo(
+    () =>
+      groupByCategory(shellPropertyMetas, {
+        categoryOrder: ['Layout', 'Appearance', 'Behavior', 'Authentication'],
+      }),
+    [shellPropertyMetas],
+  );
 
   // Shell 컨트롤 속성 getValue/handleValueChange
   const getShellControlValue = useCallback(
@@ -452,32 +410,10 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     return getPropertyMeta(selectedShellControl.type);
   }, [selectedShellControl]);
 
-  const shellControlGroupedProperties = useMemo(() => {
-    if (sortMode === 'alphabetical') {
-      const sorted = [...shellControlPropertyMetas].sort((a, b) =>
-        a.label.localeCompare(b.label),
-      );
-      return [{ category: 'All', properties: sorted }];
-    }
-    const categoryOrder: PropertyCategoryName[] = [
-      'Design',
-      'Appearance',
-      'Behavior',
-      'Data',
-      'APIs',
-      'Sample',
-      'Layout',
-    ];
-    const groups = new Map<string, PropertyMeta[]>();
-    for (const meta of shellControlPropertyMetas) {
-      const list = groups.get(meta.category) ?? [];
-      list.push(meta);
-      groups.set(meta.category, list);
-    }
-    return categoryOrder
-      .filter((cat) => groups.has(cat))
-      .map((cat) => ({ category: cat, properties: groups.get(cat)! }));
-  }, [shellControlPropertyMetas, sortMode]);
+  const shellControlGroupedProperties = useMemo(
+    () => groupByCategory(shellControlPropertyMetas, { sortMode }),
+    [shellControlPropertyMetas, sortMode],
+  );
 
   // === Shell 모드: 컨트롤 미선택 → Shell 속성 ===
   if (editMode === 'shell' && selectedIds.size === 0) {

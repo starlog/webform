@@ -4,6 +4,7 @@ export const VERSION = '1.0.0';
 export type {
   FontDefinition,
   FormProperties,
+  CommonControlProperties,
   ControlDefinition,
   FormDefinition,
   AnchorStyle,

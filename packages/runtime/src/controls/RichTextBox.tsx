@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { computeFontStyle } from '../renderer/layoutUtils';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -96,6 +97,7 @@ export function RichTextBox({
   }, []);
 
   const overflow = getOverflow(scrollBars);
+  const fontStyles = useMemo(() => computeFontStyle(font), [font]);
 
   const mergedStyle: CSSProperties = {
     background: colors.background,
@@ -104,8 +106,7 @@ export function RichTextBox({
     borderRadius: theme.controls.textInput.borderRadius,
     display: 'flex',
     flexDirection: 'column',
-    fontFamily: font?.family ?? 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-    fontSize: font?.size ? `${font.size}pt` : '12px',
+    ...fontStyles,
     boxSizing: 'border-box',
     opacity: enabled ? 1 : 0.6,
     ...style,

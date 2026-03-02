@@ -208,18 +208,20 @@ describe('runtimeStore', () => {
         type: 'addControl',
         target: 'form1', // parent가 없으면 루트에 추가
         payload: {
-          id: 'newBtn',
-          type: 'Button',
-          name: 'newButton',
-          properties: { text: 'New' },
-          position: { x: 0, y: 0 },
-          size: { width: 80, height: 30 },
-          anchor: { top: true, left: true, bottom: false, right: false },
-          dock: 'None',
-          tabIndex: 2,
-          visible: true,
-          enabled: true,
-        } as unknown as Record<string, unknown>,
+          control: {
+            id: 'newBtn',
+            type: 'Button',
+            name: 'newButton',
+            properties: { text: 'New' },
+            position: { x: 0, y: 0 },
+            size: { width: 80, height: 30 },
+            anchor: { top: true, left: true, bottom: false, right: false },
+            dock: 'None',
+            tabIndex: 2,
+            visible: true,
+            enabled: true,
+          },
+        },
       };
 
       useRuntimeStore.getState().applyPatch(patch);

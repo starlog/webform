@@ -41,7 +41,7 @@ export class CodeInstrumenter {
   /**
    * __traces 배열과 __trace 함수, __captureVars 헬퍼를 정의하는 래퍼 코드를 생성한다.
    */
-  generateTraceWrapper(): string {
+  static generateTraceWrapper(): string {
     return `
 var __traces = [];
 function __trace(line, col, vars) {

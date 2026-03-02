@@ -15,19 +15,19 @@ export async function authHeaders(
 }
 
 /** 서버 응답 원본 (meta 포함) */
-export interface RawDataSource extends DataSourceDefinition {
+export type RawDataSource = DataSourceDefinition & {
   meta?: { dialect?: string; baseUrl?: string };
-}
+};
 
 /** 서버 응답의 _id를 id로 매핑 */
 export function mapDs(raw: Record<string, unknown>): RawDataSource {
   return {
     id: (raw._id ?? raw.id) as string,
     name: raw.name as string,
-    type: raw.type as DataSourceDefinition['type'],
-    config: raw.config as DataSourceDefinition['config'],
+    type: raw.type,
+    config: raw.config,
     meta: raw.meta as RawDataSource['meta'],
-  };
+  } as RawDataSource;
 }
 
 export async function fetchDataSources(

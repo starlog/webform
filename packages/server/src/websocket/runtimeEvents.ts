@@ -3,6 +3,7 @@ import type { IncomingMessage } from 'node:http';
 import type { EventRequest, RuntimeWsMessage } from '@webform/common';
 import { Form } from '../models/Form.js';
 import { EventEngine } from '../services/EventEngine.js';
+import { toFormDef } from '../utils/formUtils.js';
 
 const eventEngine = new EventEngine();
 
@@ -33,15 +34,7 @@ export function handleRuntimeConnection(ws: WebSocket, req: IncomingMessage): vo
         return;
       }
 
-      const formDef = {
-        id: form._id.toString(),
-        name: form.name,
-        version: form.version,
-        properties: form.properties,
-        controls: form.controls,
-        eventHandlers: form.eventHandlers,
-        dataBindings: form.dataBindings,
-      };
+      const formDef = toFormDef(form);
 
       const result = await eventEngine.executeEvent(formId, payload, formDef);
 

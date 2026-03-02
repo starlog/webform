@@ -2,6 +2,7 @@ import type {
   ApplicationShellDefinition,
   ControlDefinition,
   DebugLog,
+  EventHandlerDefinition,
   EventRequest,
   EventResponse,
   FormDefinition,
@@ -117,77 +118,21 @@ export class EventEngine {
     formDef: FormDefinition,
     options?: ExecuteEventOptions,
   ): Promise<EventResponse> {
-    let handlerCode: string | undefined;
-
-    // 아이템 스크립트 우선 처리
-    if (payload.itemScriptPath && payload.itemScriptPath.length > 0) {
-      handlerCode = this.findItemScript(formDef, payload.controlId, payload.itemScriptPath);
-      if (!handlerCode) {
-        return {
-          success: false,
-          patches: [],
-          error: `No item script found at path [${payload.itemScriptPath.join(',')}] for control ${payload.controlId}`,
-        };
-      }
-    }
-
-    // 아이템 스크립트가 없으면 기존 컨트롤 레벨 핸들러 사용
-    if (!handlerCode) {
-      const handler = formDef.eventHandlers.find(
-        (h) => h.controlId === payload.controlId
-          && h.eventName === payload.eventName
-          && h.handlerType === 'server',
-      );
-
-      if (!handler) {
-        return {
-          success: false,
-          patches: [],
-          error: `No server handler found: ${payload.controlId}.${payload.eventName}`,
-        };
-      }
-      handlerCode = handler.handlerCode;
-    }
-
-    // 컨트롤 트리 한 번 순회로 ID↔NAME 매핑 + 커넥터 정보 수집
-    const { idToName, nameToId, mongoConnectors, swaggerConnectors } = analyzeControls(formDef.controls);
-
-    // formState를 NAME 키로 변환 (사용자 코드가 ctx.controls.lblStatus 로 접근)
-    const formStateById = JSON.parse(JSON.stringify(payload.formState)) as Record<string, Record<string, unknown>>;
-    const formStateByName = convertToNameKeyed(formStateById, idToName);
-
-    const senderName = idToName.get(payload.controlId) ?? payload.controlId;
-    const ctx = {
-      formId,
-      controls: buildControlsContext(formStateByName),
-      sender: formStateByName[senderName] ?? {},
-      eventArgs: payload.eventArgs,
-    };
-
-    const result = await this.sandboxRunner.runCode(handlerCode, ctx, {
-      debugMode: options?.debugMode,
-      mongoConnectors,
-      swaggerConnectors,
-    });
-
-    if (!result.success) {
-      return {
-        success: false,
-        patches: [],
-        error: result.error,
-        errorLine: result.errorLine,
-        traces: result.traces,
-      };
-    }
-
-    const { patches, logs } = this.extractPatches(result.value, nameToId);
-
-    return {
-      success: true,
-      patches,
-      logs,
-      traces: result.traces,
-    };
+    return this.executeEventBase(
+      formDef.controls,
+      formDef.eventHandlers,
+      payload.formState,
+      {
+        controlId: payload.controlId,
+        eventName: payload.eventName,
+        eventArgs: payload.eventArgs,
+        itemScriptPath: payload.itemScriptPath,
+      },
+      {
+        formId,
+        debugMode: options?.debugMode,
+      },
+    );
   }
 
   async executeShellEvent(
@@ -197,72 +142,129 @@ export class EventEngine {
     appState: Record<string, unknown>,
     options?: ExecuteEventOptions,
   ): Promise<EventResponse> {
-    let handlerCode: string | undefined;
+    return this.executeEventBase(
+      shellDef.controls,
+      shellDef.eventHandlers,
+      payload.shellState,
+      {
+        controlId: payload.controlId,
+        eventName: payload.eventName,
+        eventArgs: payload.eventArgs,
+        itemScriptPath: payload.itemScriptPath,
+      },
+      {
+        formId: null,
+        debugMode: options?.debugMode,
+        isShell: true,
+        appState,
+        currentFormId: payload.currentFormId,
+      },
+    );
+  }
 
+  /**
+   * 아이템 스크립트 또는 이벤트 핸들러에서 핸들러 코드를 조회한다.
+   * 아이템 스크립트가 우선이며, 없으면 컨트롤 레벨 핸들러를 사용한다.
+   */
+  private resolveHandlerCode(
+    controls: ControlDefinition[],
+    eventHandlers: EventHandlerDefinition[],
+    payload: { controlId: string; eventName: string; itemScriptPath?: number[] },
+  ): { handlerCode: string } | { error: string } {
     // 아이템 스크립트 우선 처리
     if (payload.itemScriptPath && payload.itemScriptPath.length > 0) {
-      handlerCode = this.findItemScript(
-        { controls: shellDef.controls } as FormDefinition,
+      const handlerCode = this.findItemScript(
+        { controls } as FormDefinition,
         payload.controlId,
         payload.itemScriptPath,
       );
       if (!handlerCode) {
         return {
-          success: false,
-          patches: [],
           error: `No item script found at path [${payload.itemScriptPath.join(',')}] for control ${payload.controlId}`,
         };
       }
+      return { handlerCode };
     }
 
     // 아이템 스크립트가 없으면 기존 컨트롤 레벨 핸들러 사용
-    if (!handlerCode) {
-      const handler = shellDef.eventHandlers.find(
-        (h) =>
-          h.controlId === payload.controlId &&
-          h.eventName === payload.eventName &&
-          h.handlerType === 'server',
-      );
+    const handler = eventHandlers.find(
+      (h) =>
+        h.controlId === payload.controlId &&
+        h.eventName === payload.eventName &&
+        h.handlerType === 'server',
+    );
 
-      if (!handler) {
-        return {
-          success: false,
-          patches: [],
-          error: `No server handler found: ${payload.controlId}.${payload.eventName}`,
-        };
-      }
-      handlerCode = handler.handlerCode;
+    if (!handler) {
+      return {
+        error: `No server handler found: ${payload.controlId}.${payload.eventName}`,
+      };
     }
+    return { handlerCode: handler.handlerCode };
+  }
 
-    // Shell 컨트롤 트리 한 번 순회로 ID↔NAME 매핑 + 커넥터 정보 수집
-    const { idToName, nameToId, mongoConnectors, swaggerConnectors } = analyzeControls(shellDef.controls);
-    const shellStateById = JSON.parse(JSON.stringify(payload.shellState)) as Record<
-      string,
-      Record<string, unknown>
-    >;
-    const shellStateByName = convertToNameKeyed(shellStateById, idToName);
+  /**
+   * executeEvent / executeShellEvent 공통 실행 흐름.
+   * isShell 옵션에 따라 ctx 구성과 패치 추출 방식이 달라진다.
+   */
+  private async executeEventBase(
+    controls: ControlDefinition[],
+    eventHandlers: EventHandlerDefinition[],
+    formState: Record<string, Record<string, unknown>>,
+    payload: { controlId: string; eventName: string; eventArgs: unknown; itemScriptPath?: number[] },
+    options: {
+      formId: string | null;
+      debugMode?: boolean;
+      isShell?: boolean;
+      appState?: Record<string, unknown>;
+      currentFormId?: string;
+    },
+  ): Promise<EventResponse> {
+    // 1. 핸들러 코드 조회
+    const resolved = this.resolveHandlerCode(controls, eventHandlers, payload);
+    if ('error' in resolved) {
+      return { success: false, patches: [], error: resolved.error };
+    }
+    const { handlerCode } = resolved;
 
+    // 2. 컨트롤 트리 한 번 순회로 ID↔NAME 매핑 + 커넥터 정보 수집
+    const { idToName, nameToId, mongoConnectors, swaggerConnectors } = analyzeControls(controls);
+
+    // 3. formState를 NAME 키로 변환 (사용자 코드가 ctx.controls.lblStatus 로 접근)
+    const formStateById = JSON.parse(JSON.stringify(formState)) as Record<string, Record<string, unknown>>;
+    const formStateByName = convertToNameKeyed(formStateById, idToName);
+
+    // 4. ctx 구성
     const senderName = idToName.get(payload.controlId) ?? payload.controlId;
-    const appStateCopy = JSON.parse(JSON.stringify(appState)) as Record<string, unknown>;
-
-    const ctx = {
-      formId: null,
-      controls: buildControlsContext(shellStateByName),
-      sender: shellStateByName[senderName] ?? {},
+    const ctx: Record<string, unknown> = {
+      formId: options.formId,
+      controls: buildControlsContext(formStateByName),
+      sender: formStateByName[senderName] ?? {},
       eventArgs: payload.eventArgs,
-      currentFormId: payload.currentFormId,
-      appState: appStateCopy,
     };
 
-    const result = await this.sandboxRunner.runCode(handlerCode, ctx, {
-      debugMode: options?.debugMode,
+    // Shell 모드 전용 ctx 속성
+    let appStateCopy: Record<string, unknown> | undefined;
+    if (options.isShell) {
+      appStateCopy = JSON.parse(JSON.stringify(options.appState)) as Record<string, unknown>;
+      ctx.currentFormId = options.currentFormId;
+      ctx.appState = appStateCopy;
+    }
+
+    // 5. SandboxRunner 실행
+    const runnerOptions: Record<string, unknown> = {
+      debugMode: options.debugMode,
       mongoConnectors,
       swaggerConnectors,
-      shellMode: true,
-      appState: appStateCopy,
-      currentFormId: payload.currentFormId,
-    });
+    };
+    if (options.isShell) {
+      runnerOptions.shellMode = true;
+      runnerOptions.appState = appStateCopy;
+      runnerOptions.currentFormId = options.currentFormId;
+    }
 
+    const result = await this.sandboxRunner.runCode(handlerCode, ctx, runnerOptions);
+
+    // 6. 에러 처리
     if (!result.success) {
       return {
         success: false,
@@ -273,7 +275,10 @@ export class EventEngine {
       };
     }
 
-    const { patches, logs } = this.extractShellPatches(result.value, nameToId, appState);
+    // 7. 패치 추출 (Shell과 일반 폼에 따라 다른 추출 방식)
+    const { patches, logs } = options.isShell
+      ? this.extractShellPatches(result.value, nameToId, options.appState!)
+      : this.extractPatches(result.value, nameToId);
 
     return {
       success: true,

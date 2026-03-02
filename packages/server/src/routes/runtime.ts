@@ -7,6 +7,7 @@ import { EventEngine } from '../services/EventEngine.js';
 import { DataSourceService } from '../services/DataSourceService.js';
 import { MongoDBAdapter } from '../services/adapters/MongoDBAdapter.js';
 import { AppError, NotFoundError } from '../middleware/errorHandler.js';
+import { toFormDef } from '../utils/formUtils.js';
 import { ShellService } from '../services/ShellService.js';
 import type { ShellDocument } from '../models/Shell.js';
 import { ThemeService } from '../services/ThemeService.js';
@@ -169,15 +170,7 @@ runtimeRouter.post('/forms/:id/events', async (req, res, next) => {
       throw new AppError(400, 'Missing required fields: controlId, eventName, formState');
     }
 
-    const formDef = {
-      id: form._id.toString(),
-      name: form.name,
-      version: form.version,
-      properties: form.properties,
-      controls: form.controls,
-      eventHandlers: form.eventHandlers,
-      dataBindings: form.dataBindings,
-    };
+    const formDef = toFormDef(form);
 
     const debugMode = !!(req.body as { debugMode?: boolean }).debugMode;
     const result = await eventEngine.executeEvent(

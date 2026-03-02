@@ -6,6 +6,7 @@ import { computeFontStyle } from './layoutUtils';
 import { useFormResize } from './useFormResize';
 import { useFormDrag } from './useFormDrag';
 import { FormScaleProvider } from './FormScaleContext';
+import { TrafficLightButtons, titleTextStyle } from '../components/TrafficLightButtons';
 
 interface FormContainerProps {
   properties: FormProperties;
@@ -17,45 +18,6 @@ interface FormContainerProps {
   dockRight?: ReactNode;
   dockFill?: ReactNode;
   children: ReactNode;
-}
-
-const titleTextStyle: CSSProperties = {
-  flex: 1,
-  overflow: 'hidden',
-  whiteSpace: 'nowrap',
-  textOverflow: 'ellipsis',
-};
-
-function TrafficLightButtons({ onMaximize, showMinimize = true, showMaximize = true }: { onMaximize?: () => void; showMinimize?: boolean; showMaximize?: boolean }) {
-  const btnBase: CSSProperties = {
-    width: 12,
-    height: 12,
-    borderRadius: '50%',
-    border: 'none',
-    cursor: 'pointer',
-    padding: 0,
-    marginRight: 8,
-  };
-  const disabledBtn: CSSProperties = {
-    ...btnBase,
-    backgroundColor: '#ccc',
-    cursor: 'default',
-  };
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}>
-      <button style={{ ...btnBase, backgroundColor: '#FF5F57' }} title="Close" />
-      {showMinimize ? (
-        <button style={{ ...btnBase, backgroundColor: '#FEBC2E' }} title="Minimize" />
-      ) : (
-        <button style={disabledBtn} disabled />
-      )}
-      {showMaximize ? (
-        <button style={{ ...btnBase, backgroundColor: '#28C840' }} title="Maximize" onClick={onMaximize} />
-      ) : (
-        <button style={disabledBtn} disabled />
-      )}
-    </div>
-  );
 }
 
 export function FormContainer({

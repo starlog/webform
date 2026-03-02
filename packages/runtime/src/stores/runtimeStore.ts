@@ -103,6 +103,7 @@ function applyPatchToState(
     currentFormDef: FormDefinition | null;
     dialogQueue: DialogMessage[];
     navigateRequest: NavigateRequest | null;
+    authLogoutRequested: boolean;
   },
   patch: UIPatch,
 ): void {
@@ -121,7 +122,7 @@ function applyPatchToState(
       break;
     }
     case 'addControl': {
-      const newControl = patch.payload as unknown as ControlDefinition;
+      const newControl = patch.payload.control as unknown as ControlDefinition;
       if (state.currentFormDef) {
         if (!addControlToParent(state.currentFormDef.controls, patch.target, newControl)) {
           state.currentFormDef.controls.push(newControl);
@@ -145,24 +146,22 @@ function applyPatchToState(
       break;
     }
     case 'showDialog': {
-      const payload = patch.payload as { text?: string; title?: string; dialogType?: string };
       state.dialogQueue.push({
-        text: payload.text ?? '',
-        title: payload.title ?? '',
-        dialogType: (payload.dialogType as DialogMessage['dialogType']) ?? 'info',
+        text: patch.payload.text,
+        title: patch.payload.title ?? '',
+        dialogType: patch.payload.dialogType ?? 'info',
       });
       break;
     }
     case 'navigate': {
-      const navPayload = patch.payload as { formId?: string; params?: Record<string, unknown> };
       state.navigateRequest = {
-        formId: navPayload.formId ?? '',
-        params: navPayload.params ?? {},
+        formId: patch.payload.formId ?? '',
+        params: patch.payload.params ?? {},
       };
       break;
     }
     case 'authLogout': {
-      (state as unknown as { authLogoutRequested: boolean }).authLogoutRequested = true;
+      state.authLogoutRequested = true;
       break;
     }
   }
@@ -308,11 +307,7 @@ export const useRuntimeStore = create<RuntimeState>()(
               break;
             }
             case 'navigate': {
-              const navPayload = patch.payload as {
-                formId?: string;
-                params?: Record<string, unknown>;
-                back?: boolean;
-              };
+              const navPayload = patch.payload;
               if (navPayload.back) {
                 const prev =
                   state.formHistory.length > 0
@@ -348,15 +343,10 @@ export const useRuntimeStore = create<RuntimeState>()(
               break;
             }
             case 'showDialog': {
-              const payload = patch.payload as {
-                text?: string;
-                title?: string;
-                dialogType?: string;
-              };
               state.dialogQueue.push({
-                text: payload.text ?? '',
-                title: payload.title ?? '',
-                dialogType: (payload.dialogType as DialogMessage['dialogType']) ?? 'info',
+                text: patch.payload.text,
+                title: patch.payload.title ?? '',
+                dialogType: patch.payload.dialogType ?? 'info',
               });
               break;
             }
