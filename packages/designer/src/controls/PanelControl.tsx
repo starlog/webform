@@ -1,24 +1,21 @@
+import { panelBaseStyle } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 import type { DesignerControlProps } from './registry';
 
 export function PanelControl({ properties, size, children }: DesignerControlProps) {
   const theme = useTheme();
+  const colors = useControlColors('Panel', {
+    backColor: properties.backColor as string | undefined,
+    foreColor: properties.foreColor as string | undefined,
+  });
   const borderStyle = (properties.borderStyle as string) ?? 'None';
-
-  let border = 'none';
-  if (borderStyle === 'FixedSingle') border = theme.controls.panel.border;
-  else if (borderStyle === 'Fixed3D') border = theme.controls.panel.border;
 
   return (
     <div style={{
+      ...panelBaseStyle(theme, colors, borderStyle),
       width: size.width,
       height: size.height,
-      border,
-      backgroundColor: (properties.backColor as string) ?? theme.controls.panel.background,
-      borderRadius: theme.controls.panel.borderRadius,
-      position: 'relative',
-      overflow: 'hidden',
-      boxSizing: 'border-box',
     }}>
       {children}
     </div>

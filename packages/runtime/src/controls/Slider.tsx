@@ -1,4 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react';
+import {
+  sliderInputStyle,
+  sliderContainerStyle,
+  sliderValueStyle,
+  computePercent,
+} from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -42,8 +48,7 @@ export function Slider({
   const colors = useControlColors('Slider', { backColor, foreColor });
 
   const isVertical = orientation === 'Vertical';
-  const range = maximum - minimum || 1;
-  const percent = Math.max(0, Math.min(100, ((value - minimum) / range) * 100));
+  const percent = computePercent(value, minimum, maximum);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!enabled) return;
@@ -56,33 +61,20 @@ export function Slider({
   const resolvedFillColor = fillColor || '#1677ff';
 
   const inputStyle: CSSProperties = {
-    width: isVertical ? undefined : '100%',
-    height: isVertical ? '100%' : undefined,
+    ...sliderInputStyle({ isVertical, percent, trackColor: resolvedTrackColor, fillColor: resolvedFillColor }),
     cursor: enabled ? 'pointer' : 'default',
-    accentColor: resolvedFillColor,
-    background: `linear-gradient(${isVertical ? 'to top' : 'to right'}, ${resolvedFillColor} 0%, ${resolvedFillColor} ${percent}%, ${resolvedTrackColor} ${percent}%, ${resolvedTrackColor} 100%)`,
-    borderRadius: '4px',
-    margin: 0,
   };
-
-  const containerStyle: CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    boxSizing: 'border-box',
-    color: colors.color,
-    opacity: enabled ? 1 : 0.6,
-    ...style,
-  };
-
-  if (isVertical) {
-    containerStyle.flexDirection = 'column';
-    containerStyle.writingMode = 'vertical-lr';
-    containerStyle.direction = 'rtl';
-  }
 
   return (
-    <div className="wf-slider" data-control-id={id} style={containerStyle}>
+    <div
+      className="wf-slider"
+      data-control-id={id}
+      style={{
+        ...sliderContainerStyle(colors, isVertical),
+        opacity: enabled ? 1 : 0.6,
+        ...style,
+      }}
+    >
       <input
         type="range"
         min={minimum}
@@ -94,15 +86,7 @@ export function Slider({
         style={inputStyle}
       />
       {showValue && (
-        <span
-          style={{
-            fontSize: '0.85em',
-            minWidth: '2em',
-            textAlign: 'center',
-            writingMode: 'horizontal-tb',
-            direction: 'ltr',
-          }}
-        >
+        <span style={sliderValueStyle}>
           {value}
         </span>
       )}

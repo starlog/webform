@@ -1,14 +1,7 @@
 import type { CSSProperties } from 'react';
+import { PICTURE_SIZE_MODE_MAP } from '@webform/common';
 import type { DesignerControlProps } from './registry';
 import { useTheme } from '../theme/ThemeContext';
-
-const SIZE_MODE_MAP: Record<string, CSSProperties['objectFit']> = {
-  Normal: 'none',
-  StretchImage: 'fill',
-  AutoSize: 'none',
-  CenterImage: 'none',
-  Zoom: 'contain',
-};
 
 export function PictureBoxControl({ properties, size }: DesignerControlProps) {
   const theme = useTheme();
@@ -39,7 +32,7 @@ export function PictureBoxControl({ properties, size }: DesignerControlProps) {
           src={image}
           alt=""
           style={{
-            objectFit: SIZE_MODE_MAP[sizeMode] ?? 'none',
+            objectFit: (PICTURE_SIZE_MODE_MAP[sizeMode] ?? 'none') as CSSProperties['objectFit'],
             width: sizeMode === 'StretchImage' || sizeMode === 'Zoom' ? '100%' : undefined,
             height: sizeMode === 'StretchImage' || sizeMode === 'Zoom' ? '100%' : undefined,
             maxWidth: '100%',

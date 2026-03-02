@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { labelBaseStyle } from '@webform/common';
 import { useControlColors } from '../theme/useControlColors';
 
 interface LabelProps {
@@ -17,25 +18,12 @@ interface LabelProps {
 export function Label({ id, text, backColor, foreColor, textAlign, style }: LabelProps) {
   const colors = useControlColors('Label', { backColor, foreColor });
 
-  const colorStyle: CSSProperties = {
-    color: colors.color,
-  };
-  if (textAlign) colorStyle.textAlign = textAlign as CSSProperties['textAlign'];
-
   return (
     <span
       className="wf-label"
       data-control-id={id}
       style={{
-        display: 'inline-block',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-        textOverflow: 'ellipsis',
-        fontSize: 'inherit',
-        fontFamily: 'inherit',
-        boxSizing: 'border-box',
-        userSelect: 'none',
-        ...colorStyle,
+        ...labelBaseStyle(colors, textAlign),
         ...style,
       }}
     >

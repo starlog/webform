@@ -1,14 +1,5 @@
+import { ALERT_STYLES, alertContainerStyle, alertIconStyle } from '@webform/common';
 import type { DesignerControlProps } from './registry';
-
-const ALERT_STYLES: Record<
-  string,
-  { bg: string; border: string; icon: string; iconColor: string; color: string }
-> = {
-  Success: { bg: '#f6ffed', border: '#b7eb8f', icon: '✓', iconColor: '#52c41a', color: '#135200' },
-  Info: { bg: '#e6f4ff', border: '#91caff', icon: 'ℹ', iconColor: '#1677ff', color: '#003a8c' },
-  Warning: { bg: '#fffbe6', border: '#ffe58f', icon: '⚠', iconColor: '#faad14', color: '#614700' },
-  Error: { bg: '#fff2f0', border: '#ffccc7', icon: '✕', iconColor: '#ff4d4f', color: '#820014' },
-};
 
 export function AlertControl({ properties, size }: DesignerControlProps) {
   const message = (properties.message as string) ?? 'Alert message';
@@ -24,39 +15,13 @@ export function AlertControl({ properties, size }: DesignerControlProps) {
   return (
     <div
       style={{
+        ...alertContainerStyle(alertType, banner, foreColor),
         width: size.width,
         height: size.height,
-        backgroundColor: alertStyle.bg,
-        border: banner ? 'none' : `1px solid ${alertStyle.border}`,
-        borderRadius: banner ? 0 : '6px',
-        padding: '8px 12px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '8px',
-        fontSize: 'inherit',
-        fontFamily: 'inherit',
-        color: foreColor ?? alertStyle.color,
-        userSelect: 'none',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
       }}
     >
       {showIcon && (
-        <div
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: '50%',
-            backgroundColor: alertStyle.iconColor,
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 12,
-            flexShrink: 0,
-            lineHeight: 1,
-          }}
-        >
+        <div style={alertIconStyle(alertType)}>
           {alertStyle.icon}
         </div>
       )}
@@ -76,7 +41,7 @@ export function AlertControl({ properties, size }: DesignerControlProps) {
             lineHeight: 1.4,
           }}
         >
-          ✕
+          {'\u2715'}
         </span>
       )}
     </div>

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { textInputBaseStyle } from '@webform/common';
 import type { DesignerControlProps } from './registry';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -14,16 +15,9 @@ export function TextBoxControl({ properties, size }: DesignerControlProps) {
   });
 
   const baseStyle: CSSProperties = {
+    ...textInputBaseStyle(theme, colors),
     width: size.width,
     height: size.height,
-    background: colors.background,
-    border: theme.controls.textInput.border,
-    borderRadius: theme.controls.textInput.borderRadius,
-    padding: theme.controls.textInput.padding,
-    fontSize: 'inherit',
-    fontFamily: 'inherit',
-    color: colors.color,
-    boxSizing: 'border-box',
     pointerEvents: 'none',
   };
 

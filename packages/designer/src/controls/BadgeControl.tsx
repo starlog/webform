@@ -1,13 +1,6 @@
 import { useState, useEffect, type CSSProperties } from 'react';
+import { BADGE_STATUS_COLORS } from '@webform/common';
 import type { DesignerControlProps } from './registry';
-
-const STATUS_COLORS: Record<string, string> = {
-  Default: '#ff4d4f',
-  Success: '#52c41a',
-  Processing: '#1677ff',
-  Error: '#ff4d4f',
-  Warning: '#faad14',
-};
 
 export function BadgeControl({ properties, size }: DesignerControlProps) {
   const status = (properties.status as string) ?? 'Default';
@@ -25,7 +18,7 @@ export function BadgeControl({ properties, size }: DesignerControlProps) {
   const text = (properties.text as string) ?? '';
   const badgeColor = (properties.badgeColor as string) ?? '';
 
-  const resolvedColor = badgeColor || STATUS_COLORS[status] || STATUS_COLORS.Default;
+  const resolvedColor = badgeColor || BADGE_STATUS_COLORS[status] || BADGE_STATUS_COLORS.Default;
   const displayCount = count > overflowCount ? `${overflowCount}+` : `${count}`;
   const shouldShowBadge = dot || count > 0 || showZero;
 

@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { DIVIDER_FLEX_MAP } from '@webform/common';
 import { useControlColors } from '../theme/useControlColors';
 
 interface DividerProps {
@@ -50,13 +51,7 @@ export function Divider({
     );
   }
 
-  const flexMap: Record<string, [number, number]> = {
-    Left: [0.05, 0.95],
-    Center: [1, 1],
-    Right: [0.95, 0.05],
-  };
-
-  const [leftFlex, rightFlex] = flexMap[textAlign] || flexMap.Center;
+  const [leftFlex, rightFlex] = DIVIDER_FLEX_MAP[textAlign] || DIVIDER_FLEX_MAP.Center;
 
   if (!text) {
     return (

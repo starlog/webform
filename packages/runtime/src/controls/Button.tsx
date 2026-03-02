@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { buttonBaseStyle } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -19,24 +20,11 @@ export function Button({ id, text, backColor, foreColor, style, enabled = true, 
   const theme = useTheme();
   const colors = useControlColors('Button', { backColor, foreColor });
 
-  const baseStyle: CSSProperties = {
-    background: colors.background,
-    border: theme.controls.button.border,
-    padding: theme.controls.button.padding,
-    borderRadius: theme.controls.button.borderRadius,
-    color: colors.color,
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    cursor: 'pointer',
-    boxSizing: 'border-box',
-    textAlign: 'center',
-  };
-
   return (
     <button
       className="wf-button"
       data-control-id={id}
-      style={{ ...baseStyle, ...style }}
+      style={{ ...buttonBaseStyle(theme, colors), cursor: 'pointer', ...style }}
       disabled={!enabled}
       onClick={onClick}
     >

@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { PICTURE_SIZE_MODE_MAP } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -14,14 +15,6 @@ interface PictureBoxProps {
   children?: ReactNode;
   [key: string]: unknown;
 }
-
-const SIZE_MODE_MAP: Record<string, CSSProperties['objectFit']> = {
-  Normal: 'none',
-  StretchImage: 'fill',
-  AutoSize: 'none',
-  CenterImage: 'none',
-  Zoom: 'contain',
-};
 
 export function PictureBox({
   id,
@@ -68,7 +61,7 @@ export function PictureBox({
         src={imageUrl}
         alt=""
         style={{
-          objectFit: SIZE_MODE_MAP[sizeMode] ?? 'none',
+          objectFit: (PICTURE_SIZE_MODE_MAP[sizeMode] ?? 'none') as CSSProperties['objectFit'],
           width: sizeMode === 'StretchImage' || sizeMode === 'Zoom' ? '100%' : undefined,
           height: sizeMode === 'StretchImage' || sizeMode === 'Zoom' ? '100%' : undefined,
           maxWidth: '100%',

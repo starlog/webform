@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { panelBaseStyle } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -18,25 +19,12 @@ export function Panel({ id, borderStyle, backColor, foreColor, style, children }
   const theme = useTheme();
   const colors = useControlColors('Panel', { backColor, foreColor });
 
-  const panelBorder: CSSProperties = {};
-  if (borderStyle === 'FixedSingle') {
-    panelBorder.border = theme.controls.panel.border;
-  } else if (borderStyle === 'Fixed3D') {
-    panelBorder.border = theme.controls.panel.border;
-  }
-
   return (
     <div
       className="wf-panel"
       data-control-id={id}
       style={{
-        position: 'relative',
-        overflow: 'hidden',
-        boxSizing: 'border-box',
-        background: colors.background,
-        color: colors.color,
-        borderRadius: theme.controls.panel.borderRadius,
-        ...panelBorder,
+        ...panelBaseStyle(theme, colors, borderStyle),
         ...style,
       }}
     >

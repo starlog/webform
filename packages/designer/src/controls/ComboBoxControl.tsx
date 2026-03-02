@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { comboBoxBaseStyle } from '@webform/common';
 import type { DesignerControlProps } from './registry';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -13,16 +14,9 @@ export function ComboBoxControl({ properties, size }: DesignerControlProps) {
   });
 
   const baseStyle: CSSProperties = {
+    ...comboBoxBaseStyle(theme, colors),
     width: size.width,
     height: size.height,
-    background: colors.background,
-    border: theme.controls.select.border,
-    borderRadius: theme.controls.select.borderRadius,
-    color: colors.color,
-    padding: '2px 4px',
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    boxSizing: 'border-box',
     pointerEvents: 'none',
   };
 

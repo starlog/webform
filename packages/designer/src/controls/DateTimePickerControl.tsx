@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { textInputBaseStyle } from '@webform/common';
 import type { DesignerControlProps } from './registry';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -12,16 +13,9 @@ export function DateTimePickerControl({ properties, size }: DesignerControlProps
   });
 
   const baseStyle: CSSProperties = {
+    ...textInputBaseStyle(theme, colors),
     width: size.width,
     height: size.height,
-    boxSizing: 'border-box',
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    background: colors.background,
-    border: theme.controls.textInput.border,
-    padding: theme.controls.textInput.padding,
-    borderRadius: theme.controls.textInput.borderRadius,
-    color: colors.color,
     pointerEvents: 'none',
   };
 

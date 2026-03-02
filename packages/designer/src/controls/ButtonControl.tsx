@@ -1,3 +1,4 @@
+import { buttonBaseStyle } from '@webform/common';
 import type { DesignerControlProps } from './registry';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -12,18 +13,10 @@ export function ButtonControl({ properties, size }: DesignerControlProps) {
 
   return (
     <button style={{
+      ...buttonBaseStyle(theme, colors),
       width: size.width,
       height: size.height,
-      background: colors.background,
-      border: theme.controls.button.border,
-      padding: theme.controls.button.padding,
-      borderRadius: theme.controls.button.borderRadius,
-      color: colors.color,
-      fontSize: 'inherit',
-      fontFamily: 'inherit',
-      textAlign: 'center',
       cursor: 'default',
-      boxSizing: 'border-box',
       pointerEvents: 'none',
     }}>
       {text}

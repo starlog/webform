@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { groupBoxFieldsetStyle, groupBoxLegendStyle } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -29,26 +30,9 @@ export function GroupBox({ id, text, backColor, foreColor, style, children }: Gr
         ...style,
       }}
     >
-      <fieldset style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        border: theme.controls.groupBox.border,
-        borderRadius: theme.controls.groupBox.borderRadius,
-        padding: 0,
-        margin: 0,
-        boxSizing: 'border-box',
-        pointerEvents: 'none',
-      }}>
+      <fieldset style={groupBoxFieldsetStyle(theme)}>
         {text && (
-          <legend style={{
-            padding: '0 4px',
-            fontSize: 'inherit',
-            color: colors.color,
-            marginLeft: 8,
-          }}>
+          <legend style={groupBoxLegendStyle(colors)}>
             {text}
           </legend>
         )}

@@ -93,3 +93,46 @@ export {
 export { validateFormDefinition, validateControlDefinition, sanitizeQueryInput } from './utils/validation';
 export { serializeFormDefinition, deserializeFormDefinition } from './utils/serialization';
 export { flattenControls, nestControls } from './utils/controlUtils';
+
+// theme utilities (shared between designer & runtime)
+export {
+  controlThemeMap,
+  chromeControlTypes,
+  resolveControlThemeColors,
+  computeControlColors,
+} from './theme/controlThemeMap';
+export type { ResolvedControlColors } from './theme/controlThemeMap';
+export { mergeThemeWithDefaults } from './theme/mergeWithDefaults';
+
+// shared control styles
+export {
+  type CSSStyle,
+  buttonBaseStyle,
+  textInputBaseStyle,
+  labelBaseStyle,
+  checkRadioBaseStyle,
+  checkRadioInputStyle,
+  checkRadioTextStyle,
+  comboBoxBaseStyle,
+  listBoxBaseStyle,
+  listBoxItemStyle,
+  panelBaseStyle,
+  groupBoxFieldsetStyle,
+  groupBoxLegendStyle,
+  progressBarContainerStyle,
+  progressBarFillStyle,
+  computePercent,
+  switchTrackStyle,
+  switchThumbStyle,
+  switchTrackTextStyle,
+  switchContainerStyle,
+  sliderInputStyle,
+  sliderContainerStyle,
+  sliderValueStyle,
+  ALERT_STYLES,
+  alertContainerStyle,
+  alertIconStyle,
+  BADGE_STATUS_COLORS,
+  PICTURE_SIZE_MODE_MAP,
+  DIVIDER_FLEX_MAP,
+} from './styles/controlStyles';

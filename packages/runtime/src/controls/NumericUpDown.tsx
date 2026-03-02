@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { textInputBaseStyle } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -35,17 +36,6 @@ export function NumericUpDown({
   const theme = useTheme();
   const colors = useControlColors('NumericUpDown', { backColor, foreColor });
 
-  const baseStyle: CSSProperties = {
-    background: colors.background,
-    border: theme.controls.textInput.border,
-    padding: theme.controls.textInput.padding,
-    borderRadius: theme.controls.textInput.borderRadius,
-    color: colors.color,
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    boxSizing: 'border-box',
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = parseFloat(e.target.value);
     if (isNaN(newValue)) newValue = minimum;
@@ -60,7 +50,7 @@ export function NumericUpDown({
       type="number"
       className="wf-numericupdown"
       data-control-id={id}
-      style={{ ...baseStyle, ...style }}
+      style={{ ...textInputBaseStyle(theme, colors), ...style }}
       disabled={!enabled}
       value={value}
       min={minimum}

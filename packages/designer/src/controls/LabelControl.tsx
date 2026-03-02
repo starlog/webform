@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { labelBaseStyle } from '@webform/common';
 import type { DesignerControlProps } from './registry';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -10,24 +10,11 @@ export function LabelControl({ properties, size }: DesignerControlProps) {
     foreColor: properties.foreColor as string | undefined,
   });
 
-  const colorStyle: CSSProperties = {
-    color: colors.color,
-  };
-  if (textAlign) colorStyle.textAlign = textAlign as CSSProperties['textAlign'];
-
   return (
     <span style={{
+      ...labelBaseStyle(colors, textAlign),
       width: size.width,
       height: size.height,
-      display: 'inline-block',
-      overflow: 'hidden',
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-      fontSize: 'inherit',
-      fontFamily: 'inherit',
-      userSelect: 'none',
-      boxSizing: 'border-box',
-      ...colorStyle,
     }}>
       {text}
     </span>

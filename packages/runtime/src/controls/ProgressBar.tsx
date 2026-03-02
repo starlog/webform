@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { progressBarContainerStyle, progressBarFillStyle, computePercent } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -28,31 +29,15 @@ export function ProgressBar({
   const theme = useTheme();
   const colors = useControlColors('ProgressBar', { backColor, foreColor });
 
-  const containerStyle: CSSProperties = {
-    boxSizing: 'border-box',
-    border: theme.controls.progressBar.border,
-    borderRadius: theme.controls.progressBar.borderRadius,
-    background: colors.background,
-    overflow: 'hidden',
-  };
-
-  const range = maximum - minimum || 1;
-  const percent = Math.max(0, Math.min(100, ((value - minimum) / range) * 100));
+  const percent = computePercent(value, minimum, maximum);
 
   return (
     <div
       className="wf-progressbar"
       data-control-id={id}
-      style={{ ...containerStyle, ...style }}
+      style={{ ...progressBarContainerStyle(theme, colors), ...style }}
     >
-      <div
-        style={{
-          width: `${percent}%`,
-          height: '100%',
-          background: theme.controls.progressBar.fillBackground,
-          transition: 'width 0.2s ease',
-        }}
-      />
+      <div style={progressBarFillStyle(theme, percent)} />
     </div>
   );
 }

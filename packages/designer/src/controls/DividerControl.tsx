@@ -1,3 +1,4 @@
+import { DIVIDER_FLEX_MAP } from '@webform/common';
 import type { DesignerControlProps } from './registry';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -30,13 +31,7 @@ export function DividerControl({ properties, size }: DesignerControlProps) {
     );
   }
 
-  const flexMap: Record<string, [number, number]> = {
-    Left: [0.05, 0.95],
-    Center: [1, 1],
-    Right: [0.95, 0.05],
-  };
-
-  const [leftFlex, rightFlex] = flexMap[textAlign] || flexMap.Center;
+  const [leftFlex, rightFlex] = DIVIDER_FLEX_MAP[textAlign] || DIVIDER_FLEX_MAP.Center;
 
   if (!text) {
     return (

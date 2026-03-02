@@ -1,4 +1,5 @@
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react';
+import { BADGE_STATUS_COLORS } from '@webform/common';
 import { useControlColors } from '../theme/useControlColors';
 
 interface BadgeProps {
@@ -19,14 +20,6 @@ interface BadgeProps {
   children?: ReactNode;
   [key: string]: unknown;
 }
-
-const STATUS_COLORS: Record<string, string> = {
-  Default: '#ff4d4f',
-  Success: '#52c41a',
-  Processing: '#1677ff',
-  Error: '#ff4d4f',
-  Warning: '#faad14',
-};
 
 export function Badge({
   id,
@@ -50,7 +43,7 @@ export function Badge({
     return () => clearInterval(timer);
   }, [status]);
 
-  const resolvedColor = badgeColor || STATUS_COLORS[status] || STATUS_COLORS.Default;
+  const resolvedColor = badgeColor || BADGE_STATUS_COLORS[status] || BADGE_STATUS_COLORS.Default;
   const shouldShowBadge = dot || count > 0 || showZero;
   const displayCount = count > overflowCount ? `${overflowCount}+` : `${count}`;
 

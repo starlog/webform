@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { textInputBaseStyle } from '@webform/common';
 import type { DesignerControlProps } from './registry';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -15,16 +16,9 @@ export function NumericUpDownControl({ properties, size }: DesignerControlProps)
   });
 
   const baseStyle: CSSProperties = {
+    ...textInputBaseStyle(theme, colors),
     width: size.width,
     height: size.height,
-    background: colors.background,
-    border: theme.controls.textInput.border,
-    padding: theme.controls.textInput.padding,
-    borderRadius: theme.controls.textInput.borderRadius,
-    color: colors.color,
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    boxSizing: 'border-box',
     pointerEvents: 'none',
   };
 

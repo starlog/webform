@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { textInputBaseStyle } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -30,17 +31,6 @@ export function DateTimePicker({
   const theme = useTheme();
   const colors = useControlColors('DateTimePicker', { backColor, foreColor });
 
-  const baseStyle: CSSProperties = {
-    boxSizing: 'border-box',
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    background: colors.background,
-    border: theme.controls.textInput.border,
-    padding: theme.controls.textInput.padding,
-    borderRadius: theme.controls.textInput.borderRadius,
-    color: colors.color,
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateControlState(id, 'value', e.target.value);
     onValueChanged?.();
@@ -54,7 +44,7 @@ export function DateTimePicker({
       value={value}
       disabled={!enabled}
       onChange={handleChange}
-      style={{ ...baseStyle, ...style }}
+      style={{ ...textInputBaseStyle(theme, colors), ...style }}
     />
   );
 }

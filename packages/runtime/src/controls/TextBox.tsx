@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { textInputBaseStyle } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -35,24 +36,13 @@ export function TextBox({
   const theme = useTheme();
   const colors = useControlColors('TextBox', { backColor, foreColor });
 
-  const baseStyle: CSSProperties = {
-    background: colors.background,
-    border: theme.controls.textInput.border,
-    padding: theme.controls.textInput.padding,
-    borderRadius: theme.controls.textInput.borderRadius,
-    color: colors.color,
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    boxSizing: 'border-box',
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     updateControlState(id, 'text', e.target.value);
     onTextChanged?.();
   };
 
   const mergedStyle: CSSProperties = {
-    ...baseStyle,
+    ...textInputBaseStyle(theme, colors),
     ...style,
     resize: multiline ? 'none' : undefined,
   };

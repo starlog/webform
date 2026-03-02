@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { checkRadioBaseStyle, checkRadioInputStyle, checkRadioTextStyle } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useControlColors } from '../theme/useControlColors';
 
@@ -40,12 +41,7 @@ export function CheckBox({
       className="wf-checkbox"
       data-control-id={id}
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        boxSizing: 'border-box',
-        userSelect: 'none',
-        color: colors.color,
+        ...checkRadioBaseStyle(colors),
         ...style,
         cursor: enabled ? 'pointer' : 'default',
       }}
@@ -56,9 +52,9 @@ export function CheckBox({
         checked={checked}
         disabled={!enabled}
         onChange={() => {}}
-        style={{ margin: 0, width: 16, height: 16, pointerEvents: 'none' }}
+        style={checkRadioInputStyle}
       />
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={checkRadioTextStyle}>
         {text}
       </span>
     </label>
