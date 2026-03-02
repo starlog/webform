@@ -231,9 +231,27 @@ if (res.ok) {
 }
 ```
 
-### 테이블/컬렉션 목록 API
+### REST API 엔드포인트
 
-`GET /api/datasources/:id/tables` — 연결된 데이터베이스의 테이블(SQL) 또는 컬렉션(MongoDB) 목록을 반환합니다.
+| 메서드 | 경로 | 설명 | 인증 |
+|--------|------|------|------|
+| `GET` | `/api/datasources/dialects` | 지원 dialect 목록 (mysql, postgresql, mssql, mongodb) | 불필요 |
+| `GET` | `/api/datasources` | 데이터소스 목록 조회 (page, limit, search, type, projectId) | 필요 |
+| `POST` | `/api/datasources` | 데이터소스 생성 | 필요 |
+| `GET` | `/api/datasources/:id` | 단일 데이터소스 조회 (config 복호화 포함) | 필요 |
+| `PUT` | `/api/datasources/:id` | 데이터소스 수정 | 필요 |
+| `DELETE` | `/api/datasources/:id` | 데이터소스 삭제 (soft delete) | 필요 |
+| `GET` | `/api/datasources/:id/tables` | 테이블/컬렉션 목록 조회 | 필요 |
+| `POST` | `/api/datasources/:id/test` | 연결 테스트 | 필요 |
+| `POST` | `/api/datasources/:id/query` | 구조화 쿼리 실행 (table/filter 또는 sql 필드) | 필요 |
+| `POST` | `/api/datasources/:id/raw-query` | Raw 쿼리 실행 (SQL SELECT 또는 MongoDB JSON) | 필요 |
+
+### 샌드박스 보안
+
+이벤트 핸들러에서 `ctx.http`로 데이터소스 API를 호출할 때, 서버는 다음 보안 메커니즘을 적용합니다:
+
+- **SSRF 방어** — 샌드박스 내부 HTTP 요청은 `validateSandboxUrl()`을 통해 내부 IP(127.x, 10.x, 172.16-31.x, 192.168.x), 클라우드 메타데이터 서비스(169.254.169.254) 접근을 차단. localhost:4000(서버 자체)만 허용
+- **샌드박스 내부 인증** — 샌드박스에서 서버 API 호출 시 `X-Sandbox-Internal` 헤더가 자동 추가되어, 별도 JWT 없이 인증을 우회
 
 ## SwaggerConnector
 
