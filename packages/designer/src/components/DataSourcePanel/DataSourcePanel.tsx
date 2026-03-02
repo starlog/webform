@@ -242,12 +242,16 @@ function AddDataSourceModal({ onClose, onSubmit }: AddModalProps) {
   useEffect(() => {
     if (type === 'database' && !dialectsLoaded) {
       fetch(`${DESIGNER_API}/datasources/dialects`)
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error(`Failed to fetch dialects: ${res.status}`);
+          return res.json();
+        })
         .then((json) => {
-          setDialects(json.data);
+          const list = json.data ?? [];
+          setDialects(list);
           setDialectsLoaded(true);
-          if (json.data.length > 0) {
-            setDialect(json.data[0].dialect);
+          if (list.length > 0) {
+            setDialect(list[0].dialect);
           }
         })
         .catch(console.error);

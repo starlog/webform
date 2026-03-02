@@ -9,6 +9,7 @@ import { EventEditor } from './components/EventEditor/EventEditor';
 import { ProjectExplorer } from './components/ProjectExplorer';
 import { ElementList } from './components/ElementList';
 import { ThemeEditor } from './components/ThemeEditor/ThemeEditor';
+import { DataSourcePanel } from './components/DataSourcePanel';
 import { apiService, useAutoSave } from './services/apiService';
 import type { VersionSummary } from './services/apiService';
 import { useDesignerStore } from './stores/designerStore';
@@ -462,6 +463,9 @@ export function App() {
               </div>
               <div style={{ flex: 1, overflow: 'auto' }}>
                 <Toolbox />
+              </div>
+              <div style={{ flex: '0 0 auto', maxHeight: '30%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '1px solid #ccc' }}>
+                <DataSourcePanel projectId={currentProjectId ?? undefined} />
               </div>
             </div>
 
