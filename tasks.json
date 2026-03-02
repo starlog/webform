@@ -71,7 +71,7 @@
       "description": "AdapterRegistry 패턴 도입 관련 변경사항을 git commit",
       "phase": "phase1-parallel",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "AdapterRegistry 패턴 도입 관련 변경사항을 검토하고 git commit을 생성하라.\n\n## 커밋할 파일들\n- `packages/server/src/services/adapters/AdapterRegistry.ts` (신규)\n- `packages/server/src/services/adapters/index.ts` (신규)\n- `packages/server/src/services/DataSourceService.ts` (수정)\n- `packages/server/src/services/adapters/MongoDBAdapter.ts` (수정)\n- `packages/server/src/routes/datasources.ts` (수정)\n- `packages/server/src/__tests__/AdapterRegistry.test.ts` (신규)\n- `plans/adapter-registry-plan.md` (신규)\n\n## 커밋 실행\n\n```bash\ngit add packages/server/src/services/adapters/AdapterRegistry.ts \\\n        packages/server/src/services/adapters/index.ts \\\n        packages/server/src/services/DataSourceService.ts \\\n        packages/server/src/services/adapters/MongoDBAdapter.ts \\\n        packages/server/src/routes/datasources.ts \\\n        packages/server/src/__tests__/AdapterRegistry.test.ts \\\n        plans/adapter-registry-plan.md\ngit commit -m \"feat: AdapterRegistry 패턴 도입 및 GET /api/datasources/dialects 엔드포인트 추가\"\n```\n\n민감한 파일(.env 등)은 절대 커밋하지 말 것.",
       "dependsOn": [
         "adapter-registry-test"
@@ -126,7 +126,7 @@
       "description": "DatabaseDialect 타입, Zod 검증 스키마에 대한 테스트 작성 및 실행",
       "phase": "phase1-parallel",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 타입 및 검증 확장에 대한 테스트를 작성하고 실행하라.\n\n## 테스트 파일 생성\n\n`packages/server/src/__tests__/datasourceValidator.test.ts` 파일을 확인하거나 생성하라:\n\n### MongoDB 검증 테스트\n- 유효한 MongoDB config (dialect: 'mongodb', connectionString, database) → 통과\n- connectionString 누락 시 → 실패\n\n### SQL DB 검증 테스트\n- 유효한 PostgreSQL config (dialect: 'postgresql', host, user, password, database) → 통과\n- 유효한 MySQL config (dialect: 'mysql', host, user, password, database) → 통과\n- 유효한 MSSQL config (dialect: 'mssql', host, user, password, database) → 통과\n- host 누락 시 → 실패\n- 잘못된 dialect → 실패\n\n## 타입 체크\n\n```bash\ncd packages/common && npx tsc --noEmit\ncd packages/server && npx tsc --noEmit\n```\n\n## 테스트 실행\n\n```bash\ncd packages/server && npx vitest run src/__tests__/datasourceValidator.test.ts\n```\n\n테스트 실패 시 구현 코드를 수정하여 모든 테스트가 통과하도록 하라.",
       "dependsOn": [
         "types-validation-impl"
