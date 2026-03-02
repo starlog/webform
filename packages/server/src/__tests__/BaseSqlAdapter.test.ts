@@ -21,6 +21,10 @@ class TestAdapter extends BaseSqlAdapter {
     return [];
   }
 
+  async listTables(): Promise<string[]> {
+    return [];
+  }
+
   async disconnect(): Promise<void> {}
 }
 
@@ -90,11 +94,11 @@ describe('BaseSqlAdapter', () => {
     });
 
     it('table 누락 시 에러', async () => {
-      await expect(adapter.executeQuery({})).rejects.toThrow('table is required');
+      await expect(adapter.executeQuery({})).rejects.toThrow('table or sql is required');
     });
 
     it('table이 문자열이 아닌 경우 에러', async () => {
-      await expect(adapter.executeQuery({ table: 123 })).rejects.toThrow('table is required');
+      await expect(adapter.executeQuery({ table: 123 })).rejects.toThrow('table or sql is required');
     });
   });
 

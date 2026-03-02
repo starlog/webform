@@ -77,11 +77,35 @@ datasourcesRouter.delete('/:id', async (req, res, next) => {
   }
 });
 
+// GET /api/datasources/:id/tables — 테이블/컬렉션 목록
+datasourcesRouter.get('/:id/tables', async (req, res, next) => {
+  try {
+    const tables = await dataSourceService.listTables(req.params.id);
+    res.json({ data: tables });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // POST /api/datasources/:id/test — 연결 테스트
 datasourcesRouter.post('/:id/test', async (req, res, next) => {
   try {
     const result = await dataSourceService.testConnection(req.params.id);
     res.json({ data: result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/datasources/:id/raw-query — Raw 쿼리 실행 (SQL SELECT / MongoDB JSON)
+datasourcesRouter.post('/:id/raw-query', async (req, res, next) => {
+  try {
+    const { query } = req.body as { query?: string };
+    if (!query || typeof query !== 'string') {
+      return res.status(400).json({ error: 'query (string) is required' });
+    }
+    const results = await dataSourceService.executeRawQuery(req.params.id, query);
+    res.json({ data: results });
   } catch (err) {
     next(err);
   }

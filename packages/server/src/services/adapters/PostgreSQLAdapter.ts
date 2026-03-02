@@ -45,6 +45,13 @@ export class PostgreSQLAdapter extends BaseSqlAdapter {
     return `$${index}`;
   }
 
+  async listTables(): Promise<string[]> {
+    const rows = await this.rawQuery(
+      "SELECT tablename FROM pg_tables WHERE schemaname = 'public'",
+    );
+    return (rows as { tablename: string }[]).map((r) => r.tablename);
+  }
+
   async disconnect(): Promise<void> {
     await this.pool.end();
   }

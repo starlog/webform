@@ -253,6 +253,44 @@ export class DataSourceService {
   }
 
   /**
+   * 테이블/컬렉션 목록 조회
+   */
+  async listTables(id: string): Promise<string[]> {
+    const ds = await this.getDataSource(id);
+    const adapter = this.createAdapter(ds);
+    try {
+      return await adapter.listTables();
+    } catch (err) {
+      console.error(
+        `[DataSourceService] listTables failed — id=${id}, type=${ds.type}`,
+        err,
+      );
+      throw err;
+    } finally {
+      await adapter.disconnect();
+    }
+  }
+
+  /**
+   * Raw 쿼리 실행 (SQL: SELECT만 허용, MongoDB: JSON 쿼리)
+   */
+  async executeRawQuery(id: string, raw: string): Promise<unknown[]> {
+    const ds = await this.getDataSource(id);
+    const adapter = this.createAdapter(ds);
+    try {
+      return await adapter.executeRawQuery(raw);
+    } catch (err) {
+      console.error(
+        `[DataSourceService] executeRawQuery failed — id=${id}, type=${ds.type}`,
+        err,
+      );
+      throw err;
+    } finally {
+      await adapter.disconnect();
+    }
+  }
+
+  /**
    * 쿼리 실행
    */
   async executeQuery(id: string, query: Record<string, unknown>): Promise<unknown[]> {

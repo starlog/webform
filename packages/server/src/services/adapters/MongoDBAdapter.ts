@@ -97,6 +97,24 @@ export class MongoDBAdapter implements DataSourceAdapter {
     return { deletedCount: result.deletedCount };
   }
 
+  async executeRawQuery(raw: string): Promise<unknown[]> {
+    let query: Record<string, unknown>;
+    try {
+      query = JSON.parse(raw);
+    } catch {
+      throw new AppError(400, 'Invalid JSON — expected { "collection": "...", "filter": {...}, "limit": 10 }');
+    }
+    if (!query.limit) {
+      query.limit = 100;
+    }
+    return this.executeQuery(query);
+  }
+
+  async listTables(): Promise<string[]> {
+    const collections = await this.db.listCollections({}, { nameOnly: true }).toArray();
+    return collections.map((c) => c.name);
+  }
+
   async disconnect(): Promise<void> {
     // 풀링 방식에서는 개별 어댑터가 클라이언트를 닫지 않음 (no-op)
     // 클라이언트 생명주기는 MongoClientPool에서 관리

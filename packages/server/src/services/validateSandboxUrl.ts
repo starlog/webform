@@ -15,6 +15,17 @@ export async function validateSandboxUrl(url: string): Promise<void> {
     throw new Error(`Invalid URL: ${url}`);
   }
 
+  // 서버 자체 API 호출 허용 (datasource 등 내부 API)
+  const selfPort = process.env.PORT || '4000';
+  const selfHost = parsed.hostname.toLowerCase();
+  if (
+    (selfHost === 'localhost' || selfHost === '127.0.0.1') &&
+    parsed.port === selfPort &&
+    parsed.pathname.startsWith('/api/')
+  ) {
+    return;
+  }
+
   const scheme = parsed.protocol.replace(':', '').toLowerCase();
   if (scheme !== 'http' && scheme !== 'https') {
     throw new Error(`Blocked URL scheme: ${scheme}:// (only http/https allowed)`);

@@ -464,7 +464,7 @@ export function App() {
               <div style={{ flex: 1, overflow: 'auto' }}>
                 <Toolbox />
               </div>
-              <div style={{ flex: '0 0 auto', maxHeight: '30%', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '1px solid #ccc' }}>
+              <div style={{ flex: '0 0 auto', maxHeight: '30%', minHeight: '80px', overflow: 'auto', display: 'flex', flexDirection: 'column', borderTop: '1px solid #ccc' }}>
                 <DataSourcePanel projectId={currentProjectId ?? undefined} />
               </div>
             </div>

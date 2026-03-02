@@ -150,7 +150,7 @@ const API_BASE = ((import.meta as any).env?.VITE_API_URL as string | undefined) 
 
 let authToken: string | null = null;
 
-async function ensureAuth(): Promise<void> {
+export async function ensureAuth(): Promise<void> {
   if (authToken) return;
   const res = await fetch('/auth/dev-token', { method: 'POST' });
   if (!res.ok) throw new Error('Failed to obtain dev token');

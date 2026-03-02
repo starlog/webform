@@ -8,7 +8,7 @@
 
 - **비주얼 폼 디자이너** — 드래그 앤 드롭으로 Button, TextBox, ComboBox, DataGridView 등 42종의 컨트롤을 배치하고 속성을 편집
 - **이벤트 핸들러** — Monaco Editor에서 JavaScript 이벤트 코드를 작성하면 서버의 isolated-vm 샌드박스에서 안전하게 실행
-- **데이터 바인딩** — MongoDB, REST API 등 외부 데이터소스와 컨트롤을 바인딩
+- **데이터소스 & 데이터 바인딩** — MySQL, PostgreSQL, MSSQL, MongoDB, REST API, Static 등 다양한 데이터소스를 연결하고, Designer에서 미리보기·테스트 쿼리 실행, 이벤트 핸들러에서 구조화 쿼리 또는 raw SQL로 데이터 조회
 - **SwaggerConnector** — OpenAPI/Swagger YAML을 임포트하여 이벤트 핸들러에서 REST API를 직접 호출. multipart 업로드 지원
 - **Google OAuth2 인증** — Application Shell 레벨에서 Google 계정 기반 사용자 인증 및 도메인 화이트리스트 적용
 - **실시간 미리보기** — WebSocket을 통해 디자이너 변경사항이 런타임에 즉시 반영
@@ -141,6 +141,99 @@ pnpm test:watch      # Watch 모드
 | `SANDBOX_MEMORY_LIMIT_MB` | `128` | 샌드박스 메모리 제한 |
 | `GOOGLE_CLIENT_SECRET` | — | Google OAuth2 Client Secret (Shell 인증 사용 시) |
 | `RUNTIME_BASE_URL` | `http://localhost:3001` | Runtime URL (OAuth 콜백 리다이렉트) |
+
+## 데이터소스
+
+WebForm은 다양한 데이터베이스와 외부 데이터소스를 연결하여 폼에서 데이터를 조회·표시할 수 있습니다.
+
+### 지원 데이터소스
+
+| 타입 | Dialect | 설명 |
+|------|---------|------|
+| **Database** | MySQL | mysql2 드라이버, utf8mb4 |
+| | PostgreSQL | pg 드라이버 |
+| | MSSQL | mssql 드라이버, OFFSET...FETCH 문법 |
+| | MongoDB | mongodb 드라이버, 풀링 |
+| **REST API** | — | HTTP 호출, Bearer/Basic/API Key 인증 |
+| **Static** | — | 메모리 내 정적 JSON 데이터 |
+
+### Designer 데이터소스 패널
+
+Designer 좌측 패널에서 데이터소스를 관리합니다:
+
+- **추가/편집/삭제** — 연결 정보 설정 (호스트, 포트, 인증 등)
+- **연결 테스트** — 편집 다이얼로그 내에서 바로 테스트 가능
+- **ID 복사** — 편집 다이얼로그에서 데이터소스 ID를 클립보드로 복사 (이벤트 핸들러에서 사용)
+- **미리보기** — 테이블/컬렉션 목록을 드롭다운으로 조회하고, 테스트 쿼리(SQL 또는 MongoDB JSON)를 직접 실행
+
+### 쿼리 API
+
+`POST /api/datasources/:id/query`
+
+#### 구조화 쿼리 (SQL DB)
+
+```javascript
+ctx.http.post(BASE + DS_URL + '/query', {
+  table: 'employees',
+  filter: { department: 'Engineering' },
+  columns: ['id', 'name', 'email'],
+  limit: 100,
+  offset: 0
+});
+```
+
+#### Raw SQL 쿼리
+
+`sql` 필드를 사용하면 SELECT 쿼리를 직접 실행할 수 있습니다 (SELECT만 허용, 멀티 스테이트먼트 차단).
+
+```javascript
+ctx.http.post(BASE + DS_URL + '/query', {
+  sql: "SELECT e.name, d.dept_name FROM employees e JOIN departments d ON e.dept_id = d.id WHERE d.dept_name = 'Sales' ORDER BY e.name LIMIT 50"
+});
+```
+
+#### MongoDB 구조화 쿼리
+
+```javascript
+ctx.http.post(BASE + DS_URL + '/query', {
+  collection: 'employees',
+  filter: { age: { $gt: 30 } },
+  projection: { name: 1, email: 1 },
+  limit: 100,
+  skip: 0
+});
+```
+
+### 이벤트 핸들러 예제
+
+```javascript
+const BASE = 'http://localhost:4000';
+const DS = '/api/datasources/<datasource-id>';
+
+// 부서 필터 + 이름 검색
+const dept = ctx.controls.cmbDepartment.selectedValue;
+const name = ctx.controls.txtSearchName.text || '';
+
+// 방법 1: Raw SQL (JOIN, LIKE 등 자유롭게 사용)
+const res = ctx.http.post(BASE + DS + '/query', {
+  sql: `SELECT * FROM employees WHERE department = '${dept}' AND name LIKE '%${name}%' ORDER BY id LIMIT 100`
+});
+
+// 방법 2: 구조화 쿼리 (간단한 조건)
+const res2 = ctx.http.post(BASE + DS + '/query', {
+  table: 'employees',
+  filter: { department: dept },
+  limit: 100
+});
+
+if (res.ok) {
+  ctx.controls.gridEmployees.dataSource = res.data.data;
+}
+```
+
+### 테이블/컬렉션 목록 API
+
+`GET /api/datasources/:id/tables` — 연결된 데이터베이스의 테이블(SQL) 또는 컬렉션(MongoDB) 목록을 반환합니다.
 
 ## SwaggerConnector
 
@@ -364,7 +457,7 @@ claude mcp remove -s user webform
 | 언어 | TypeScript |
 | 프론트엔드 | React, Vite, Zustand, react-dnd, Monaco Editor |
 | 백엔드 | Node.js, Express, WebSocket(ws) |
-| 데이터베이스 | MongoDB(Mongoose), Redis(ioredis) |
+| 데이터베이스 | MongoDB(Mongoose), MySQL(mysql2), PostgreSQL(pg), MSSQL(mssql), Redis(ioredis) |
 | 샌드박스 | isolated-vm |
 | AI 통합 | MCP SDK (Streamable HTTP, stdio) |
 | 인증 | JWT, Google OAuth2 |

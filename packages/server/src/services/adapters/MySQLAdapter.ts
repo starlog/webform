@@ -14,6 +14,7 @@ export class MySQLAdapter extends BaseSqlAdapter {
       password: config.password,
       database: config.database,
       ssl: config.ssl ? {} : undefined,
+      charset: 'utf8mb4',
       connectionLimit: 10,
       connectTimeout: 10000,
     });
@@ -31,6 +32,13 @@ export class MySQLAdapter extends BaseSqlAdapter {
 
   protected placeholder(_index: number): string {
     return '?';
+  }
+
+  async listTables(): Promise<string[]> {
+    const rows = await this.rawQuery(
+      'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()',
+    );
+    return (rows as { TABLE_NAME: string }[]).map((r) => r.TABLE_NAME);
   }
 
   async disconnect(): Promise<void> {

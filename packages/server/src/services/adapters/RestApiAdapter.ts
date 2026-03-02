@@ -68,6 +68,14 @@ export class RestApiAdapter implements DataSourceAdapter {
     return Array.isArray(data) ? data : [data];
   }
 
+  async executeRawQuery(_raw: string): Promise<unknown[]> {
+    throw new AppError(400, 'Raw query is not supported for REST API data sources');
+  }
+
+  async listTables(): Promise<string[]> {
+    return [];
+  }
+
   async disconnect(): Promise<void> {
     // HTTP는 stateless이므로 정리 불필요
   }

@@ -159,9 +159,28 @@ export class SandboxRunner {
     const httpHandler = new ivm.Reference(async (method: string, url: string, body?: string) => {
       await validateSandboxUrl(url);
 
+      // 서버 자체 API 호출 시 내부 인증 헤더 추가
+      const headers: Record<string, string> = body
+        ? { 'Content-Type': 'application/json' }
+        : {};
+      const selfPort = process.env.PORT || '4000';
+      try {
+        const parsed = new URL(url);
+        const host = parsed.hostname.toLowerCase();
+        if (
+          (host === 'localhost' || host === '127.0.0.1') &&
+          parsed.port === selfPort &&
+          parsed.pathname.startsWith('/api/')
+        ) {
+          headers['X-Sandbox-Internal'] = 'true';
+        }
+      } catch {
+        // URL 파싱 실패 시 무시 (validateSandboxUrl에서 이미 검증됨)
+      }
+
       const res = await fetch(url, {
         method,
-        headers: body ? { 'Content-Type': 'application/json' } : {},
+        headers,
         body,
         signal: AbortSignal.timeout(10_000),
       });

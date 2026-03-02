@@ -17,6 +17,12 @@ function createStubFactory(dialect: string, displayName?: string): AdapterFactor
         async executeQuery() {
           return [];
         },
+        async executeRawQuery() {
+          return [];
+        },
+        async listTables() {
+          return [];
+        },
         async disconnect() {},
       };
     },

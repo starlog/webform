@@ -49,10 +49,15 @@ export class MSSQLAdapter extends BaseSqlAdapter {
 
   // MSSQL은 LIMIT/OFFSET 미지원 → OFFSET...FETCH 문법 사용
   async executeQuery(query: Record<string, unknown>): Promise<unknown[]> {
+    // sql 필드가 있으면 raw SQL 실행 (SELECT만 허용)
+    if (typeof query.sql === 'string') {
+      return this.executeRawQuery(query.sql);
+    }
+
     const table = query.table;
     if (!table || typeof table !== 'string') {
       const { AppError } = await import('../../middleware/errorHandler.js');
-      throw new AppError(400, 'table is required');
+      throw new AppError(400, 'table or sql is required');
     }
 
     const safeLimit = Math.min(Number(query.limit) || 100, 1000);
@@ -74,6 +79,13 @@ export class MSSQLAdapter extends BaseSqlAdapter {
 
     sqlStr += ` ORDER BY (SELECT NULL) OFFSET ${safeOffset} ROWS FETCH NEXT ${safeLimit} ROWS ONLY`;
     return this.rawQuery(sqlStr, params);
+  }
+
+  async listTables(): Promise<string[]> {
+    const rows = await this.rawQuery(
+      "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'",
+    );
+    return (rows as { TABLE_NAME: string }[]).map((r) => r.TABLE_NAME);
   }
 
   async disconnect(): Promise<void> {

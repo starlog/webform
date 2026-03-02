@@ -8,7 +8,22 @@ export interface JwtPayload {
   role: string;
 }
 
+function isLoopback(ip: string): boolean {
+  return (
+    ip === '127.0.0.1' ||
+    ip === '::1' ||
+    ip === '::ffff:127.0.0.1' ||
+    ip === 'localhost'
+  );
+}
+
 export const authenticate: RequestHandler = (req, _res, next) => {
+  // 샌드박스 내부 API 호출 허용 (SandboxRunner에서만 설정)
+  if (req.headers['x-sandbox-internal'] === 'true' && req.ip && isLoopback(req.ip)) {
+    req.user = { sub: 'sandbox', role: 'internal' };
+    return next();
+  }
+
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
     throw new AppError(401, 'Missing or invalid Authorization header');
