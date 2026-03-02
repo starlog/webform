@@ -368,7 +368,7 @@
       "description": "MySQL 어댑터 구현 관련 변경사항 커밋",
       "phase": "phase3-parallel",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "MySQL 어댑터 구현 관련 변경사항을 검토하고 git commit을 생성하라.\n\n## 커밋할 파일들\n- `packages/server/src/services/adapters/MySQLAdapter.ts` (신규)\n- `packages/server/src/services/adapters/index.ts` (수정)\n- `packages/server/src/__tests__/MySQLAdapter.test.ts` (신규)\n- `packages/server/package.json` (수정, mysql2 의존성 추가)\n- `plans/mysql-plan.md` (신규)\n- `pnpm-lock.yaml` (수정)\n\n## 커밋 실행\n\n```bash\ngit add packages/server/src/services/adapters/MySQLAdapter.ts \\\n        packages/server/src/services/adapters/index.ts \\\n        packages/server/src/__tests__/MySQLAdapter.test.ts \\\n        packages/server/package.json \\\n        plans/mysql-plan.md \\\n        pnpm-lock.yaml\ngit commit -m \"feat: MySQL 어댑터 구현 (mysql2 패키지, 연결 풀링)\"\n```\n\n민감한 파일(.env 등)은 절대 커밋하지 말 것.",
       "dependsOn": [
         "mysql-test"
@@ -424,7 +424,7 @@
       "description": "MSSQLAdapter의 쿼리 실행, OFFSET FETCH 문법, Factory에 대한 테스트",
       "phase": "phase3-parallel",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 MSSQLAdapter에 대한 테스트를 작성하고 실행하라.\n\n## 테스트 파일 생성\n\n`packages/server/src/__tests__/MSSQLAdapter.test.ts` 파일 생성:\n\n### Mock 전략\n- `mssql` 패키지의 ConnectionPool을 vi.mock()으로 모킹\n- pool.connect(), pool.request(), request.input(), request.query()를 모킹\n- request.query()가 { recordset: [] }를 반환하도록 설정\n\n### 테스트 케이스\n1. constructor: ConnectionPool 생성 시 올바른 설정이 전달되는지\n2. testConnection(): SELECT 1 실행 및 성공 응답\n3. testConnection(): Pool 오류 시 { success: false } 반환\n4. executeQuery(): OFFSET FETCH 문법이 포함된 쿼리 생성 확인\n5. executeQuery(): WHERE 조건 포함 쿼리\n6. disconnect(): pool.close() 호출\n7. escapeId(): MSSQL 스타일 이스케이핑 ([col])\n8. placeholder(): @p1, @p2 형식\n9. MSSQLAdapterFactory: dialect='mssql', displayName='Microsoft SQL Server'\n10. MSSQLAdapterFactory.create(): MSSQLAdapter 인스턴스 반환\n\n## 테스트 실행\n\n```bash\ncd packages/server && npx vitest run src/__tests__/MSSQLAdapter.test.ts\n```\n\n## 타입체크\n\n```bash\ncd packages/server && npx tsc --noEmit\n```\n\n실패 시 구현 코드를 수정하여 모든 테스트가 통과하도록 하라.",
       "dependsOn": [
         "mssql-impl"
