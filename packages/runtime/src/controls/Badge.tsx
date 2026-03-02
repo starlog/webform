@@ -103,7 +103,7 @@ export function Badge({
         data-control-id={id}
         style={{ display: 'inline-flex', position: 'relative', alignItems: 'center', ...style }}
       >
-        <span>{text}</span>
+        <span style={{ fontSize: 'inherit', fontFamily: 'inherit' }}>{text}</span>
         {renderBadge(true)}
       </div>
     );

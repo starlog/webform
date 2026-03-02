@@ -27,7 +27,7 @@ export function StatusStripControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         backgroundColor: backColor,
         color: theme.controls.statusStrip.foreground,
-        borderTop: `1px solid ${theme.controls.statusStrip.border}`,
+        borderTop: theme.controls.statusStrip.border,
         display: 'flex',
         alignItems: 'center',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

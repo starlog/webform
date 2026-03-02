@@ -38,7 +38,7 @@ export function DataSourceConnectorControl({ properties, size }: DesignerControl
         alignItems: 'center',
         gap: 6,
         padding: '4px 8px',
-        border: `1px dashed ${theme.controls.panel.border}`,
+        border: (theme.controls.panel.border as string).replace('solid', 'dashed'),
         borderRadius: theme.controls.panel.borderRadius,
         backgroundColor: theme.controls.panel.background,
         width: size.width,

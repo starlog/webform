@@ -66,7 +66,7 @@ export function TreeViewControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         backgroundColor: backColor,
         color: foreColor,
-        border: `1px solid ${theme.controls.select.border}`,
+        border: theme.controls.select.border,
         borderRadius: theme.controls.select.borderRadius,
         overflow: 'auto',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

@@ -23,7 +23,7 @@ export function SplitContainerControl({ properties, size, children }: DesignerCo
         display: 'flex',
         flexDirection: isVertical ? 'row' : 'column',
         backgroundColor: backColor,
-        border: `1px solid ${theme.controls.panel.border}`,
+        border: theme.controls.panel.border,
         boxSizing: 'border-box',
         overflow: 'hidden',
       }}
@@ -33,11 +33,8 @@ export function SplitContainerControl({ properties, size, children }: DesignerCo
         style={{
           ...(isVertical ? { width: panel1Size } : { height: panel1Size }),
           flexShrink: 0,
-          overflow: 'hidden',
+          overflow: 'auto',
           position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
         }}
       >
         {childArr[0] ?? (
@@ -60,11 +57,8 @@ export function SplitContainerControl({ properties, size, children }: DesignerCo
       <div
         style={{
           flex: 1,
-          overflow: 'hidden',
+          overflow: 'auto',
           position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
         }}
       >
         {childArr[1] ?? (

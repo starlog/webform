@@ -33,7 +33,7 @@ export function JsonEditorControl({ properties, size }: DesignerControlProps) {
       style={{
         width: size.width,
         height: size.height,
-        border: `1px solid ${theme.controls.textInput.border}`,
+        border: theme.controls.textInput.border,
         borderRadius: theme.controls.textInput.borderRadius,
         backgroundColor: backColor,
         display: 'flex',

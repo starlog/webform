@@ -30,8 +30,8 @@ export function UploadControl({ properties, size }: DesignerControlProps) {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
-            padding: '4px 15px',
+            gap: '4px',
+            padding: '4px 12px',
             backgroundColor: backColor || theme.controls.button.background,
             border: theme.controls.button.border,
             borderRadius: theme.controls.button.borderRadius,
@@ -61,7 +61,8 @@ export function UploadControl({ properties, size }: DesignerControlProps) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        gap: '8px',
+        padding: '16px',
         color: foreColor,
         fontSize: 'inherit',
         fontFamily: 'inherit',
@@ -69,8 +70,8 @@ export function UploadControl({ properties, size }: DesignerControlProps) {
         boxSizing: 'border-box',
       }}
     >
-      <span style={{ fontSize: 32, opacity: 0.5 }}>⬆</span>
-      <span style={{ opacity: 0.65 }}>{text}</span>
+      <span style={{ fontSize: '1.5em' }}>⬆</span>
+      <span style={{ fontSize: '0.9em', textAlign: 'center' }}>{text}</span>
     </div>
   );
 }

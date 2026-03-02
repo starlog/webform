@@ -105,9 +105,6 @@ export function ItemScriptEditor({ script, onSave, onClose }: ItemScriptEditorPr
         justifyContent: 'center',
         zIndex: 10001,
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div
         style={{

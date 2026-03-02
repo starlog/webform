@@ -26,7 +26,7 @@ export function ChartControl({ properties, size }: DesignerControlProps) {
       style={{
         width: w,
         height: h,
-        border: `1px solid ${theme.controls.panel.border}`,
+        border: theme.controls.panel.border,
         backgroundColor: backColor,
         display: 'flex',
         flexDirection: 'column',

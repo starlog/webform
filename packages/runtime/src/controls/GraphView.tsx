@@ -115,8 +115,6 @@ export function GraphView({
 
   const fontStyle = font ? computeFontStyle(font) : {};
   const containerStyle: CSSProperties = {
-    width: '100%',
-    height: '100%',
     background: controlColors.background,
     color: controlColors.color,
     display: 'flex',

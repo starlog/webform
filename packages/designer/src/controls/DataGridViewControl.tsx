@@ -66,7 +66,7 @@ export function DataGridViewControl({ properties, size }: DesignerControlProps) 
 
   const themedContainer: CSSProperties = {
     ...styles.container,
-    border: `1px solid ${theme.controls.dataGrid.border}`,
+    border: theme.controls.dataGrid.border,
     borderRadius: theme.controls.dataGrid.borderRadius,
     backgroundColor: (properties.backColor as string) ?? theme.controls.dataGrid.rowBackground,
     width: size.width,
@@ -77,8 +77,8 @@ export function DataGridViewControl({ properties, size }: DesignerControlProps) 
     ...styles.headerCell,
     backgroundColor: theme.controls.dataGrid.headerBackground,
     color: theme.controls.dataGrid.headerForeground,
-    borderRight: `1px solid ${theme.controls.dataGrid.headerBorder}`,
-    borderBottom: `2px solid ${theme.controls.dataGrid.border}`,
+    borderRight: theme.controls.dataGrid.headerBorder,
+    borderBottom: theme.controls.dataGrid.headerBorder,
   };
 
   const themedCell: CSSProperties = {

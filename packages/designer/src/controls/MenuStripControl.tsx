@@ -33,7 +33,7 @@ export function MenuStripControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         backgroundColor: backColor,
         color: foreColor,
-        borderBottom: `1px solid ${theme.controls.menuStrip.border}`,
+        borderBottom: theme.controls.menuStrip.border,
         display: 'flex',
         alignItems: 'center',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

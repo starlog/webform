@@ -12,7 +12,7 @@ export function WebBrowserControl({ properties, size }: DesignerControlProps) {
         width: size.width,
         height: size.height,
         backgroundColor: backColor,
-        border: `1px solid ${theme.controls.panel.border}`,
+        border: theme.controls.panel.border,
         display: 'flex',
         flexDirection: 'column',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

@@ -6,8 +6,8 @@ export function PanelControl({ properties, size, children }: DesignerControlProp
   const borderStyle = (properties.borderStyle as string) ?? 'None';
 
   let border = 'none';
-  if (borderStyle === 'FixedSingle') border = `1px solid ${theme.controls.panel.border}`;
-  else if (borderStyle === 'Fixed3D') border = `2px inset ${theme.controls.panel.border}`;
+  if (borderStyle === 'FixedSingle') border = theme.controls.panel.border;
+  else if (borderStyle === 'Fixed3D') border = theme.controls.panel.border;
 
   return (
     <div style={{

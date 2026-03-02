@@ -310,9 +310,6 @@ function QueryResultDialog({
         justifyContent: 'center',
         backgroundColor: 'rgba(0,0,0,0.4)',
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div
         style={{

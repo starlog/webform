@@ -56,9 +56,11 @@ export function CheckBox({
         checked={checked}
         disabled={!enabled}
         onChange={() => {}}
-        style={{ margin: 0, width: 16, height: 16 }}
+        style={{ margin: 0, width: 16, height: 16, pointerEvents: 'none' }}
       />
-      {text}
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {text}
+      </span>
     </label>
   );
 }

@@ -54,7 +54,11 @@ export function PictureBox({
 
   if (!imageUrl) {
     return (
-      <div className="wf-picturebox" data-control-id={id} style={containerStyle} />
+      <div className="wf-picturebox" data-control-id={id} style={containerStyle}>
+        <span style={{ color: '#999', fontSize: '20px', userSelect: 'none' }}>
+          {'\uD83D\uDDBC'}
+        </span>
+      </div>
     );
   }
 

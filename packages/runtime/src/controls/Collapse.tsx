@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 import { useRuntimeStore } from '../stores/runtimeStore';
 
@@ -41,6 +42,7 @@ export function Collapse({
   onActiveKeyChanged,
   children,
 }: CollapseProps) {
+  const theme = useTheme();
   const colors = useControlColors('Collapse', { backColor, foreColor });
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
 
@@ -72,7 +74,7 @@ export function Collapse({
     boxSizing: 'border-box',
     background: colors.background,
     color: colors.color,
-    border: bordered ? '1px solid rgba(0,0,0,0.1)' : 'none',
+    border: bordered ? theme.controls.panel.border : 'none',
     borderRadius: 8,
     overflow: 'auto',
     ...style,
@@ -113,7 +115,7 @@ export function Collapse({
             key={panel.key}
             style={{
               borderBottom:
-                bordered && index < panels.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
+                bordered && index < panels.length - 1 ? theme.controls.panel.border : 'none',
             }}
           >
             <div

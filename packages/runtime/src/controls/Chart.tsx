@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState, useLayoutEffect } from 'react';
 import type { CSSProperties } from 'react';
 import type { FontDefinition } from '@webform/common';
 import { computeFontStyle } from '../renderer/layoutUtils';
@@ -61,16 +61,37 @@ interface ChartProps {
 }
 
 function parseData(data: unknown): Record<string, unknown>[] {
-  if (Array.isArray(data)) return data;
-  if (typeof data === 'string' && data.trim()) {
+  let arr: unknown[] | null = null;
+
+  if (Array.isArray(data)) {
+    arr = data;
+  } else if (typeof data === 'string' && data.trim()) {
     try {
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) arr = parsed;
     } catch {
       /* ignore */
     }
   }
-  return [];
+
+  if (!arr || arr.length === 0) return [];
+
+  // Handle [{name, data: [{x, y}, ...]}] series format → flatten to [{x, series1: y, series2: y}]
+  const first = arr[0] as Record<string, unknown>;
+  if (first && 'data' in first && Array.isArray(first.data)) {
+    const merged = new Map<string, Record<string, unknown>>();
+    for (const s of arr as { name?: string; data: { x: unknown; y: unknown }[] }[]) {
+      const seriesName = s.name || 'value';
+      for (const pt of s.data) {
+        const key = String(pt.x);
+        if (!merged.has(key)) merged.set(key, { x: pt.x });
+        merged.get(key)![seriesName] = pt.y;
+      }
+    }
+    return Array.from(merged.values());
+  }
+
+  return arr as Record<string, unknown>[];
 }
 
 function detectCategoryKey(row: Record<string, unknown>): string | null {
@@ -112,8 +133,6 @@ export function Chart({
 
   const fontStyle = font ? computeFontStyle(font) : {};
   const containerStyle: CSSProperties = {
-    width: '100%',
-    height: '100%',
     background: colors.background,
     color: colors.color,
     display: 'flex',
@@ -274,16 +293,35 @@ export function Chart({
 
   const isPolar = normalizedType === 'Pie' || normalizedType === 'Doughnut' || normalizedType === 'Radar';
 
+  // Measure the chart area to provide explicit dimensions to ResponsiveContainer
+  const chartAreaRef = useRef<HTMLDivElement>(null);
+  const [chartSize, setChartSize] = useState<{ w: number; h: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const el = chartAreaRef.current;
+    if (!el) return;
+    const measure = () => {
+      const { width: w, height: h } = el.getBoundingClientRect();
+      if (w > 0 && h > 0) setChartSize((prev) => (prev?.w === w && prev?.h === h ? prev : { w, h }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <div style={containerStyle}>
       {title && <div style={titleStyle}>{title}</div>}
       {isEmpty ? (
         renderEmpty()
       ) : (
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            {isPolar ? renderPolar()! : renderCartesian()!}
-          </ResponsiveContainer>
+        <div ref={chartAreaRef} style={{ flex: 1, minHeight: 0 }}>
+          {chartSize && chartSize.w > 0 && chartSize.h > 0 ? (
+            <ResponsiveContainer width={chartSize.w} height={chartSize.h}>
+              {isPolar ? renderPolar()! : renderCartesian()!}
+            </ResponsiveContainer>
+          ) : null}
         </div>
       )}
     </div>

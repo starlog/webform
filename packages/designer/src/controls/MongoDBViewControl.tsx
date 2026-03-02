@@ -27,7 +27,7 @@ export function MongoDBViewControl({ properties, size }: DesignerControlProps) {
     ...styles.headerCell,
     backgroundColor: theme.controls.dataGrid.headerBackground,
     color: theme.controls.dataGrid.headerForeground,
-    borderBottom: `1px solid ${theme.controls.dataGrid.border}`,
+    borderBottom: theme.controls.dataGrid.border,
   };
 
   return (
@@ -35,14 +35,14 @@ export function MongoDBViewControl({ properties, size }: DesignerControlProps) {
       style={{
         width: size.width,
         height: size.height,
-        border: `1px solid ${theme.controls.dataGrid.border}`,
+        border: theme.controls.dataGrid.border,
         borderRadius: theme.controls.dataGrid.borderRadius,
         backgroundColor: backColor,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-        fontSize: 11,
+        fontSize: 12,
       }}
     >
       {/* Header */}
@@ -82,7 +82,7 @@ export function MongoDBViewControl({ properties, size }: DesignerControlProps) {
                 {previewCols.map((col) => (
                   <td key={col} style={{
                     ...styles.cell,
-                    ...(col === '_id' ? { fontFamily: 'monospace', color: '#999', fontSize: 9 } : {}),
+                    ...(col === '_id' ? { fontFamily: 'monospace', color: '#999', fontSize: 10 } : {}),
                   }}>
                     {col === '_id' ? '64a...' : ''}
                   </td>
@@ -109,9 +109,9 @@ const styles: Record<string, CSSProperties> = {
     padding: '2px 6px',
     backgroundColor: '#4a7c4f',
     color: '#fff',
-    height: 22,
+    height: 24,
     flexShrink: 0,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 600,
   },
   mongoIcon: {
@@ -129,15 +129,15 @@ const styles: Record<string, CSSProperties> = {
     padding: '2px 4px',
     backgroundColor: '#f3f3f3',
     borderBottom: '1px solid #d0d0d0',
-    height: 22,
+    height: 26,
     flexShrink: 0,
   },
   toolBtn: {
-    padding: '1px 6px',
+    padding: '2px 8px',
     border: '1px solid #c0c0c0',
     backgroundColor: '#fff',
     borderRadius: 2,
-    fontSize: 10,
+    fontSize: 11,
     color: '#333',
     cursor: 'default',
   },
@@ -147,31 +147,37 @@ const styles: Record<string, CSSProperties> = {
     tableLayout: 'fixed',
   },
   headerCell: {
-    backgroundColor: '#e8e8e8',
+    backgroundColor: '#e0e0e0',
     borderRight: '1px solid #d0d0d0',
-    borderBottom: '1px solid #a0a0a0',
-    padding: '1px 4px',
+    borderBottom: '2px solid #a0a0a0',
+    padding: '3px 6px',
     textAlign: 'left',
     fontWeight: 600,
-    height: 18,
-    color: '#333',
-    fontSize: 10,
+    height: 22,
+    userSelect: 'none',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    fontSize: 11,
   },
   cell: {
-    borderRight: '1px solid #e0e0e0',
-    borderBottom: '1px solid #e0e0e0',
-    padding: '1px 4px',
-    height: 18,
+    borderRight: '1px solid #d0d0d0',
+    borderBottom: '1px solid #d0d0d0',
+    padding: '2px 6px',
+    height: 22,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   statusBar: {
     display: 'flex',
     alignItems: 'center',
-    padding: '1px 6px',
+    padding: '2px 8px',
     backgroundColor: '#f3f3f3',
     borderTop: '1px solid #d0d0d0',
-    height: 18,
+    height: 24,
     flexShrink: 0,
-    fontSize: 10,
+    fontSize: 11,
     color: '#666',
   },
 };

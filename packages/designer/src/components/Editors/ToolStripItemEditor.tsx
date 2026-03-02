@@ -190,9 +190,6 @@ function ToolStripItemModal({
         justifyContent: 'center',
         zIndex: 10000,
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div
         style={{

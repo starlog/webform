@@ -36,8 +36,8 @@ export function TabControlControl({ id, properties, size }: DesignerControlProps
     }}>
       <div style={{
         display: 'flex',
-        borderBottom: `1px solid ${theme.controls.tabControl.tabBorder}`,
-        backgroundColor: theme.controls.tabControl.tabBackground,
+        borderBottom: theme.controls.tabControl.tabBorder,
+        backgroundColor: theme.controls.tabControl.contentBackground,
         flexShrink: 0,
       }}>
         {tabNames.map((name, i) => (
@@ -50,16 +50,16 @@ export function TabControlControl({ id, properties, size }: DesignerControlProps
             }}
             style={{
               padding: '4px 12px',
-              border: `1px solid ${theme.controls.tabControl.tabBorder}`,
+              border: theme.controls.tabControl.tabBorder,
               borderBottom: i === selectedIndex ? `1px solid ${theme.controls.tabControl.contentBackground}` : 'none',
               backgroundColor: i === selectedIndex ? theme.controls.tabControl.tabActiveBackground : theme.controls.tabControl.tabBackground,
               color: i === selectedIndex ? theme.controls.tabControl.tabActiveForeground : theme.controls.tabControl.tabForeground,
               fontWeight: i === selectedIndex ? 'bold' : 'normal',
               marginRight: '-1px',
               marginBottom: i === selectedIndex ? '-1px' : '0',
-              fontSize: '11px',
-              fontFamily: 'Segoe UI, sans-serif',
-              borderRadius: theme.controls.tabControl.tabBorderRadius,
+              fontSize: 'inherit',
+              fontFamily: 'inherit',
+              borderRadius: `${theme.controls.tabControl.tabBorderRadius} ${theme.controls.tabControl.tabBorderRadius} 0 0`,
               cursor: 'pointer',
             }}
           >
@@ -69,7 +69,7 @@ export function TabControlControl({ id, properties, size }: DesignerControlProps
       </div>
       <div style={{
         flex: 1,
-        border: `1px solid ${theme.controls.tabControl.contentBorder}`,
+        border: theme.controls.tabControl.contentBorder,
         borderTop: 'none',
         position: 'relative',
         overflow: 'hidden',

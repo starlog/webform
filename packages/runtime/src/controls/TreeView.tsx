@@ -6,7 +6,8 @@ import { useControlColors } from '../theme/useControlColors';
 import type { ThemeTokens } from '@webform/common';
 
 interface TreeNode {
-  text: string;
+  text?: string;
+  label?: string;
   children?: TreeNode[];
   expanded?: boolean;
   checked?: boolean;
@@ -138,7 +139,7 @@ function TreeNodeItem({
             }}
           />
         )}
-        <span style={{ marginLeft: 2 }}>{node.text}</span>
+        <span style={{ marginLeft: 2 }}>{node.text || node.label}</span>
       </div>
       {hasChildren && isExpanded && (
         <div>

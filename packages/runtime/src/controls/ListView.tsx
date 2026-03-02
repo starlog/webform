@@ -5,13 +5,17 @@ import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
 interface ListViewItem {
-  text: string;
+  text?: string;
   subItems?: string[];
   imageIndex?: number;
+  [key: string]: unknown;
 }
 
 interface ListViewColumn {
-  text: string;
+  text?: string;
+  header?: string;
+  headerText?: string;
+  field?: string;
   width?: number;
 }
 
@@ -51,6 +55,19 @@ function IconPlaceholder({ size }: { size: number }) {
       }}
     />
   );
+}
+
+/** 아이템의 대표 텍스트 추출: text 필드 또는 첫 번째 컬럼 필드값 */
+function getItemText(item: ListViewItem, columns: ListViewColumn[]): string {
+  if (item.text) return item.text;
+  if (columns.length > 0 && columns[0].field) {
+    return String(item[columns[0].field] ?? '');
+  }
+  // text/field 모두 없으면 첫 번째 문자열 값 사용
+  for (const val of Object.values(item)) {
+    if (typeof val === 'string' && val) return val;
+  }
+  return '';
 }
 
 export function ListView({
@@ -192,7 +209,7 @@ export function ListView({
                       width: col.width,
                     }}
                   >
-                    {col.text}
+                    {col.header || col.headerText || col.text}
                   </th>
                 ))}
               </tr>
@@ -213,7 +230,11 @@ export function ListView({
                 >
                   {columns.length > 0 ? (
                     columns.map((col, ci) => {
-                      const cellText = ci === 0 ? item.text : item.subItems?.[ci - 1] ?? '';
+                      const cellText = col.field
+                        ? String(item[col.field] ?? '')
+                        : ci === 0
+                          ? (item.text ?? '')
+                          : item.subItems?.[ci - 1] ?? '';
                       return (
                         <td
                           key={ci}
@@ -241,7 +262,7 @@ export function ListView({
                         ...(isSelected ? selectedStyle : {}),
                       }}
                     >
-                      {item.text}
+                      {getItemText(item, columns)}
                     </td>
                   )}
                 </tr>
@@ -287,7 +308,7 @@ export function ListView({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {item.text}
+                {getItemText(item, columns)}
               </div>
             </div>
           );
@@ -322,7 +343,7 @@ export function ListView({
               onDoubleClick={() => handleDoubleClick(i)}
             >
               <IconPlaceholder size={16} />
-              <span style={{ whiteSpace: 'nowrap' }}>{item.text}</span>
+              <span style={{ whiteSpace: 'nowrap' }}>{getItemText(item, columns)}</span>
             </div>
           );
         })}
@@ -357,7 +378,7 @@ export function ListView({
             >
               <IconPlaceholder size={16} />
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {item.text}
+                {getItemText(item, columns)}
               </span>
             </div>
           );
@@ -394,7 +415,7 @@ export function ListView({
             <IconPlaceholder size={32} />
             <div style={{ overflow: 'hidden' }}>
               <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {item.text}
+                {getItemText(item, columns)}
               </div>
               {item.subItems?.slice(0, 2).map((sub, si) => (
                 <div

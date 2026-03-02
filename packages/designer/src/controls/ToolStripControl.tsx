@@ -35,7 +35,7 @@ export function ToolStripControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         backgroundColor: backColor,
         color: theme.controls.toolStrip.foreground,
-        borderBottom: `1px solid ${theme.controls.toolStrip.border}`,
+        borderBottom: theme.controls.toolStrip.border,
         display: 'flex',
         alignItems: 'center',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',

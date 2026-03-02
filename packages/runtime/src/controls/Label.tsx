@@ -27,9 +27,12 @@ export function Label({ id, text, backColor, foreColor, textAlign, style }: Labe
       className="wf-label"
       data-control-id={id}
       style={{
+        display: 'inline-block',
         overflow: 'hidden',
         whiteSpace: 'nowrap',
         textOverflow: 'ellipsis',
+        fontSize: 'inherit',
+        fontFamily: 'inherit',
         boxSizing: 'border-box',
         userSelect: 'none',
         ...colorStyle,

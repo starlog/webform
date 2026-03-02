@@ -80,3 +80,7 @@ pnpm typecheck              # TypeScript 타입 체크
 - Prettier: singleQuote, trailingComma: all, printWidth: 100, tabWidth: 2
 - ESLint: typescript-eslint + react-hooks + react-refresh
 - 응답은 한국어로 작성
+
+## UI/UX 규칙
+
+- **다이얼로그 외부 클릭 닫기 금지**: 모달/다이얼로그는 반드시 OK/Cancel 등 명시적 버튼으로만 닫아야 한다. 오버레이(backdrop) 클릭으로 닫히는 동작(`e.target === e.currentTarget` 패턴)을 절대 추가하지 않는다. 사용자가 편집 중 실수로 외부를 클릭하여 작업 내용을 잃는 것을 방지하기 위함이다.

@@ -44,6 +44,17 @@ function createEmptyItem(existing: AnyItem[]): AnyItem {
   return '';
 }
 
+/** 값이 복잡한 타입(배열/객체)인지 판별 */
+function isComplexValue(val: unknown): boolean {
+  return val != null && typeof val === 'object';
+}
+
+/** 속성 값을 표시용 문자열로 변환 */
+function displayValue(val: unknown): string {
+  if (isComplexValue(val)) return JSON.stringify(val, null, 2);
+  return String(val ?? '');
+}
+
 export function CollectionEditor({ value, onChange }: CollectionEditorProps) {
   const [open, setOpen] = useState(false);
   const items = Array.isArray(value) ? value : [];
@@ -144,6 +155,13 @@ function CollectionModal({ items: initial, onClose, onSave }: CollectionModalPro
       obj[key] = Number(val) || 0;
     } else if (typeof originalVal === 'boolean') {
       obj[key] = val === 'true';
+    } else if (isComplexValue(originalVal)) {
+      try {
+        obj[key] = JSON.parse(val);
+      } catch {
+        // JSON 파싱 실패 시 원래 값 유지
+        return;
+      }
     } else {
       obj[key] = val;
     }
@@ -165,13 +183,17 @@ function CollectionModal({ items: initial, onClose, onSave }: CollectionModalPro
         justifyContent: 'center',
         zIndex: 10000,
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div
         style={{
-          width: isObjectMode ? 450 : 350,
+          width: isObjectMode ? 550 : 400,
+          height: isObjectMode ? 520 : 420,
+          minWidth: 300,
+          minHeight: 250,
+          resize: 'both',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
           backgroundColor: '#fff',
           border: '1px solid #999',
           boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
@@ -185,12 +207,13 @@ function CollectionModal({ items: initial, onClose, onSave }: CollectionModalPro
             backgroundColor: '#f0f0f0',
             borderBottom: '1px solid #ccc',
             fontWeight: 600,
+            flexShrink: 0,
           }}
         >
           Collection Editor
         </div>
-        <div style={{ padding: 8 }}>
-          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+        <div style={{ padding: 8, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 8, flexShrink: 0 }}>
             <button type="button" onClick={add} style={btnStyle}>Add</button>
             <button type="button" onClick={remove} disabled={selectedIndex < 0} style={btnStyle}>Remove</button>
             <button type="button" onClick={moveUp} disabled={selectedIndex <= 0} style={btnStyle}>Up</button>
@@ -199,9 +222,9 @@ function CollectionModal({ items: initial, onClose, onSave }: CollectionModalPro
 
           {isObjectMode ? (
             /* 객체 모드: 리스트 + 속성 편집기 */
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flex: 1, overflow: 'hidden' }}>
               {/* 아이템 리스트 */}
-              <div style={{ width: 160, minWidth: 160, maxHeight: 250, overflow: 'auto', border: '1px solid #ccc' }}>
+              <div style={{ width: 160, minWidth: 160, overflow: 'auto', border: '1px solid #ccc' }}>
                 {items.map((item, i) => (
                   <div
                     key={i}
@@ -226,41 +249,70 @@ function CollectionModal({ items: initial, onClose, onSave }: CollectionModalPro
               </div>
 
               {/* 속성 편집기 */}
-              <div style={{ flex: 1, maxHeight: 250, overflow: 'auto', border: '1px solid #ccc' }}>
+              <div style={{ flex: 1, overflow: 'auto', border: '1px solid #ccc' }}>
                 {selectedItem != null && typeof selectedItem === 'object' ? (
-                  Object.keys(selectedItem).map((key) => (
-                    <div key={key} style={{ display: 'flex', borderBottom: '1px solid #f0f0f0' }}>
+                  Object.keys(selectedItem).map((key) => {
+                    const val = selectedItem[key];
+                    const complex = isComplexValue(val);
+                    return (
                       <div
+                        key={key}
                         style={{
-                          width: 70,
-                          minWidth: 70,
-                          padding: '3px 4px',
-                          backgroundColor: '#f9f9f9',
-                          color: '#555',
-                          fontSize: 11,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          borderBottom: '1px solid #f0f0f0',
+                          alignItems: complex ? 'flex-start' : 'center',
                         }}
-                        title={key}
                       >
-                        {key}
+                        <div
+                          style={{
+                            width: 70,
+                            minWidth: 70,
+                            padding: '3px 4px',
+                            backgroundColor: '#f9f9f9',
+                            color: '#555',
+                            fontSize: 11,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={key}
+                        >
+                          {key}
+                        </div>
+                        {complex ? (
+                          <textarea
+                            value={displayValue(val)}
+                            onChange={(e) => updateObjectProperty(selectedIndex, key, e.target.value)}
+                            rows={Math.min(Math.max(displayValue(val).split('\n').length, 3), 12)}
+                            style={{
+                              flex: 1,
+                              border: 'none',
+                              borderLeft: '1px solid #f0f0f0',
+                              padding: '3px 4px',
+                              fontSize: 11,
+                              fontFamily: 'Consolas, monospace',
+                              outline: 'none',
+                              resize: 'vertical',
+                            }}
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={displayValue(val)}
+                            onChange={(e) => updateObjectProperty(selectedIndex, key, e.target.value)}
+                            style={{
+                              flex: 1,
+                              border: 'none',
+                              borderLeft: '1px solid #f0f0f0',
+                              padding: '3px 4px',
+                              fontSize: 12,
+                              outline: 'none',
+                            }}
+                          />
+                        )}
                       </div>
-                      <input
-                        type="text"
-                        value={String(selectedItem[key] ?? '')}
-                        onChange={(e) => updateObjectProperty(selectedIndex, key, e.target.value)}
-                        style={{
-                          flex: 1,
-                          border: 'none',
-                          borderLeft: '1px solid #f0f0f0',
-                          padding: '3px 4px',
-                          fontSize: 12,
-                          outline: 'none',
-                        }}
-                      />
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div style={{ padding: 8, color: '#999', textAlign: 'center' }}>
                     Select an item
@@ -270,7 +322,7 @@ function CollectionModal({ items: initial, onClose, onSave }: CollectionModalPro
             </div>
           ) : (
             /* 문자열 모드: 기존 인라인 편집 */
-            <div style={{ maxHeight: 200, overflow: 'auto', border: '1px solid #ccc' }}>
+            <div style={{ flex: 1, overflow: 'auto', border: '1px solid #ccc' }}>
               {items.map((item, i) => (
                 <div
                   key={i}
@@ -305,7 +357,7 @@ function CollectionModal({ items: initial, onClose, onSave }: CollectionModalPro
             </div>
           )}
         </div>
-        <div style={{ padding: '6px 8px', borderTop: '1px solid #ccc', display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+        <div style={{ padding: '6px 8px', borderTop: '1px solid #ccc', display: 'flex', justifyContent: 'flex-end', gap: 4, flexShrink: 0 }}>
           <button type="button" onClick={() => onSave(items)} style={btnStyle}>OK</button>
           <button type="button" onClick={onClose} style={btnStyle}>Cancel</button>
         </div>

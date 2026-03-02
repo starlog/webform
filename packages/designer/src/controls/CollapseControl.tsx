@@ -1,4 +1,5 @@
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 import { useDesignerStore } from '../stores/designerStore';
 import { useSelectionStore } from '../stores/selectionStore';
 import { getDesignerComponent } from './registry';
@@ -11,6 +12,10 @@ interface CollapsePanel {
 
 export function CollapseControl({ id, properties, size }: DesignerControlProps) {
   const theme = useTheme();
+  const colors = useControlColors('Collapse', {
+    backColor: properties.backColor as string | undefined,
+    foreColor: properties.foreColor as string | undefined,
+  });
   const updateControl = useDesignerStore((s) => s.updateControl);
   const controls = useDesignerStore((s) => s.controls);
 
@@ -60,12 +65,12 @@ export function CollapseControl({ id, properties, size }: DesignerControlProps) 
       style={{
         width: size.width,
         height: size.height,
-        border: bordered ? `1px solid ${theme.controls.panel.border}` : 'none',
+        border: bordered ? theme.controls.panel.border : 'none',
         borderRadius: 8,
         boxSizing: 'border-box',
         overflow: 'auto',
-        backgroundColor: theme.form.backgroundColor,
-        color: theme.form.foreground,
+        backgroundColor: colors.background,
+        color: colors.color,
       }}
     >
       {panels.map((panel, i) => {
@@ -78,7 +83,7 @@ export function CollapseControl({ id, properties, size }: DesignerControlProps) 
             style={{
               borderBottom:
                 bordered && i < panels.length - 1
-                  ? `1px solid ${theme.controls.panel.border}`
+                  ? theme.controls.panel.border
                   : 'none',
             }}
           >

@@ -202,9 +202,6 @@ function TabPagesModal({ items: initial, onClose, onSave }: TabPagesModalProps) 
         justifyContent: 'center',
         zIndex: 10000,
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div
         style={{

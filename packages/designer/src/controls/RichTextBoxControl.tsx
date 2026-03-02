@@ -15,7 +15,7 @@ export function RichTextBoxControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         backgroundColor: backColor,
         color: foreColor,
-        border: `1px solid ${theme.controls.textInput.border}`,
+        border: theme.controls.textInput.border,
         borderRadius: theme.controls.textInput.borderRadius,
         display: 'flex',
         flexDirection: 'column',
@@ -32,16 +32,16 @@ export function RichTextBoxControl({ properties, size }: DesignerControlProps) {
           alignItems: 'center',
           gap: 2,
           padding: '2px 4px',
-          borderBottom: '1px solid #E0E0E0',
-          backgroundColor: '#FAFAFA',
+          borderBottom: theme.controls.textInput.border,
+          backgroundColor: theme.controls.panel.background,
           flexShrink: 0,
         }}
       >
         <button
           disabled
           style={{
-            border: '1px solid #D0D0D0',
-            backgroundColor: '#F0F0F0',
+            border: theme.controls.textInput.border,
+            backgroundColor: theme.controls.panel.background,
             fontWeight: 'bold',
             width: 22,
             height: 20,
@@ -54,8 +54,8 @@ export function RichTextBoxControl({ properties, size }: DesignerControlProps) {
         <button
           disabled
           style={{
-            border: '1px solid #D0D0D0',
-            backgroundColor: '#F0F0F0',
+            border: theme.controls.textInput.border,
+            backgroundColor: theme.controls.panel.background,
             fontStyle: 'italic',
             width: 22,
             height: 20,
@@ -68,8 +68,8 @@ export function RichTextBoxControl({ properties, size }: DesignerControlProps) {
         <button
           disabled
           style={{
-            border: '1px solid #D0D0D0',
-            backgroundColor: '#F0F0F0',
+            border: theme.controls.textInput.border,
+            backgroundColor: theme.controls.panel.background,
             textDecoration: 'underline',
             width: 22,
             height: 20,
