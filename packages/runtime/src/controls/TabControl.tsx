@@ -106,7 +106,7 @@ export function TabControl({
         ...style,
       }}
     >
-      {/* Visual overlay: tab headers + content border */}
+      {/* Tab header + content border overlay (on top of children) */}
       <div style={{
         position: 'absolute',
         top: 0,
@@ -118,7 +118,7 @@ export function TabControl({
         pointerEvents: 'none',
         zIndex: 1,
       }}>
-        <div style={{ ...tabHeaderStyle, pointerEvents: 'auto' }}>
+        <div style={{ ...tabHeaderStyle, pointerEvents: 'auto', flexShrink: 0 }}>
           {childArray.map((child, i) => (
             <button
               key={i}
@@ -137,7 +137,7 @@ export function TabControl({
           overflow: 'hidden',
         }} />
       </div>
-      {/* Children positioned relative to TabControl top-left (matching Designer coordinates) */}
+      {/* Children positioned relative to TabControl top-left (matching Designer) */}
       {childArray[selectedIndex] ?? null}
     </div>
   );

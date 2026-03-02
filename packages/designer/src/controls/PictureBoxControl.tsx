@@ -17,10 +17,9 @@ export function PictureBoxControl({ properties, size }: DesignerControlProps) {
   const backColor = (properties.backColor as string) || theme.controls.panel.background;
   const borderStyle = properties.borderStyle as string | undefined;
 
-  let border = theme.controls.panel.border;
-  if (borderStyle === 'FixedSingle') border = '1px solid #7A7A7A';
-  else if (borderStyle === 'Fixed3D') border = '2px inset #7A7A7A';
-  else if (borderStyle === 'None') border = 'none';
+  let border = 'none';
+  if (borderStyle === 'FixedSingle') border = theme.controls.panel.border;
+  else if (borderStyle === 'Fixed3D') border = theme.controls.panel.border;
 
   return (
     <div style={{
@@ -28,6 +27,7 @@ export function PictureBoxControl({ properties, size }: DesignerControlProps) {
       height: size.height,
       backgroundColor: backColor,
       border,
+      borderRadius: theme.controls.panel.borderRadius,
       boxSizing: 'border-box',
       display: 'flex',
       alignItems: sizeMode === 'CenterImage' ? 'center' : 'flex-start',

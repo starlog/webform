@@ -44,14 +44,11 @@ export function Collapse({
   const colors = useControlColors('Collapse', { backColor, foreColor });
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
 
-  const [activeKeyArray, setActiveKeyArray] = useState<string[]>(() =>
-    activeKeys
-      ? activeKeys
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : [],
-  );
+  const [activeKeyArray, setActiveKeyArray] = useState<string[]>(() => {
+    if (!activeKeys) return [];
+    const str = Array.isArray(activeKeys) ? activeKeys.join(',') : activeKeys;
+    return str.split(',').map((s) => s.trim()).filter(Boolean);
+  });
 
   const activeKeySet = new Set(activeKeyArray);
   const childArray = Array.isArray(children) ? children : children ? [children] : [];

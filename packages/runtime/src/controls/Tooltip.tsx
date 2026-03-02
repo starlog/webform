@@ -83,6 +83,8 @@ export function Tooltip({
     ...(PLACEMENT_STYLES[placement] || PLACEMENT_STYLES.Top),
   };
 
+  const hasChildren = children !== undefined && children !== null && children !== false;
+
   return (
     <div
       className="wf-tooltip"
@@ -90,7 +92,22 @@ export function Tooltip({
       style={{ position: 'relative', ...style }}
       {...triggerProps}
     >
-      {children}
+      {hasChildren ? children : (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          border: '1px dashed gray',
+          minHeight: 30,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 12,
+          color: 'gray',
+          boxSizing: 'border-box',
+        }}>
+          [Tooltip] {title}
+        </div>
+      )}
       {isVisible && title && <div style={popupStyle}>{title}</div>}
     </div>
   );

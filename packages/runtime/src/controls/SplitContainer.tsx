@@ -77,11 +77,11 @@ export function SplitContainer({
   );
 
   const containerStyle: CSSProperties = {
-    width: '100%',
-    height: '100%',
     display: 'flex',
     flexDirection: isVertical ? 'row' : 'column',
     background: colors.background,
+    border: `1px solid ${theme.controls.panel.border}`,
+    boxSizing: 'border-box',
     overflow: 'hidden',
     ...style,
   };

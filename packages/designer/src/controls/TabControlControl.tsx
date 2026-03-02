@@ -54,6 +54,7 @@ export function TabControlControl({ id, properties, size }: DesignerControlProps
               borderBottom: i === selectedIndex ? `1px solid ${theme.controls.tabControl.contentBackground}` : 'none',
               backgroundColor: i === selectedIndex ? theme.controls.tabControl.tabActiveBackground : theme.controls.tabControl.tabBackground,
               color: i === selectedIndex ? theme.controls.tabControl.tabActiveForeground : theme.controls.tabControl.tabForeground,
+              fontWeight: i === selectedIndex ? 'bold' : 'normal',
               marginRight: '-1px',
               marginBottom: i === selectedIndex ? '-1px' : '0',
               fontSize: '11px',

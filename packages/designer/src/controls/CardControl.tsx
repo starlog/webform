@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 import { useDesignerStore } from '../stores/designerStore';
@@ -26,6 +26,7 @@ export function CardControl({ id, properties, size, position = { x: 0, y: 0 } }:
     foreColor: properties.foreColor as string | undefined,
   });
 
+  const [isHovered, setIsHovered] = useState(false);
   const isSmall = cardSize === 'Small';
   const headerPadding = isSmall ? '8px 12px' : '12px 16px';
   const bodyPadding = isSmall ? 12 : 16;
@@ -50,7 +51,11 @@ export function CardControl({ id, properties, size, position = { x: 0, y: 0 } }:
         overflow: 'hidden',
         cursor: hoverable ? 'pointer' : undefined,
         position: 'relative',
+        boxShadow: hoverable && isHovered ? '0 4px 12px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.06)',
+        transition: 'box-shadow 0.3s ease',
       }}
+      onMouseEnter={() => hoverable && setIsHovered(true)}
+      onMouseLeave={() => hoverable && setIsHovered(false)}
     >
       {showHeader && (
         <div

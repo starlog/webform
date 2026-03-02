@@ -12,7 +12,7 @@ export function UploadControl({ properties, size }: DesignerControlProps) {
   const borderCss =
     borderStyle === 'None'
       ? 'none'
-      : `2px ${borderStyle.toLowerCase()} ${theme.controls.button.border ? '#d9d9d9' : '#d9d9d9'}`;
+      : `1px ${borderStyle.toLowerCase()} #d9d9d9`;
 
   if (uploadMode === 'Button') {
     return (
@@ -55,7 +55,7 @@ export function UploadControl({ properties, size }: DesignerControlProps) {
         width: size.width,
         height: size.height,
         border: borderCss,
-        borderRadius: 8,
+        borderRadius: 6,
         backgroundColor: backColor || '#fafafa',
         display: 'flex',
         flexDirection: 'column',

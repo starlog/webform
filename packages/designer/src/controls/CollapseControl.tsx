@@ -18,7 +18,10 @@ export function CollapseControl({ id, properties, size }: DesignerControlProps) 
     { title: 'Panel 1', key: '1' },
     { title: 'Panel 2', key: '2' },
   ];
-  const activeKeysStr = (properties.activeKeys as string) ?? '1';
+  const rawActiveKeys = properties.activeKeys;
+  const activeKeysStr = Array.isArray(rawActiveKeys)
+    ? rawActiveKeys.join(',')
+    : (rawActiveKeys as string) ?? '1';
   const bordered = (properties.bordered as boolean) ?? true;
   const expandIconPosition = (properties.expandIconPosition as string) ?? 'Start';
 

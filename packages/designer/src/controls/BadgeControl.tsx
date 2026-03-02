@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import type { DesignerControlProps } from './registry';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -10,11 +10,18 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function BadgeControl({ properties, size }: DesignerControlProps) {
+  const status = (properties.status as string) ?? 'Default';
+  const [pulse, setPulse] = useState(true);
+  useEffect(() => {
+    if (status !== 'Processing') return;
+    const timer = setInterval(() => setPulse((p) => !p), 800);
+    return () => clearInterval(timer);
+  }, [status]);
+
   const count = (properties.count as number) ?? 0;
   const overflowCount = (properties.overflowCount as number) ?? 99;
   const showZero = (properties.showZero as boolean) ?? false;
   const dot = (properties.dot as boolean) ?? false;
-  const status = (properties.status as string) ?? 'Default';
   const text = (properties.text as string) ?? '';
   const badgeColor = (properties.badgeColor as string) ?? '';
 
@@ -30,6 +37,8 @@ export function BadgeControl({ properties, size }: DesignerControlProps) {
     justifyContent: 'center',
     fontWeight: 'bold',
     lineHeight: 1,
+    opacity: status === 'Processing' ? (pulse ? 1 : 0.4) : 1,
+    transition: 'opacity 0.4s ease',
   };
 
   const dotStyle: CSSProperties = {

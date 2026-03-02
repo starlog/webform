@@ -51,7 +51,7 @@ export function SplitContainerControl({ properties, size, children }: DesignerCo
           ...(isVertical
             ? { width: splitterWidth, cursor: 'col-resize' }
             : { height: splitterWidth, cursor: 'row-resize' }),
-          backgroundColor: theme.controls.panel.border,
+          backgroundColor: theme.controls.toolStrip.separator,
           flexShrink: 0,
         }}
       />
