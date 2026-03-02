@@ -1,50 +1,42 @@
+import type { CSSProperties } from 'react';
 import type { DesignerControlProps } from './registry';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 export function ComboBoxControl({ properties, size }: DesignerControlProps) {
   const theme = useTheme();
   const items = (properties.items as string[]) ?? [];
   const selectedIndex = (properties.selectedIndex as number) ?? -1;
-  const displayText = selectedIndex >= 0 && selectedIndex < items.length
-    ? items[selectedIndex]
-    : '';
+  const colors = useControlColors('ComboBox', {
+    backColor: properties.backColor as string | undefined,
+    foreColor: properties.foreColor as string | undefined,
+  });
 
-  const arrowWidth = 17;
+  const baseStyle: CSSProperties = {
+    width: size.width,
+    height: size.height,
+    background: colors.background,
+    border: theme.controls.select.border,
+    borderRadius: theme.controls.select.borderRadius,
+    color: colors.color,
+    padding: '2px 4px',
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
+    boxSizing: 'border-box',
+    pointerEvents: 'none',
+  };
 
   return (
-    <div style={{
-      width: size.width,
-      height: size.height,
-      display: 'flex',
-      boxSizing: 'border-box',
-      border: theme.controls.select.border,
-      borderRadius: theme.controls.select.borderRadius,
-    }}>
-      <div style={{
-        flex: 1,
-        backgroundColor: (properties.backColor as string) || theme.controls.select.background,
-        color: (properties.foreColor as string) || theme.controls.select.foreground,
-        padding: '1px 2px',
-        fontSize: 'inherit',
-        fontFamily: 'inherit',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-        display: 'flex',
-        alignItems: 'center',
-      }}>
-        {displayText}
-      </div>
-      <div style={{
-        width: arrowWidth,
-        backgroundColor: theme.controls.button.background,
-        borderLeft: theme.controls.select.border,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '8px',
-      }}>
-        {'\u25BC'}
-      </div>
-    </div>
+    <select
+      disabled
+      value={selectedIndex >= 0 && selectedIndex < items.length ? items[selectedIndex] : ''}
+      style={baseStyle}
+    >
+      {items.map((item, i) => (
+        <option key={i} value={item}>
+          {item}
+        </option>
+      ))}
+    </select>
   );
 }

@@ -1,42 +1,35 @@
+import type { CSSProperties } from 'react';
 import type { DesignerControlProps } from './registry';
-import { useTheme } from '../theme/ThemeContext';
-
-function getAlignItems(align: string): string {
-  if (align.startsWith('Top')) return 'flex-start';
-  if (align.startsWith('Middle')) return 'center';
-  if (align.startsWith('Bottom')) return 'flex-end';
-  return 'flex-start';
-}
-
-function getJustifyContent(align: string): string {
-  if (align.endsWith('Left')) return 'flex-start';
-  if (align.endsWith('Center')) return 'center';
-  if (align.endsWith('Right')) return 'flex-end';
-  return 'flex-start';
-}
+import { useControlColors } from '../theme/useControlColors';
 
 export function LabelControl({ properties, size }: DesignerControlProps) {
-  const theme = useTheme();
   const text = (properties.text as string) ?? 'Label';
-  const foreColor = (properties.foreColor as string) || theme.form.foreground;
   const textAlign = (properties.textAlign as string) ?? 'TopLeft';
+  const colors = useControlColors('Label', {
+    backColor: properties.backColor as string | undefined,
+    foreColor: properties.foreColor as string | undefined,
+  });
+
+  const colorStyle: CSSProperties = {
+    color: colors.color,
+  };
+  if (textAlign) colorStyle.textAlign = textAlign as CSSProperties['textAlign'];
 
   return (
-    <div style={{
+    <span style={{
       width: size.width,
       height: size.height,
-      backgroundColor: (properties.backColor as string) || undefined,
-      color: foreColor,
+      display: 'inline-block',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
       fontSize: 'inherit',
       fontFamily: 'inherit',
-      display: 'flex',
-      alignItems: getAlignItems(textAlign),
-      justifyContent: getJustifyContent(textAlign),
-      overflow: 'hidden',
       userSelect: 'none',
       boxSizing: 'border-box',
+      ...colorStyle,
     }}>
       {text}
-    </div>
+    </span>
   );
 }

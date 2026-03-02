@@ -1,28 +1,36 @@
+import type { CSSProperties } from 'react';
 import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 import type { DesignerControlProps } from './registry';
 
 export function BindingNavigatorControl({ properties, size }: DesignerControlProps) {
   const theme = useTheme();
-  const backColor = (properties.backColor as string) ?? theme.controls.toolStrip.background;
   const showAddButton = (properties.showAddButton as boolean) ?? true;
   const showDeleteButton = (properties.showDeleteButton as boolean) ?? true;
+  const colors = useControlColors('BindingNavigator', {
+    backColor: properties.backColor as string | undefined,
+  });
 
-  const btnStyle: React.CSSProperties = {
+  const btnStyle: CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 22,
-    height: 20,
-    fontSize: 11,
+    width: 24,
+    height: 22,
+    fontSize: 12,
     cursor: 'default',
     borderRadius: 2,
+    border: 'none',
+    background: 'transparent',
+    padding: 0,
   };
 
-  const sepStyle: React.CSSProperties = {
+  const sepStyle: CSSProperties = {
     width: 1,
     height: 16,
     backgroundColor: theme.controls.toolStrip.separator,
     margin: '0 3px',
+    flexShrink: 0,
   };
 
   return (
@@ -30,9 +38,9 @@ export function BindingNavigatorControl({ properties, size }: DesignerControlPro
       style={{
         width: size.width,
         height: size.height,
-        backgroundColor: backColor,
-        color: theme.controls.toolStrip.foreground,
-        borderBottom: `1px solid ${theme.controls.toolStrip.border}`,
+        background: colors.background,
+        color: colors.color,
+        borderBottom: theme.controls.toolStrip.border,
         display: 'flex',
         alignItems: 'center',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
@@ -44,29 +52,29 @@ export function BindingNavigatorControl({ properties, size }: DesignerControlPro
         gap: 1,
       }}
     >
-      <div style={btnStyle} title="Move first">|&#9664;</div>
-      <div style={btnStyle} title="Move previous">&#9664;</div>
+      <button style={btnStyle} title="Move first">|&#9664;</button>
+      <button style={btnStyle} title="Move previous">&#9664;</button>
       <div style={sepStyle} />
       <input
         type="text"
-        value="1"
+        value="0"
         readOnly
         style={{
-          width: 32,
+          width: 40,
           height: 18,
           textAlign: 'center',
           fontSize: 11,
-          border: '1px solid #C0C0C0',
+          border: theme.controls.textInput.border,
           padding: 0,
         }}
       />
-      <span style={{ fontSize: 11, margin: '0 2px' }}>/ 10</span>
+      <span style={{ fontSize: 11, margin: '0 2px' }}>/ 0</span>
       <div style={sepStyle} />
-      <div style={btnStyle} title="Move next">&#9654;</div>
-      <div style={btnStyle} title="Move last">&#9654;|</div>
+      <button style={btnStyle} title="Move next">&#9654;</button>
+      <button style={btnStyle} title="Move last">&#9654;|</button>
       {(showAddButton || showDeleteButton) && <div style={sepStyle} />}
-      {showAddButton && <div style={btnStyle} title="Add new">&#10010;</div>}
-      {showDeleteButton && <div style={btnStyle} title="Delete">&#10005;</div>}
+      {showAddButton && <button style={btnStyle} title="Add new">&#10010;</button>}
+      {showDeleteButton && <button style={btnStyle} title="Delete">&#10005;</button>}
     </div>
   );
 }

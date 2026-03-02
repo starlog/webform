@@ -11,12 +11,12 @@ describe('TextBoxControl', () => {
       />,
     );
 
-    const div = container.firstElementChild as HTMLElement;
-    expect(div).toBeInTheDocument();
-    expect(div.style.whiteSpace).toBe('nowrap');
+    const input = container.querySelector('input') as HTMLInputElement;
+    expect(input).toBeInTheDocument();
+    expect(input.type).toBe('text');
   });
 
-  it('multiline=true 시 여러 줄 렌더링되어야 한다', () => {
+  it('multiline=true 시 textarea로 렌더링되어야 한다', () => {
     const { container } = render(
       <TextBoxControl
         properties={{ multiline: true }}
@@ -24,8 +24,8 @@ describe('TextBoxControl', () => {
       />,
     );
 
-    const div = container.firstElementChild as HTMLElement;
-    expect(div).toBeInTheDocument();
-    expect(div.style.whiteSpace).toBe('pre-wrap');
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+    expect(textarea).toBeInTheDocument();
+    expect(textarea.style.resize).toBe('none');
   });
 });

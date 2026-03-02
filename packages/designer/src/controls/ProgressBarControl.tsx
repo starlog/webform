@@ -24,7 +24,7 @@ export function ProgressBarControl({ properties, size }: DesignerControlProps) {
         width: `${Math.min(100, Math.max(0, percent))}%`,
         height: '100%',
         backgroundColor: theme.controls.progressBar.fillBackground,
-        transition: 'width 0.2s',
+        transition: 'width 0.2s ease',
       }} />
     </div>
   );

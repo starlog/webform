@@ -62,7 +62,7 @@ export function CardControl({ id, properties, size, position = { x: 0, y: 0 } }:
         >
           <div style={{ fontWeight: 600, fontSize: isSmall ? '14px' : '16px' }}>{title}</div>
           {subtitle && (
-            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{subtitle}</div>
+            <div style={{ fontSize: '13px', opacity: 0.6, marginTop: 2 }}>{subtitle}</div>
           )}
         </div>
       )}

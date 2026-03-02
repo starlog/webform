@@ -1,41 +1,43 @@
 import type { DesignerControlProps } from './registry';
 
-const ALERT_STYLES = {
-  Success: { bg: '#f6ffed', border: '#b7eb8f', icon: '✓', color: '#52c41a' },
-  Info: { bg: '#e6f4ff', border: '#91caff', icon: 'ℹ', color: '#1677ff' },
-  Warning: { bg: '#fffbe6', border: '#ffe58f', icon: '⚠', color: '#faad14' },
-  Error: { bg: '#fff2f0', border: '#ffccc7', icon: '✕', color: '#ff4d4f' },
-} as const;
-
-type AlertType = keyof typeof ALERT_STYLES;
+const ALERT_STYLES: Record<
+  string,
+  { bg: string; border: string; icon: string; iconColor: string; color: string }
+> = {
+  Success: { bg: '#f6ffed', border: '#b7eb8f', icon: '✓', iconColor: '#52c41a', color: '#135200' },
+  Info: { bg: '#e6f4ff', border: '#91caff', icon: 'ℹ', iconColor: '#1677ff', color: '#003a8c' },
+  Warning: { bg: '#fffbe6', border: '#ffe58f', icon: '⚠', iconColor: '#faad14', color: '#614700' },
+  Error: { bg: '#fff2f0', border: '#ffccc7', icon: '✕', iconColor: '#ff4d4f', color: '#820014' },
+};
 
 export function AlertControl({ properties, size }: DesignerControlProps) {
   const message = (properties.message as string) ?? 'Alert message';
   const description = (properties.description as string) ?? '';
-  const alertType = (properties.alertType as AlertType) ?? 'Info';
+  const alertType = (properties.alertType as string) ?? 'Info';
   const showIcon = (properties.showIcon as boolean) ?? true;
   const closable = (properties.closable as boolean) ?? false;
   const banner = (properties.banner as boolean) ?? false;
+  const foreColor = properties.foreColor as string | undefined;
 
-  const style = ALERT_STYLES[alertType] ?? ALERT_STYLES.Info;
+  const alertStyle = ALERT_STYLES[alertType] || ALERT_STYLES.Info;
 
   return (
     <div
       style={{
         width: size.width,
         height: size.height,
-        backgroundColor: style.bg,
-        border: banner ? 'none' : `1px solid ${style.border}`,
-        borderRadius: banner ? 0 : 6,
+        backgroundColor: alertStyle.bg,
+        border: banner ? 'none' : `1px solid ${alertStyle.border}`,
+        borderRadius: banner ? 0 : '6px',
         padding: '8px 12px',
         display: 'flex',
         alignItems: 'flex-start',
-        gap: 8,
+        gap: '8px',
         fontSize: 'inherit',
         fontFamily: 'inherit',
+        color: foreColor ?? alertStyle.color,
         userSelect: 'none',
         boxSizing: 'border-box',
-        position: 'relative',
         overflow: 'hidden',
       }}
     >
@@ -45,7 +47,7 @@ export function AlertControl({ properties, size }: DesignerControlProps) {
             width: 20,
             height: 20,
             borderRadius: '50%',
-            backgroundColor: style.color,
+            backgroundColor: alertStyle.iconColor,
             color: 'white',
             display: 'flex',
             alignItems: 'center',
@@ -55,48 +57,27 @@ export function AlertControl({ properties, size }: DesignerControlProps) {
             lineHeight: 1,
           }}
         >
-          {style.icon}
+          {alertStyle.icon}
         </div>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontWeight: 'bold',
-            color: 'rgba(0,0,0,0.88)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {message}
-        </div>
+        <div style={{ fontWeight: 'bold' }}>{message}</div>
         {description && (
-          <div
-            style={{
-              color: 'rgba(0,0,0,0.65)',
-              marginTop: 2,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {description}
-          </div>
+          <div style={{ fontSize: '0.9em', marginTop: '4px', opacity: 0.85 }}>{description}</div>
         )}
       </div>
       {closable && (
-        <div
+        <span
           style={{
-            position: 'absolute',
-            top: 8,
-            right: 12,
+            flexShrink: 0,
             cursor: 'default',
-            color: 'rgba(0,0,0,0.45)',
-            fontSize: 14,
+            fontSize: '0.9em',
+            opacity: 0.6,
+            lineHeight: 1.4,
           }}
         >
           ✕
-        </div>
+        </span>
       )}
     </div>
   );

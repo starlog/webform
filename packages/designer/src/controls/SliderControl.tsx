@@ -1,99 +1,79 @@
+import type { CSSProperties } from 'react';
 import type { DesignerControlProps } from './registry';
-import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 export function SliderControl({ properties, size }: DesignerControlProps) {
-  const theme = useTheme();
   const value = (properties.value as number) ?? 0;
   const minimum = (properties.minimum as number) ?? 0;
   const maximum = (properties.maximum as number) ?? 100;
+  const step = (properties.step as number) ?? 1;
   const orientation = (properties.orientation as string) ?? 'Horizontal';
   const showValue = (properties.showValue as boolean) ?? true;
-
-  const percent =
-    maximum > minimum ? ((value - minimum) / (maximum - minimum)) * 100 : 0;
-  const clampedPercent = Math.min(100, Math.max(0, percent));
+  const trackColor = properties.trackColor as string | undefined;
+  const fillColor = properties.fillColor as string | undefined;
+  const colors = useControlColors('Slider', {
+    backColor: properties.backColor as string | undefined,
+    foreColor: properties.foreColor as string | undefined,
+  });
 
   const isVertical = orientation === 'Vertical';
+  const range = maximum - minimum || 1;
+  const percent = Math.max(0, Math.min(100, ((value - minimum) / range) * 100));
 
-  const track = (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          height: 4,
-          backgroundColor: theme.controls.progressBar.background,
-          borderRadius: 2,
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: `${clampedPercent}%`,
-            height: '100%',
-            backgroundColor: theme.controls.progressBar.fillBackground,
-          }}
-        />
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          left: `${clampedPercent}%`,
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 16,
-          height: 16,
-          borderRadius: '50%',
-          backgroundColor: theme.controls.progressBar.fillBackground,
-          border: '2px solid white',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-          boxSizing: 'border-box',
-        }}
+  const resolvedTrackColor = trackColor || colors.background;
+  const resolvedFillColor = fillColor || '#1677ff';
+
+  const inputStyle: CSSProperties = {
+    width: isVertical ? undefined : '100%',
+    height: isVertical ? '100%' : undefined,
+    cursor: 'default',
+    accentColor: resolvedFillColor,
+    background: `linear-gradient(${isVertical ? 'to top' : 'to right'}, ${resolvedFillColor} 0%, ${resolvedFillColor} ${percent}%, ${resolvedTrackColor} ${percent}%, ${resolvedTrackColor} 100%)`,
+    borderRadius: '4px',
+    margin: 0,
+    pointerEvents: 'none',
+  };
+
+  const containerStyle: CSSProperties = {
+    width: size.width,
+    height: size.height,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    boxSizing: 'border-box',
+    color: colors.color,
+  };
+
+  if (isVertical) {
+    containerStyle.flexDirection = 'column';
+    containerStyle.writingMode = 'vertical-lr';
+    containerStyle.direction = 'rtl';
+  }
+
+  return (
+    <div style={containerStyle}>
+      <input
+        type="range"
+        readOnly
+        min={minimum}
+        max={maximum}
+        step={step}
+        value={value}
+        style={inputStyle}
       />
       {showValue && (
-        <div
+        <span
           style={{
-            position: 'absolute',
-            left: `${clampedPercent}%`,
-            top: -18,
-            transform: 'translateX(-50%)',
-            fontSize: 11,
-            color: (properties.foreColor as string) || theme.form.foreground,
-            whiteSpace: 'nowrap',
+            fontSize: '0.85em',
+            minWidth: '2em',
+            textAlign: 'center',
+            writingMode: 'horizontal-tb',
+            direction: 'ltr',
           }}
         >
           {value}
-        </div>
+        </span>
       )}
-    </div>
-  );
-
-  return (
-    <div
-      style={{
-        width: size.width,
-        height: size.height,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxSizing: 'border-box',
-        padding: showValue && !isVertical ? '18px 8px 0 8px' : '0 8px',
-        ...(isVertical
-          ? {
-              transform: 'rotate(-90deg)',
-              transformOrigin: 'center center',
-            }
-          : {}),
-      }}
-    >
-      {track}
     </div>
   );
 }

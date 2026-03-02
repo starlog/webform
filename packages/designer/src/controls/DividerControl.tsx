@@ -1,19 +1,18 @@
 import type { DesignerControlProps } from './registry';
-import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 export function DividerControl({ properties, size }: DesignerControlProps) {
-  const theme = useTheme();
   const text = (properties.text as string) ?? '';
   const orientation = (properties.orientation as string) ?? 'Horizontal';
   const textAlign = (properties.textAlign as string) ?? 'Center';
   const lineStyle = (properties.lineStyle as string) ?? 'Solid';
-  const lineColor =
-    (properties.lineColor as string) ||
-    (properties.foreColor as string) ||
-    theme.form.foreground;
+  const colors = useControlColors('Divider', {
+    backColor: properties.backColor as string | undefined,
+    foreColor: properties.foreColor as string | undefined,
+  });
 
-  const borderStyleCss = lineStyle.toLowerCase() as 'solid' | 'dashed' | 'dotted';
-  const lineColorWithOpacity = lineColor;
+  const resolvedLineColor = (properties.lineColor as string) || colors.color;
+  const borderStr = `1px ${lineStyle.toLowerCase()} ${resolvedLineColor}`;
 
   if (orientation === 'Vertical') {
     return (
@@ -22,31 +21,22 @@ export function DividerControl({ properties, size }: DesignerControlProps) {
           width: size.width,
           height: size.height,
           display: 'flex',
-          alignItems: 'center',
           justifyContent: 'center',
           boxSizing: 'border-box',
         }}
       >
-        <div
-          style={{
-            height: '100%',
-            borderLeft: `1px ${borderStyleCss} ${lineColorWithOpacity}`,
-            opacity: 0.2,
-          }}
-        />
+        <div style={{ height: '100%', borderLeft: borderStr }} />
       </div>
     );
   }
 
-  const lineElement = (flex: string) => (
-    <div
-      style={{
-        flex,
-        borderTop: `1px ${borderStyleCss} ${lineColorWithOpacity}`,
-        opacity: 0.2,
-      }}
-    />
-  );
+  const flexMap: Record<string, [number, number]> = {
+    Left: [0.05, 0.95],
+    Center: [1, 1],
+    Right: [0.95, 0.05],
+  };
+
+  const [leftFlex, rightFlex] = flexMap[textAlign] || flexMap.Center;
 
   if (!text) {
     return (
@@ -59,13 +49,10 @@ export function DividerControl({ properties, size }: DesignerControlProps) {
           boxSizing: 'border-box',
         }}
       >
-        {lineElement('1')}
+        <div style={{ flex: 1, borderTop: borderStr }} />
       </div>
     );
   }
-
-  const leftFlex = textAlign === 'Left' ? '0 0 5%' : '1';
-  const rightFlex = textAlign === 'Right' ? '0 0 5%' : '1';
 
   return (
     <div
@@ -74,25 +61,25 @@ export function DividerControl({ properties, size }: DesignerControlProps) {
         height: size.height,
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
+        gap: '8px',
         boxSizing: 'border-box',
         fontSize: 'inherit',
         fontFamily: 'inherit',
-        color: (properties.foreColor as string) || theme.form.foreground,
         userSelect: 'none',
       }}
     >
-      {lineElement(leftFlex)}
+      <div style={{ flex: leftFlex, borderTop: borderStr }} />
       <span
         style={{
+          color: colors.color,
+          fontSize: '0.9em',
           whiteSpace: 'nowrap',
-          opacity: 0.65,
-          fontSize: 'inherit',
+          flexShrink: 0,
         }}
       >
         {text}
       </span>
-      {lineElement(rightFlex)}
+      <div style={{ flex: rightFlex, borderTop: borderStr }} />
     </div>
   );
 }

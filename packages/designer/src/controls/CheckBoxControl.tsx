@@ -1,13 +1,16 @@
 import type { DesignerControlProps } from './registry';
-import { useTheme } from '../theme/ThemeContext';
+import { useControlColors } from '../theme/useControlColors';
 
 export function CheckBoxControl({ properties, size }: DesignerControlProps) {
-  const theme = useTheme();
   const text = (properties.text as string) ?? 'CheckBox';
   const checked = (properties.checked as boolean) ?? false;
+  const colors = useControlColors('CheckBox', {
+    backColor: properties.backColor as string | undefined,
+    foreColor: properties.foreColor as string | undefined,
+  });
 
   return (
-    <div style={{
+    <label style={{
       width: size.width,
       height: size.height,
       display: 'flex',
@@ -15,27 +18,20 @@ export function CheckBoxControl({ properties, size }: DesignerControlProps) {
       gap: '4px',
       fontSize: 'inherit',
       fontFamily: 'inherit',
-      color: (properties.foreColor as string) || theme.form.foreground,
+      color: colors.color,
       userSelect: 'none',
       boxSizing: 'border-box',
+      cursor: 'default',
     }}>
-      <div style={{
-        width: 13,
-        height: 13,
-        border: theme.controls.checkRadio.border,
-        backgroundColor: checked ? theme.controls.checkRadio.checkedBackground : theme.controls.checkRadio.background,
-        borderRadius: theme.controls.checkRadio.borderRadius,
-        flexShrink: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '10px',
-      }}>
-        {checked ? '\u2713' : ''}
-      </div>
+      <input
+        type="checkbox"
+        checked={checked}
+        readOnly
+        style={{ margin: 0, width: 16, height: 16, pointerEvents: 'none' }}
+      />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {text}
       </span>
-    </div>
+    </label>
   );
 }

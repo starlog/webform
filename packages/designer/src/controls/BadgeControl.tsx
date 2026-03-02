@@ -1,10 +1,11 @@
+import type { CSSProperties } from 'react';
 import type { DesignerControlProps } from './registry';
 
 const STATUS_COLORS: Record<string, string> = {
   Default: '#ff4d4f',
-  Error: '#ff4d4f',
   Success: '#52c41a',
   Processing: '#1677ff',
+  Error: '#ff4d4f',
   Warning: '#faad14',
 };
 
@@ -17,54 +18,64 @@ export function BadgeControl({ properties, size }: DesignerControlProps) {
   const text = (properties.text as string) ?? '';
   const badgeColor = (properties.badgeColor as string) ?? '';
 
-  const color = badgeColor || STATUS_COLORS[status] || STATUS_COLORS.Default;
+  const resolvedColor = badgeColor || STATUS_COLORS[status] || STATUS_COLORS.Default;
   const displayCount = count > overflowCount ? `${overflowCount}+` : `${count}`;
-  const showBadge = dot || count > 0 || showZero;
+  const shouldShowBadge = dot || count > 0 || showZero;
 
-  const badgeEl = showBadge ? (
-    <span
-      style={
-        dot
-          ? {
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: color,
-              display: 'inline-block',
-            }
-          : {
-              minWidth: 20,
-              height: 20,
-              borderRadius: 10,
-              backgroundColor: color,
-              color: '#fff',
-              fontSize: 12,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 6px',
-              boxSizing: 'border-box' as const,
-              lineHeight: 1,
-            }
-      }
-    >
-      {dot ? null : displayCount}
-    </span>
-  ) : null;
+  const badgeBaseStyle: CSSProperties = {
+    backgroundColor: resolvedColor,
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 'bold',
+    lineHeight: 1,
+  };
 
-  if (!text) {
+  const dotStyle: CSSProperties = {
+    ...badgeBaseStyle,
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+  };
+
+  const countStyle: CSSProperties = {
+    ...badgeBaseStyle,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    fontSize: '0.75em',
+    padding: '0 6px',
+    boxSizing: 'border-box',
+  };
+
+  const renderBadge = (positioned: boolean) => {
+    if (!shouldShowBadge) return null;
+
+    const posStyle: CSSProperties = positioned
+      ? { position: 'absolute', top: 0, right: 0, transform: 'translate(50%, -50%)' }
+      : {};
+
+    if (dot) {
+      return <span style={{ ...dotStyle, ...posStyle }} />;
+    }
+    return <span style={{ ...countStyle, ...posStyle }}>{displayCount}</span>;
+  };
+
+  if (text) {
     return (
       <div
         style={{
           width: size.width,
           height: size.height,
-          display: 'flex',
+          display: 'inline-flex',
+          position: 'relative',
           alignItems: 'center',
-          justifyContent: 'center',
           userSelect: 'none',
         }}
       >
-        {badgeEl}
+        <span style={{ fontSize: 'inherit', fontFamily: 'inherit' }}>{text}</span>
+        {renderBadge(true)}
       </div>
     );
   }
@@ -74,16 +85,14 @@ export function BadgeControl({ properties, size }: DesignerControlProps) {
       style={{
         width: size.width,
         height: size.height,
-        position: 'relative',
         display: 'inline-flex',
+        position: 'relative',
         alignItems: 'center',
+        justifyContent: 'center',
         userSelect: 'none',
       }}
     >
-      <span style={{ fontSize: 'inherit', fontFamily: 'inherit' }}>{text}</span>
-      {showBadge && (
-        <span style={{ position: 'absolute', top: -4, right: -4 }}>{badgeEl}</span>
-      )}
+      {renderBadge(false)}
     </div>
   );
 }
