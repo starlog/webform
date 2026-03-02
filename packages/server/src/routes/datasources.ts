@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { DataSourceService } from '../services/DataSourceService.js';
+import { adapterRegistry } from '../services/adapters/index.js';
 import {
   createDataSourceSchema,
   updateDataSourceSchema,
@@ -9,6 +10,11 @@ import {
 
 export const datasourcesRouter = Router();
 const dataSourceService = new DataSourceService();
+
+// GET /api/datasources/dialects — 지원 dialect 목록
+datasourcesRouter.get('/dialects', (_req, res) => {
+  res.json({ data: adapterRegistry.listDialects() });
+});
 
 // GET /api/datasources — 데이터소스 목록
 datasourcesRouter.get('/', async (req, res, next) => {

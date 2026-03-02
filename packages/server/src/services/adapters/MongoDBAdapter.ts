@@ -2,6 +2,7 @@ import { MongoClient } from 'mongodb';
 import { sanitizeQueryInput } from '@webform/common';
 import { AppError } from '../../middleware/errorHandler.js';
 import type { DataSourceAdapter } from './types.js';
+import type { AdapterFactory } from './AdapterRegistry.js';
 import { getMongoClient } from './MongoClientPool.js';
 
 const QUERY_TIMEOUT_MS = 10_000;
@@ -101,3 +102,16 @@ export class MongoDBAdapter implements DataSourceAdapter {
     // 클라이언트 생명주기는 MongoClientPool에서 관리
   }
 }
+
+export const MongoDBAdapterFactory: AdapterFactory = {
+  dialect: 'mongodb',
+  displayName: 'MongoDB',
+  create(config: Record<string, unknown>) {
+    const connectionString = config.connectionString as string;
+    const database = config.database as string;
+    if (!connectionString || !database) {
+      throw new Error('MongoDB adapter requires connectionString and database');
+    }
+    return new MongoDBAdapter(connectionString, database);
+  },
+};

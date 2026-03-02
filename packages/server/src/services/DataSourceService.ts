@@ -1,7 +1,7 @@
 import { DataSource } from '../models/DataSource.js';
 import type { DataSourceDocument } from '../models/DataSource.js';
 import { EncryptionService } from './EncryptionService.js';
-import { MongoDBAdapter } from './adapters/MongoDBAdapter.js';
+import { adapterRegistry } from './adapters/index.js';
 import { RestApiAdapter } from './adapters/RestApiAdapter.js';
 import { StaticAdapter } from './adapters/StaticAdapter.js';
 import { NotFoundError, AppError } from '../middleware/errorHandler.js';
@@ -242,11 +242,12 @@ export class DataSourceService {
   ): DataSourceAdapter {
     switch (dataSource.type) {
       case 'database': {
-        const config = dataSource.config as { connectionString: string; database: string };
-        if (dataSource.meta.dialect !== 'mongodb') {
-          throw new AppError(400, `Unsupported dialect: ${dataSource.meta.dialect}`);
+        const config = dataSource.config as Record<string, unknown>;
+        const dialect = dataSource.meta.dialect;
+        if (!dialect) {
+          throw new AppError(400, 'Database data source requires a dialect');
         }
-        return new MongoDBAdapter(config.connectionString, config.database);
+        return adapterRegistry.create(dialect, config);
       }
       case 'restApi':
         return new RestApiAdapter(dataSource.config as {
