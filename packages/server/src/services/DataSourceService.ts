@@ -33,10 +33,26 @@ export class DataSourceService {
 
     switch (input.type) {
       case 'database': {
-        const { dialect, connectionString, database } = input.config;
-        doc.encryptedConfig = this.encryption.encrypt(
-          JSON.stringify({ connectionString, database }),
-        );
+        const config = input.config;
+        const { dialect } = config;
+
+        if (dialect === 'mongodb') {
+          const { connectionString, database } = config;
+          doc.encryptedConfig = this.encryption.encrypt(
+            JSON.stringify({ connectionString, database }),
+          );
+        } else if (dialect === 'sqlite') {
+          const { database } = config;
+          doc.encryptedConfig = this.encryption.encrypt(
+            JSON.stringify({ database }),
+          );
+        } else {
+          const { host, port, user, password, database, ssl } = config;
+          doc.encryptedConfig = this.encryption.encrypt(
+            JSON.stringify({ host, port, user, password, database, ssl }),
+          );
+        }
+
         doc.meta = { dialect };
         break;
       }
@@ -148,12 +164,30 @@ export class DataSourceService {
     if (input.config) {
       switch (existing.type) {
         case 'database': {
-          const cfg = input.config as { dialect?: string; connectionString: string; database: string };
-          update.encryptedConfig = this.encryption.encrypt(
-            JSON.stringify({ connectionString: cfg.connectionString, database: cfg.database }),
-          );
-          if (cfg.dialect) {
-            update['meta.dialect'] = cfg.dialect;
+          const cfg = input.config as Record<string, unknown>;
+          const dialect = cfg.dialect as string;
+
+          if (dialect === 'mongodb') {
+            const { connectionString, database } = cfg as { connectionString: string; database: string };
+            update.encryptedConfig = this.encryption.encrypt(
+              JSON.stringify({ connectionString, database }),
+            );
+          } else if (dialect === 'sqlite') {
+            const { database } = cfg as { database: string };
+            update.encryptedConfig = this.encryption.encrypt(
+              JSON.stringify({ database }),
+            );
+          } else {
+            const { host, port, user, password, database, ssl } = cfg as {
+              host: string; port?: number; user: string; password: string; database: string; ssl?: boolean;
+            };
+            update.encryptedConfig = this.encryption.encrypt(
+              JSON.stringify({ host, port, user, password, database, ssl }),
+            );
+          }
+
+          if (dialect) {
+            update['meta.dialect'] = dialect;
           }
           break;
         }
