@@ -6,6 +6,8 @@ export type { DataSourceAdapter } from './types.js';
 import { adapterRegistry } from './AdapterRegistry.js';
 import { MongoDBAdapterFactory } from './MongoDBAdapter.js';
 import { PostgreSQLAdapterFactory } from './PostgreSQLAdapter.js';
+import { MySQLAdapterFactory } from './MySQLAdapter.js';
 
 adapterRegistry.register(MongoDBAdapterFactory);
 adapterRegistry.register(PostgreSQLAdapterFactory);
+adapterRegistry.register(MySQLAdapterFactory);
