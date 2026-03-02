@@ -199,7 +199,7 @@
       "description": "BaseSqlAdapter의 쿼리 빌딩 로직과 보안 기능 테스트",
       "phase": "phase2-sequential",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 BaseSqlAdapter에 대한 테스트를 작성하고 실행하라.\n\n## 테스트 구체화 방법\n\nBaseSqlAdapter는 추상 클래스이므로 테스트용 구체 클래스를 만들어 테스트하라:\n\n```typescript\nclass TestAdapter extends BaseSqlAdapter {\n  public queries: Array<{ sql: string; params?: unknown[] }> = [];\n  \n  protected escapeId(id: string): string { return `\"${id.replace(/\"/g, '\"\"')}\"`; }\n  protected placeholder(index: number): string { return `$${index}`; }\n  protected async rawQuery(sql: string, params?: unknown[]): Promise<unknown[]> {\n    this.queries.push({ sql, params });\n    return [];\n  }\n  async disconnect(): Promise<void> {}\n}\n```\n\n## 테스트 케이스\n\n`packages/server/src/__tests__/BaseSqlAdapter.test.ts` 파일 생성:\n\n1. executeQuery() - 기본 SELECT 쿼리 생성\n2. executeQuery() - WHERE 조건 포함 parameterized 쿼리\n3. executeQuery() - columns 지정 시 SELECT 절\n4. executeQuery() - limit 최대값 1000 초과 시 1000으로 제한\n5. executeQuery() - offset 처리\n6. testConnection() - rawQuery 성공 시 { success: true } 반환\n7. testConnection() - rawQuery 실패 시 { success: false, message } 반환\n8. SQL injection 방지: escapeId에 특수문자 포함 시 이스케이핑 확인\n\n## 테스트 실행\n\n```bash\ncd packages/server && npx vitest run src/__tests__/BaseSqlAdapter.test.ts\n```\n\n## 타입체크\n\n```bash\ncd packages/server && npx tsc --noEmit\n```\n\n실패 시 구현 코드를 수정하여 모든 테스트가 통과하도록 하라.",
       "dependsOn": [
         "sql-base-impl"
