@@ -498,7 +498,7 @@
       "description": "DataSourcePanel의 dialect 선택 및 SQL DB 폼 렌더링 테스트",
       "phase": "phase4-final",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 Designer UI 확장에 대한 검증을 수행하라.\n\n## 타입체크 우선 실행\n\n```bash\ncd packages/designer && npx tsc --noEmit\ncd packages/common && npx tsc --noEmit\n```\n\n타입 오류가 있으면 수정하라.\n\n## 테스트 파일 확인 및 실행\n\n`packages/designer/src/__tests__/` 디렉토리를 확인하라. 기존 DataSourcePanel 테스트가 있으면 실행하라:\n\n```bash\ncd packages/designer && npx vitest run\n```\n\n## 기존 테스트가 없는 경우\n\n`packages/designer/src/__tests__/DataSourcePanel.test.tsx` 파일을 생성하라:\n\n### Mock 전략\n- `fetch`를 vi.fn()으로 모킹\n- `/api/datasources/dialects` 응답: `{ dialects: [{ dialect: 'mongodb', displayName: 'MongoDB' }, { dialect: 'postgresql', displayName: 'PostgreSQL' }] }`\n\n### 테스트 케이스\n1. 데이터소스 type 'database' 선택 시 dialect 드롭다운 렌더링 확인\n2. MongoDB dialect 선택 시 connectionString + database 필드 표시\n3. PostgreSQL dialect 선택 시 host/port/user/password/database/ssl 필드 표시\n\n```bash\ncd packages/designer && npx vitest run src/__tests__/DataSourcePanel.test.tsx\n```\n\n테스트 실패 시 구현 코드를 수정하라.",
       "dependsOn": [
         "designer-ui-impl"
