@@ -83,6 +83,7 @@ function requireApiKey(req: Request, res: Response, next: NextFunction): void {
 await apiClient.init();
 
 const app = express();
+app.use(express.json());
 
 // Per-session transport map (stateful mode)
 const transports = new Map<string, StreamableHTTPServerTransport>();
