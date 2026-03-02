@@ -479,7 +479,7 @@
       "description": "DataSourcePanel에 dialect 선택 드롭다운 및 SQL DB 설정 폼 추가",
       "phase": "phase4-final",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 Designer UI 확장을 구현하라. 계획 파일 `plans/designer-ui-plan.md`를 참조하라.\n\n## 구현할 파일\n\n`packages/designer/src/components/DataSourcePanel/DataSourcePanel.tsx` 파일을 읽고 수정하라.\n\n### 추가할 기능\n\n1. **dialect 목록 fetch 함수 추가**:\n```typescript\nasync function fetchDialects(): Promise<Array<{ dialect: string; displayName: string }>> {\n  const res = await fetch('/api/datasources/dialects');\n  if (!res.ok) throw new Error('dialect 목록을 가져올 수 없습니다');\n  const data = await res.json();\n  return data.dialects;\n}\n```\n\n2. **AddDataSourceModal 또는 데이터소스 추가 form에서**:\n   - type이 'database'로 변경될 때 fetchDialects() 호출\n   - 결과를 dialectOptions 상태에 저장\n   - dialect 드롭다운 추가 (기본값: 'mongodb')\n\n3. **dialect별 폼 렌더링**:\n   - MongoDB: connectionString + database 입력 (기존 방식 유지)\n   - PostgreSQL/MySQL/MSSQL/SQLite: host + port + user + password + database + ssl 체크박스\n\n4. **createDataSource 호출 시 config 구성**:\n   - MongoDB: `{ dialect, connectionString, database }`\n   - SQL: `{ dialect, host, port: Number(port) || undefined, user, password, database, ssl }`\n\n## 주의사항\n- 기존 WinForms 스타일 CSS 일관성 유지 (기존 컴포넌트의 style 패턴 따를 것)\n- 기존 MongoDB 전용 폼을 교체하되, 기존 기능은 유지\n- `packages/common/src/types/datasource.ts`의 DatabaseConfig 타입과 일치하는 config 객체 구성\n- TypeScript 타입 오류 없어야 함\n- 기존 코드 스타일(singleQuote, trailingComma) 준수",
       "dependsOn": [
         "designer-ui-plan"

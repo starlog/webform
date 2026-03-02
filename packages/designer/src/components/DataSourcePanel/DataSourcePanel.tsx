@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
-import type { DataSourceDefinition } from '@webform/common';
+import type { DataSourceDefinition, DatabaseDialect } from '@webform/common';
 
 const DESIGNER_API = '/api';
 
@@ -197,6 +197,12 @@ const styles = {
     gap: '6px',
     marginTop: '12px',
   } as CSSProperties,
+  formCheckboxGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    marginBottom: '8px',
+  } as CSSProperties,
 };
 
 // ─── 추가 모달 컴포넌트 ──────────────────────────────
@@ -208,6 +214,12 @@ interface AddModalProps {
 
 type DsType = DataSourceDefinition['type'];
 
+const DEFAULT_PORTS: Record<string, string> = {
+  postgresql: '5432',
+  mysql: '3306',
+  mssql: '1433',
+};
+
 function AddDataSourceModal({ onClose, onSubmit }: AddModalProps) {
   const [name, setName] = useState('');
   const [type, setType] = useState<DsType>('database');
@@ -216,12 +228,63 @@ function AddDataSourceModal({ onClose, onSubmit }: AddModalProps) {
   const [baseUrl, setBaseUrl] = useState('');
   const [staticData, setStaticData] = useState('[]');
 
+  // dialect 관련 상태
+  const [dialects, setDialects] = useState<Array<{ dialect: string; displayName: string }>>([]);
+  const [dialectsLoaded, setDialectsLoaded] = useState(false);
+  const [dialect, setDialect] = useState('');
+  const [host, setHost] = useState('');
+  const [port, setPort] = useState('');
+  const [user, setUser] = useState('');
+  const [password, setPassword] = useState('');
+  const [ssl, setSsl] = useState(false);
+
+  // type이 'database'로 변경될 때 dialect 목록 fetch
+  useEffect(() => {
+    if (type === 'database' && !dialectsLoaded) {
+      fetch(`${DESIGNER_API}/datasources/dialects`)
+        .then((res) => res.json())
+        .then((json) => {
+          setDialects(json.data);
+          setDialectsLoaded(true);
+          if (json.data.length > 0) {
+            setDialect(json.data[0].dialect);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [type, dialectsLoaded]);
+
+  const handleDialectChange = (newDialect: string) => {
+    setDialect(newDialect);
+    setPort(DEFAULT_PORTS[newDialect] || '');
+    if (newDialect === 'mongodb') {
+      setHost('');
+      setUser('');
+      setPassword('');
+      setSsl(false);
+    } else {
+      setConnectionString('');
+    }
+  };
+
   const handleSubmit = () => {
     if (!name.trim()) return;
 
     let config: DataSourceDefinition['config'];
     if (type === 'database') {
-      config = { dialect: 'mongodb', connectionString, database };
+      if (dialect === 'mongodb') {
+        config = { dialect: 'mongodb', connectionString, database };
+      } else {
+        config = {
+          dialect: dialect as DatabaseDialect,
+          host,
+          port: port ? Number(port) : undefined,
+          user,
+          password,
+          database,
+          ssl,
+        };
+      }
     } else if (type === 'restApi') {
       config = { baseUrl, headers: {}, auth: { type: 'none' } };
     } else {
@@ -266,23 +329,104 @@ function AddDataSourceModal({ onClose, onSubmit }: AddModalProps) {
         {type === 'database' && (
           <>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Connection String</label>
-              <input
-                style={styles.formInput}
-                value={connectionString}
-                onChange={(e) => setConnectionString(e.target.value)}
-                placeholder="mongodb://localhost:27017"
-              />
+              <label style={styles.formLabel}>Dialect</label>
+              <select
+                style={styles.formSelect}
+                value={dialect}
+                onChange={(e) => handleDialectChange(e.target.value)}
+              >
+                {dialects.map((d) => (
+                  <option key={d.dialect} value={d.dialect}>
+                    {d.displayName}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Database</label>
-              <input
-                style={styles.formInput}
-                value={database}
-                onChange={(e) => setDatabase(e.target.value)}
-                placeholder="mydb"
-              />
-            </div>
+
+            {dialect === 'mongodb' && (
+              <>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Connection String</label>
+                  <input
+                    style={styles.formInput}
+                    value={connectionString}
+                    onChange={(e) => setConnectionString(e.target.value)}
+                    placeholder="mongodb://localhost:27017"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Database</label>
+                  <input
+                    style={styles.formInput}
+                    value={database}
+                    onChange={(e) => setDatabase(e.target.value)}
+                    placeholder="mydb"
+                  />
+                </div>
+              </>
+            )}
+
+            {dialect && dialect !== 'mongodb' && (
+              <>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Host</label>
+                  <input
+                    style={styles.formInput}
+                    value={host}
+                    onChange={(e) => setHost(e.target.value)}
+                    placeholder="localhost"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Port</label>
+                  <input
+                    style={styles.formInput}
+                    value={port}
+                    onChange={(e) => setPort(e.target.value)}
+                    placeholder={DEFAULT_PORTS[dialect] || ''}
+                    type="number"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>User</label>
+                  <input
+                    style={styles.formInput}
+                    value={user}
+                    onChange={(e) => setUser(e.target.value)}
+                    placeholder="sa"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Password</label>
+                  <input
+                    style={styles.formInput}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    type="password"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Database</label>
+                  <input
+                    style={styles.formInput}
+                    value={database}
+                    onChange={(e) => setDatabase(e.target.value)}
+                    placeholder="mydb"
+                  />
+                </div>
+                <div style={styles.formCheckboxGroup}>
+                  <input
+                    type="checkbox"
+                    checked={ssl}
+                    onChange={(e) => setSsl(e.target.checked)}
+                    id="ssl-checkbox"
+                  />
+                  <label htmlFor="ssl-checkbox" style={styles.formLabel}>
+                    SSL
+                  </label>
+                </div>
+              </>
+            )}
           </>
         )}
 
