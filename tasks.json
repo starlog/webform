@@ -274,7 +274,7 @@
       "description": "PostgreSQLAdapter의 쿼리 실행, 연결 테스트, Factory 등록에 대한 테스트",
       "phase": "phase3-parallel",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 PostgreSQLAdapter에 대한 테스트를 작성하고 실행하라.\n\n## 테스트 파일 생성\n\n`packages/server/src/__tests__/PostgreSQLAdapter.test.ts` 파일 생성:\n\n### Mock 전략\n- `pg` 패키지의 Pool을 vi.mock()으로 모킹\n- pool.query()가 { rows: [] }를 반환하도록 설정\n\n### 테스트 케이스\n1. constructor: Pool 생성 시 올바른 설정이 전달되는지\n2. testConnection(): SELECT 1 쿼리 실행 및 성공 응답\n3. testConnection(): Pool 오류 시 { success: false } 반환\n4. executeQuery(): 기본 쿼리 실행\n5. disconnect(): pool.end() 호출\n6. escapeId(): PostgreSQL 스타일 이스케이핑 (`\"col\"`)\n7. placeholder(): $1, $2 형식\n8. PostgreSQLAdapterFactory: dialect='postgresql', displayName='PostgreSQL'\n9. PostgreSQLAdapterFactory.create(): PostgreSQLAdapter 인스턴스 반환\n\n## 테스트 실행\n\n```bash\ncd packages/server && npx vitest run src/__tests__/PostgreSQLAdapter.test.ts\n```\n\n## 타입체크\n\n```bash\ncd packages/server && npx tsc --noEmit\n```\n\n실패 시 구현 코드를 수정하여 모든 테스트가 통과하도록 하라.",
       "dependsOn": [
         "postgresql-impl"
@@ -327,7 +327,7 @@
       "description": "mysql2 패키지를 사용한 MySQL 어댑터 및 Factory 구현",
       "phase": "phase3-parallel",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트에 MySQL 어댑터를 구현하라. 계획 파일 `plans/mysql-plan.md`를 참조하라.\n\n## 의존성 설치\n\n```bash\npnpm --filter @webform/server add mysql2\n```\n\n## 구현 파일\n\n`packages/server/src/services/adapters/MySQLAdapter.ts` 파일 생성:\n\n```typescript\nimport mysql from 'mysql2/promise';\nimport { BaseSqlAdapter, type SqlConnectionOptions } from './BaseSqlAdapter.js';\nimport type { AdapterFactory } from './AdapterRegistry.js';\n\nexport class MySQLAdapter extends BaseSqlAdapter {\n  private pool: mysql.Pool;\n\n  constructor(config: SqlConnectionOptions) {\n    super();\n    this.pool = mysql.createPool({\n      host: config.host,\n      port: config.port || 3306,\n      user: config.user,\n      password: config.password,\n      database: config.database,\n      ssl: config.ssl ? {} : undefined,\n      connectionLimit: 10,\n      connectTimeout: 10000,\n    });\n  }\n\n  protected async rawQuery(sql: string, params?: unknown[]): Promise<unknown[]> {\n    const [rows] = await this.pool.execute(sql, params);\n    return rows as unknown[];\n  }\n\n  protected escapeId(id: string): string {\n    return `\\`${id.replace(/`/g, '``')}\\``;\n  }\n\n  protected placeholder(_index: number): string {\n    return '?';\n  }\n\n  async disconnect(): Promise<void> {\n    await this.pool.end();\n  }\n}\n\nexport const MySQLAdapterFactory: AdapterFactory = {\n  dialect: 'mysql',\n  displayName: 'MySQL',\n  create(config) {\n    return new MySQLAdapter(config as SqlConnectionOptions);\n  },\n};\n```\n\n## adapters/index.ts 업데이트\n\n`packages/server/src/services/adapters/index.ts` 파일을 읽고 MySQLAdapterFactory 등록을 추가하라:\n\n```typescript\nimport { MySQLAdapterFactory } from './MySQLAdapter.js';\n// ...\nadapterRegistry.register(MySQLAdapterFactory);\n```\n\n## 주의사항\n- mysql2는 TypeScript 타입 내장\n- placeholder는 항상 '?'이므로 index 파라미터를 무시\n- TypeScript strict 모드 준수",
       "dependsOn": [
         "mysql-plan"
