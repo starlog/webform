@@ -1,3 +1,4 @@
+import { AppError } from '../../middleware/errorHandler.js';
 import type { DataSourceAdapter } from './types.js';
 
 export interface AdapterFactory {
@@ -19,7 +20,7 @@ export class AdapterRegistry {
   create(dialect: string, config: Record<string, unknown>): DataSourceAdapter {
     const factory = this.factories.get(dialect);
     if (!factory) {
-      throw new Error(`AdapterRegistry: unsupported dialect '${dialect}'`);
+      throw new AppError(400, `AdapterRegistry: unsupported dialect '${dialect}'`);
     }
     return factory.create(config);
   }
