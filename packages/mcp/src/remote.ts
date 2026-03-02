@@ -120,6 +120,10 @@ app.post('/mcp', async (req: Request, res: Response) => {
     sessionIdGenerator: () => randomUUID(),
   });
 
+  transport.onerror = (err: Error) => {
+    console.error('[mcp-transport] error:', err.message);
+  };
+
   transport.onclose = () => {
     if (transport.sessionId) {
       transports.delete(transport.sessionId);
@@ -128,11 +132,12 @@ app.post('/mcp', async (req: Request, res: Response) => {
 
   await server.connect(transport);
 
+  await transport.handleRequest(req, res, req.body);
+
+  // sessionId is only available after handleRequest processes the initialize request
   if (transport.sessionId) {
     transports.set(transport.sessionId, transport);
   }
-
-  await transport.handleRequest(req, res, req.body);
 });
 
 // GET for SSE streaming (server→client notifications)
