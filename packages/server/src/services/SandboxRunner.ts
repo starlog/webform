@@ -1,6 +1,6 @@
 import ivm from 'isolated-vm';
 import ts from 'typescript';
-import { MongoClient } from 'mongodb';
+import { getMongoClient } from './adapters/MongoClientPool.js';
 import type { TraceEntry } from '@webform/common';
 import { env } from '../config/index.js';
 import { CodeInstrumenter } from './CodeInstrumenter.js';
@@ -247,52 +247,47 @@ export class SandboxRunner {
           // SSRF 방어: 내부 네트워크 주소 차단
           await validateMongoConnectionString(info.connectionString);
 
-          const client = new MongoClient(info.connectionString);
-          try {
-            await client.connect();
-            const db = client.db(info.database);
-            const col = db.collection(collection || info.defaultCollection);
-            const filter = arg1 ? JSON.parse(arg1) : {};
-            const arg2Parsed = arg2 ? JSON.parse(arg2) : undefined;
+          const client = getMongoClient(info.connectionString);
+          const db = client.db(info.database);
+          const col = db.collection(collection || info.defaultCollection);
+          const filter = arg1 ? JSON.parse(arg1) : {};
+          const arg2Parsed = arg2 ? JSON.parse(arg2) : undefined;
 
-            let result: unknown;
-            switch (operation) {
-              case 'find': {
-                result = await col.find(filter).limit(info.maxResultCount).toArray();
-                break;
-              }
-              case 'findOne': {
-                result = await col.findOne(filter);
-                break;
-              }
-              case 'insertOne': {
-                // arg1 = document to insert
-                const insertResult = await col.insertOne(filter);
-                result = { insertedId: String(insertResult.insertedId) };
-                break;
-              }
-              case 'updateOne': {
-                // arg1 = filter, arg2 = update fields
-                const updateResult = await col.updateOne(filter, { $set: arg2Parsed });
-                result = { modifiedCount: updateResult.modifiedCount };
-                break;
-              }
-              case 'deleteOne': {
-                const deleteResult = await col.deleteOne(filter);
-                result = { deletedCount: deleteResult.deletedCount };
-                break;
-              }
-              case 'count': {
-                result = await col.countDocuments(filter);
-                break;
-              }
-              default:
-                throw new Error(`Unknown MongoDB operation: ${operation}`);
+          let result: unknown;
+          switch (operation) {
+            case 'find': {
+              result = await col.find(filter).limit(info.maxResultCount).toArray();
+              break;
             }
-            return new ivm.ExternalCopy(result).copyInto();
-          } finally {
-            await client.close();
+            case 'findOne': {
+              result = await col.findOne(filter);
+              break;
+            }
+            case 'insertOne': {
+              // arg1 = document to insert
+              const insertResult = await col.insertOne(filter);
+              result = { insertedId: String(insertResult.insertedId) };
+              break;
+            }
+            case 'updateOne': {
+              // arg1 = filter, arg2 = update fields
+              const updateResult = await col.updateOne(filter, { $set: arg2Parsed });
+              result = { modifiedCount: updateResult.modifiedCount };
+              break;
+            }
+            case 'deleteOne': {
+              const deleteResult = await col.deleteOne(filter);
+              result = { deletedCount: deleteResult.deletedCount };
+              break;
+            }
+            case 'count': {
+              result = await col.countDocuments(filter);
+              break;
+            }
+            default:
+              throw new Error(`Unknown MongoDB operation: ${operation}`);
           }
+          return new ivm.ExternalCopy(result).copyInto();
         },
       );
       await jail.set('__mongoHandler', mongoHandler);

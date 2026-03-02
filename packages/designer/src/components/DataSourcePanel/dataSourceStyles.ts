@@ -1,0 +1,163 @@
+import type { CSSProperties } from 'react';
+
+export const DEFAULT_PORTS: Record<string, string> = {
+  postgresql: '5432',
+  mysql: '3306',
+  mssql: '1433',
+};
+
+export const styles = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+    fontSize: '12px',
+    backgroundColor: '#f5f5f5',
+    borderLeft: '1px solid #d0d0d0',
+  } as CSSProperties,
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '8px 10px',
+    backgroundColor: '#e8e8e8',
+    borderBottom: '1px solid #d0d0d0',
+    fontWeight: 600,
+    fontSize: '13px',
+  } as CSSProperties,
+  addButton: {
+    backgroundColor: '#0078d7',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '2px',
+    padding: '2px 8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    lineHeight: '18px',
+  } as CSSProperties,
+  list: {
+    flex: 1,
+    overflow: 'auto',
+    padding: '4px 0',
+  } as CSSProperties,
+  listItem: {
+    padding: '6px 10px',
+    cursor: 'pointer',
+    borderBottom: '1px solid #e0e0e0',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  } as CSSProperties,
+  listItemSelected: {
+    backgroundColor: '#cce4f7',
+  } as CSSProperties,
+  dsType: {
+    fontSize: '11px',
+    color: '#888',
+  } as CSSProperties,
+  actions: {
+    display: 'flex',
+    gap: '4px',
+    padding: '6px 10px',
+    borderTop: '1px solid #d0d0d0',
+  } as CSSProperties,
+  actionButton: {
+    flex: 1,
+    padding: '4px 8px',
+    border: '1px solid #a0a0a0',
+    backgroundColor: '#f0f0f0',
+    cursor: 'pointer',
+    fontSize: '11px',
+    borderRadius: '2px',
+  } as CSSProperties,
+  testResult: {
+    padding: '6px 10px',
+    fontSize: '11px',
+  } as CSSProperties,
+  previewTable: {
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    fontSize: '11px',
+  } as CSSProperties,
+  previewTh: {
+    backgroundColor: '#e0e0e0',
+    border: '1px solid #d0d0d0',
+    padding: '3px 6px',
+    textAlign: 'left' as const,
+    fontWeight: 600,
+  } as CSSProperties,
+  previewTd: {
+    border: '1px solid #d0d0d0',
+    padding: '2px 6px',
+    maxWidth: '120px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+  } as CSSProperties,
+  previewContainer: {
+    maxHeight: '200px',
+    overflow: 'auto',
+    padding: '0 10px 10px',
+  } as CSSProperties,
+  // 모달 스타일
+  modalOverlay: {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  } as CSSProperties,
+  modal: {
+    backgroundColor: '#fff',
+    border: '1px solid #a0a0a0',
+    padding: '16px',
+    minWidth: '360px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+  } as CSSProperties,
+  modalTitle: {
+    fontSize: '14px',
+    fontWeight: 600,
+    marginBottom: '12px',
+  } as CSSProperties,
+  formGroup: {
+    marginBottom: '8px',
+  } as CSSProperties,
+  formLabel: {
+    display: 'block',
+    fontSize: '11px',
+    fontWeight: 600,
+    marginBottom: '2px',
+  } as CSSProperties,
+  formInput: {
+    width: '100%',
+    padding: '3px 6px',
+    border: '1px solid #a0a0a0',
+    fontSize: '12px',
+    boxSizing: 'border-box' as const,
+  } as CSSProperties,
+  formSelect: {
+    width: '100%',
+    padding: '3px 4px',
+    border: '1px solid #a0a0a0',
+    fontSize: '12px',
+    boxSizing: 'border-box' as const,
+  } as CSSProperties,
+  modalActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '6px',
+    marginTop: '12px',
+  } as CSSProperties,
+  formCheckboxGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    marginBottom: '8px',
+  } as CSSProperties,
+};

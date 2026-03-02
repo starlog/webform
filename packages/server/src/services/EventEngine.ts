@@ -17,23 +17,82 @@ export interface ExecuteEventOptions {
   debugMode?: boolean;
 }
 
-/** formDef.controls에서 id↔name 매핑 생성 (children 포함 재귀) */
-function buildControlMaps(controls: ControlDefinition[]): {
+/** formDef.controls를 한 번 순회하여 id↔name 매핑, MongoConnector, SwaggerConnector를 모두 수집 */
+function analyzeControls(controls: ControlDefinition[]): {
   idToName: Map<string, string>;
   nameToId: Map<string, string>;
+  mongoConnectors: MongoConnectorInfo[];
+  swaggerConnectors: SwaggerConnectorInfo[];
 } {
   const idToName = new Map<string, string>();
   const nameToId = new Map<string, string>();
+  const mongoConnectors: MongoConnectorInfo[] = [];
+  const swaggerConnectors: SwaggerConnectorInfo[] = [];
 
   function walk(ctrls: ControlDefinition[]) {
     for (const ctrl of ctrls) {
+      // id↔name 매핑
       idToName.set(ctrl.id, ctrl.name);
       nameToId.set(ctrl.name, ctrl.id);
+
+      // MongoDBConnector 수집
+      if (ctrl.type === 'MongoDBConnector') {
+        mongoConnectors.push({
+          controlName: ctrl.name,
+          connectionString: (ctrl.properties.connectionString as string) || '',
+          database: (ctrl.properties.database as string) || '',
+          defaultCollection: (ctrl.properties.defaultCollection as string) || '',
+          queryTimeout: (ctrl.properties.queryTimeout as number) || 10000,
+          maxResultCount: (ctrl.properties.maxResultCount as number) || 1000,
+        });
+      }
+
+      // SwaggerConnector 수집
+      if (ctrl.type === 'SwaggerConnector') {
+        const specYaml = (ctrl.properties.specYaml as string) || '';
+        if (specYaml) {
+          let parsed;
+          try {
+            parsed = parseSwaggerSpec(specYaml);
+          } catch (err) {
+            console.warn(
+              `[EventEngine] SwaggerConnector "${ctrl.name}" specYaml 파싱 실패:`,
+              (err as Error).message,
+            );
+            parsed = null;
+          }
+
+          if (parsed) {
+            // baseUrl 오버라이드: ctrl.properties.baseUrl이 있으면 우선 사용
+            const baseUrl = (ctrl.properties.baseUrl as string) || parsed.baseUrl;
+
+            // defaultHeaders 파싱
+            let defaultHeaders: Record<string, string> = {};
+            const headersStr = (ctrl.properties.defaultHeaders as string) || '{}';
+            try {
+              defaultHeaders = JSON.parse(headersStr);
+            } catch {
+              // JSON 파싱 실패 시 빈 객체
+            }
+
+            const timeout = (ctrl.properties.timeout as number) || 10000;
+
+            swaggerConnectors.push({
+              controlName: ctrl.name,
+              operations: parsed.operations,
+              baseUrl,
+              defaultHeaders,
+              timeout,
+            });
+          }
+        }
+      }
+
       if (ctrl.children) walk(ctrl.children);
     }
   }
   walk(controls);
-  return { idToName, nameToId };
+  return { idToName, nameToId, mongoConnectors, swaggerConnectors };
 }
 
 /** ID 키 formState → NAME 키 formState로 변환 */
@@ -90,8 +149,8 @@ export class EventEngine {
       handlerCode = handler.handlerCode;
     }
 
-    // ID↔NAME 매핑 구축
-    const { idToName, nameToId } = buildControlMaps(formDef.controls);
+    // 컨트롤 트리 한 번 순회로 ID↔NAME 매핑 + 커넥터 정보 수집
+    const { idToName, nameToId, mongoConnectors, swaggerConnectors } = analyzeControls(formDef.controls);
 
     // formState를 NAME 키로 변환 (사용자 코드가 ctx.controls.lblStatus 로 접근)
     const formStateById = JSON.parse(JSON.stringify(payload.formState)) as Record<string, Record<string, unknown>>;
@@ -104,9 +163,6 @@ export class EventEngine {
       sender: formStateByName[senderName] ?? {},
       eventArgs: payload.eventArgs,
     };
-
-    const mongoConnectors = this.extractMongoConnectors(formDef.controls);
-    const swaggerConnectors = this.extractSwaggerConnectors(formDef.controls);
 
     const result = await this.sandboxRunner.runCode(handlerCode, ctx, {
       debugMode: options?.debugMode,
@@ -178,8 +234,8 @@ export class EventEngine {
       handlerCode = handler.handlerCode;
     }
 
-    // Shell controls ID↔NAME 매핑
-    const { idToName, nameToId } = buildControlMaps(shellDef.controls);
+    // Shell 컨트롤 트리 한 번 순회로 ID↔NAME 매핑 + 커넥터 정보 수집
+    const { idToName, nameToId, mongoConnectors, swaggerConnectors } = analyzeControls(shellDef.controls);
     const shellStateById = JSON.parse(JSON.stringify(payload.shellState)) as Record<
       string,
       Record<string, unknown>
@@ -197,9 +253,6 @@ export class EventEngine {
       currentFormId: payload.currentFormId,
       appState: appStateCopy,
     };
-
-    const mongoConnectors = this.extractMongoConnectors(shellDef.controls);
-    const swaggerConnectors = this.extractSwaggerConnectors(shellDef.controls);
 
     const result = await this.sandboxRunner.runCode(handlerCode, ctx, {
       debugMode: options?.debugMode,
@@ -384,78 +437,4 @@ export class EventEngine {
     return current?.script as string | undefined;
   }
 
-  private extractSwaggerConnectors(controls: ControlDefinition[]): SwaggerConnectorInfo[] {
-    const connectors: SwaggerConnectorInfo[] = [];
-
-    function walk(ctrls: ControlDefinition[]) {
-      for (const ctrl of ctrls) {
-        if (ctrl.type === 'SwaggerConnector') {
-          const specYaml = (ctrl.properties.specYaml as string) || '';
-          if (!specYaml) {
-            if (ctrl.children) walk(ctrl.children);
-            continue;
-          }
-
-          let parsed;
-          try {
-            parsed = parseSwaggerSpec(specYaml);
-          } catch (err) {
-            console.warn(
-              `[EventEngine] SwaggerConnector "${ctrl.name}" specYaml 파싱 실패:`,
-              (err as Error).message,
-            );
-            if (ctrl.children) walk(ctrl.children);
-            continue;
-          }
-
-          // baseUrl 오버라이드: ctrl.properties.baseUrl이 있으면 우선 사용
-          const baseUrl = (ctrl.properties.baseUrl as string) || parsed.baseUrl;
-
-          // defaultHeaders 파싱
-          let defaultHeaders: Record<string, string> = {};
-          const headersStr = (ctrl.properties.defaultHeaders as string) || '{}';
-          try {
-            defaultHeaders = JSON.parse(headersStr);
-          } catch {
-            // JSON 파싱 실패 시 빈 객체
-          }
-
-          const timeout = (ctrl.properties.timeout as number) || 10000;
-
-          connectors.push({
-            controlName: ctrl.name,
-            operations: parsed.operations,
-            baseUrl,
-            defaultHeaders,
-            timeout,
-          });
-        }
-        if (ctrl.children) walk(ctrl.children);
-      }
-    }
-    walk(controls);
-    return connectors;
-  }
-
-  private extractMongoConnectors(controls: ControlDefinition[]): MongoConnectorInfo[] {
-    const connectors: MongoConnectorInfo[] = [];
-
-    function walk(ctrls: ControlDefinition[]) {
-      for (const ctrl of ctrls) {
-        if (ctrl.type === 'MongoDBConnector') {
-          connectors.push({
-            controlName: ctrl.name,
-            connectionString: (ctrl.properties.connectionString as string) || '',
-            database: (ctrl.properties.database as string) || '',
-            defaultCollection: (ctrl.properties.defaultCollection as string) || '',
-            queryTimeout: (ctrl.properties.queryTimeout as number) || 10000,
-            maxResultCount: (ctrl.properties.maxResultCount as number) || 1000,
-          });
-        }
-        if (ctrl.children) walk(ctrl.children);
-      }
-    }
-    walk(controls);
-    return connectors;
-  }
 }

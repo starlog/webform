@@ -165,36 +165,42 @@ export class ProjectService {
   ): Promise<number> {
     await this.getProject(projectId);
     const forms = await Form.find({ projectId, deletedAt: null });
+    if (forms.length === 0) return 0;
 
-    let modifiedCount = 0;
-    for (const form of forms) {
-      // 폼 레벨 폰트 설정
-      form.set('properties.font', font);
+    const walk = (ctrls: Array<Record<string, unknown>>) => {
+      for (const ctrl of ctrls) {
+        const props = ctrl.properties as Record<string, unknown> | undefined;
+        if (props) {
+          props.font = font;
+        }
+        if (Array.isArray(ctrl.children)) {
+          walk(ctrl.children as Array<Record<string, unknown>>);
+        }
+      }
+    };
 
-      // 모든 컨트롤의 폰트도 설정
+    const bulkOps = forms.map((form) => {
       const controls = form.get('controls') as unknown as Array<Record<string, unknown>>;
       if (Array.isArray(controls)) {
-        const walk = (ctrls: Array<Record<string, unknown>>) => {
-          for (const ctrl of ctrls) {
-            const props = ctrl.properties as Record<string, unknown> | undefined;
-            if (props) {
-              props.font = font;
-            }
-            if (Array.isArray(ctrl.children)) {
-              walk(ctrl.children as Array<Record<string, unknown>>);
-            }
-          }
-        };
         walk(controls);
-        form.markModified('controls');
       }
+      return {
+        updateOne: {
+          filter: { _id: form._id },
+          update: {
+            $set: {
+              'properties.font': font,
+              controls: controls,
+              updatedBy: userId,
+            },
+          },
+        },
+      };
+    });
 
-      form.set('updatedBy', userId);
-      await form.save();
-      modifiedCount++;
-    }
-
-    return modifiedCount;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await Form.bulkWrite(bulkOps as any);
+    return result.modifiedCount;
   }
 
   async importProject(input: ImportProjectInput, userId: string): Promise<ProjectDocument> {

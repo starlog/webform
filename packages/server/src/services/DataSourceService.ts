@@ -22,7 +22,7 @@ export class DataSourceService {
   private encryption = new EncryptionService();
 
   /** getDataSource 결과를 TTL 캐시 */
-  private dsCache = new Map<string, { data: DataSourceDocument & { config: unknown }; expiry: number }>();
+  private static dsCache = new Map<string, { data: DataSourceDocument & { config: unknown }; expiry: number }>();
 
   /**
    * 데이터소스 생성
@@ -94,11 +94,11 @@ export class DataSourceService {
    * 단일 데이터소스 조회 (config 복호화 포함, TTL 캐시)
    */
   async getDataSource(id: string): Promise<DataSourceDocument & { config: unknown }> {
-    const cached = this.dsCache.get(id);
+    const cached = DataSourceService.dsCache.get(id);
     if (cached && cached.expiry > Date.now()) {
       return cached.data;
     }
-    this.dsCache.delete(id);
+    DataSourceService.dsCache.delete(id);
 
     const doc = await DataSource.findOne({ _id: id, deletedAt: null }).lean<DataSourceDocument>();
     if (!doc) {
@@ -120,7 +120,7 @@ export class DataSourceService {
     );
     const result = { ...rest, config } as DataSourceDocument & { config: unknown };
 
-    this.dsCache.set(id, { data: result, expiry: Date.now() + DS_CACHE_TTL_MS });
+    DataSourceService.dsCache.set(id, { data: result, expiry: Date.now() + DS_CACHE_TTL_MS });
     return result;
   }
 
@@ -224,7 +224,7 @@ export class DataSourceService {
     }
 
     // 캐시 무효화 (config 변경 가능성)
-    this.dsCache.delete(id);
+    DataSourceService.dsCache.delete(id);
     await evictSqlAdapter(id);
 
     const doc = await DataSource.findOneAndUpdate(
@@ -255,7 +255,7 @@ export class DataSourceService {
     await DataSource.updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
 
     // 캐시 무효화
-    this.dsCache.delete(id);
+    DataSourceService.dsCache.delete(id);
     await evictSqlAdapter(id);
   }
 
