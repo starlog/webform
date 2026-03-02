@@ -233,7 +233,7 @@
       "description": "pg 패키지를 이용한 PostgreSQL 어댑터 구현 설계",
       "phase": "phase3-parallel",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 PostgreSQL 어댑터 구현 계획을 수립하라.\n\n## 분석할 파일들\n\n1. `packages/server/src/services/adapters/BaseSqlAdapter.ts` - BaseSqlAdapter 인터페이스\n2. `packages/server/src/services/adapters/AdapterRegistry.ts` - AdapterFactory 인터페이스\n3. `packages/server/src/services/adapters/index.ts` - 어댑터 등록 현황\n4. `packages/server/package.json` - 현재 의존성 목록\n\n## 구현할 내용\n\n`packages/server/src/services/adapters/PostgreSQLAdapter.ts` 파일:\n- pg 패키지의 Pool 사용\n- SqlConnectionOptions 사용하여 연결 구성\n- escapeId(): `\"identifier\"` 형태\n- placeholder(): `$1`, `$2`, ...\n- rawQuery(): pool.query(sql, params)\n- disconnect(): pool.end()\n- PostgreSQLAdapterFactory export\n- 연결 풀 설정: max=10, idleTimeoutMillis=60000, connectionTimeoutMillis=10000\n\n## 의존성 설치 필요\n```bash\npnpm --filter @webform/server add pg\npnpm --filter @webform/server add -D @types/pg\n```\n\n## 출력\n\n분석 결과와 구현 계획을 `plans/postgresql-plan.md` 파일로 저장하라. 다음 내용을 포함하라:\n- pg 패키지 Pool 설정 옵션\n- SSL 연결 처리 방법\n- 에러 처리 전략\n- adapters/index.ts에 PostgreSQLAdapterFactory 등록 방법",
       "dependsOn": [
         "sql-base-commit"
@@ -308,7 +308,7 @@
       "description": "mysql2 패키지를 이용한 MySQL 어댑터 구현 설계",
       "phase": "phase3-parallel",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 MySQL 어댑터 구현 계획을 수립하라.\n\n## 분석할 파일들\n\n1. `packages/server/src/services/adapters/BaseSqlAdapter.ts` - BaseSqlAdapter 인터페이스\n2. `packages/server/src/services/adapters/AdapterRegistry.ts` - AdapterFactory 인터페이스\n3. `packages/server/src/services/adapters/index.ts` - 어댑터 등록 현황\n4. `packages/server/package.json` - 현재 의존성 목록\n\n## 구현할 내용\n\n`packages/server/src/services/adapters/MySQLAdapter.ts` 파일:\n- mysql2/promise의 createPool 사용\n- escapeId(): backtick 형태 (\\`identifier\\`)\n- placeholder(): ? (모든 인덱스에서 동일)\n- rawQuery(): pool.execute(sql, params)\n- MySQLAdapterFactory export\n- 연결 풀 설정: connectionLimit=10, connectTimeout=10000\n\n## 의존성 설치 필요\n```bash\npnpm --filter @webform/server add mysql2\n```\n\n## 출력\n\n분석 결과와 구현 계획을 `plans/mysql-plan.md` 파일로 저장하라. 다음 내용을 포함하라:\n- mysql2/promise Pool 설정 옵션\n- SSL 연결 처리 방법\n- execute() vs query() 차이점\n- adapters/index.ts 업데이트 방법",
       "dependsOn": [
         "sql-base-commit"
@@ -383,7 +383,7 @@
       "description": "mssql 패키지를 이용한 Microsoft SQL Server 어댑터 구현 설계",
       "phase": "phase3-parallel",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 MSSQL(Microsoft SQL Server) 어댑터 구현 계획을 수립하라.\n\n## 분석할 파일들\n\n1. `packages/server/src/services/adapters/BaseSqlAdapter.ts` - BaseSqlAdapter 인터페이스\n2. `packages/server/src/services/adapters/AdapterRegistry.ts` - AdapterFactory 인터페이스\n3. `packages/server/src/services/adapters/index.ts` - 어댑터 등록 현황\n4. `packages/server/package.json` - 현재 의존성 목록\n\n## 구현할 내용\n\n`packages/server/src/services/adapters/MSSQLAdapter.ts` 파일:\n- mssql 패키지의 ConnectionPool 사용\n- escapeId(): `[identifier]` 형태\n- placeholder(): `@p1`, `@p2`, ... 형태\n- rawQuery(): request.query() + input() 파라미터 바인딩\n- MSSQLAdapterFactory export\n- MSSQL은 LIMIT/OFFSET 대신 TOP N과 OFFSET FETCH 문법 사용\n\n## MSSQL 특이사항\n- LIMIT/OFFSET 미지원 → `OFFSET x ROWS FETCH NEXT y ROWS ONLY` 문법\n- 또는 TOP N 사용\n- executeQuery()를 override하여 MSSQL 전용 페이징 처리\n- connect() 명시적 호출 필요\n\n## 의존성 설치 필요\n```bash\npnpm --filter @webform/server add mssql\npnpm --filter @webform/server add -D @types/mssql\n```\n\n## 출력\n\n분석 결과와 구현 계획을 `plans/mssql-plan.md` 파일로 저장하라. 다음 내용을 포함하라:\n- mssql ConnectionPool 설정\n- LIMIT/OFFSET 문법 차이 처리 방법 (executeQuery override 전략)\n- 파라미터 바인딩 방법 (@p1, request.input())\n- Encrypt/TrustServerCertificate 옵션 처리",
       "dependsOn": [
         "sql-base-commit"
