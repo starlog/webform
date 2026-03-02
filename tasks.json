@@ -517,7 +517,7 @@
       "description": "dialect 선택 UI 및 SQL DB 설정 폼 구현 관련 변경사항 커밋",
       "phase": "phase4-final",
       "category": "commit",
-      "done": false,
+      "done": true,
       "prompt": "Designer UI 확장 관련 변경사항을 검토하고 git commit을 생성하라.\n\n## 커밋할 파일들\n- `packages/designer/src/components/DataSourcePanel/DataSourcePanel.tsx` (수정)\n- `packages/designer/src/__tests__/DataSourcePanel.test.tsx` (신규, 있는 경우)\n- `plans/designer-ui-plan.md` (신규)\n\n## 커밋 실행\n\n```bash\ngit add packages/designer/src/components/DataSourcePanel/DataSourcePanel.tsx \\\n        plans/designer-ui-plan.md\n# 테스트 파일이 생성된 경우에만 추가\ngit add packages/designer/src/__tests__/DataSourcePanel.test.tsx 2>/dev/null || true\ngit commit -m \"feat: DataSourcePanel에 다중 dialect 선택 UI 및 SQL DB 설정 폼 추가\"\n```\n\n민감한 파일(.env 등)은 절대 커밋하지 말 것.",
       "dependsOn": [
         "designer-ui-test"
