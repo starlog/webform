@@ -390,14 +390,30 @@ npx @modelcontextprotocol/inspector npx tsx packages/mcp/src/index.ts
 
 API 키 인증을 통해 원격 호스트에서 MCP 서버에 접속할 수 있습니다.
 
-```bash
-# 환경 변수 설정
-export MCP_API_KEYS="your-secret-key-1,your-secret-key-2"
-export MCP_PORT=4100            # 기본값: 4100
-export MCP_HOST=0.0.0.0        # 기본값: 0.0.0.0
-export WEBFORM_API_URL=http://localhost:4000
+**`.env` 파일 설정** (`packages/mcp/.env`):
 
-# 원격 MCP 서버 시작
+> `./run.sh`를 실행하면 이 파일이 자동 생성됩니다. 수동 설정이 필요한 경우 아래를 참고하세요.
+
+```bash
+# packages/mcp/.env
+MCP_API_KEYS=your-secret-key-1,your-secret-key-2   # 허용 API 키 (콤마 구분, 필수)
+MCP_PORT=4100                                       # HTTP 리슨 포트 (기본값: 4100)
+MCP_HOST=0.0.0.0                                    # 바인드 주소 (기본값: 0.0.0.0)
+WEBFORM_API_URL=http://localhost:4000               # 백엔드 API URL (기본값: http://localhost:4000)
+```
+
+API 키를 직접 생성하려면:
+
+```bash
+# 랜덤 API 키 생성
+openssl rand -hex 32
+```
+
+생성된 키를 `MCP_API_KEYS`에 설정합니다. 여러 키는 콤마로 구분합니다.
+
+**원격 MCP 서버 시작**:
+
+```bash
 pnpm --filter @webform/mcp start:remote
 ```
 
