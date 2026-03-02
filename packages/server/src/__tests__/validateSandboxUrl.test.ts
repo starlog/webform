@@ -21,7 +21,7 @@ describe('validateSandboxUrl', () => {
 
   describe('차단: 호스트명', () => {
     it.each([
-      'http://localhost:4000/api/forms',
+      'http://localhost:3000/api/forms',
       'http://localhost',
     ])('"%s"을 차단해야 한다', async (url) => {
       await expect(validateSandboxUrl(url)).rejects.toThrow('Blocked hostname');

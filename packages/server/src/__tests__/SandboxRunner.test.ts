@@ -101,7 +101,7 @@ describe('SandboxRunner', () => {
 
   it('SSRF: 내부 URL 요청을 차단해야 한다', async () => {
     const result = await runner.runCode(
-      'var res = ctx.http.get("http://localhost:4000/api/forms");',
+      'var res = ctx.http.get("http://localhost:3000/api/forms");',
       {},
     );
 

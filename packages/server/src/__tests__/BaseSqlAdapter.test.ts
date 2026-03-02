@@ -120,6 +120,45 @@ describe('BaseSqlAdapter', () => {
     });
   });
 
+  describe('executeRawQuery', () => {
+    it('SELECT 쿼리 실행', async () => {
+      await adapter.executeRawQuery('SELECT * FROM users');
+      expect(adapter.queries[0].sql).toBe('SELECT * FROM users');
+      expect(adapter.queries[0].params).toBeUndefined();
+    });
+
+    it('params 전달', async () => {
+      await adapter.executeRawQuery('SELECT * FROM users WHERE id = $1 AND name LIKE $2', [1, '%test%']);
+      expect(adapter.queries[0].sql).toBe('SELECT * FROM users WHERE id = $1 AND name LIKE $2');
+      expect(adapter.queries[0].params).toEqual([1, '%test%']);
+    });
+
+    it('SELECT 외 쿼리 거부', async () => {
+      await expect(adapter.executeRawQuery('DELETE FROM users')).rejects.toThrow('Only SELECT queries are allowed');
+    });
+
+    it('복수 구문 거부', async () => {
+      await expect(adapter.executeRawQuery('SELECT 1; DROP TABLE users')).rejects.toThrow('Multiple statements are not allowed');
+    });
+  });
+
+  describe('executeQuery with sql field', () => {
+    it('sql + params로 파라미터화된 쿼리 실행', async () => {
+      await adapter.executeQuery({
+        sql: 'SELECT * FROM users WHERE department = $1 AND name LIKE $2',
+        params: ['Engineering', '%Alice%'],
+      });
+      expect(adapter.queries[0].sql).toBe('SELECT * FROM users WHERE department = $1 AND name LIKE $2');
+      expect(adapter.queries[0].params).toEqual(['Engineering', '%Alice%']);
+    });
+
+    it('sql만 있고 params 없으면 params는 undefined', async () => {
+      await adapter.executeQuery({ sql: 'SELECT * FROM users' });
+      expect(adapter.queries[0].sql).toBe('SELECT * FROM users');
+      expect(adapter.queries[0].params).toBeUndefined();
+    });
+  });
+
   describe('buildSelectQuery', () => {
     it('빈 filter 시 WHERE 절 없이 생성', async () => {
       await adapter.executeQuery({ table: 'users', filter: {} });

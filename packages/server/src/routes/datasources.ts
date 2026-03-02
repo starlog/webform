@@ -100,11 +100,12 @@ datasourcesRouter.post('/:id/test', async (req, res, next) => {
 // POST /api/datasources/:id/raw-query — Raw 쿼리 실행 (SQL SELECT / MongoDB JSON)
 datasourcesRouter.post('/:id/raw-query', async (req, res, next) => {
   try {
-    const { query } = req.body as { query?: string };
+    const { query, params } = req.body as { query?: string; params?: unknown[] };
     if (!query || typeof query !== 'string') {
       return res.status(400).json({ error: 'query (string) is required' });
     }
-    const results = await dataSourceService.executeRawQuery(req.params.id, query);
+    const safeParams = Array.isArray(params) ? params : undefined;
+    const results = await dataSourceService.executeRawQuery(req.params.id, query, safeParams);
     res.json({ data: results });
   } catch (err) {
     next(err);

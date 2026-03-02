@@ -29,7 +29,7 @@ export class StaticAdapter implements DataSourceAdapter {
     return results.slice(0, Math.min(limit, 1000));
   }
 
-  async executeRawQuery(_raw: string): Promise<unknown[]> {
+  async executeRawQuery(_raw: string, _params?: unknown[]): Promise<unknown[]> {
     throw new Error('Raw query is not supported for static data sources');
   }
 

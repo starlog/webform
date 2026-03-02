@@ -39,6 +39,7 @@ describe('MySQLAdapter', () => {
         password: 'secret',
         database: 'testdb',
         ssl: undefined,
+        charset: 'utf8mb4',
         connectionLimit: 10,
         connectTimeout: 10000,
       });

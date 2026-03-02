@@ -97,7 +97,7 @@ export class MongoDBAdapter implements DataSourceAdapter {
     return { deletedCount: result.deletedCount };
   }
 
-  async executeRawQuery(raw: string): Promise<unknown[]> {
+  async executeRawQuery(raw: string, _params?: unknown[]): Promise<unknown[]> {
     let query: Record<string, unknown>;
     try {
       query = JSON.parse(raw);

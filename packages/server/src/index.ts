@@ -4,6 +4,7 @@ import { env } from './config/index.js';
 import { connectMongo, disconnectMongo } from './db/mongodb.js';
 import { connectRedis, disconnectRedis } from './db/redis.js';
 import { closeAllMongoClients } from './services/adapters/MongoClientPool.js';
+import { closeAllSqlAdapters } from './services/adapters/SqlAdapterPool.js';
 import { initWebSocket } from './websocket/index.js';
 
 async function main() {
@@ -29,6 +30,7 @@ async function main() {
     server.close();
     await disconnectMongo();
     await closeAllMongoClients();
+    await closeAllSqlAdapters();
     await disconnectRedis();
     process.exit(0);
   };

@@ -31,7 +31,7 @@ export abstract class BaseSqlAdapter implements DataSourceAdapter {
   async executeQuery(query: Record<string, unknown>): Promise<unknown[]> {
     // sql 필드가 있으면 raw SQL 실행 (SELECT만 허용)
     if (typeof query.sql === 'string') {
-      return this.executeRawQuery(query.sql);
+      return this.executeRawQuery(query.sql, query.params as unknown[] | undefined);
     }
 
     const table = query.table;
@@ -70,7 +70,7 @@ export abstract class BaseSqlAdapter implements DataSourceAdapter {
     return { sql, params };
   }
 
-  async executeRawQuery(raw: string): Promise<unknown[]> {
+  async executeRawQuery(raw: string, params?: unknown[]): Promise<unknown[]> {
     const trimmed = raw.trim().replace(/;\s*$/, '');
     if (!/^SELECT\b/i.test(trimmed)) {
       throw new AppError(400, 'Only SELECT queries are allowed');
@@ -78,7 +78,7 @@ export abstract class BaseSqlAdapter implements DataSourceAdapter {
     if (/;\s*\S/.test(trimmed)) {
       throw new AppError(400, 'Multiple statements are not allowed');
     }
-    return this.rawQuery(trimmed);
+    return this.rawQuery(trimmed, params);
   }
 
   abstract listTables(): Promise<string[]>;

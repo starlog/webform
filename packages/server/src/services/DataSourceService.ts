@@ -2,6 +2,7 @@ import { DataSource } from '../models/DataSource.js';
 import type { DataSourceDocument } from '../models/DataSource.js';
 import { EncryptionService } from './EncryptionService.js';
 import { adapterRegistry } from './adapters/index.js';
+import { getSqlAdapter, evictSqlAdapter } from './adapters/SqlAdapterPool.js';
 import { RestApiAdapter } from './adapters/RestApiAdapter.js';
 import { StaticAdapter } from './adapters/StaticAdapter.js';
 import { NotFoundError, AppError } from '../middleware/errorHandler.js';
@@ -12,8 +13,16 @@ import type {
   ListDataSourcesQuery,
 } from '../validators/datasourceValidator.js';
 
+const DS_CACHE_TTL_MS = 5 * 60 * 1000; // 5분
+
+/** SQL 어댑터로 캐싱하는 dialect 목록 */
+const POOLED_SQL_DIALECTS = new Set(['mysql', 'postgresql', 'mssql']);
+
 export class DataSourceService {
   private encryption = new EncryptionService();
+
+  /** getDataSource 결과를 TTL 캐시 */
+  private dsCache = new Map<string, { data: DataSourceDocument & { config: unknown }; expiry: number }>();
 
   /**
    * 데이터소스 생성
@@ -82,9 +91,15 @@ export class DataSourceService {
   }
 
   /**
-   * 단일 데이터소스 조회 (config 복호화 포함)
+   * 단일 데이터소스 조회 (config 복호화 포함, TTL 캐시)
    */
   async getDataSource(id: string): Promise<DataSourceDocument & { config: unknown }> {
+    const cached = this.dsCache.get(id);
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+    this.dsCache.delete(id);
+
     const doc = await DataSource.findOne({ _id: id, deletedAt: null }).lean<DataSourceDocument>();
     if (!doc) {
       throw new NotFoundError(`DataSource not found: ${id}`);
@@ -103,7 +118,10 @@ export class DataSourceService {
     const rest = Object.fromEntries(
       Object.entries(docObj).filter(([k]) => k !== 'encryptedConfig' && k !== 'staticData'),
     );
-    return { ...rest, config } as DataSourceDocument & { config: unknown };
+    const result = { ...rest, config } as DataSourceDocument & { config: unknown };
+
+    this.dsCache.set(id, { data: result, expiry: Date.now() + DS_CACHE_TTL_MS });
+    return result;
   }
 
   /**
@@ -205,6 +223,10 @@ export class DataSourceService {
       }
     }
 
+    // 캐시 무효화 (config 변경 가능성)
+    this.dsCache.delete(id);
+    await evictSqlAdapter(id);
+
     const doc = await DataSource.findOneAndUpdate(
       { _id: id, deletedAt: null },
       { $set: update },
@@ -231,6 +253,10 @@ export class DataSourceService {
       throw new NotFoundError(`DataSource not found: ${id}`);
     }
     await DataSource.updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
+
+    // 캐시 무효화
+    this.dsCache.delete(id);
+    await evictSqlAdapter(id);
   }
 
   /**
@@ -257,7 +283,7 @@ export class DataSourceService {
    */
   async listTables(id: string): Promise<string[]> {
     const ds = await this.getDataSource(id);
-    const adapter = this.createAdapter(ds);
+    const adapter = this.getOrCreateAdapter(id, ds);
     try {
       return await adapter.listTables();
     } catch (err) {
@@ -266,27 +292,23 @@ export class DataSourceService {
         err,
       );
       throw err;
-    } finally {
-      await adapter.disconnect();
     }
   }
 
   /**
    * Raw 쿼리 실행 (SQL: SELECT만 허용, MongoDB: JSON 쿼리)
    */
-  async executeRawQuery(id: string, raw: string): Promise<unknown[]> {
+  async executeRawQuery(id: string, raw: string, params?: unknown[]): Promise<unknown[]> {
     const ds = await this.getDataSource(id);
-    const adapter = this.createAdapter(ds);
+    const adapter = this.getOrCreateAdapter(id, ds);
     try {
-      return await adapter.executeRawQuery(raw);
+      return await adapter.executeRawQuery(raw, params);
     } catch (err) {
       console.error(
         `[DataSourceService] executeRawQuery failed — id=${id}, type=${ds.type}`,
         err,
       );
       throw err;
-    } finally {
-      await adapter.disconnect();
     }
   }
 
@@ -295,7 +317,7 @@ export class DataSourceService {
    */
   async executeQuery(id: string, query: Record<string, unknown>): Promise<unknown[]> {
     const ds = await this.getDataSource(id);
-    const adapter = this.createAdapter(ds);
+    const adapter = this.getOrCreateAdapter(id, ds);
     try {
       return await adapter.executeQuery(query);
     } catch (err) {
@@ -304,11 +326,49 @@ export class DataSourceService {
         err,
       );
       throw err;
-    } finally {
-      await adapter.disconnect();
     }
   }
 
+  /**
+   * 캐싱이 적용된 어댑터 획득.
+   * SQL 어댑터(mysql, postgresql, mssql)는 SqlAdapterPool로 캐싱.
+   * MongoDB는 MongoClientPool이 내부적으로 캐싱. RestApi/Static은 stateless.
+   */
+  private getOrCreateAdapter(
+    dsId: string,
+    dataSource: DataSourceDocument & { config: unknown },
+  ): DataSourceAdapter {
+    switch (dataSource.type) {
+      case 'database': {
+        const config = dataSource.config as Record<string, unknown>;
+        const dialect = dataSource.meta.dialect;
+        if (!dialect) {
+          throw new AppError(400, 'Database data source requires a dialect');
+        }
+        if (POOLED_SQL_DIALECTS.has(dialect)) {
+          return getSqlAdapter(dsId, dialect, config);
+        }
+        return adapterRegistry.create(dialect, config);
+      }
+      case 'restApi':
+        return new RestApiAdapter(dataSource.config as {
+          baseUrl: string;
+          headers?: Record<string, string>;
+          auth?: { type: 'bearer' | 'basic' | 'apiKey'; token?: string; username?: string; password?: string; apiKey?: string; headerName?: string };
+        });
+      case 'static': {
+        const config = dataSource.config as { data?: unknown[] };
+        return new StaticAdapter(config.data || []);
+      }
+      default:
+        throw new AppError(400, `Unknown data source type: ${dataSource.type}`);
+    }
+  }
+
+  /**
+   * 일회성 어댑터 생성 (testConnection 전용).
+   * 테스트 후 disconnect로 즉시 해제.
+   */
   private createAdapter(
     dataSource: DataSourceDocument & { config: unknown },
   ): DataSourceAdapter {

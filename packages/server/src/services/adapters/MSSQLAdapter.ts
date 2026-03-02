@@ -51,7 +51,7 @@ export class MSSQLAdapter extends BaseSqlAdapter {
   async executeQuery(query: Record<string, unknown>): Promise<unknown[]> {
     // sql 필드가 있으면 raw SQL 실행 (SELECT만 허용)
     if (typeof query.sql === 'string') {
-      return this.executeRawQuery(query.sql);
+      return this.executeRawQuery(query.sql, query.params as unknown[] | undefined);
     }
 
     const table = query.table;
