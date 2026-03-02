@@ -52,7 +52,7 @@
       "description": "AdapterRegistry 패턴 구현에 대한 단위 테스트 작성 및 실행",
       "phase": "phase1-parallel",
       "category": "testing",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 AdapterRegistry 구현에 대한 테스트를 작성하고 실행하라.\n\n## 테스트 파일 생성\n\n`packages/server/src/__tests__/AdapterRegistry.test.ts` 파일 생성:\n- AdapterRegistry.register()가 어댑터를 등록하는지 테스트\n- AdapterRegistry.create()가 등록된 dialect로 어댑터를 생성하는지 테스트\n- 미등록 dialect로 create() 시 AppError 발생하는지 테스트\n- listDialects()가 등록된 dialect 목록을 반환하는지 테스트\n- MongoDBAdapterFactory가 정상적으로 등록되는지 테스트\n\n## 기존 테스트 확인\n\n`packages/server/src/__tests__/` 디렉토리를 확인하고 DataSourceService 관련 기존 테스트가 있다면 AdapterRegistry 통합 후에도 통과하는지 확인하라.\n\n## 테스트 실행\n\n```bash\ncd packages/server && npx vitest run src/__tests__/AdapterRegistry.test.ts\n```\n\n테스트가 실패하면 구현 코드를 수정하여 모든 테스트가 통과하도록 하라.\n\n## 타입체크\n\n```bash\ncd packages/server && npx tsc --noEmit\n```\n\n타입 오류가 있으면 수정하라.",
       "dependsOn": [
         "adapter-registry-impl"
@@ -103,7 +103,7 @@
       "description": "DatabaseConfig 타입에 SQL DB 필드 추가, Zod discriminated union 검증 적용",
       "phase": "phase1-parallel",
       "category": "implementation",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 타입 및 검증 확장을 구현하라. 계획 파일 `plans/types-validation-plan.md`를 참조하라.\n\n## 구현 순서\n\n### 1. packages/common/src/types/datasource.ts 수정\n\n파일을 읽고 DatabaseConfig 인터페이스를 수정하라:\n\n```typescript\nexport type DatabaseDialect = 'mongodb' | 'postgresql' | 'mysql' | 'mssql' | 'sqlite';\n\nexport interface DatabaseConfig {\n  dialect: DatabaseDialect;\n  // MongoDB용\n  connectionString?: string;\n  // SQL DB 공통\n  host?: string;\n  port?: number;\n  user?: string;\n  password?: string;\n  database: string;\n  ssl?: boolean;\n}\n```\n\n`DatabaseDialect` 타입을 named export로 추가하라. 기존 `DatabaseConfig`의 dialect 타입을 `DatabaseDialect`로 교체하라.\n\n### 2. packages/server/src/validators/datasourceValidator.ts 수정\n\n파일을 읽고 databaseConfig 스키마를 discriminated union으로 교체하라:\n\n```typescript\nconst databaseConfigSchema = z.discriminatedUnion('dialect', [\n  z.object({\n    dialect: z.literal('mongodb'),\n    connectionString: z.string().min(1, '연결 문자열은 필수입니다'),\n    database: z.string().min(1, '데이터베이스명은 필수입니다'),\n  }),\n  z.object({\n    dialect: z.enum(['postgresql', 'mysql', 'mssql', 'sqlite']),\n    host: z.string().min(1, '호스트는 필수입니다'),\n    port: z.number().int().positive().optional(),\n    user: z.string().min(1, '사용자명은 필수입니다'),\n    password: z.string(),\n    database: z.string().min(1, '데이터베이스명은 필수입니다'),\n    ssl: z.boolean().optional(),\n  }),\n]);\n```\n\n### 3. DataSourceService 수정\n\n`packages/server/src/services/DataSourceService.ts`를 읽고 `createDataSource()` 및 `getDataSource()`에서 database 타입 처리를 수정하라:\n\ncreateDataSource()에서 database 타입:\n- MongoDB: `{ connectionString, database }` 암호화, meta에 `{ dialect: 'mongodb' }`\n- SQL DB: `{ host, port, user, password, database, ssl }` 암호화, meta에 `{ dialect }`\n\ngetDataSource()에서 복호화 시 dialect에 따라 반환 구조 조정\n\n## 주의사항\n- `packages/common` 타입 변경이 `packages/server`와 `packages/designer`에 영향을 줄 수 있으니 확인\n- 기존 MongoDB 데이터소스 하위 호환성 유지 (connectionString 방식 유지)\n- TypeScript strict 모드에서 오류 없어야 함",
       "dependsOn": [
         "types-validation-plan"
