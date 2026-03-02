@@ -458,7 +458,7 @@
       "description": "DataSourcePanel에서 dialect 선택 및 SQL DB 설정 폼 제공하는 UI 구현 설계",
       "phase": "phase4-final",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 Designer UI 확장 구현 계획을 수립하라.\n\n## 분석할 파일들\n\n1. `packages/designer/src/components/DataSourcePanel/DataSourcePanel.tsx` - 현재 UI 구조 전체 분석\n2. `packages/common/src/types/datasource.ts` - DatabaseDialect 타입 확인\n3. `packages/server/src/routes/datasources.ts` - GET /dialects 엔드포인트 확인\n\n## 구현할 내용\n\n### DataSourcePanel.tsx 수정\n\nAddDataSourceModal 컴포넌트 (또는 해당 기능)에서:\n\n1. **dialect 목록 fetch**: 데이터소스 type이 'database'일 때 `/api/datasources/dialects` API 호출하여 사용 가능한 dialect 목록 동적 로드\n\n2. **dialect 드롭다운**: 사용 가능한 dialect 목록을 드롭다운으로 표시\n\n3. **dialect별 설정 폼 전환**:\n   - MongoDB 선택 시: connectionString + database 입력 필드 (기존)\n   - SQL 계열(postgresql/mysql/mssql) 선택 시:\n     - Host 입력\n     - Port 입력 (숫자)\n     - User 입력\n     - Password 입력 (type=password)\n     - Database 입력\n     - SSL 체크박스\n\n4. **폼 제출 처리**: dialect에 따라 config 객체 구성\n\n## 출력\n\n분석 결과와 구현 계획을 `plans/designer-ui-plan.md` 파일로 저장하라. 다음 내용을 포함하라:\n- 현재 DataSourcePanel.tsx 구조 분석 (어디서 AddDataSourceModal이 렌더링되는지)\n- dialect fetch 시점 (modal 열릴 때 vs type 변경할 때)\n- 상태 관리 방법 (useState 목록)\n- dialect별 폼 렌더링 전략\n- API 연동 방법\n- WinForms 스타일 일관성 유지 방법",
       "dependsOn": [
         "postgresql-commit",
