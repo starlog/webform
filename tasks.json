@@ -160,7 +160,7 @@
       "description": "PostgreSQL/MySQL/MSSQL 공통 로직을 BaseSqlAdapter로 추출하기 위한 설계 계획 수립",
       "phase": "phase2-sequential",
       "category": "plan",
-      "done": false,
+      "done": true,
       "prompt": "WebForm 프로젝트의 SQL 공통 베이스 클래스(BaseSqlAdapter) 구현 계획을 수립하라.\n\n## 분석할 파일들\n\n1. `packages/server/src/services/adapters/types.ts` - DataSourceAdapter 인터페이스\n2. `packages/server/src/services/adapters/AdapterRegistry.ts` - AdapterFactory 인터페이스 (Phase 1에서 생성됨)\n3. `packages/common/src/types/datasource.ts` - DatabaseDialect 및 DatabaseConfig 타입 (Phase 6에서 수정됨)\n\n## 설계할 내용\n\n### BaseSqlAdapter 추상 클래스\n\n`packages/server/src/services/adapters/BaseSqlAdapter.ts`에 구현할 내용:\n\n```typescript\nexport interface SqlConnectionOptions {\n  host: string;\n  port: number;\n  user: string;\n  password: string;\n  database: string;\n  ssl?: boolean | Record<string, unknown>;\n}\n\nexport abstract class BaseSqlAdapter implements DataSourceAdapter {\n  // testConnection(): SELECT 1로 연결 테스트\n  // executeQuery(): table, filter, columns, limit, offset 기반 parameterized query 빌드\n  // buildSelectQuery(): SQL 안전하게 생성 (SQL injection 방지)\n  // protected abstract escapeId(): dialect별 식별자 이스케이핑\n  // protected abstract placeholder(): $1 vs ? vs @p1\n  // protected abstract rawQuery(): 실제 쿼리 실행\n  // abstract disconnect(): 연결 종료\n}\n```\n\n보안 요구사항:\n- 테이블명/컬럼명은 `escapeId()`로 이스케이핑\n- WHERE 절은 parameterized query 사용\n- limit는 최대 1000으로 제한\n\n## 출력\n\n분석 결과와 구현 계획을 `plans/sql-base-plan.md` 파일로 저장하라. 다음 내용을 포함하라:\n- SqlConnectionOptions 인터페이스 설계\n- BaseSqlAdapter 메서드별 구현 전략\n- SQL injection 방지 방법\n- 각 dialect의 placeholder 차이점 (PostgreSQL: $1, MySQL/SQLite: ?, MSSQL: @p1)\n- 테스트 전략 (mock 사용 방법)",
       "dependsOn": [
         "adapter-registry-commit",
