@@ -5,6 +5,8 @@ export function SwaggerConnectorControl({ properties, size }: DesignerControlPro
   const theme = useTheme();
   const specYaml = (properties.specYaml as string) || '';
   const baseUrl = (properties.baseUrl as string) || '';
+  const specSource = (properties.specSource as string) || 'yaml';
+  const specUrl = (properties.specUrl as string) || '';
   const hasSpec = specYaml.length > 0;
 
   let title = 'Swagger API';
@@ -38,7 +40,9 @@ export function SwaggerConnectorControl({ properties, size }: DesignerControlPro
         <span style={{ fontSize: 9, color: hasSpec ? '#627D98' : '#D64545' }}>
           {hasSpec
             ? `${endpointCount} endpoints` + (baseUrl ? ` · ${baseUrl}` : '')
-            : 'Not configured'}
+            : specSource === 'url' && specUrl
+              ? `from: ${specUrl}`
+              : 'Not configured'}
         </span>
       </div>
     </div>
