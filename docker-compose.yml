@@ -1,29 +1,56 @@
 services:
-  # 개발용 인프라
   mongo:
     image: mongo:7
-    ports:
-      - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
 
-  # 프로덕션 서버
-  server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  webform:
+    image: webform:latest
     ports:
+      - "3001:4000"
       - "4000:4000"
-    env_file:
-      - ./packages/server/.env
     depends_on:
       - mongo
       - redis
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      MONGODB_URI: mongodb://mongo:27017/webform
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: ""
+      SANDBOX_TIMEOUT_MS: "5000"
+      SANDBOX_MEMORY_LIMIT_MB: "128"
+      ENABLE_SERVICE_TOKEN: "true"
+
+  designer:
+    image: webform-designer:latest
+    ports:
+      - "3000:80"
+    depends_on:
+      - webform
+    restart: unless-stopped
+
+  mcp:
+    image: webform-mcp:latest
+    ports:
+      - "4100:4100"
+    depends_on:
+      - webform
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      MCP_PORT: "4100"
+      MCP_HOST: "0.0.0.0"
+      WEBFORM_API_URL: http://webform:4000
 
 volumes:
   mongo-data:

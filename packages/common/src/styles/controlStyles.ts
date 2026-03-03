@@ -4,8 +4,8 @@
  * Designer와 Runtime이 동일한 시각적 스타일을 공유하기 위한 순수 함수 모음.
  * React 의존성 없이 ThemeTokens + ResolvedControlColors를 입력받아 CSS 스타일 객체를 반환한다.
  */
-import type { ThemeTokens } from '../types/theme';
-import type { ResolvedControlColors } from '../theme/controlThemeMap';
+import type { ThemeTokens } from '../types/theme.js';
+import type { ResolvedControlColors } from '../theme/controlThemeMap.js';
 
 /** React CSSProperties와 호환되는 스타일 객체 타입 */
 export type CSSStyle = Record<string, string | number | undefined>;

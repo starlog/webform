@@ -29,6 +29,9 @@ const envSchema = z.object({
   SANDBOX_TIMEOUT_MS: z.coerce.number().default(5000),
   SANDBOX_MEMORY_LIMIT_MB: z.coerce.number().default(128),
 
+  // 서비스 토큰 (Docker 내부 서비스 간 인증용)
+  ENABLE_SERVICE_TOKEN: z.coerce.boolean().default(false),
+
 });
 
 export type Env = z.infer<typeof envSchema>;

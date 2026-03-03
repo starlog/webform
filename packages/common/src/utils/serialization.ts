@@ -1,5 +1,5 @@
-import type { FormDefinition } from '../types/form';
-import { validateFormDefinition } from './validation';
+import type { FormDefinition } from '../types/form.js';
+import { validateFormDefinition } from './validation.js';
 
 export function serializeFormDefinition(form: FormDefinition): string {
   return JSON.stringify(form);

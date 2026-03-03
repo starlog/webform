@@ -1,6 +1,6 @@
-import type { ControlDefinition, FontDefinition, FormDefinition } from './form';
-import type { EventHandlerDefinition, EventArgs } from './events';
-import type { ThemeId } from './theme';
+import type { ControlDefinition, FontDefinition, FormDefinition } from './form.js';
+import type { EventHandlerDefinition, EventArgs } from './events.js';
+import type { ThemeId } from './theme.js';
 
 /**
  * Shell 인증 설정.

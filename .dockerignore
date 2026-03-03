@@ -13,8 +13,11 @@ coverage
 !README.md
 forms/
 plans/
-*.json
+**/*.json
 !package.json
+!**/package.json
 !pnpm-lock.yaml
 !pnpm-workspace.yaml
 !tsconfig.base.json
+!packages/*/tsconfig.json
+!packages/*/tsconfig.*.json

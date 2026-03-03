@@ -1,4 +1,4 @@
-import type { ThemeTokens } from '../types/theme';
+import type { ThemeTokens } from '../types/theme.js';
 
 /**
  * FALLBACK_THEME: API 응답 전 또는 오프라인 시 사용하는 기본 테마 (Windows XP).

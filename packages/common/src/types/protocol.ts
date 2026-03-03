@@ -1,5 +1,5 @@
-import type { ControlDefinition, FormDefinition, FormProperties } from './form';
-import type { EventArgs } from './events';
+import type { ControlDefinition, FormDefinition, FormProperties } from './form.js';
+import type { EventArgs } from './events.js';
 
 export type UIPatch =
   | { type: 'updateProperty'; target: string; payload: Record<string, unknown> }

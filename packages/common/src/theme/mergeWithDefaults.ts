@@ -1,4 +1,4 @@
-import type { ThemeTokens } from '../types/theme';
+import type { ThemeTokens } from '../types/theme.js';
 
 /** 불완전한 토큰을 기본 테마와 deep merge하여 누락 속성을 채운다 */
 export function mergeThemeWithDefaults(

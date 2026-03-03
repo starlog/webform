@@ -8,8 +8,8 @@ export type {
   ControlDefinition,
   FormDefinition,
   AnchorStyle,
-} from './types/form';
-export { type ControlType, type DockStyle, CONTROL_TYPES } from './types/form';
+} from './types/form.js';
+export { type ControlType, type DockStyle, CONTROL_TYPES } from './types/form.js';
 
 // types/events
 export type {
@@ -20,8 +20,8 @@ export type {
   DataSourceProxy,
   FormContext,
   DialogResult,
-} from './types/events';
-export { COMMON_EVENTS, CONTROL_EVENTS, FORM_EVENTS } from './types/events';
+} from './types/events.js';
+export { COMMON_EVENTS, CONTROL_EVENTS, FORM_EVENTS } from './types/events.js';
 
 // types/datasource
 export type {
@@ -31,7 +31,7 @@ export type {
   RestApiConfig,
   AuthConfig,
   StaticConfig,
-} from './types/datasource';
+} from './types/datasource.js';
 
 // types/shell
 export type {
@@ -41,8 +41,8 @@ export type {
   ShellProperties,
   ShellEventRequest,
   ShellEventType,
-} from './types/shell';
-export { SHELL_EVENTS } from './types/shell';
+} from './types/shell.js';
+export { SHELL_EVENTS } from './types/shell.js';
 
 // types/protocol
 export type {
@@ -54,7 +54,7 @@ export type {
   DesignerWsMessage,
   RuntimeWsMessage,
   WsMessage,
-} from './types/protocol';
+} from './types/protocol.js';
 
 // types/theme
 export type {
@@ -80,19 +80,19 @@ export type {
   PopupTokens,
   ControlTokens,
   CustomThemeDocument,
-} from './types/theme';
+} from './types/theme.js';
 
 // themes
 export {
   FALLBACK_THEME,
   getDefaultTheme,
   windowsXpTheme,
-} from './themes/presets';
+} from './themes/presets.js';
 
 // utils
-export { validateFormDefinition, validateControlDefinition, sanitizeQueryInput } from './utils/validation';
-export { serializeFormDefinition, deserializeFormDefinition } from './utils/serialization';
-export { flattenControls, nestControls } from './utils/controlUtils';
+export { validateFormDefinition, validateControlDefinition, sanitizeQueryInput } from './utils/validation.js';
+export { serializeFormDefinition, deserializeFormDefinition } from './utils/serialization.js';
+export { flattenControls, nestControls } from './utils/controlUtils.js';
 
 // theme utilities (shared between designer & runtime)
 export {
@@ -100,9 +100,9 @@ export {
   chromeControlTypes,
   resolveControlThemeColors,
   computeControlColors,
-} from './theme/controlThemeMap';
-export type { ResolvedControlColors } from './theme/controlThemeMap';
-export { mergeThemeWithDefaults } from './theme/mergeWithDefaults';
+} from './theme/controlThemeMap.js';
+export type { ResolvedControlColors } from './theme/controlThemeMap.js';
+export { mergeThemeWithDefaults } from './theme/mergeWithDefaults.js';
 
 // shared control styles
 export {
@@ -135,4 +135,4 @@ export {
   BADGE_STATUS_COLORS,
   PICTURE_SIZE_MODE_MAP,
   DIVIDER_FLEX_MAP,
-} from './styles/controlStyles';
+} from './styles/controlStyles.js';

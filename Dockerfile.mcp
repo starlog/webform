@@ -1,0 +1,50 @@
+# ============================================
+# Stage 1: 빌드 (common + mcp)
+# ============================================
+FROM node:22-alpine AS builder
+
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
+WORKDIR /app
+
+# 의존성 캐시 레이어
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/common/package.json packages/common/
+COPY packages/mcp/package.json packages/mcp/
+
+RUN pnpm install --frozen-lockfile --filter @webform/mcp...
+
+# 소스 복사 및 빌드
+COPY tsconfig.base.json ./
+COPY packages/common/ packages/common/
+COPY packages/mcp/ packages/mcp/
+
+RUN pnpm --filter @webform/common build
+RUN pnpm --filter @webform/mcp build
+
+# ============================================
+# Stage 2: 프로덕션 실행
+# ============================================
+FROM node:22-alpine AS runner
+
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/common/package.json packages/common/
+COPY packages/mcp/package.json packages/mcp/
+
+RUN pnpm install --frozen-lockfile --filter @webform/mcp... --prod
+
+# 빌드 결과물 복사
+COPY --from=builder /app/packages/common/dist packages/common/dist
+COPY --from=builder /app/packages/mcp/dist packages/mcp/dist
+
+EXPOSE 4100
+
+HEALTHCHECK --interval=30s --timeout=5s CMD wget -qO- http://localhost:4100/health || exit 1
+
+CMD ["node", "packages/mcp/dist/remote.js"]

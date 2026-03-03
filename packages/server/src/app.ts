@@ -1,3 +1,5 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -55,8 +57,8 @@ export function createApp() {
     });
   });
 
-  // --- 개발용 토큰 발급 (인증 불필요) ---
-  if (env.NODE_ENV === 'development') {
+  // --- 서비스 토큰 발급 (개발 또는 ENABLE_SERVICE_TOKEN=true) ---
+  if (env.NODE_ENV === 'development' || env.ENABLE_SERVICE_TOKEN) {
     app.post('/auth/dev-token', (_req, res) => {
       const token = jwt.sign(
         { sub: 'dev-designer', role: 'admin' },
@@ -72,6 +74,21 @@ export function createApp() {
 
   // --- API 라우트 ---
   app.use('/api', apiRouter);
+
+  // --- 프로덕션 정적 파일 서빙 (Runtime SPA) ---
+  if (env.NODE_ENV === 'production') {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const runtimeDist = path.resolve(__dirname, '../../runtime/dist');
+
+    app.use(express.static(runtimeDist));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/auth') || req.path.startsWith('/ws')) {
+        return next();
+      }
+      res.sendFile(path.join(runtimeDist, 'index.html'));
+    });
+  }
 
   // --- 에러 핸들링 (반드시 마지막) ---
   app.use(errorHandler);

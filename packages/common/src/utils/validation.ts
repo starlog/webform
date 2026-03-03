@@ -1,5 +1,5 @@
-import { CONTROL_TYPES } from '../types/form';
-import type { ControlDefinition, FormDefinition } from '../types/form';
+import { CONTROL_TYPES } from '../types/form.js';
+import type { ControlDefinition, FormDefinition } from '../types/form.js';
 
 const DOCK_STYLES = ['None', 'Top', 'Bottom', 'Left', 'Right', 'Fill'] as const;
 

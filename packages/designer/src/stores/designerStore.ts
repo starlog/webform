@@ -29,7 +29,7 @@ const DEFAULT_SHELL_PROPERTIES: ShellProperties = {
   maximizeBox: true,
   minimizeBox: true,
   windowState: 'Normal',
-  auth: { enabled: false, provider: 'google', googleClientId: '', allowedDomains: [] },
+  auth: { enabled: false, provider: 'google', googleClientId: '', googleClientSecret: '', runtimeBaseUrl: '', allowedDomains: [] },
 };
 
 const DEFAULT_FORM_PROPERTIES: FormProperties = {

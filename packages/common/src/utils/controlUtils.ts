@@ -1,4 +1,4 @@
-import type { ControlDefinition } from '../types/form';
+import type { ControlDefinition } from '../types/form.js';
 
 /**
  * 중첩된 children 구조를 평면 배열로 변환 (로드 시)

@@ -1,4 +1,4 @@
-import type { ThemeTokens } from '../types/theme';
+import type { ThemeTokens } from '../types/theme.js';
 
 type ThemeColorResolver = (theme: ThemeTokens) => { background: string; foreground: string };
 

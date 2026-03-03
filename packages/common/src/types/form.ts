@@ -1,5 +1,5 @@
-import type { EventHandlerDefinition } from './events';
-import type { ThemeId } from './theme';
+import type { EventHandlerDefinition } from './events.js';
+import type { ThemeId } from './theme.js';
 
 export interface FontDefinition {
   family: string;
