@@ -89,6 +89,9 @@ export function TabControl({
   // children are tab pages rendered by ControlRenderer
   const childArray = Array.isArray(children) ? children : children ? [children] : [];
 
+  // Determine tab count from tabs/tabPages properties or children count
+  const tabCount = Math.max(tabs?.length ?? 0, tabPages?.length ?? 0, childArray.length);
+
   const handleTabClick = (index: number) => {
     if (!enabled) return;
     updateControlState(id, 'selectedIndex', index);
@@ -119,14 +122,14 @@ export function TabControl({
         zIndex: 1,
       }}>
         <div style={{ ...tabHeaderStyle, pointerEvents: 'auto', flexShrink: 0 }}>
-          {childArray.map((child, i) => (
+          {Array.from({ length: tabCount }, (_, i) => (
             <button
               key={i}
               style={i === selectedIndex ? tabButtonActive : tabButtonBase}
               onClick={() => handleTabClick(i)}
               disabled={!enabled}
             >
-              {getTabName(i, tabs, tabPages, child)}
+              {getTabName(i, tabs, tabPages, childArray[i])}
             </button>
           ))}
         </div>
