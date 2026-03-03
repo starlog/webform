@@ -39,11 +39,11 @@ export const CHART_SAMPLES: Record<string, unknown[]> = {
     { name: '대기', value: 10 },
   ],
   Scatter: [
-    { x: 10, series1: 20 },
-    { x: 20, series1: 35 },
-    { x: 30, series1: 25 },
-    { x: 50, series1: 80 },
-    { x: 65, series1: 60 },
+    { x: 10, y: 20 },
+    { x: 20, y: 35 },
+    { x: 30, y: 25 },
+    { x: 50, y: 80 },
+    { x: 65, y: 60 },
   ],
   Radar: [
     { x: '공격', team1: 80, team2: 65 },
