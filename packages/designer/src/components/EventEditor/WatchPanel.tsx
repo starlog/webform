@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import type { ContextMenuState } from './debugUtils';
 import { resolveExpression, getValueType, getValueColor, tryParseJson } from './debugUtils';
 import { ExpandedObjectEntries } from './VariablesPanel';
 
@@ -17,6 +18,47 @@ export function WatchPanel({
   ctxControls: Record<string, string>;
 }) {
   const [inputValue, setInputValue] = useState('');
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
+
+  // 컨텍스트 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleClick = () => setContextMenu(null);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContextMenu(null);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [contextMenu]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent, name: string, value: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, name, value });
+  }, []);
+
+  const handleCopyValue = useCallback(() => {
+    if (!contextMenu) return;
+    navigator.clipboard.writeText(contextMenu.value);
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  const handleCopyName = useCallback(() => {
+    if (!contextMenu) return;
+    navigator.clipboard.writeText(contextMenu.name);
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  const handleCopyAll = useCallback(() => {
+    if (!contextMenu) return;
+    navigator.clipboard.writeText(`${contextMenu.name} = ${contextMenu.value}`);
+    setContextMenu(null);
+  }, [contextMenu]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && inputValue.trim()) {
@@ -113,11 +155,72 @@ export function WatchPanel({
                 resolved={resolved}
                 parsedObj={parsedObj}
                 onRemove={() => onRemoveExpression(index)}
+                onContextMenu={handleContextMenu}
               />
             );
           })
         )}
       </div>
+
+      {/* 우클릭 컨텍스트 메뉴 */}
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            left: contextMenu.x,
+            top: contextMenu.y,
+            backgroundColor: '#252526',
+            border: '1px solid #454545',
+            borderRadius: 4,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            zIndex: 10000,
+            minWidth: 160,
+            padding: '4px 0',
+            fontFamily: 'Segoe UI, sans-serif',
+            fontSize: 12,
+          }}
+        >
+          <div
+            onClick={handleCopyValue}
+            style={{
+              padding: '6px 16px',
+              cursor: 'pointer',
+              color: '#ccc',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#094771')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            Copy Value
+          </div>
+          <div
+            onClick={handleCopyName}
+            style={{
+              padding: '6px 16px',
+              cursor: 'pointer',
+              color: '#ccc',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#094771')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            Copy Name
+          </div>
+          <div style={{ height: 1, backgroundColor: '#454545', margin: '4px 0' }} />
+          <div
+            onClick={handleCopyAll}
+            style={{
+              padding: '6px 16px',
+              cursor: 'pointer',
+              color: '#ccc',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#094771')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            Copy Name = Value
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -130,6 +233,7 @@ function WatchExpressionRow({
   resolved,
   parsedObj,
   onRemove,
+  onContextMenu,
 }: {
   expr: string;
   value: string;
@@ -137,6 +241,7 @@ function WatchExpressionRow({
   resolved: boolean;
   parsedObj: unknown | null;
   onRemove: () => void;
+  onContextMenu: (e: React.MouseEvent, name: string, value: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const hasChildren = parsedObj !== null;
@@ -144,6 +249,7 @@ function WatchExpressionRow({
   return (
     <>
       <div
+        onContextMenu={(e) => onContextMenu(e, expr, value)}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -230,7 +336,7 @@ function WatchExpressionRow({
             backgroundColor: '#1a1a2e',
           }}
         >
-          <ExpandedObjectEntries value={parsedObj} depth={1} />
+          <ExpandedObjectEntries value={parsedObj} depth={1} onContextMenu={onContextMenu} />
         </div>
       )}
     </>

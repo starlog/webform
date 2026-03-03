@@ -50,10 +50,20 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
       const { move, up } = activeDragListeners.current;
       if (move) document.removeEventListener('mousemove', move);
       if (up) document.removeEventListener('mouseup', up);
+      const { move: sMove, up: sUp } = activeSplitterListeners.current;
+      if (sMove) document.removeEventListener('mousemove', sMove);
+      if (sUp) document.removeEventListener('mouseup', sUp);
     };
   }, []);
 
   const [debugPanelHeight, setDebugPanelHeight] = useState(200);
+
+  // 스플리터 드래그 상태
+  const splitterDragRef = useRef<{ startY: number; startHeight: number } | null>(null);
+  const activeSplitterListeners = useRef<{
+    move: ((e: MouseEvent) => void) | null;
+    up: (() => void) | null;
+  }>({ move: null, up: null });
   const [isDirty, setIsDirty] = useState(false);
   const [logs, setLogs] = useState<DebugLogEntry[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -764,7 +774,24 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
       if (!dragRef.current) return;
       const dx = ev.clientX - dragRef.current.startX;
       const dy = ev.clientY - dragRef.current.startY;
-      setDialogPos({ x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
+      let newX = dragRef.current.origX + dx;
+      let newY = dragRef.current.origY + dy;
+      // 뷰포트 안에 머무르도록 클램핑
+      const dlg = dialogRef.current;
+      if (dlg) {
+        const rect = dlg.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+        // 상단: 최소 0 (브라우저 툴바 아래로)
+        if (newY < 0) newY = 0;
+        // 하단: 다이얼로그 하단이 뷰포트 밖으로 나가지 않도록
+        if (newY + h > window.innerHeight) newY = window.innerHeight - h;
+        // 좌측: 최소 100px는 보이도록
+        if (newX + w < 100) newX = 100 - w;
+        // 우측: 최소 100px는 보이도록
+        if (newX > window.innerWidth - 100) newX = window.innerWidth - 100;
+      }
+      setDialogPos({ x: newX, y: newY });
     };
     const handleMouseUp = () => {
       dragRef.current = null;
@@ -776,6 +803,35 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   }, [dialogPos]);
+
+  // 스플리터 드래그 핸들러
+  const handleSplitterDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    splitterDragRef.current = { startY: e.clientY, startHeight: debugPanelHeight };
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      if (!splitterDragRef.current) return;
+      const dy = splitterDragRef.current.startY - ev.clientY;
+      const newHeight = Math.max(120, splitterDragRef.current.startHeight + dy);
+      // 다이얼로그 높이의 70%까지만 허용
+      const el = dialogRef.current;
+      if (el) {
+        const maxHeight = el.getBoundingClientRect().height * 0.7;
+        setDebugPanelHeight(Math.min(newHeight, maxHeight));
+      } else {
+        setDebugPanelHeight(newHeight);
+      }
+    };
+    const handleMouseUp = () => {
+      splitterDragRef.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      activeSplitterListeners.current = { move: null, up: null };
+    };
+    activeSplitterListeners.current = { move: handleMouseMove, up: handleMouseUp };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [debugPanelHeight]);
 
   // 현재 step 줄 번호 (paused 모드에서 사용)
   const currentStepLine = debugState === 'paused' && allTracesRef.current.length > 0
@@ -1011,8 +1067,31 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
           />
         </div>
 
+        {/* 스플리터 (디버그 패널 높이 조절) */}
+        <div
+          onMouseDown={handleSplitterDragStart}
+          style={{
+            height: 5,
+            cursor: 'ns-resize',
+            backgroundColor: '#333',
+            borderTop: '1px solid #555',
+            borderBottom: '1px solid #555',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{
+            width: 30,
+            height: 2,
+            backgroundColor: '#666',
+            borderRadius: 1,
+          }} />
+        </div>
+
         {/* 디버그 패널 (탭: Console / Variables / Watch) */}
-        <div style={{ flex: 0, flexBasis: debugPanelHeight, minHeight: 120, display: 'flex', flexDirection: 'column', borderTop: '1px solid #555' }}>
+        <div style={{ flex: 0, flexBasis: debugPanelHeight, minHeight: 120, display: 'flex', flexDirection: 'column' }}>
             {/* 탭 헤더 */}
             <div style={{
               display: 'flex',
