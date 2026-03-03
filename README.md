@@ -118,6 +118,69 @@ pnpm dev:designer    # Designer — http://localhost:3000
 pnpm dev:runtime     # Runtime  — http://localhost:3001
 ```
 
+### Docker로 실행
+
+외부 레지스트리 없이 로컬에서 Docker 이미지를 빌드하고 전체 시스템을 실행합니다.
+
+**사전 요구사항**: Docker, Docker Compose
+
+```bash
+# 이미지 빌드 + 실행
+./build.sh up
+
+# 이미지 빌드만
+./build.sh
+
+# 종료
+./build.sh down
+
+# 재시작 (rebuild + up)
+./build.sh restart
+
+# 로그 확인
+./build.sh logs
+```
+
+최초 `./build.sh up` 실행 시 `.env.docker` 파일이 자동 생성되며, JWT_SECRET, ENCRYPTION_KEY, MCP_API_KEYS가 랜덤으로 설정됩니다.
+
+**서비스 접속 정보** (로컬 개발과 동일한 포트):
+
+| 서비스 | URL | 비고 |
+|--------|-----|------|
+| Designer | `http://localhost:3000` | nginx 컨테이너 |
+| Runtime | `http://localhost:3001` | Express 컨테이너 |
+| API | `http://localhost:4000/api` | Express 컨테이너 |
+| Swagger | `http://localhost:4000/api-docs` | |
+| Health | `http://localhost:4000/health` | |
+| MCP | `http://localhost:4100/mcp` | MCP 원격 서버 컨테이너 |
+
+**Docker 구성**:
+
+```
+┌─────────────────────────────────────────────┐
+│  designer (nginx :80 → host :3000)          │
+│  └── Designer SPA + API/WS 프록시 → webform │
+├─────────────────────────────────────────────┤
+│  webform (Express :4000 → host :3001,:4000) │
+│  ├── /api/*   → API 라우트                  │
+│  ├── /auth/*  → 인증 라우트                 │
+│  ├── /ws/*    → WebSocket                   │
+│  └── /*       → Runtime SPA                 │
+├─────────────────────────────────────────────┤
+│  mcp (Node :4100 → host :4100)              │
+│  └── /mcp     → MCP Streamable HTTP         │
+├──────────────┬──────────────────────────────┤
+│  MongoDB :27017 (내부)  │  Redis :6379 (내부) │
+└──────────────┴──────────────────────────────┘
+```
+
+**초기 데이터 설정**: Docker 실행 후 로컬 개발과 동일하게 테마 시딩 및 샘플 데이터를 생성할 수 있습니다.
+
+```bash
+./generate-themes.sh       # 프리셋 테마 시딩
+./generate-sample.sh       # 데모 데이터 (선택)
+```
+
 ### 테스트
 
 ```bash
