@@ -357,6 +357,10 @@ export function registerControlTools(server: McpServer): void {
 position 미지정 시 기존 컨트롤과 겹치지 않도록 자동 배치(16px 그리드 스냅). size 미지정 시 타입별 기본 크기 적용.
 parentId를 지정하면 Panel, GroupBox 등 컨테이너 내부에 배치됩니다.
 
+주의 — DataGridView columns 속성:
+  columns에는 반드시 field와 headerText를 사용하세요. name/header는 데이터 매핑에 사용되지 않습니다.
+  올바른 예: { field: 'email', headerText: '이메일', width: 200 }
+
 반환값: { controlId, controlName, controlType, position, size, formVersion }`,
     {
       formId: z.string().describe('폼 ID'),
@@ -696,6 +700,10 @@ parentId를 지정하면 Panel, GroupBox 등 컨테이너 내부에 배치됩니
 하나의 API 호출로 원자적으로 처리되어 add_control 반복 대비 훨씬 효율적입니다.
 
 position 미지정 시 이전 컨트롤 위치를 고려하여 순차 자동 배치됩니다.
+
+주의 — DataGridView columns 속성:
+  columns에는 반드시 field와 headerText를 사용하세요. name/header는 데이터 매핑에 사용되지 않습니다.
+  올바른 예: { field: 'email', headerText: '이메일', width: 200 }
 
 반환값: { addedControls: [{controlId, name, type, position, size}], count, formVersion }`,
     {

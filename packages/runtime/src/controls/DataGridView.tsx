@@ -377,6 +377,20 @@ export function DataGridView({
   const containerHeight = (style?.height as number) ?? 200;
   const listHeight = Math.max(containerHeight - HEADER_HEIGHT, 0);
 
+  // 스크롤바 너비 측정 (List와 동일한 overflowY:'scroll' 기준)
+  const scrollbarWidth = useMemo(() => {
+    const outer = document.createElement('div');
+    outer.style.overflowY = 'scroll';
+    outer.style.width = '100px';
+    outer.style.height = '100px';
+    outer.style.position = 'absolute';
+    outer.style.top = '-9999px';
+    document.body.appendChild(outer);
+    const w = outer.offsetWidth - outer.clientWidth;
+    document.body.removeChild(outer);
+    return w;
+  }, []);
+
   const mergedStyle: CSSProperties = { ...styles.container, ...fontStyle, background: colors.background, color: colors.color, ...style };
 
   // rowProps: 행 렌더러에 전달되는 추가 props (hooks는 early return 앞에서 호출)
@@ -420,9 +434,9 @@ export function DataGridView({
     );
   }
 
-  // 헤더 렌더링
+  // 헤더 렌더링 (항상 스크롤바 너비만큼 패딩 — List의 overflowY:'scroll'과 매칭)
   const header = (
-    <div style={styles.headerRow}>
+    <div style={{ ...styles.headerRow, paddingRight: scrollbarWidth }}>
       {resolvedColumns.map((col) => (
         <div
           key={col.field}
@@ -458,7 +472,7 @@ export function DataGridView({
         rowCount={sortedRows.length}
         rowHeight={ROW_HEIGHT}
         rowProps={rowProps}
-        style={{ height: listHeight, overflow: 'auto' }}
+        style={{ height: listHeight, overflowY: 'scroll' }}
       />
     </div>
   );

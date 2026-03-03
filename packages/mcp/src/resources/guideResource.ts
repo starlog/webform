@@ -23,6 +23,59 @@ ctx.controls.progressBar1.value = 75;
 ctx.controls.dgvUsers.dataSource = [...data];
 \`\`\`
 
+### 컨트롤별 주의사항
+
+#### ComboBox — selectedValue를 사용하지 마세요
+ComboBox 런타임은 \`selectedIndex\`만 상태에 저장합니다. \`selectedValue\`는 항상 \`undefined\`입니다.
+반드시 \`items[selectedIndex]\`로 선택된 값을 읽으세요.
+
+\`\`\`javascript
+// ✗ 잘못된 방법 (항상 undefined)
+let city = ctx.controls.cmbCity.selectedValue;
+
+// ✓ 올바른 방법
+let items = ctx.controls.cmbCity.items;
+let idx = ctx.controls.cmbCity.selectedIndex;
+let city = (idx >= 0 && idx < items.length) ? items[idx] : '';
+
+// 쓰기 (인덱스로 설정)
+ctx.controls.cmbCity.selectedIndex = 2;
+\`\`\`
+
+#### DataGridView — columns 정의 시 field/headerText 사용
+DataGridView의 \`columns\` 속성은 반드시 \`field\`와 \`headerText\`를 사용해야 합니다.
+\`name\`/\`header\`를 사용하면 데이터가 셀에 매핑되지 않아 빈 그리드가 표시됩니다.
+
+\`\`\`javascript
+// ✗ 잘못된 방법 (데이터가 표시되지 않음)
+columns: [{ name: 'email', header: '이메일', width: 200 }]
+
+// ✓ 올바른 방법
+columns: [{ field: 'email', headerText: '이메일', width: 200 }]
+\`\`\`
+
+#### DataGridView — 다른 쿼리 결과 표시 시 columns 동적 변경 필수
+같은 DataGridView에 다른 스키마의 데이터를 표시할 때, \`columns\`를 \`dataSource\`보다 먼저 설정해야 합니다.
+columns를 변경하지 않으면 이전 컬럼이 유지되어 새 데이터의 필드가 매핑되지 않습니다.
+
+\`\`\`javascript
+// 직원 목록 → 부서별 통계로 전환하는 예시
+ctx.controls.grid1.columns = [
+  { field: 'department', headerText: '부서', width: 150 },
+  { field: 'emp_count', headerText: '인원수', width: 100 },
+  { field: 'avg_salary', headerText: '평균 연봉', width: 150 }
+];
+ctx.controls.grid1.dataSource = deptStats;
+\`\`\`
+
+columns를 생략하면 데이터의 키에서 자동 생성됩니다 (headerText = 키 이름).
+
+#### 샌드박스 코드 작성 규칙
+- 변수 선언 시 \`const\`/\`let\` 대신 \`var\`를 사용하세요 (isolated-vm 호환성).
+- 커넥터 메서드(\`rawQuery\`, \`find\` 등)는 **동기식**입니다. \`await\`를 사용하지 마세요.
+- \`ctx.http\` 메서드(\`get\`, \`post\` 등)도 동기식으로 결과를 바로 반환합니다.
+- Template literal(백틱)은 사용 가능하지만, 긴 SQL은 문자열 연결(\`+\`)이 더 안전합니다.
+
 ## 2. ctx.sender — 이벤트 발생 컨트롤
 
 현재 이벤트를 발생시킨 컨트롤의 프록시 객체입니다.
@@ -119,6 +172,7 @@ let paymentMethod = ctx.getRadioGroupValue("rgPayment");
 ## 9. MongoDBConnector 메서드
 
 폼에 MongoDBConnector 컨트롤이 있으면 해당 컨트롤 이름으로 DB 작업이 가능합니다.
+**주의: 모든 커넥터 메서드는 동기식입니다. await를 사용하지 마세요.**
 
 \`\`\`javascript
 // mongoConn이라는 이름의 MongoDBConnector가 있을 때
@@ -130,7 +184,63 @@ let deleted = ctx.controls.mongoConn.deleteOne("users", { _id: "..." });
 let count = ctx.controls.mongoConn.count("users", { status: "active" });
 \`\`\`
 
-## 10. Shell 전용 API
+## 10. DataSourceConnector 메서드 (SQL DB)
+
+폼에 DataSourceConnector 컨트롤이 있으면 PostgreSQL, MySQL, MSSQL 등 SQL DB 쿼리가 가능합니다.
+**주의: 모든 커넥터 메서드는 동기식입니다. await를 사용하지 마세요.**
+
+### 사용 가능한 메서드
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| \`rawQuery(sql, params?)\` | SQL 직접 실행 | 결과 배열 |
+| \`query(params)\` | 구조화된 쿼리 실행 | 결과 배열 |
+| \`execute(sql, params?)\` | INSERT/UPDATE/DELETE | \`{affectedRows}\` |
+| \`tables()\` | 테이블 목록 조회 | 문자열 배열 |
+| \`testConnection()\` | 연결 테스트 | \`{success, message}\` |
+
+### 사용 예제
+\`\`\`javascript
+// pgConn이라는 이름의 DataSourceConnector가 있을 때
+
+// 전체 조회
+let rows = ctx.controls.pgConn.rawQuery('SELECT * FROM employees ORDER BY id');
+ctx.controls.grid1.dataSource = rows;
+
+// 파라미터 바인딩 ($1, $2 — PostgreSQL)
+let filtered = ctx.controls.pgConn.rawQuery(
+  'SELECT * FROM employees WHERE department = $1 AND salary > $2',
+  ['Engineering', 60000]
+);
+
+// INSERT/UPDATE/DELETE
+let result = ctx.controls.pgConn.execute(
+  'UPDATE employees SET active = $1 WHERE id = $2',
+  [false, 5]
+);
+// result.affectedRows === 1
+
+// 테이블 목록
+let tableList = ctx.controls.pgConn.tables();
+// ['employees', 'departments', 'projects']
+
+// 연결 테스트
+let connResult = ctx.controls.pgConn.testConnection();
+// { success: true, message: 'Connection successful' }
+\`\`\`
+
+## 11. SwaggerConnector 메서드 (REST API)
+
+폼에 SwaggerConnector 컨트롤이 있으면 Swagger/OpenAPI 정의 기반으로 REST API 호출이 가능합니다.
+**주의: 모든 커넥터 메서드는 동기식입니다. await를 사용하지 마세요.**
+
+\`\`\`javascript
+// swaggerConn이라는 SwaggerConnector에 getUsers operationId가 있을 때
+let users = ctx.controls.swaggerConn.getUsers({ queryParams: { page: 1 } });
+let user = ctx.controls.swaggerConn.getUserById({ pathParams: { id: 123 } });
+let created = ctx.controls.swaggerConn.createUser({ body: { name: "Alice" } });
+\`\`\`
+
+## 13. Shell 전용 API
 
 Application Shell 모드에서만 사용 가능한 추가 API입니다.
 
@@ -161,12 +271,12 @@ let userId = ctx.params.userId;
 ### ctx.closeApp()
 전체 애플리케이션을 종료합니다.
 
-## 11. console (디버깅)
+## 14. console (디버깅)
 
 \`console.log\`, \`console.info\`, \`console.warn\`, \`console.error\`를 사용할 수 있습니다.
 로그는 DebugLog 배열로 수집되어 응답에 포함됩니다.
 
-## 12. 사용 예제
+## 15. 사용 예제
 
 ### 기본 검증
 \`\`\`javascript
