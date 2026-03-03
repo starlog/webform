@@ -108,7 +108,7 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
       if (urlAuthError) {
         const errorMessages: Record<string, string> = {
           domain_not_allowed: '허용되지 않은 도메인입니다. 관리자에게 문의하세요.',
-          server_not_configured: '서버에 Google OAuth 설정(GOOGLE_CLIENT_SECRET)이 필요합니다. 관리자에게 문의하세요.',
+          server_not_configured: 'Shell의 Google Client Secret이 설정되지 않았습니다. 디자이너에서 설정해 주세요.',
           auth_not_configured: '이 프로젝트의 인증이 올바르게 설정되지 않았습니다.',
           shell_not_found: '퍼블리시된 Shell을 찾을 수 없습니다.',
           token_exchange_failed: 'Google 인증 토큰 교환에 실패했습니다. 다시 시도해 주세요.',

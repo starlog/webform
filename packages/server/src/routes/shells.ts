@@ -1,9 +1,55 @@
 import { Router } from 'express';
 import type { Request } from 'express';
 import { ShellService } from '../services/ShellService.js';
+import { EncryptionService } from '../services/EncryptionService.js';
 import { z } from 'zod';
 
+const encryptionService = new EncryptionService();
+
 type ShellParams = { projectId: string };
+
+/** auth.googleClientSecret를 암호화하여 저장용 데이터 변환 */
+function encryptAuthSecret<T extends { properties?: unknown }>(data: T): T {
+  const props = data.properties as Record<string, unknown> | undefined;
+  const auth = props?.auth as Record<string, unknown> | undefined;
+  if (auth?.googleClientSecret && typeof auth.googleClientSecret === 'string' && auth.googleClientSecret !== '') {
+    return {
+      ...data,
+      properties: {
+        ...props,
+        auth: {
+          ...auth,
+          googleClientSecret: encryptionService.encrypt(auth.googleClientSecret),
+        },
+      },
+    };
+  }
+  return data;
+}
+
+/** Shell 응답에서 auth.googleClientSecret를 복호화 */
+function decryptAuthSecret(shell: Record<string, unknown>): Record<string, unknown> {
+  const props = shell.properties as Record<string, unknown> | undefined;
+  const auth = props?.auth as Record<string, unknown> | undefined;
+  if (auth?.googleClientSecret && typeof auth.googleClientSecret === 'string' && auth.googleClientSecret !== '') {
+    try {
+      return {
+        ...shell,
+        properties: {
+          ...props,
+          auth: {
+            ...auth,
+            googleClientSecret: encryptionService.decrypt(auth.googleClientSecret),
+          },
+        },
+      };
+    } catch {
+      // 암호화되지 않은 기존 데이터 → 그대로 반환
+      return shell;
+    }
+  }
+  return shell;
+}
 
 export const shellsRouter = Router({ mergeParams: true });
 const shellService = new ShellService();
@@ -34,6 +80,8 @@ const shellPropertiesSchema = z.object({
       enabled: z.boolean().default(false),
       provider: z.literal('google').default('google'),
       googleClientId: z.string().default(''),
+      googleClientSecret: z.string().default(''),
+      runtimeBaseUrl: z.string().default('http://localhost:3001'),
       allowedDomains: z.array(z.string()).default([]),
     })
     .optional(),
@@ -59,7 +107,12 @@ const updateShellSchema = z.object({
 shellsRouter.get('/', async (req: Request<ShellParams>, res, next) => {
   try {
     const shell = await shellService.findShellByProjectId(req.params.projectId);
-    res.json({ data: shell });
+    if (shell) {
+      const plain = JSON.parse(JSON.stringify(shell));
+      res.json({ data: decryptAuthSecret(plain) });
+    } else {
+      res.json({ data: null });
+    }
   } catch (err) {
     next(err);
   }
@@ -69,7 +122,8 @@ shellsRouter.get('/', async (req: Request<ShellParams>, res, next) => {
 shellsRouter.post('/', async (req: Request<ShellParams>, res, next) => {
   try {
     const input = createShellSchema.parse(req.body);
-    const shell = await shellService.createShell(req.params.projectId, input, req.user!.sub);
+    const encrypted = encryptAuthSecret(input);
+    const shell = await shellService.createShell(req.params.projectId, encrypted, req.user!.sub);
     res.status(201).json({ data: shell });
   } catch (err) {
     next(err);
@@ -80,7 +134,8 @@ shellsRouter.post('/', async (req: Request<ShellParams>, res, next) => {
 shellsRouter.put('/', async (req: Request<ShellParams>, res, next) => {
   try {
     const input = updateShellSchema.parse(req.body);
-    const shell = await shellService.updateShell(req.params.projectId, input, req.user!.sub);
+    const encrypted = encryptAuthSecret(input);
+    const shell = await shellService.updateShell(req.params.projectId, encrypted, req.user!.sub);
     res.json({ data: shell });
   } catch (err) {
     next(err);

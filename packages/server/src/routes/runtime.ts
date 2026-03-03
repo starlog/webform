@@ -39,6 +39,14 @@ const eventEngine = new EventEngine();
 const shellService = new ShellService();
 const themeService = new ThemeService();
 
+/** Shell properties에서 googleClientSecret 제거 (Runtime에 노출 금지) */
+function stripSecrets(properties: Record<string, unknown>): Record<string, unknown> {
+  const auth = properties.auth as Record<string, unknown> | undefined;
+  if (!auth) return properties;
+  const { googleClientSecret: _, ...safeAuth } = auth;
+  return { ...properties, auth: safeAuth };
+}
+
 /** ShellDocument → 런타임용 Shell 정의 변환 (서버 핸들러만 노출) */
 function toShellDefinition(shell: ShellDocument) {
   return {
@@ -46,7 +54,7 @@ function toShellDefinition(shell: ShellDocument) {
     projectId: shell.projectId,
     name: shell.name,
     version: shell.version,
-    properties: shell.properties,
+    properties: stripSecrets(shell.properties as unknown as Record<string, unknown>),
     controls: stripItemScripts(shell.controls),
     eventHandlers: shell.eventHandlers
       .filter((h) => h.handlerType === 'server')
@@ -538,8 +546,9 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
     // ── 인증 게이트 ──
     const auth = shell?.properties.auth;
     if (auth?.enabled) {
+      const runtimeBaseUrl = auth.runtimeBaseUrl || 'http://localhost:3001';
       const formIdParam = req.query.formId ? `&formId=${req.query.formId}` : '';
-      const loginUrl = `${env.RUNTIME_BASE_URL}/auth/google/login?projectId=${req.params.projectId}${formIdParam}`;
+      const loginUrl = `${runtimeBaseUrl}/auth/google/login?projectId=${req.params.projectId}${formIdParam}`;
 
       const header = req.headers.authorization;
       const cookieToken = req.cookies?.runtime_auth_token;

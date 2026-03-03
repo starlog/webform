@@ -3,10 +3,23 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/index.js';
 import { ShellService } from '../services/ShellService.js';
+import { EncryptionService } from '../services/EncryptionService.js';
 import { AppError } from '../middleware/errorHandler.js';
 
 export const googleAuthRouter = Router();
 const shellService = new ShellService();
+const encryptionService = new EncryptionService();
+
+/** DB에 암호화 저장된 googleClientSecret를 복호화 */
+function decryptClientSecret(encrypted: string): string {
+  if (!encrypted) return '';
+  try {
+    return encryptionService.decrypt(encrypted);
+  } catch {
+    // 암호화되지 않은 레거시 데이터
+    return encrypted;
+  }
+}
 
 /** state 파라미터를 JSON으로 인코딩 (projectId + 원래 쿼리 파라미터 보존) */
 function encodeState(params: Record<string, string>): string {
@@ -23,8 +36,13 @@ function decodeState(state: string): Record<string, string> {
 }
 
 /** Runtime으로 에러 리다이렉트 */
-function redirectWithError(res: import('express').Response, projectId: string, errorCode: string) {
-  const url = new URL(env.RUNTIME_BASE_URL);
+function redirectWithError(
+  res: import('express').Response,
+  runtimeBaseUrl: string,
+  projectId: string,
+  errorCode: string,
+) {
+  const url = new URL(runtimeBaseUrl);
   url.searchParams.set('projectId', projectId);
   url.searchParams.set('authError', errorCode);
   res.redirect(url.toString());
@@ -43,25 +61,27 @@ googleAuthRouter.get('/google/login', async (req, res, next) => {
 
     const shell = await shellService.getPublishedShell(projectId);
     if (!shell) {
-      redirectWithError(res, projectId, 'shell_not_found');
-      return;
+      throw new AppError(404, 'Published shell not found');
     }
 
     const auth = shell.properties.auth;
     if (!auth?.enabled || !auth.googleClientId) {
-      redirectWithError(res, projectId, 'auth_not_configured');
+      redirectWithError(res, auth?.runtimeBaseUrl ?? 'http://localhost:3001', projectId, 'auth_not_configured');
       return;
     }
 
-    if (!env.GOOGLE_CLIENT_SECRET) {
-      redirectWithError(res, projectId, 'server_not_configured');
+    const runtimeBaseUrl = auth.runtimeBaseUrl || 'http://localhost:3001';
+
+    const clientSecret = decryptClientSecret(auth.googleClientSecret ?? '');
+    if (!clientSecret) {
+      redirectWithError(res, runtimeBaseUrl, projectId, 'server_not_configured');
       return;
     }
 
-    const callbackUrl = `${env.RUNTIME_BASE_URL}/auth/google/callback`;
+    const callbackUrl = `${runtimeBaseUrl}/auth/google/callback`;
     const oauth2Client = new OAuth2Client(
       auth.googleClientId,
-      env.GOOGLE_CLIENT_SECRET,
+      clientSecret,
       callbackUrl,
     );
 
@@ -104,25 +124,27 @@ googleAuthRouter.get('/google/callback', async (req, res, next) => {
 
     const shell = await shellService.getPublishedShell(projectId);
     if (!shell) {
-      redirectWithError(res, projectId, 'shell_not_found');
-      return;
+      throw new AppError(404, 'Published shell not found');
     }
 
     const auth = shell.properties.auth;
     if (!auth?.enabled || !auth.googleClientId) {
-      redirectWithError(res, projectId, 'auth_not_configured');
+      redirectWithError(res, auth?.runtimeBaseUrl ?? 'http://localhost:3001', projectId, 'auth_not_configured');
       return;
     }
 
-    if (!env.GOOGLE_CLIENT_SECRET) {
-      redirectWithError(res, projectId, 'server_not_configured');
+    const runtimeBaseUrl = auth.runtimeBaseUrl || 'http://localhost:3001';
+
+    const clientSecret = decryptClientSecret(auth.googleClientSecret ?? '');
+    if (!clientSecret) {
+      redirectWithError(res, runtimeBaseUrl, projectId, 'server_not_configured');
       return;
     }
 
-    const callbackUrl = `${env.RUNTIME_BASE_URL}/auth/google/callback`;
+    const callbackUrl = `${runtimeBaseUrl}/auth/google/callback`;
     const oauth2Client = new OAuth2Client(
       auth.googleClientId,
-      env.GOOGLE_CLIENT_SECRET,
+      clientSecret,
       callbackUrl,
     );
 
@@ -130,7 +152,7 @@ googleAuthRouter.get('/google/callback', async (req, res, next) => {
     const { tokens } = await oauth2Client.getToken(code);
 
     if (!tokens.id_token) {
-      redirectWithError(res, projectId, 'token_exchange_failed');
+      redirectWithError(res, runtimeBaseUrl, projectId, 'token_exchange_failed');
       return;
     }
 
@@ -142,13 +164,13 @@ googleAuthRouter.get('/google/callback', async (req, res, next) => {
 
     const googlePayload = ticket.getPayload();
     if (!googlePayload) {
-      redirectWithError(res, projectId, 'invalid_token');
+      redirectWithError(res, runtimeBaseUrl, projectId, 'invalid_token');
       return;
     }
 
     const email = googlePayload.email;
     if (!email) {
-      redirectWithError(res, projectId, 'no_email');
+      redirectWithError(res, runtimeBaseUrl, projectId, 'no_email');
       return;
     }
 
@@ -156,7 +178,7 @@ googleAuthRouter.get('/google/callback', async (req, res, next) => {
     if (auth.allowedDomains.length > 0) {
       const domain = email.split('@')[1];
       if (!auth.allowedDomains.includes(domain)) {
-        redirectWithError(res, projectId, 'domain_not_allowed');
+        redirectWithError(res, runtimeBaseUrl, projectId, 'domain_not_allowed');
         return;
       }
     }
@@ -176,7 +198,7 @@ googleAuthRouter.get('/google/callback', async (req, res, next) => {
     );
 
     // Runtime으로 리다이렉트 (원래 쿼리 파라미터 복원 + fragment에 토큰)
-    const redirectUrl = new URL(env.RUNTIME_BASE_URL);
+    const redirectUrl = new URL(runtimeBaseUrl);
     redirectUrl.searchParams.set('projectId', projectId);
     if (stateParams.formId) {
       redirectUrl.searchParams.set('formId', stateParams.formId);

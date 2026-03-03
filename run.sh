@@ -9,8 +9,8 @@ if ! command -v pnpm &>/dev/null; then
   npm install -g pnpm@9
 fi
 
-# 의존성 설치
-if [ ! -d "node_modules" ]; then
+# 의존성 설치 (node_modules 없거나 pnpm-lock.yaml이 더 최신이면 재설치)
+if [ ! -d "node_modules" ] || [ "pnpm-lock.yaml" -nt "node_modules/.pnpm/lock.yaml" ]; then
   echo "의존성을 설치합니다..."
   pnpm install
 fi

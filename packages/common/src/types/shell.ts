@@ -10,6 +10,8 @@ export interface AuthSettings {
   enabled: boolean;
   provider: 'google';
   googleClientId: string;
+  googleClientSecret: string;
+  runtimeBaseUrl: string;
   allowedDomains: string[]; // 빈 배열 = 모든 도메인 허용
 }
 

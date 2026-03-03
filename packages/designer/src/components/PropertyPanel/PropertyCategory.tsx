@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { AnchorStyle, FontDefinition } from '@webform/common';
 import type { PropertyMeta } from './controlProperties';
 import { TextEditor } from './editors/TextEditor';
+import { PasswordEditor } from './editors/PasswordEditor';
 import { NumberEditor } from './editors/NumberEditor';
 import { ColorPicker } from './editors/ColorPicker';
 import { FontPicker } from './editors/FontPicker';
@@ -118,6 +119,8 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
   switch (meta.editorType) {
     case 'text':
       return <TextEditor value={value as string ?? ''} onChange={onChange} />;
+    case 'password':
+      return <PasswordEditor value={value as string ?? ''} onChange={onChange} />;
     case 'number':
       return <NumberEditor value={value as number ?? 0} onChange={onChange} min={meta.min} max={meta.max} />;
     case 'color':

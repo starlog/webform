@@ -3,6 +3,7 @@ import { COMMON_EVENTS, CONTROL_EVENTS } from '@webform/common';
 
 export type EditorType =
   | 'text'
+  | 'password'
   | 'number'
   | 'color'
   | 'font'
@@ -572,5 +573,7 @@ export const SHELL_PROPERTIES: PropertyMeta[] = [
   { name: 'windowState', label: 'WindowState', category: 'Layout', editorType: 'dropdown', options: ['Normal', 'Maximized'] },
   { name: 'auth.enabled', label: 'Auth Enabled', category: 'Authentication', editorType: 'boolean' },
   { name: 'auth.googleClientId', label: 'Google Client ID', category: 'Authentication', editorType: 'text' },
+  { name: 'auth.googleClientSecret', label: 'Google Client Secret', category: 'Authentication', editorType: 'password' },
+  { name: 'auth.runtimeBaseUrl', label: 'Runtime Base URL', category: 'Authentication', editorType: 'text' },
   { name: 'auth.allowedDomains', label: 'Allowed Domains', category: 'Authentication', editorType: 'text' },
 ];

@@ -335,6 +335,8 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
           enabled: false,
           provider: 'google' as const,
           googleClientId: '',
+          googleClientSecret: '',
+          runtimeBaseUrl: 'http://localhost:3001',
           allowedDomains: [],
         };
         let newValue = value;
