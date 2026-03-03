@@ -57,14 +57,13 @@ export function RadioButton({
         ...style,
         cursor: enabled ? 'pointer' : 'default',
       }}
-      onClick={handleChange}
     >
       <input
         type="radio"
         name={groupName}
         checked={checked}
         disabled={!enabled}
-        onChange={() => {}}
+        onChange={handleChange}
         style={checkRadioInputStyle}
       />
       <span style={checkRadioTextStyle}>

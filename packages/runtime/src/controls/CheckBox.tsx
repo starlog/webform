@@ -45,13 +45,12 @@ export function CheckBox({
         ...style,
         cursor: enabled ? 'pointer' : 'default',
       }}
-      onClick={handleChange}
     >
       <input
         type="checkbox"
         checked={checked}
         disabled={!enabled}
-        onChange={() => {}}
+        onChange={handleChange}
         style={checkRadioInputStyle}
       />
       <span style={checkRadioTextStyle}>

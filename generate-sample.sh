@@ -10,20 +10,33 @@ set -euo pipefail
 #   - 서버(localhost:4000)가 실행 중이어야 합니다
 #
 # 사용법:
-#   ./generate-sample.sh
+#   ./generate-sample.sh                                        # 로컬 개발
+#   ./generate-sample.sh --env .env.docker --mongo webform-mongo-1  # Docker 환경
 ###############################################################################
 
 cd "$(dirname "$0")"
 
-# ─── .env 로드 (현재 디렉토리 우선, packages/server/.env 폴백) ──────────────
+# ─── --env / --mongo 옵션 파싱 ───────────────────────────────────────────────
+CUSTOM_ENV_FILE=""
+CUSTOM_MONGO_CONTAINER=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --env) CUSTOM_ENV_FILE="$2"; shift 2 ;;
+    --mongo) CUSTOM_MONGO_CONTAINER="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+
+# ─── .env 로드 (--env 지정 시 우선, 그 외 .env → packages/server/.env 폴백) ──
 load_env_var() {
   local var_name="$1"
   local val=""
-  # 현재 디렉토리 .env 우선
-  if [ -f .env ]; then
+  if [ -n "$CUSTOM_ENV_FILE" ] && [ -f "$CUSTOM_ENV_FILE" ]; then
+    val=$(grep "^${var_name}=" "$CUSTOM_ENV_FILE" 2>/dev/null | head -1 | cut -d= -f2-)
+  fi
+  if [ -z "$val" ] && [ -f .env ]; then
     val=$(grep "^${var_name}=" .env 2>/dev/null | head -1 | cut -d= -f2-)
   fi
-  # 값이 없으면 packages/server/.env 폴백
   if [ -z "$val" ] && [ -f packages/server/.env ]; then
     val=$(grep "^${var_name}=" packages/server/.env 2>/dev/null | head -1 | cut -d= -f2-)
   fi
@@ -34,7 +47,7 @@ load_env_var() {
 _PORT=$(load_env_var "PORT")
 API_URL="http://localhost:${_PORT:-4000}"
 
-MONGO_CONTAINER="${MONGO_CONTAINER:-mongodb}"
+MONGO_CONTAINER="${CUSTOM_MONGO_CONTAINER:-${MONGO_CONTAINER:-mongodb}}"
 MONGO_PORT="${MONGO_PORT:-27017}"
 DEMO_DB="demo"
 DEMO_COLLECTION="orders"
@@ -226,7 +239,7 @@ info "API 인증 토큰 생성 중..."
 # .env에서 JWT_SECRET 읽기 (현재 디렉토리 우선, packages/server/.env 폴백)
 JWT_SECRET=$(load_env_var "JWT_SECRET")
 if [ -z "$JWT_SECRET" ]; then
-  fail ".env 또는 packages/server/.env 에서 JWT_SECRET을 찾을 수 없습니다. 먼저 ./run.sh를 실행하세요."
+  fail "JWT_SECRET을 찾을 수 없습니다. --env .env.docker 옵션을 사용하거나 ./run.sh를 먼저 실행하세요."
 fi
 
 # Node.js로 JWT 토큰 생성

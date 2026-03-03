@@ -5,16 +5,29 @@
 #   - 서버(localhost:4000)가 실행 중이어야 합니다
 #
 # 사용법:
-#   ./generate-themes.sh
+#   ./generate-themes.sh                    # 로컬 개발 (.env → packages/server/.env)
+#   ./generate-themes.sh --env .env.docker  # Docker 환경
 ###############################################################################
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# ─── .env 로드 (현재 디렉토리 우선, packages/server/.env 폴백) ──────────────
+# ─── --env 옵션 파싱 ─────────────────────────────────────────────────────────
+CUSTOM_ENV_FILE=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --env) CUSTOM_ENV_FILE="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+
+# ─── .env 로드 (--env 지정 시 우선, 그 외 .env → packages/server/.env 폴백) ──
 load_env_var() {
   local var_name="$1"
   local val=""
-  if [ -f .env ]; then
+  if [ -n "$CUSTOM_ENV_FILE" ] && [ -f "$CUSTOM_ENV_FILE" ]; then
+    val=$(grep "^${var_name}=" "$CUSTOM_ENV_FILE" 2>/dev/null | head -1 | cut -d= -f2-)
+  fi
+  if [ -z "$val" ] && [ -f .env ]; then
     val=$(grep "^${var_name}=" .env 2>/dev/null | head -1 | cut -d= -f2-)
   fi
   if [ -z "$val" ] && [ -f packages/server/.env ]; then
@@ -42,7 +55,7 @@ fail()  { echo -e "${RED}[FAIL]${NC}  $*"; exit 1; }
 # ─── 1. JWT 토큰 생성 ─────────────────────────────────────────────────────────
 JWT_SECRET=$(load_env_var "JWT_SECRET")
 if [ -z "$JWT_SECRET" ]; then
-  fail ".env 또는 packages/server/.env 에서 JWT_SECRET을 찾을 수 없습니다. 먼저 ./run.sh를 실행하세요."
+  fail "JWT_SECRET을 찾을 수 없습니다. --env .env.docker 옵션을 사용하거나 ./run.sh를 먼저 실행하세요."
 fi
 
 TOKEN=$(node -e "
