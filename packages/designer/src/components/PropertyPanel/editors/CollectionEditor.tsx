@@ -6,6 +6,7 @@ type AnyItem = any;
 interface CollectionEditorProps {
   value: AnyItem[];
   onChange: (value: AnyItem[]) => void;
+  sampleData?: AnyItem[];
 }
 
 /** 객체 아이템의 요약 라벨을 생성 */
@@ -55,7 +56,7 @@ function displayValue(val: unknown): string {
   return String(val ?? '');
 }
 
-export function CollectionEditor({ value, onChange }: CollectionEditorProps) {
+export function CollectionEditor({ value, onChange, sampleData }: CollectionEditorProps) {
   const [open, setOpen] = useState(false);
   const items = Array.isArray(value) ? value : [];
 
@@ -80,6 +81,7 @@ export function CollectionEditor({ value, onChange }: CollectionEditorProps) {
       {open && (
         <CollectionModal
           items={items}
+          sampleData={sampleData}
           onClose={() => setOpen(false)}
           onSave={(newItems) => {
             onChange(newItems);
@@ -93,11 +95,12 @@ export function CollectionEditor({ value, onChange }: CollectionEditorProps) {
 
 interface CollectionModalProps {
   items: AnyItem[];
+  sampleData?: AnyItem[];
   onClose: () => void;
   onSave: (items: AnyItem[]) => void;
 }
 
-function CollectionModal({ items: initial, onClose, onSave }: CollectionModalProps) {
+function CollectionModal({ items: initial, sampleData, onClose, onSave }: CollectionModalProps) {
   const [items, setItems] = useState<AnyItem[]>(() =>
     initial.map((item) =>
       item != null && typeof item === 'object' && !Array.isArray(item)
@@ -218,6 +221,19 @@ function CollectionModal({ items: initial, onClose, onSave }: CollectionModalPro
             <button type="button" onClick={remove} disabled={selectedIndex < 0} style={btnStyle}>Remove</button>
             <button type="button" onClick={moveUp} disabled={selectedIndex <= 0} style={btnStyle}>Up</button>
             <button type="button" onClick={moveDown} disabled={selectedIndex < 0 || selectedIndex >= items.length - 1} style={btnStyle}>Down</button>
+            {sampleData && sampleData.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const cloned = JSON.parse(JSON.stringify(sampleData));
+                  setItems(cloned);
+                  setSelectedIndex(0);
+                }}
+                style={{ ...btnStyle, marginLeft: 'auto', color: '#0078d4' }}
+              >
+                Sample
+              </button>
+            )}
           </div>
 
           {isObjectMode ? (

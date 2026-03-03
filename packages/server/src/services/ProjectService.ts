@@ -73,7 +73,7 @@ export class ProjectService {
     const project = await this.getProject(id);
     const forms = await Form.find({ projectId: id, deletedAt: null })
       .select('-versions')
-      .sort({ updatedAt: -1 })
+      .sort({ name: 1 })
       .lean<FormDocument[]>();
     return { project, forms };
   }
@@ -90,7 +90,7 @@ export class ProjectService {
 
     const [data, total] = await Promise.all([
       Project.find(filter)
-        .sort({ updatedAt: -1 })
+        .sort({ name: 1 })
         .skip(skip)
         .limit(limit)
         .lean<ProjectDocument[]>(),
@@ -214,11 +214,13 @@ export class ProjectService {
     if (input.forms.length > 0) {
       const formDocs = input.forms.map((f) => {
         const formId = new Types.ObjectId();
+        const controls = f.controls as unknown[];
+        migrateGraphViewControls(controls);
         return {
           _id: formId,
           name: f.name,
           properties: f.properties,
-          controls: f.controls,
+          controls,
           eventHandlers: (f.eventHandlers ?? []).map((h) => {
             const handler = h as Record<string, unknown>;
             return handler.controlId === '_form'
@@ -277,5 +279,33 @@ export class ProjectService {
       forms: formsResult,
       shell: shellResult,
     };
+  }
+}
+
+// GraphView → Chart 자동 마이그레이션
+const GRAPH_TYPE_MAP: Record<string, string> = {
+  Bar: 'Column',
+  HorizontalBar: 'Bar',
+  Donut: 'Doughnut',
+};
+
+function migrateGraphViewControls(controls: unknown[]): void {
+  for (const ctrl of controls as Array<Record<string, unknown>>) {
+    if (ctrl.type === 'GraphView') {
+      ctrl.type = 'Chart';
+      const props = ctrl.properties as Record<string, unknown> | undefined;
+      if (props) {
+        const graphType = (props.graphType as string) || 'Bar';
+        props.chartType = GRAPH_TYPE_MAP[graphType] || graphType;
+        delete props.graphType;
+        if (props.data !== undefined) {
+          props.series = props.data;
+          delete props.data;
+        }
+      }
+    }
+    if (Array.isArray(ctrl.children)) {
+      migrateGraphViewControls(ctrl.children);
+    }
   }
 }

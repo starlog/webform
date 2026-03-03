@@ -130,7 +130,6 @@ function getDefaultSize(type: ControlType): { width: number; height: number } {
     SpreadsheetView: { width: 400, height: 300 },
     JsonEditor:      { width: 300, height: 250 },
     MongoDBView:     { width: 450, height: 350 },
-    GraphView:       { width: 400, height: 300 },
     MenuStrip:       { width: 800, height: 24 },
     ToolStrip:       { width: 800, height: 25 },
     StatusStrip:     { width: 800, height: 22 },
@@ -217,13 +216,6 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
         pageSize: 50,
         readOnly: false,
         showToolbar: true,
-      };
-    case 'GraphView':
-      return {
-        graphType: 'Bar',
-        title: '',
-        showLegend: true,
-        showGrid: true,
       };
     case 'StatusStrip':
       return {

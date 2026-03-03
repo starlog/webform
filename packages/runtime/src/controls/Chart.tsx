@@ -35,6 +35,7 @@ const DEFAULT_COLORS = [
 
 type ChartType =
   | 'Line' | 'Bar' | 'Column' | 'Area'
+  | 'StackedBar' | 'StackedArea'
   | 'Pie' | 'Doughnut'
   | 'Scatter' | 'Radar';
 
@@ -50,6 +51,7 @@ interface ChartProps {
   yAxisTitle?: string;
   showLegend?: boolean;
   showGrid?: boolean;
+  colors?: string;
   foreColor?: string;
   backColor?: string;
   font?: FontDefinition;
@@ -115,14 +117,18 @@ export function Chart({
   yAxisTitle,
   showLegend = true,
   showGrid = true,
+  colors,
   foreColor,
   backColor,
   font,
   style,
 }: ChartProps) {
-  const colors = useControlColors('Chart', { backColor, foreColor });
+  const themeColors = useControlColors('Chart', { backColor, foreColor });
   const chartData = useMemo(() => parseData(series), [series]);
-  const palette = DEFAULT_COLORS;
+  const palette = useMemo(
+    () => (colors ? colors.split(',').map((c) => c.trim()).filter(Boolean) : DEFAULT_COLORS),
+    [colors],
+  );
 
   const { categoryKey, seriesKeys } = useMemo(() => {
     if (chartData.length === 0) return { categoryKey: null, seriesKeys: [] };
@@ -133,8 +139,8 @@ export function Chart({
 
   const fontStyle = font ? computeFontStyle(font) : {};
   const containerStyle: CSSProperties = {
-    background: colors.background,
-    color: colors.color,
+    background: themeColors.background,
+    color: themeColors.color,
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
@@ -162,12 +168,7 @@ export function Chart({
   const gridElement = showGrid ? <CartesianGrid strokeDasharray="3 3" /> : null;
   const legendElement = showLegend ? <Legend /> : null;
 
-  // Map WinForms Chart types to internal rendering
-  // Column = vertical bars, Bar = horizontal bars, Doughnut = donut pie
-  const normalizedType = chartType === 'Column' ? 'Column'
-    : chartType === 'Bar' ? 'Bar'
-    : chartType === 'Doughnut' ? 'Doughnut'
-    : chartType;
+  const normalizedType = chartType;
 
   const renderCartesian = () => {
     const dataKey = categoryKey || 'x';
@@ -225,6 +226,34 @@ export function Chart({
             {legendElement}
             {seriesKeys.map((key, i) => (
               <Area key={key} type="monotone" dataKey={key} stroke={getColor(i)} fill={getColor(i)} fillOpacity={0.3} />
+            ))}
+          </AreaChart>
+        );
+
+      case 'StackedBar':
+        return (
+          <BarChart data={chartData}>
+            {gridElement}
+            <XAxis dataKey={dataKey} label={xAxisTitle ? { value: xAxisTitle, position: 'insideBottom', offset: -5 } : undefined} />
+            <YAxis label={yAxisTitle ? { value: yAxisTitle, angle: -90, position: 'insideLeft' } : undefined} />
+            <Tooltip />
+            {legendElement}
+            {seriesKeys.map((key, i) => (
+              <Bar key={key} dataKey={key} fill={getColor(i)} stackId="stack" />
+            ))}
+          </BarChart>
+        );
+
+      case 'StackedArea':
+        return (
+          <AreaChart data={chartData}>
+            {gridElement}
+            <XAxis dataKey={dataKey} label={xAxisTitle ? { value: xAxisTitle, position: 'insideBottom', offset: -5 } : undefined} />
+            <YAxis label={yAxisTitle ? { value: yAxisTitle, angle: -90, position: 'insideLeft' } : undefined} />
+            <Tooltip />
+            {legendElement}
+            {seriesKeys.map((key, i) => (
+              <Area key={key} type="monotone" dataKey={key} stroke={getColor(i)} fill={getColor(i)} stackId="stack" />
             ))}
           </AreaChart>
         );

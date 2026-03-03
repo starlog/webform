@@ -3320,7 +3320,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
             "height": 35
           },
           "properties": {
-            "text": "다양한 그래프 데모 (GraphView)",
+            "text": "다양한 그래프 데모 (Chart)",
             "foreColor": "#AD1457",
             "font": {
               "family": "Pretendard",
@@ -3344,7 +3344,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         },
         {
           "id": "gvBarChart",
-          "type": "GraphView",
+          "type": "Chart",
           "name": "gvBarChart",
           "position": {
             "x": 20,
@@ -3355,14 +3355,14 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
             "height": 300
           },
           "properties": {
-            "graphType": "Bar",
+            "chartType": "Column",
             "title": "분기별 매출/이익",
             "xAxisTitle": "분기",
             "yAxisTitle": "금액 (백만원)",
             "showLegend": true,
             "showGrid": true,
             "colors": "#1565C0,#43A047",
-            "data": [
+            "series": [
               {
                 "x": "1분기",
                 "매출": 4520,
@@ -3398,7 +3398,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         },
         {
           "id": "gvLineChart",
-          "type": "GraphView",
+          "type": "Chart",
           "name": "gvLineChart",
           "position": {
             "x": 460,
@@ -3409,14 +3409,14 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
             "height": 300
           },
           "properties": {
-            "graphType": "Line",
+            "chartType": "Line",
             "title": "월별 웹사이트 트래픽 추이",
             "xAxisTitle": "월",
             "yAxisTitle": "방문자 수 (천명)",
             "showLegend": true,
             "showGrid": true,
             "colors": "#E65100,#6A1B9A,#00695C",
-            "data": [
+            "series": [
               {
                 "x": "1월",
                 "PC": 120,
@@ -3468,7 +3468,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         },
         {
           "id": "gvPieChart",
-          "type": "GraphView",
+          "type": "Chart",
           "name": "gvPieChart",
           "position": {
             "x": 20,
@@ -3479,12 +3479,12 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
             "height": 300
           },
           "properties": {
-            "graphType": "Donut",
+            "chartType": "Doughnut",
             "title": "브라우저 점유율",
             "showLegend": true,
             "showGrid": false,
             "colors": "#1565C0,#E65100,#F9A825,#43A047,#6A1B9A",
-            "data": [
+            "series": [
               {
                 "name": "Chrome",
                 "value": 64
@@ -3520,7 +3520,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
         },
         {
           "id": "gvRadarChart",
-          "type": "GraphView",
+          "type": "Chart",
           "name": "gvRadarChart",
           "position": {
             "x": 460,
@@ -3531,12 +3531,12 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
             "height": 300
           },
           "properties": {
-            "graphType": "Radar",
+            "chartType": "Radar",
             "title": "팀 역량 비교",
             "showLegend": true,
             "showGrid": true,
             "colors": "#1565C0,#E65100",
-            "data": [
+            "series": [
               {
                 "subject": "기획력",
                 "프론트엔드팀": 90,
@@ -9054,7 +9054,7 @@ IMPORT_RESULT=$(curl -s -X POST "${API_URL}/api/projects/import" \
                 "height": 46
               },
               "properties": {
-                "text": "Basic 20종(Button, Label, TextBox, Slider, Switch, Alert, Tag 등), Container 10종(Panel, Card, Tooltip, Collapse 등), Data 11종(DataGridView, Chart, GraphView, Upload 등), 비시각적 1종(MongoDBConnector)을 지원합니다."
+                "text": "Basic 20종(Button, Label, TextBox, Slider, Switch, Alert, Tag 등), Container 10종(Panel, Card, Tooltip, Collapse 등), Data 11종(DataGridView, Chart, Upload 등), 비시각적 1종(MongoDBConnector)을 지원합니다."
               },
               "anchor": {
                 "top": true,
@@ -9755,7 +9755,7 @@ echo -e "    2. 컨테이너/레이아웃 데모 - TabControl, Panel, GroupBox, 
 echo -e "    3. 데이터 뷰어 데모      - TreeView, ListView, DataGridView"
 echo -e "    4. 스크립트 고급 데모    - 계산기, HTTP 호출, 다이얼로그, 콘솔 로그"
 echo -e "    5. MongoDB 주문 관리    - MongoDBView (demo.orders 컬렉션)"
-echo -e "    6. 그래프/차트 데모      - GraphView (Bar, Line, Donut, Radar)"
+echo -e "    6. 그래프/차트 데모      - Chart (Column, Line, Doughnut, Radar)"
 echo -e "    7. JSON 편집기 데모     - JsonEditor (편집/읽기 전용)"
 echo -e "    8. 스프레드시트 데모     - SpreadsheetView (편집/읽기 전용)"
 echo -e "    9. 메뉴/도구모음 데모   - MenuStrip, ToolStrip, StatusStrip"

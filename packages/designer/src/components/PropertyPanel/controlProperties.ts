@@ -15,6 +15,7 @@ export type EditorType =
   | 'mongoColumns'
   | 'mongoConnectionString'
   | 'graphSample'
+  | 'chartSample'
   | 'menuEditor'
   | 'toolStripEditor'
   | 'statusStripEditor'
@@ -33,6 +34,7 @@ export interface PropertyMeta {
   min?: number;
   max?: number;
   condition?: { property: string; values: string[] };
+  sampleRef?: string;
 }
 
 // 공통 속성 — 모든 컨트롤에 적용
@@ -220,21 +222,6 @@ const mongoDBViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.backColor',        label: 'BackColor',        category: 'Appearance', editorType: 'color' },
 );
 
-const graphViewProps: PropertyMeta[] = withCommon(
-  { name: 'properties.graphType',  label: 'GraphType',  category: 'Appearance', editorType: 'dropdown', options: ['Line', 'Bar', 'HorizontalBar', 'Area', 'StackedBar', 'StackedArea', 'Pie', 'Donut', 'Scatter', 'Radar'] },
-  { name: 'properties.data',       label: 'Data',       category: 'Data',       editorType: 'collection' },
-  { name: 'properties.title',      label: 'Title',      category: 'Appearance', editorType: 'text' },
-  { name: 'properties.xAxisTitle', label: 'XAxisTitle', category: 'Appearance', editorType: 'text' },
-  { name: 'properties.yAxisTitle', label: 'YAxisTitle', category: 'Appearance', editorType: 'text' },
-  { name: 'properties.showLegend', label: 'ShowLegend', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
-  { name: 'properties.showGrid',   label: 'ShowGrid',   category: 'Behavior',   editorType: 'boolean', defaultValue: true },
-  { name: 'properties.colors',     label: 'Colors',     category: 'Appearance', editorType: 'text' },
-  { name: 'properties.font',       label: 'Font',       category: 'Appearance', editorType: 'font' },
-  { name: 'properties.foreColor',  label: 'ForeColor',  category: 'Appearance', editorType: 'color' },
-  { name: 'properties.backColor',  label: 'BackColor',  category: 'Appearance', editorType: 'color' },
-  { name: 'type',                  label: 'Data Format', category: 'Sample',     editorType: 'graphSample' },
-);
-
 const treeViewProps: PropertyMeta[] = withCommon(
   { name: 'properties.nodes',        label: 'Nodes',        category: 'Data',       editorType: 'collection' },
   { name: 'properties.showLines',    label: 'ShowLines',    category: 'Behavior',   editorType: 'boolean', defaultValue: false },
@@ -293,16 +280,18 @@ const webBrowserProps: PropertyMeta[] = withCommon(
 );
 
 const chartProps: PropertyMeta[] = withCommon(
-  { name: 'properties.chartType',  label: 'ChartType',  category: 'Appearance', editorType: 'dropdown', options: ['Line', 'Bar', 'Column', 'Area', 'Pie', 'Doughnut', 'Scatter', 'Radar'] },
-  { name: 'properties.series',     label: 'Series',     category: 'Data',       editorType: 'collection' },
+  { name: 'properties.chartType',  label: 'ChartType',  category: 'Appearance', editorType: 'dropdown', options: ['Line', 'Bar', 'Column', 'Area', 'StackedBar', 'StackedArea', 'Pie', 'Doughnut', 'Scatter', 'Radar'] },
+  { name: 'properties.series',     label: 'Series',     category: 'Data',       editorType: 'collection', sampleRef: 'properties.chartType' },
   { name: 'properties.title',      label: 'Title',      category: 'Appearance', editorType: 'text' },
   { name: 'properties.xAxisTitle', label: 'XAxisTitle', category: 'Appearance', editorType: 'text' },
   { name: 'properties.yAxisTitle', label: 'YAxisTitle', category: 'Appearance', editorType: 'text' },
   { name: 'properties.showLegend', label: 'ShowLegend', category: 'Behavior',   editorType: 'boolean', defaultValue: true },
   { name: 'properties.showGrid',   label: 'ShowGrid',   category: 'Behavior',   editorType: 'boolean', defaultValue: true },
+  { name: 'properties.colors',     label: 'Colors',     category: 'Appearance', editorType: 'text' },
   { name: 'properties.font',       label: 'Font',       category: 'Appearance', editorType: 'font' },
   { name: 'properties.foreColor',  label: 'ForeColor',  category: 'Appearance', editorType: 'color' },
   { name: 'properties.backColor',  label: 'BackColor',  category: 'Appearance', editorType: 'color' },
+  { name: 'properties.chartType', label: 'Data Format', category: 'Sample',     editorType: 'chartSample' },
 );
 
 const splitContainerProps: PropertyMeta[] = withCommon(
@@ -500,7 +489,6 @@ export const CONTROL_PROPERTY_META: Partial<Record<ControlType, PropertyMeta[]>>
   SpreadsheetView: spreadsheetViewProps,
   JsonEditor:     jsonEditorProps,
   MongoDBView:    mongoDBViewProps,
-  GraphView:      graphViewProps,
   TreeView:       treeViewProps,
   ListView:       listViewProps,
   MenuStrip:      menuStripProps,

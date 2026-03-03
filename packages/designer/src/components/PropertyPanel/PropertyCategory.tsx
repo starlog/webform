@@ -13,7 +13,7 @@ import { CollectionEditor } from './editors/CollectionEditor';
 import { TabPagesEditor } from './editors/TabPagesEditor';
 import { MongoColumnsEditor } from './editors/MongoColumnsEditor';
 import { MongoConnectionStringEditor } from './editors/MongoConnectionStringEditor';
-import { SampleDataEditor } from './editors/SampleDataEditor';
+import { SampleDataEditor, ChartSampleDataEditor, CHART_SAMPLES } from './editors/SampleDataEditor';
 import { SwaggerSpecEditor } from './editors/SwaggerSpecEditor';
 import { SwaggerApisEditor } from './editors/SwaggerApisEditor';
 import { MenuItemEditor } from '../Editors/MenuItemEditor';
@@ -61,9 +61,18 @@ export function PropertyCategory({ category, properties, getValue, onValueChange
       </div>
       {!collapsed && (
         <div>
-          {properties.map((prop) => (
-            <PropertyRow key={prop.name} meta={prop} value={getValue(prop.name)} onChange={(v) => onValueChange(prop.name, v)} />
-          ))}
+          {properties.map((prop) => {
+            let sampleData: unknown[] | undefined;
+            if (prop.sampleRef) {
+              const refValue = getValue(prop.sampleRef) as string;
+              if (refValue && CHART_SAMPLES[refValue]) {
+                sampleData = CHART_SAMPLES[refValue];
+              }
+            }
+            return (
+              <PropertyRow key={prop.name} meta={prop} value={getValue(prop.name)} onChange={(v) => onValueChange(prop.name, v)} sampleData={sampleData} />
+            );
+          })}
         </div>
       )}
     </div>
@@ -74,10 +83,11 @@ interface PropertyRowProps {
   meta: PropertyMeta;
   value: unknown;
   onChange: (value: unknown) => void;
+  sampleData?: unknown[];
 }
 
-function PropertyRow({ meta, value, onChange }: PropertyRowProps) {
-  if (meta.editorType === 'graphSample' || meta.editorType === 'swaggerApis') {
+function PropertyRow({ meta, value, onChange, sampleData }: PropertyRowProps) {
+  if (meta.editorType === 'graphSample' || meta.editorType === 'chartSample' || meta.editorType === 'swaggerApis') {
     return (
       <div style={{ padding: '4px 6px', borderBottom: '1px solid #f0f0f0', fontSize: 12 }}>
         <PropertyEditor meta={meta} value={value} onChange={onChange} />
@@ -109,13 +119,13 @@ function PropertyRow({ meta, value, onChange }: PropertyRowProps) {
         {meta.label}
       </div>
       <div style={{ flex: 1, padding: '2px 4px 2px 0' }}>
-        <PropertyEditor meta={meta} value={value} onChange={onChange} />
+        <PropertyEditor meta={meta} value={value} onChange={onChange} sampleData={sampleData} />
       </div>
     </div>
   );
 }
 
-function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
+function PropertyEditor({ meta, value, onChange, sampleData }: PropertyRowProps) {
   switch (meta.editorType) {
     case 'text':
       return <TextEditor value={value as string ?? ''} onChange={onChange} />;
@@ -135,7 +145,7 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
       return <AnchorEditor value={value as AnchorStyle} onChange={onChange} />;
     case 'collection':
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return <CollectionEditor value={value as any[] ?? []} onChange={onChange} />;
+      return <CollectionEditor value={value as any[] ?? []} onChange={onChange} sampleData={sampleData as any[]} />;
     case 'tabEditor':
       return <TabPagesEditor value={value as { title: string; id: string }[] ?? []} onChange={onChange} />;
     case 'mongoColumns':
@@ -144,6 +154,8 @@ function PropertyEditor({ meta, value, onChange }: PropertyRowProps) {
       return <MongoConnectionStringEditor value={value as string ?? ''} onChange={onChange} />;
     case 'graphSample':
       return <SampleDataEditor value={value as string ?? 'Bar'} />;
+    case 'chartSample':
+      return <ChartSampleDataEditor value={value as string ?? 'Column'} />;
     case 'menuEditor':
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return <MenuItemEditor value={value as any[] ?? []} onChange={onChange} />;

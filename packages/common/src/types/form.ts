@@ -35,7 +35,7 @@ export const CONTROL_TYPES = [
   'Panel', 'GroupBox', 'TabControl', 'SplitContainer',
   'DataGridView', 'BindingNavigator', 'Chart', 'TreeView', 'ListView',
   'MenuStrip', 'ToolStrip', 'StatusStrip', 'RichTextBox', 'WebBrowser',
-  'SpreadsheetView', 'JsonEditor', 'MongoDBView', 'GraphView',
+  'SpreadsheetView', 'JsonEditor', 'MongoDBView',
   'MongoDBConnector',
   'SwaggerConnector',
   'DataSourceConnector',

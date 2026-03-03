@@ -79,7 +79,9 @@ export class FormService {
     if (!form) {
       throw new NotFoundError(`Form not found: ${id}`);
     }
-    return form.toObject() as FormDocument;
+    const doc = form.toObject() as FormDocument;
+    migrateGraphViewControls(doc.controls);
+    return doc;
   }
 
   async listForms(query: ListFormsQuery): Promise<{ data: FormDocument[]; total: number }> {
@@ -101,7 +103,7 @@ export class FormService {
     const [data, total] = await Promise.all([
       Form.find(filter)
         .select('-versions')
-        .sort({ updatedAt: -1 })
+        .sort({ name: 1 })
         .skip(skip)
         .limit(limit)
         .lean<FormDocument[]>(),
@@ -272,5 +274,33 @@ export class FormService {
       skippedCount,
       totalCount: forms.length,
     };
+  }
+}
+
+// GraphView → Chart 자동 마이그레이션
+const GRAPH_TYPE_MAP: Record<string, string> = {
+  Bar: 'Column',
+  HorizontalBar: 'Bar',
+  Donut: 'Doughnut',
+};
+
+function migrateGraphViewControls(controls: unknown[]): void {
+  for (const ctrl of controls as Array<Record<string, unknown>>) {
+    if (ctrl.type === 'GraphView') {
+      ctrl.type = 'Chart';
+      const props = ctrl.properties as Record<string, unknown> | undefined;
+      if (props) {
+        const graphType = (props.graphType as string) || 'Bar';
+        props.chartType = GRAPH_TYPE_MAP[graphType] || graphType;
+        delete props.graphType;
+        if (props.data !== undefined) {
+          props.series = props.data;
+          delete props.data;
+        }
+      }
+    }
+    if (Array.isArray(ctrl.children)) {
+      migrateGraphViewControls(ctrl.children);
+    }
   }
 }

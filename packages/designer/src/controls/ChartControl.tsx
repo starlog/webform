@@ -4,6 +4,7 @@ import type { DesignerControlProps } from './registry';
 
 type ChartType =
   | 'Line' | 'Bar' | 'Column' | 'Area'
+  | 'StackedBar' | 'StackedArea'
   | 'Pie' | 'Doughnut'
   | 'Scatter' | 'Radar';
 
@@ -54,10 +55,13 @@ function renderPreview(type: ChartType, w: number, h: number): JSX.Element {
     case 'Bar':
       return renderHorizontalBarPreview(pad, innerW, innerH);
     case 'Column':
-      return renderBarPreview(pad, innerW, innerH);
+      return renderBarPreview(pad, innerW, innerH, false);
+    case 'StackedBar':
+      return renderBarPreview(pad, innerW, innerH, true);
     case 'Line':
       return renderLinePreview(pad, innerW, innerH);
     case 'Area':
+    case 'StackedArea':
       return renderAreaPreview(pad, innerW, innerH);
     case 'Pie':
       return renderPiePreview(w, h, false);
@@ -68,13 +72,14 @@ function renderPreview(type: ChartType, w: number, h: number): JSX.Element {
     case 'Radar':
       return renderRadarPreview(w, h);
     default:
-      return renderBarPreview(pad, innerW, innerH);
+      return renderBarPreview(pad, innerW, innerH, false);
   }
 }
 
-function renderBarPreview(pad: number, iw: number, ih: number) {
+function renderBarPreview(pad: number, iw: number, ih: number, stacked: boolean) {
   const bars = [0.6, 0.8, 0.45, 0.9, 0.7];
-  const barW = (iw / bars.length) * 0.6;
+  const bars2 = [0.3, 0.4, 0.25, 0.35, 0.3];
+  const barW = iw / bars.length * 0.6;
   const gap = iw / bars.length;
 
   return (
@@ -83,9 +88,15 @@ function renderBarPreview(pad: number, iw: number, ih: number) {
       <line x1={pad} y1={pad} x2={pad} y2={pad + ih} stroke="#ccc" strokeWidth={1} />
       {bars.map((v, i) => {
         const x = pad + i * gap + (gap - barW) / 2;
-        const bh = v * ih;
+        const h1 = stacked ? v * ih * 0.5 : v * ih;
+        const h2 = stacked ? bars2[i] * ih * 0.5 : 0;
         return (
-          <rect key={i} x={x} y={pad + ih - bh} width={barW} height={bh} fill={PREVIEW_COLORS[i % PREVIEW_COLORS.length]} opacity={0.8} />
+          <g key={i}>
+            <rect x={x} y={pad + ih - h1 - h2} width={barW} height={h1} fill={PREVIEW_COLORS[0]} opacity={0.8} />
+            {stacked && (
+              <rect x={x} y={pad + ih - h2} width={barW} height={h2} fill={PREVIEW_COLORS[1]} opacity={0.8} />
+            )}
+          </g>
         );
       })}
     </g>

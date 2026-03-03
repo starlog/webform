@@ -19,7 +19,6 @@ import { PictureBox } from './PictureBox';
 import { SpreadsheetView } from './SpreadsheetView';
 import { JsonEditor } from './JsonEditor';
 import { MongoDBView } from './MongoDBView';
-import { GraphView } from './GraphView';
 import { TreeView } from './TreeView';
 import { ListView } from './ListView';
 import { MenuStrip } from './MenuStrip';
@@ -66,7 +65,6 @@ export const runtimeControlRegistry: Partial<Record<ControlType, ComponentType<a
   SpreadsheetView,
   JsonEditor,
   MongoDBView,
-  GraphView,
   TreeView,
   ListView,
   MenuStrip,

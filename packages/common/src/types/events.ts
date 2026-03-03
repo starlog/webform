@@ -35,7 +35,6 @@ export const CONTROL_EVENTS: Record<string, readonly string[]> = {
   SpreadsheetView: ['CellChanged', 'RowAdded', 'RowDeleted', 'SelectionChanged', 'DataLoaded'],
   JsonEditor: ['ValueChanged'],
   MongoDBView: ['DataLoaded', 'SelectionChanged', 'CellValueChanged', 'DocumentInserted', 'DocumentUpdated', 'DocumentDeleted', 'Error'],
-  GraphView: ['DataLoaded'],
   MenuStrip: ['ItemClicked'],
   ToolStrip: ['ItemClicked'],
   StatusStrip: ['ItemClicked'],

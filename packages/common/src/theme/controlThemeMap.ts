@@ -77,7 +77,6 @@ export const controlThemeMap: Record<string, ThemeColorResolver> = {
   CheckBox: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   RadioButton: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   Chart: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
-  GraphView: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   JsonEditor: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   SpreadsheetView: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),
   MongoDBView: (t) => ({ background: t.form.backgroundColor, foreground: t.form.foreground }),

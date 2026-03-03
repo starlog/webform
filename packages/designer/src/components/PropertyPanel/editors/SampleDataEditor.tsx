@@ -1,31 +1,56 @@
 import { useState, useCallback, useRef } from 'react';
 import type { CSSProperties } from 'react';
 
-// --- GraphView samples (keyed by graphType) ---
-const GRAPH_SAMPLES: Record<string, unknown[]> = {
+// --- Chart samples (keyed by chartType) ---
+export const CHART_SAMPLES: Record<string, unknown[]> = {
   Line: [
-    { x: 'Jan', sales: 100, profit: 40 },
-    { x: 'Feb', sales: 150, profit: 60 },
-    { x: 'Mar', sales: 120, profit: 50 },
-    { x: 'Apr', sales: 200, profit: 90 },
+    { x: '1월', sales: 100, profit: 40 },
+    { x: '2월', sales: 150, profit: 60 },
+    { x: '3월', sales: 120, profit: 50 },
+    { x: '4월', sales: 200, profit: 90 },
   ],
   Bar: [
-    { x: 'Jan', sales: 100, profit: 40 },
-    { x: 'Feb', sales: 150, profit: 60 },
-    { x: 'Mar', sales: 120, profit: 50 },
-    { x: 'Apr', sales: 200, profit: 90 },
+    { x: '1월', sales: 100, profit: 40 },
+    { x: '2월', sales: 150, profit: 60 },
+    { x: '3월', sales: 120, profit: 50 },
+    { x: '4월', sales: 200, profit: 90 },
   ],
-  HorizontalBar: [
-    { x: 'Korea', value: 85 },
-    { x: 'USA', value: 72 },
-    { x: 'Japan', value: 68 },
-    { x: 'Germany', value: 60 },
+  Column: [
+    { x: '1월', sales: 100, profit: 40 },
+    { x: '2월', sales: 150, profit: 60 },
+    { x: '3월', sales: 120, profit: 50 },
+    { x: '4월', sales: 200, profit: 90 },
   ],
   Area: [
-    { x: 'Jan', revenue: 400, cost: 240 },
-    { x: 'Feb', revenue: 300, cost: 200 },
-    { x: 'Mar', revenue: 500, cost: 280 },
-    { x: 'Apr', revenue: 450, cost: 260 },
+    { x: '1월', revenue: 400, cost: 240 },
+    { x: '2월', revenue: 300, cost: 200 },
+    { x: '3월', revenue: 500, cost: 280 },
+    { x: '4월', revenue: 450, cost: 260 },
+  ],
+  Pie: [
+    { name: '서울', value: 40 },
+    { name: '부산', value: 25 },
+    { name: '대구', value: 20 },
+    { name: '기타', value: 15 },
+  ],
+  Doughnut: [
+    { name: '완료', value: 75 },
+    { name: '진행중', value: 15 },
+    { name: '대기', value: 10 },
+  ],
+  Scatter: [
+    { x: 10, series1: 20 },
+    { x: 20, series1: 35 },
+    { x: 30, series1: 25 },
+    { x: 50, series1: 80 },
+    { x: 65, series1: 60 },
+  ],
+  Radar: [
+    { x: '공격', team1: 80, team2: 65 },
+    { x: '방어', team1: 70, team2: 85 },
+    { x: '속도', team1: 90, team2: 60 },
+    { x: '기술', team1: 85, team2: 75 },
+    { x: '체력', team1: 75, team2: 90 },
   ],
   StackedBar: [
     { x: 'Q1', online: 120, offline: 80 },
@@ -34,35 +59,10 @@ const GRAPH_SAMPLES: Record<string, unknown[]> = {
     { x: 'Q4', online: 200, offline: 100 },
   ],
   StackedArea: [
-    { x: 'Jan', mobile: 50, desktop: 80, tablet: 30 },
-    { x: 'Feb', mobile: 60, desktop: 75, tablet: 35 },
-    { x: 'Mar', mobile: 70, desktop: 70, tablet: 40 },
-    { x: 'Apr', mobile: 80, desktop: 65, tablet: 45 },
-  ],
-  Pie: [
-    { name: 'Chrome', value: 65 },
-    { name: 'Safari', value: 18 },
-    { name: 'Firefox', value: 10 },
-    { name: 'Edge', value: 7 },
-  ],
-  Donut: [
-    { name: 'Completed', value: 75 },
-    { name: 'In Progress', value: 15 },
-    { name: 'Pending', value: 10 },
-  ],
-  Scatter: [
-    { x: 10, y: 30 },
-    { x: 20, y: 50 },
-    { x: 35, y: 45 },
-    { x: 50, y: 80 },
-    { x: 65, y: 60 },
-  ],
-  Radar: [
-    { subject: 'Math', A: 120, B: 110 },
-    { subject: 'English', A: 98, B: 130 },
-    { subject: 'Science', A: 86, B: 90 },
-    { subject: 'History', A: 99, B: 85 },
-    { subject: 'Art', A: 85, B: 95 },
+    { x: '1월', mobile: 50, desktop: 80, tablet: 30 },
+    { x: '2월', mobile: 60, desktop: 75, tablet: 35 },
+    { x: '3월', mobile: 70, desktop: 70, tablet: 40 },
+    { x: '4월', mobile: 80, desktop: 65, tablet: 45 },
   ],
 };
 
@@ -119,26 +119,28 @@ interface SampleDataEditorProps {
   value: string;
 }
 
-export function SampleDataEditor({ value }: SampleDataEditorProps) {
-  const blocks = MULTI_BLOCK_SAMPLES[value];
-  if (blocks) {
-    return <MultiBlockSample blocks={blocks} />;
-  }
-
-  // GraphView: value is graphType
-  const graphType = value || 'Bar';
-  const sample = GRAPH_SAMPLES[graphType] ?? GRAPH_SAMPLES.Bar;
+export function ChartSampleDataEditor({ value }: SampleDataEditorProps) {
+  const chartType = value || 'Column';
+  const sample = CHART_SAMPLES[chartType] ?? CHART_SAMPLES.Column;
   const json = JSON.stringify(sample, null, 2);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 11, color: '#666' }}>{graphType}</span>
+        <span style={{ fontSize: 11, color: '#666' }}>{chartType}</span>
         <CopyButton text={json} />
       </div>
       <SamplePre>{json}</SamplePre>
     </div>
   );
+}
+
+export function SampleDataEditor({ value }: SampleDataEditorProps) {
+  const blocks = MULTI_BLOCK_SAMPLES[value];
+  if (blocks) {
+    return <MultiBlockSample blocks={blocks} />;
+  }
+  return null;
 }
 
 function MultiBlockSample({ blocks }: { blocks: SampleBlock[] }) {
