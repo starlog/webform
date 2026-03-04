@@ -138,7 +138,11 @@ export const CONTROL_DEFAULTS: Record<ControlType, ControlDefault> = {
   },
   BindingNavigator: {
     size: { width: 100, height: 23 },
-    properties: {},
+    properties: {
+      bindingSource: '',
+      showAddButton: true,
+      showDeleteButton: true,
+    },
     description: '데이터 네비게이터',
     category: '데이터',
     isContainer: false,
@@ -160,14 +164,27 @@ export const CONTROL_DEFAULTS: Record<ControlType, ControlDefault> = {
   },
   TreeView: {
     size: { width: 100, height: 23 },
-    properties: {},
+    properties: {
+      nodes: [],
+      showLines: false,
+      showPlusMinus: true,
+      checkBoxes: false,
+    },
     description: '트리 뷰',
     category: '데이터',
     isContainer: false,
   },
   ListView: {
     size: { width: 100, height: 23 },
-    properties: {},
+    properties: {
+      items: [],
+      columns: [],
+      view: 'Details',
+      selectedIndex: -1,
+      multiSelect: false,
+      fullRowSelect: true,
+      gridLines: false,
+    },
     description: '리스트 뷰',
     category: '데이터',
     isContainer: false,

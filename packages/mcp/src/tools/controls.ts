@@ -429,6 +429,182 @@ function removeControlFromForm(
 const CONTROL_PROPERTY_SCHEMAS: Partial<
   Record<string, Record<string, { type: string; default?: unknown; description: string; options?: string[]; formats?: Record<string, { description: string; example: unknown }> }>>
 > = {
+  // ── 기본 컨트롤 (11종) ──
+  Button: {
+    text: { type: 'string', default: 'Button', description: '버튼에 표시할 텍스트' },
+  },
+  Label: {
+    text: { type: 'string', default: 'Label', description: '레이블에 표시할 텍스트' },
+    autoSize: { type: 'boolean', description: '텍스트에 맞게 크기 자동 조절' },
+  },
+  TextBox: {
+    text: { type: 'string', default: '', description: '입력 필드의 텍스트 값' },
+    multiline: { type: 'boolean', description: '여러 줄 입력 허용 여부' },
+    readOnly: { type: 'boolean', description: '읽기 전용 여부' },
+    passwordChar: { type: 'string', description: '비밀번호 마스킹 문자 (예: "*")' },
+    maxLength: { type: 'number', description: '최대 입력 글자 수' },
+  },
+  CheckBox: {
+    text: { type: 'string', default: 'CheckBox', description: '체크박스 옆에 표시할 텍스트' },
+    checked: { type: 'boolean', default: false, description: '체크 여부' },
+  },
+  RadioButton: {
+    text: { type: 'string', default: 'RadioButton', description: '라디오 버튼 옆에 표시할 텍스트' },
+    checked: { type: 'boolean', default: false, description: '선택 여부' },
+    groupName: { type: 'string', default: 'default', description: '라디오 버튼 그룹명 (같은 그룹 내에서 하나만 선택 가능)' },
+  },
+  ComboBox: {
+    items: { type: 'array', default: [], description: '드롭다운 항목 목록 (문자열 배열)', formats: { default: { description: '문자열 배열', example: ['항목1', '항목2', '항목3'] } } },
+    selectedIndex: { type: 'number', default: -1, description: '선택된 항목 인덱스 (-1이면 미선택)' },
+    dropDownStyle: { type: 'enum', options: ['DropDown', 'DropDownList', 'Simple'], description: '드롭다운 스타일 (DropDown: 편집+선택, DropDownList: 선택만, Simple: 항상 펼침)' },
+  },
+  ListBox: {
+    items: { type: 'array', default: [], description: '목록 항목 (문자열 배열)', formats: { default: { description: '문자열 배열', example: ['항목1', '항목2', '항목3'] } } },
+    selectedIndex: { type: 'number', default: -1, description: '선택된 항목 인덱스 (-1이면 미선택)' },
+    selectionMode: { type: 'enum', options: ['None', 'One', 'MultiSimple', 'MultiExtended'], description: '선택 모드 (None: 선택 불가, One: 단일, MultiSimple: 다중 클릭, MultiExtended: Shift/Ctrl 다중)' },
+  },
+  NumericUpDown: {
+    value: { type: 'number', default: 0, description: '현재 숫자 값' },
+    minimum: { type: 'number', default: 0, description: '최솟값' },
+    maximum: { type: 'number', default: 100, description: '최댓값' },
+    increment: { type: 'number', description: '증감 단위 (화살표 클릭 시 변경량)' },
+  },
+  DateTimePicker: {
+    value: { type: 'string', description: '날짜/시간 값 (ISO 문자열, 예: "2024-01-15")' },
+    format: { type: 'enum', default: 'Short', options: ['Short', 'Long', 'Time', 'Custom'], description: '날짜/시간 표시 형식 (Short: 날짜만, Long: 요일 포함, Time: 시간만, Custom: 사용자 정의)' },
+  },
+  ProgressBar: {
+    value: { type: 'number', default: 0, description: '현재 진행 값' },
+    minimum: { type: 'number', default: 0, description: '최솟값' },
+    maximum: { type: 'number', default: 100, description: '최댓값' },
+  },
+  PictureBox: {
+    imageUrl: { type: 'string', description: '표시할 이미지 URL' },
+    sizeMode: { type: 'enum', default: 'Normal', options: ['Normal', 'StretchImage', 'AutoSize', 'CenterImage', 'Zoom'], description: '이미지 크기 조절 모드 (Normal: 원본, StretchImage: 늘리기, AutoSize: 자동, CenterImage: 가운데, Zoom: 비율 유지 확대)' },
+    borderStyle: { type: 'enum', options: ['None', 'FixedSingle', 'Fixed3D'], description: '테두리 스타일' },
+  },
+
+  // ── 컨테이너 (4종) ──
+  Panel: {
+    borderStyle: { type: 'enum', default: 'None', options: ['None', 'FixedSingle', 'Fixed3D'], description: '패널 테두리 스타일' },
+    autoScroll: { type: 'boolean', description: '내용이 넘칠 때 자동 스크롤바 표시' },
+  },
+  GroupBox: {
+    text: { type: 'string', default: 'GroupBox', description: '그룹 박스 제목 텍스트' },
+  },
+  TabControl: {
+    tabs: {
+      type: 'array',
+      default: [{ title: 'TabPage1', id: 'tab-1' }, { title: 'TabPage2', id: 'tab-2' }],
+      description: '탭 목록. id는 자동 생성되므로 title만 지정해도 됩니다. 각 탭에 대응하는 Panel 자식이 자동 생성됩니다.',
+      formats: { default: { description: '탭 정의 배열', example: [{ title: '탭1', id: 'tab-1' }, { title: '탭2', id: 'tab-2' }] } },
+    },
+    selectedIndex: { type: 'number', default: 0, description: '활성 탭 인덱스 (0부터 시작)' },
+  },
+  SplitContainer: {
+    orientation: { type: 'enum', options: ['Horizontal', 'Vertical'], description: '분할 방향 (Horizontal: 좌우, Vertical: 상하)' },
+    fixedPanel: { type: 'enum', options: ['None', 'Panel1', 'Panel2'], description: '크기 고정할 패널 (None: 비율 유지, Panel1: 첫 번째 고정, Panel2: 두 번째 고정)' },
+    splitterDistance: { type: 'number', description: '스플리터 위치 (px, 첫 번째 패널의 크기)' },
+    splitterWidth: { type: 'number', description: '스플리터 두께 (px, 기본값 4)' },
+    isSplitterFixed: { type: 'boolean', description: '스플리터 고정 여부 (true면 드래그 불가)' },
+  },
+
+  // ── 데이터 컨트롤 (5종) ──
+  DataGridView: {
+    columns: {
+      type: 'array',
+      default: [],
+      description: '그리드 컬럼 정의. 반드시 field와 headerText를 사용하세요.',
+      formats: {
+        default: {
+          description: '컬럼 정의 배열. field: 데이터 매핑 필드명, headerText: 표시할 헤더 텍스트, width: 열 너비(px), sortable: 정렬 가능 여부, editable: 편집 가능 여부',
+          example: [
+            { field: 'name', headerText: '이름', width: 150 },
+            { field: 'email', headerText: '이메일', width: 200, editable: true },
+            { field: 'age', headerText: '나이', width: 80, sortable: true },
+          ],
+        },
+      },
+    },
+    dataSource: {
+      type: 'array',
+      description: '데이터 배열. 이벤트 핸들러에서 ctx.controls로 동적 설정 가능. columns의 field 값과 매핑됩니다.',
+      formats: {
+        default: {
+          description: '객체 배열. 각 객체의 키는 columns의 field 값과 일치해야 합니다.',
+          example: [
+            { name: '홍길동', email: 'hong@example.com', age: 30 },
+            { name: '김철수', email: 'kim@example.com', age: 25 },
+          ],
+        },
+      },
+    },
+    readOnly: { type: 'boolean', description: '읽기 전용 여부 (셀 편집 비활성화)' },
+  },
+  TreeView: {
+    nodes: {
+      type: 'array',
+      default: [],
+      description: '트리 노드 데이터. 계층 구조를 children으로 표현합니다.',
+      formats: {
+        default: {
+          description: '트리 노드 배열. text: 표시 텍스트, children: 하위 노드, expanded: 펼침 여부, checked: 체크 여부 (checkBoxes=true일 때)',
+          example: [
+            { text: '문서', expanded: true, children: [
+              { text: '보고서', children: [{ text: '월간보고.pdf' }] },
+              { text: '양식', children: [{ text: '신청서.docx' }] },
+            ]},
+            { text: '사진', expanded: false, children: [{ text: '여행' }] },
+          ],
+        },
+      },
+    },
+    showLines: { type: 'boolean', default: false, description: '노드 간 연결선 표시 여부' },
+    showPlusMinus: { type: 'boolean', default: true, description: '확장/축소 (+/-) 아이콘 표시 여부' },
+    checkBoxes: { type: 'boolean', default: false, description: '각 노드에 체크박스 표시 여부' },
+    selectedNodePath: { type: 'string', default: '', description: '선택된 노드 경로 (점 구분, 예: "0.1.2"는 첫 번째 노드의 두 번째 자식의 세 번째 자식). 이벤트 핸들러에서 ctx.controls로 읽기/쓰기 가능' },
+  },
+  ListView: {
+    items: {
+      type: 'array',
+      default: [],
+      description: '리스트 항목 데이터',
+      formats: {
+        default: {
+          description: '항목 배열. text: 주 텍스트, subItems: 추가 열 데이터 (Details 모드에서 사용)',
+          example: [
+            { text: '파일1.txt', subItems: ['10KB', '2024-01-01'] },
+            { text: '파일2.pdf', subItems: ['250KB', '2024-02-15'] },
+          ],
+        },
+      },
+    },
+    columns: {
+      type: 'array',
+      default: [],
+      description: '열 정의 (Details 모드에서 사용)',
+      formats: {
+        default: {
+          description: '열 정의 배열. text/headerText: 헤더 텍스트, field: 필드명, width: 열 너비(px)',
+          example: [
+            { text: '파일명', width: 200 },
+            { text: '크기', width: 80 },
+            { text: '수정일', width: 120 },
+          ],
+        },
+      },
+    },
+    view: { type: 'enum', default: 'Details', options: ['LargeIcon', 'SmallIcon', 'List', 'Details', 'Tile'], description: '보기 모드 (LargeIcon: 큰 아이콘, SmallIcon: 작은 아이콘, List: 목록, Details: 상세, Tile: 타일)' },
+    selectedIndex: { type: 'number', default: -1, description: '선택된 항목 인덱스 (-1이면 미선택)' },
+    multiSelect: { type: 'boolean', default: false, description: '다중 선택 허용 여부' },
+    fullRowSelect: { type: 'boolean', default: true, description: '전체 행 선택 여부 (Details 모드)' },
+    gridLines: { type: 'boolean', default: false, description: '그리드 라인 표시 여부 (Details 모드)' },
+  },
+  BindingNavigator: {
+    bindingSource: { type: 'string', default: '', description: '바인딩 대상 컨트롤 이름 (예: DataGridView의 name). 해당 컨트롤의 dataSource 배열을 탐색합니다.' },
+    showAddButton: { type: 'boolean', default: true, description: '행 추가(+) 버튼 표시 여부' },
+    showDeleteButton: { type: 'boolean', default: true, description: '행 삭제(✕) 버튼 표시 여부' },
+  },
   Chart: {
     chartType: {
       type: 'enum',
@@ -506,6 +682,270 @@ const CONTROL_PROPERTY_SCHEMAS: Partial<
       default: true,
       description: '그리드 라인 표시 여부',
     },
+  },
+
+  // ── 고급 컨트롤 (11종) ──
+  MenuStrip: {
+    items: {
+      type: 'array',
+      default: [],
+      description: '메뉴 항목 배열. 계층 구조를 children으로 표현합니다.',
+      formats: {
+        default: {
+          description: '메뉴 항목 배열. text: 표시 텍스트, children: 하위 메뉴, shortcut: 단축키, separator: true이면 구분선',
+          example: [
+            { text: '파일', children: [
+              { text: '새로 만들기', shortcut: 'Ctrl+N' },
+              { text: '열기', shortcut: 'Ctrl+O' },
+              { text: '', separator: true },
+              { text: '끝내기' },
+            ]},
+            { text: '편집', children: [
+              { text: '실행 취소', shortcut: 'Ctrl+Z' },
+            ]},
+          ],
+        },
+      },
+    },
+  },
+  ToolStrip: {
+    items: {
+      type: 'array',
+      default: [],
+      description: '도구 모음 항목 배열',
+      formats: {
+        default: {
+          description: '항목 배열. type: button/separator/label/dropdown. button: text+icon+tooltip, dropdown: text+items(하위 배열)',
+          example: [
+            { type: 'button', text: '새로 만들기', icon: '📄', tooltip: '새 파일' },
+            { type: 'button', text: '저장', icon: '💾' },
+            { type: 'separator' },
+            { type: 'label', text: '확대:' },
+            { type: 'dropdown', text: '100%', items: [{ text: '50%' }, { text: '100%' }, { text: '200%' }] },
+          ],
+        },
+      },
+    },
+  },
+  StatusStrip: {
+    items: {
+      type: 'array',
+      default: [],
+      description: '상태 표시줄 항목 배열',
+      formats: {
+        default: {
+          description: '항목 배열. type: label/progressBar/dropDownButton. spring: true이면 남은 공간 차지, value: progressBar의 진행률(0~100)',
+          example: [
+            { type: 'label', text: '준비', spring: true },
+            { type: 'progressBar', value: 75, width: 100 },
+            { type: 'label', text: '행: 0' },
+          ],
+        },
+      },
+    },
+  },
+  RichTextBox: {
+    text: { type: 'string', default: '', description: 'HTML 서식 텍스트 내용' },
+    readOnly: { type: 'boolean', default: false, description: '읽기 전용 여부' },
+    scrollBars: { type: 'enum', default: 'Both', options: ['None', 'Horizontal', 'Vertical', 'Both'], description: '스크롤바 표시 방향' },
+  },
+  WebBrowser: {
+    url: { type: 'string', default: 'about:blank', description: '표시할 웹 페이지 URL' },
+    allowNavigation: { type: 'boolean', default: true, description: '페이지 내 네비게이션 허용 여부' },
+  },
+  SpreadsheetView: {
+    columns: {
+      type: 'array',
+      default: [],
+      description: '스프레드시트 열 정의',
+      formats: {
+        default: {
+          description: '열 정의 배열. field: 데이터 필드명, headerText: 표시할 헤더 텍스트, width: 열 너비(px)',
+          example: [
+            { field: 'name', headerText: '이름', width: 150 },
+            { field: 'score', headerText: '점수', width: 100 },
+          ],
+        },
+      },
+    },
+    data: {
+      type: 'array',
+      default: [],
+      description: '스프레드시트 데이터 배열 (각 행은 열 field에 대응하는 키-값 객체)',
+      formats: {
+        default: {
+          description: '행 데이터 배열',
+          example: [
+            { name: '홍길동', score: 95 },
+            { name: '김철수', score: 87 },
+          ],
+        },
+      },
+    },
+    readOnly: { type: 'boolean', default: false, description: '읽기 전용 여부' },
+    showToolbar: { type: 'boolean', default: true, description: '상단 도구 모음 표시 여부' },
+    showFormulaBar: { type: 'boolean', default: true, description: '수식 입력줄 표시 여부' },
+    showRowNumbers: { type: 'boolean', default: true, description: '행 번호 표시 여부' },
+    allowAddRows: { type: 'boolean', default: true, description: '행 추가 허용 여부' },
+    allowDeleteRows: { type: 'boolean', default: true, description: '행 삭제 허용 여부' },
+    allowSort: { type: 'boolean', default: true, description: '열 정렬 허용 여부' },
+    allowFilter: { type: 'boolean', default: false, description: '필터링 허용 여부' },
+    dataSource: { type: 'array', description: '데이터 배열 (data의 대안, 객체 배열 형식으로 직접 바인딩)' },
+  },
+  JsonEditor: {
+    value: { type: 'object', default: {}, description: 'JSON 데이터 객체' },
+    readOnly: { type: 'boolean', default: false, description: '읽기 전용 여부' },
+    expandDepth: { type: 'number', default: 1, description: '기본 펼침 깊이 (0이면 모두 접힘)' },
+  },
+  MongoDBView: {
+    title: { type: 'string', default: '', description: 'MongoDB 뷰어 헤더에 표시할 제목 (미지정 시 "MongoDB: {collection}"으로 표시)' },
+    connectionString: { type: 'string', default: '', description: 'MongoDB 연결 문자열 (예: mongodb://localhost:27017)' },
+    database: { type: 'string', default: '', description: '데이터베이스 이름' },
+    collection: { type: 'string', default: '', description: '컬렉션 이름' },
+    columns: { type: 'string', default: '', description: '표시할 컬럼 목록 (쉼표 구분, 예: "name,email,age"). 미지정 시 모든 컬럼 표시' },
+    filter: { type: 'string', default: '{}', description: 'MongoDB 쿼리 필터 (JSON 문자열)' },
+    pageSize: { type: 'number', default: 50, description: '페이지당 표시할 문서 수' },
+    readOnly: { type: 'boolean', default: false, description: '읽기 전용 여부' },
+    showToolbar: { type: 'boolean', default: true, description: '도구 모음 표시 여부' },
+  },
+  MongoDBConnector: {
+    connectionString: { type: 'string', default: '', description: 'MongoDB 연결 문자열 (예: mongodb://localhost:27017)' },
+    database: { type: 'string', default: '', description: '데이터베이스 이름' },
+    defaultCollection: { type: 'string', default: '', description: '기본 컬렉션 이름' },
+    queryTimeout: { type: 'number', default: 10000, description: '쿼리 타임아웃 (밀리초)' },
+    maxResultCount: { type: 'number', default: 1000, description: '최대 결과 건수' },
+  },
+  SwaggerConnector: {
+    specYaml: { type: 'string', default: '', description: 'Swagger/OpenAPI 스펙 YAML 문자열' },
+    baseUrl: { type: 'string', default: '', description: 'API 기본 URL (스펙의 servers를 오버라이드)' },
+    defaultHeaders: { type: 'string', default: '{}', description: '기본 HTTP 헤더 (JSON 문자열, 예: {"Authorization": "Bearer token"})' },
+    timeout: { type: 'number', default: 10000, description: '요청 타임아웃 (밀리초)' },
+  },
+  DataSourceConnector: {
+    dsType: { type: 'enum', default: 'database', options: ['database', 'restApi', 'static'], description: '데이터소스 유형 (database: SQL DB, restApi: REST API, static: 정적 데이터)' },
+    dialect: { type: 'enum', default: 'postgresql', options: ['postgresql', 'mysql', 'mssql'], description: 'DB 종류 (dsType=database일 때만 사용)' },
+    host: { type: 'string', default: '', description: 'DB 호스트 (dsType=database)' },
+    port: { type: 'number', default: 5432, description: 'DB 포트 (dsType=database)' },
+    user: { type: 'string', default: '', description: 'DB 사용자 (dsType=database)' },
+    password: { type: 'string', default: '', description: 'DB 비밀번호 (dsType=database)' },
+    database: { type: 'string', default: '', description: 'DB 이름 (dsType=database)' },
+    ssl: { type: 'boolean', default: false, description: 'SSL 연결 사용 여부 (dsType=database)' },
+    baseUrl: { type: 'string', default: '', description: 'API 기본 URL (dsType=restApi)' },
+    headers: { type: 'string', default: '{}', description: 'HTTP 헤더 JSON 문자열 (dsType=restApi)' },
+    authType: { type: 'enum', default: 'none', options: ['none', 'basic', 'bearer', 'apiKey'], description: '인증 유형 (dsType=restApi, none: 없음, basic: ID/PW, bearer: 토큰, apiKey: API 키)' },
+    authCredentials: { type: 'string', default: '{}', description: '인증 자격 증명 JSON (dsType=restApi, authType에 따라 형식 다름)' },
+    data: { type: 'string', default: '[]', description: '정적 데이터 JSON 배열 문자열 (dsType=static)' },
+    queryTimeout: { type: 'number', default: 10000, description: '쿼리 타임아웃 (밀리초)' },
+    maxResultCount: { type: 'number', default: 1000, description: '최대 결과 건수' },
+  },
+
+  // ── Extra Elements — Step 1 (6종) ──
+  Slider: {
+    value: { type: 'number', default: 0, description: '현재 슬라이더 값' },
+    minimum: { type: 'number', default: 0, description: '최솟값' },
+    maximum: { type: 'number', default: 100, description: '최댓값' },
+    step: { type: 'number', description: '증감 단위 (드래그 시 스냅 간격)' },
+    orientation: { type: 'enum', default: 'Horizontal', options: ['Horizontal', 'Vertical'], description: '슬라이더 방향' },
+    showValue: { type: 'boolean', default: true, description: '현재 값 표시 여부' },
+    trackColor: { type: 'string', description: '슬라이더 트랙(배경) 색상 (CSS 색상값)' },
+    fillColor: { type: 'string', description: '슬라이더 채워진 부분 색상 (CSS 색상값)' },
+  },
+  Switch: {
+    checked: { type: 'boolean', default: false, description: '토글 상태 (true=ON, false=OFF)' },
+    text: { type: 'string', default: '', description: '스위치 옆에 표시할 텍스트' },
+    onText: { type: 'string', default: 'ON', description: 'ON 상태일 때 스위치 내부에 표시할 텍스트' },
+    offText: { type: 'string', default: 'OFF', description: 'OFF 상태일 때 스위치 내부에 표시할 텍스트' },
+    onColor: { type: 'string', description: 'ON 상태 배경색 (CSS 색상값)' },
+    offColor: { type: 'string', description: 'OFF 상태 배경색 (CSS 색상값)' },
+  },
+  Upload: {
+    uploadMode: { type: 'enum', default: 'DropZone', options: ['Button', 'DropZone'], description: '업로드 방식 (Button: 버튼 클릭, DropZone: 드래그 앤 드롭 영역)' },
+    text: { type: 'string', default: 'Click or drag file to upload', description: '업로드 영역에 표시할 안내 텍스트' },
+    borderStyle: { type: 'enum', default: 'Dashed', options: ['None', 'Solid', 'Dashed'], description: '테두리 스타일' },
+    accept: { type: 'string', description: '허용 파일 형식 (예: ".jpg,.png" 또는 "image/*")' },
+    multiple: { type: 'boolean', description: '다중 파일 선택 허용 여부' },
+    maxFileSize: { type: 'number', description: '최대 파일 크기 (바이트)' },
+    maxCount: { type: 'number', description: '최대 업로드 파일 수' },
+  },
+  Alert: {
+    message: { type: 'string', default: 'Alert message', description: '알림 메시지 (주 텍스트)' },
+    description: { type: 'string', default: '', description: '보조 설명 텍스트' },
+    alertType: { type: 'enum', default: 'Info', options: ['Success', 'Info', 'Warning', 'Error'], description: '알림 유형 (색상과 아이콘이 변경됨)' },
+    showIcon: { type: 'boolean', default: true, description: '아이콘 표시 여부' },
+    closable: { type: 'boolean', default: false, description: '닫기 버튼 표시 여부' },
+    banner: { type: 'boolean', default: false, description: '배너 모드 (전체 너비, 테두리 없음)' },
+  },
+  Tag: {
+    tags: { type: 'array', default: ['Tag1', 'Tag2'], description: '태그 문자열 배열', formats: { default: { description: '문자열 배열', example: ['태그1', '태그2', '태그3'] } } },
+    tagColor: { type: 'enum', default: 'Default', options: ['Default', 'Blue', 'Green', 'Red', 'Orange', 'Purple', 'Cyan', 'Gold'], description: '태그 색상' },
+    closable: { type: 'boolean', default: false, description: '각 태그에 닫기(x) 버튼 표시 여부' },
+    addable: { type: 'boolean', default: false, description: '새 태그 추가 버튼(+) 표시 여부' },
+  },
+  Divider: {
+    text: { type: 'string', default: '', description: '구분선 위에 표시할 텍스트 (비어있으면 텍스트 없는 구분선)' },
+    orientation: { type: 'enum', default: 'Horizontal', options: ['Horizontal', 'Vertical'], description: '구분선 방향' },
+    textAlign: { type: 'enum', default: 'Center', options: ['Left', 'Center', 'Right'], description: '텍스트 위치 (orientation=Horizontal일 때)' },
+    lineStyle: { type: 'enum', default: 'Solid', options: ['Solid', 'Dashed', 'Dotted'], description: '선 스타일' },
+    lineColor: { type: 'string', description: '구분선 색상 (CSS 색상값)' },
+  },
+
+  // ── Extra Elements — Step 2 (6종) ──
+  Card: {
+    title: { type: 'string', default: 'Card Title', description: '카드 제목' },
+    subtitle: { type: 'string', default: '', description: '카드 부제목' },
+    showHeader: { type: 'boolean', default: true, description: '헤더 영역 표시 여부' },
+    showBorder: { type: 'boolean', default: true, description: '테두리 표시 여부' },
+    hoverable: { type: 'boolean', default: false, description: '마우스 호버 시 그림자 효과' },
+    size: { type: 'enum', default: 'Default', options: ['Default', 'Small'], description: '카드 크기 (Small: 컴팩트한 패딩)' },
+    borderRadius: { type: 'number', default: 8, description: '모서리 둥글기 (px)' },
+  },
+  Badge: {
+    count: { type: 'number', default: 0, description: '배지에 표시할 숫자' },
+    overflowCount: { type: 'number', default: 99, description: '최대 표시 숫자 (초과 시 99+ 형태로 표시)' },
+    showZero: { type: 'boolean', default: false, description: 'count=0일 때도 표시할지 여부' },
+    dot: { type: 'boolean', default: false, description: '숫자 대신 점(dot)으로 표시' },
+    status: { type: 'enum', default: 'Default', options: ['Default', 'Success', 'Processing', 'Error', 'Warning'], description: '배지 상태 (색상이 변경됨)' },
+    text: { type: 'string', default: '', description: '배지 옆에 표시할 텍스트' },
+    badgeColor: { type: 'string', default: '', description: '배지 커스텀 색상 (CSS 색상값)' },
+  },
+  Avatar: {
+    imageUrl: { type: 'string', default: '', description: '아바타 이미지 URL (비어있으면 text 첫 글자 표시)' },
+    text: { type: 'string', default: 'U', description: '이미지가 없을 때 표시할 텍스트 (첫 글자만 사용)' },
+    shape: { type: 'enum', default: 'Circle', options: ['Circle', 'Square'], description: '아바타 모양' },
+  },
+  Tooltip: {
+    title: { type: 'string', default: 'Tooltip text', description: '툴팁에 표시할 텍스트' },
+    placement: { type: 'enum', default: 'Top', options: ['Top', 'Bottom', 'Left', 'Right', 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'], description: '툴팁 표시 위치' },
+    trigger: { type: 'enum', default: 'Hover', options: ['Hover', 'Click', 'Focus'], description: '툴팁 트리거 방식' },
+  },
+  Collapse: {
+    panels: {
+      type: 'array',
+      default: [{ title: 'Panel 1', key: '1', panelHeight: 0 }, { title: 'Panel 2', key: '2', panelHeight: 0 }],
+      description: '아코디언 패널 목록. 각 패널에 대응하는 Panel 자식이 자동 생성됩니다.',
+      formats: {
+        default: {
+          description: '패널 정의 배열. title: 표시 제목, key: 고유 키, panelHeight: 패널 높이(0이면 자동)',
+          example: [
+            { title: '기본 정보', key: '1', panelHeight: 0 },
+            { title: '상세 설정', key: '2', panelHeight: 0 },
+          ],
+        },
+      },
+    },
+    activeKeys: { type: 'string', default: '1', description: '펼쳐진 패널 키 (쉼표 구분으로 여러 개 가능, 예: "1,2")' },
+    accordion: { type: 'boolean', default: false, description: '아코디언 모드 (true면 한 번에 하나의 패널만 펼침)' },
+    bordered: { type: 'boolean', default: true, description: '테두리 표시 여부' },
+    expandIconPosition: { type: 'enum', default: 'Start', options: ['Start', 'End'], description: '펼침 아이콘 위치 (Start: 왼쪽, End: 오른쪽)' },
+  },
+  Statistic: {
+    title: { type: 'string', default: 'Statistic', description: '통계 제목 (상단에 표시)' },
+    value: { type: 'string', default: '0', description: '통계 값 (문자열, 숫자 포맷팅에 사용)' },
+    prefix: { type: 'string', default: '', description: '값 앞에 표시할 접두사 (예: "₩", "▲")' },
+    suffix: { type: 'string', default: '', description: '값 뒤에 표시할 접미사 (예: "%", "건")' },
+    precision: { type: 'number', default: 0, description: '소수점 자릿수' },
+    showGroupSeparator: { type: 'boolean', default: true, description: '천 단위 구분자(,) 표시 여부' },
+    valueColor: { type: 'string', default: '', description: '값 텍스트 색상 (CSS 색상값)' },
   },
 };
 
