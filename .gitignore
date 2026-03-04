@@ -29,3 +29,7 @@ Thumbs.db
 
 # pnpm
 .ralph-logs/
+
+# Screenshots
+*.png
+.playwright-mcp/
