@@ -12,6 +12,7 @@ interface ColumnDefinition {
 
 const styles = {
   container: {
+    boxSizing: 'border-box' as const,
     border: '1px solid #a0a0a0',
     overflow: 'auto',
     backgroundColor: '#ffffff',

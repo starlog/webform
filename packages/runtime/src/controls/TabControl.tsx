@@ -57,7 +57,7 @@ export function TabControl({
   const visibleChildren =
     childTabIds && selectedTabId
       ? childArray.filter((_, i) => childTabIds[i] === selectedTabId)
-      : [childArray[selectedIndex]];
+      : childArray;
 
   const handleTabClick = (index: number) => {
     if (!enabled) return;

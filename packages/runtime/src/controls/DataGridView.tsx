@@ -68,6 +68,7 @@ function useDataGridStyles() {
   const theme = useTheme();
   return useMemo(() => ({
     container: {
+      boxSizing: 'border-box',
       border: theme.controls.dataGrid.border,
       borderRadius: theme.controls.dataGrid.borderRadius,
       overflow: 'hidden',

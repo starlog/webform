@@ -120,7 +120,7 @@ export function Collapse({
                     overflowWrap: 'break-word',
                   }}
                 >
-                  {childArray[index]}
+                  {index === 0 ? childArray : null}
                 </div>
               </div>
             )}

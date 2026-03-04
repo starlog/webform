@@ -522,6 +522,7 @@ export function SpreadsheetView({
 
 const SS: Record<string, CSSProperties> = {
   container: {
+    boxSizing: 'border-box' as const,
     border: '1px solid #a0a0a0',
     display: 'flex',
     flexDirection: 'column',
