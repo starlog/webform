@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { ALERT_STYLES, alertContainerStyle, alertIconStyle } from '@webform/common';
+import { AlertView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
 
 interface AlertProps {
@@ -22,23 +22,13 @@ interface AlertProps {
 }
 
 export function Alert({
-  id,
-  message = 'Alert message',
-  description,
-  alertType = 'Info',
-  showIcon = true,
-  closable = false,
-  banner = false,
-  visible = true,
-  foreColor,
-  style,
-  onClosed,
+  id, message = 'Alert message', description, alertType = 'Info',
+  showIcon = true, closable = false, banner = false, visible = true,
+  foreColor, style, onClosed,
 }: AlertProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
 
   if (!visible) return null;
-
-  const alertStyle = ALERT_STYLES[alertType] || ALERT_STYLES.Info;
 
   const handleClose = () => {
     updateControlState(id, 'visible', false);
@@ -46,36 +36,19 @@ export function Alert({
   };
 
   return (
-    <div
+    <AlertView
+      message={message}
+      description={description}
+      alertType={alertType}
+      showIcon={showIcon}
+      closable={closable}
+      banner={banner}
+      interactive
+      onClose={handleClose}
+      foreColor={foreColor}
       className="wf-alert"
       data-control-id={id}
-      style={{ ...alertContainerStyle(alertType, banner, foreColor), ...style }}
-    >
-      {showIcon && (
-        <div style={alertIconStyle(alertType)}>
-          {alertStyle.icon}
-        </div>
-      )}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 'bold' }}>{message}</div>
-        {description && (
-          <div style={{ fontSize: '0.9em', marginTop: '4px', opacity: 0.85 }}>{description}</div>
-        )}
-      </div>
-      {closable && (
-        <span
-          style={{
-            flexShrink: 0,
-            cursor: 'pointer',
-            fontSize: '0.9em',
-            opacity: 0.6,
-            lineHeight: 1.4,
-          }}
-          onClick={handleClose}
-        >
-          {'\u2715'}
-        </span>
-      )}
-    </div>
+      style={style}
+    />
   );
 }

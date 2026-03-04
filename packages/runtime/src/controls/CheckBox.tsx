@@ -1,7 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { checkRadioBaseStyle, checkRadioInputStyle, checkRadioTextStyle } from '@webform/common';
+import { CheckBoxView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useControlColors } from '../theme/useControlColors';
 
 interface CheckBoxProps {
   id: string;
@@ -18,17 +17,10 @@ interface CheckBoxProps {
 }
 
 export function CheckBox({
-  id,
-  text,
-  checked = false,
-  backColor,
-  foreColor,
-  style,
-  enabled = true,
-  onCheckedChanged,
+  id, text, checked = false, backColor, foreColor, style,
+  enabled = true, onCheckedChanged,
 }: CheckBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const colors = useControlColors('CheckBox', { backColor, foreColor });
 
   const handleChange = () => {
     if (!enabled) return;
@@ -37,25 +29,17 @@ export function CheckBox({
   };
 
   return (
-    <label
+    <CheckBoxView
+      text={text}
+      checked={checked}
+      interactive={enabled}
+      disabled={!enabled}
+      onChange={handleChange}
+      backColor={backColor}
+      foreColor={foreColor}
       className="wf-checkbox"
       data-control-id={id}
-      style={{
-        ...checkRadioBaseStyle(colors),
-        ...style,
-        cursor: enabled ? 'pointer' : 'default',
-      }}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={!enabled}
-        onChange={handleChange}
-        style={checkRadioInputStyle}
-      />
-      <span style={checkRadioTextStyle}>
-        {text}
-      </span>
-    </label>
+      style={style}
+    />
   );
 }

@@ -1,7 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { panelBaseStyle } from '@webform/common';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
+import { PanelView } from '@webform/common/views';
 
 interface PanelProps {
   id: string;
@@ -16,19 +14,16 @@ interface PanelProps {
 }
 
 export function Panel({ id, borderStyle, backColor, foreColor, style, children }: PanelProps) {
-  const theme = useTheme();
-  const colors = useControlColors('Panel', { backColor, foreColor });
-
   return (
-    <div
+    <PanelView
+      borderStyle={borderStyle}
+      backColor={backColor}
+      foreColor={foreColor}
       className="wf-panel"
       data-control-id={id}
-      style={{
-        ...panelBaseStyle(theme, colors, borderStyle),
-        ...style,
-      }}
+      style={style}
     >
       {children}
-    </div>
+    </PanelView>
   );
 }

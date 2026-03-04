@@ -1,7 +1,5 @@
 import { useState, useRef, type CSSProperties, type ReactNode } from 'react';
-import { buttonBaseStyle } from '@webform/common';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
+import { ButtonView } from '@webform/common/views';
 
 interface ButtonProps {
   id: string;
@@ -17,8 +15,6 @@ interface ButtonProps {
 }
 
 export function Button({ id, text, backColor, foreColor, style, enabled = true, onClick }: ButtonProps) {
-  const theme = useTheme();
-  const colors = useControlColors('Button', { backColor, foreColor });
   const [pressed, setPressed] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -31,22 +27,17 @@ export function Button({ id, text, backColor, foreColor, style, enabled = true, 
   };
 
   return (
-    <button
-      className="wf-button"
-      data-control-id={id}
-      style={{
-        ...buttonBaseStyle(theme, colors),
-        cursor: 'pointer',
-        transition: 'transform 0.1s, box-shadow 0.1s, filter 0.1s',
-        ...(pressed
-          ? { transform: 'scale(0.96)', filter: 'brightness(0.9)' }
-          : {}),
-        ...style,
-      }}
+    <ButtonView
+      text={text}
+      backColor={backColor}
+      foreColor={foreColor}
+      interactive={enabled}
+      pressed={pressed}
       disabled={!enabled}
       onClick={handleClick}
-    >
-      {text}
-    </button>
+      className="wf-button"
+      data-control-id={id}
+      style={style}
+    />
   );
 }

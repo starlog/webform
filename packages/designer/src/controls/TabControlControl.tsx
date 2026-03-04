@@ -1,3 +1,4 @@
+import { TabHeaderView } from '@webform/common/views';
 import { useDesignerStore } from '../stores/designerStore';
 import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
@@ -34,39 +35,12 @@ export function TabControlControl({ id, properties, size }: DesignerControlProps
       flexDirection: 'column',
       boxSizing: 'border-box',
     }}>
-      <div style={{
-        display: 'flex',
-        borderBottom: theme.controls.tabControl.tabBorder,
-        backgroundColor: theme.controls.tabControl.contentBackground,
-        flexShrink: 0,
-      }}>
-        {tabNames.map((name, i) => (
-          <div
-            key={i}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTabClick(i);
-            }}
-            style={{
-              padding: '4px 12px',
-              border: theme.controls.tabControl.tabBorder,
-              borderBottom: i === selectedIndex ? `1px solid ${theme.controls.tabControl.contentBackground}` : 'none',
-              backgroundColor: i === selectedIndex ? theme.controls.tabControl.tabActiveBackground : theme.controls.tabControl.tabBackground,
-              color: i === selectedIndex ? theme.controls.tabControl.tabActiveForeground : theme.controls.tabControl.tabForeground,
-              fontWeight: i === selectedIndex ? 'bold' : 'normal',
-              marginRight: '-1px',
-              marginBottom: i === selectedIndex ? '-1px' : '0',
-              fontSize: 'inherit',
-              fontFamily: 'inherit',
-              borderRadius: `${theme.controls.tabControl.tabBorderRadius} ${theme.controls.tabControl.tabBorderRadius} 0 0`,
-              cursor: 'pointer',
-            }}
-          >
-            {name}
-          </div>
-        ))}
-      </div>
+      <TabHeaderView
+        tabNames={tabNames}
+        selectedIndex={selectedIndex}
+        interactive
+        onTabClick={handleTabClick}
+      />
       <div style={{
         flex: 1,
         border: theme.controls.tabControl.contentBorder,

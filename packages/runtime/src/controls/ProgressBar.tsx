@@ -1,7 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { progressBarContainerStyle, progressBarFillStyle, computePercent } from '@webform/common';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
+import { ProgressBarView } from '@webform/common/views';
 
 interface ProgressBarProps {
   id: string;
@@ -18,26 +16,18 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({
-  id,
-  value = 0,
-  minimum = 0,
-  maximum = 100,
-  backColor,
-  foreColor,
-  style,
+  id, value = 0, minimum = 0, maximum = 100, backColor, foreColor, style,
 }: ProgressBarProps) {
-  const theme = useTheme();
-  const colors = useControlColors('ProgressBar', { backColor, foreColor });
-
-  const percent = computePercent(value, minimum, maximum);
-
   return (
-    <div
+    <ProgressBarView
+      value={value}
+      minimum={minimum}
+      maximum={maximum}
+      backColor={backColor}
+      foreColor={foreColor}
       className="wf-progressbar"
       data-control-id={id}
-      style={{ ...progressBarContainerStyle(theme, colors), ...style }}
-    >
-      <div style={progressBarFillStyle(theme, percent)} />
-    </div>
+      style={style}
+    />
   );
 }

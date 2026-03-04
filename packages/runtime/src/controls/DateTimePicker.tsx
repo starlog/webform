@@ -1,8 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { textInputBaseStyle } from '@webform/common';
+import { DateTimePickerView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
 
 interface DateTimePickerProps {
   id: string;
@@ -19,17 +17,10 @@ interface DateTimePickerProps {
 }
 
 export function DateTimePicker({
-  id,
-  value = '',
-  backColor,
-  foreColor,
-  style,
-  enabled = true,
-  onValueChanged,
+  id, value = '', backColor, foreColor, style,
+  enabled = true, onValueChanged,
 }: DateTimePickerProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const theme = useTheme();
-  const colors = useControlColors('DateTimePicker', { backColor, foreColor });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateControlState(id, 'value', e.target.value);
@@ -37,14 +28,16 @@ export function DateTimePicker({
   };
 
   return (
-    <input
-      type="date"
-      className="wf-datetimepicker"
-      data-control-id={id}
+    <DateTimePickerView
       value={value}
+      interactive={enabled}
       disabled={!enabled}
       onChange={handleChange}
-      style={{ ...textInputBaseStyle(theme, colors), ...style }}
+      backColor={backColor}
+      foreColor={foreColor}
+      className="wf-datetimepicker"
+      data-control-id={id}
+      style={style}
     />
   );
 }

@@ -1,8 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { textInputBaseStyle } from '@webform/common';
+import { NumericUpDownView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
 
 interface NumericUpDownProps {
   id: string;
@@ -21,20 +19,10 @@ interface NumericUpDownProps {
 }
 
 export function NumericUpDown({
-  id,
-  value = 0,
-  minimum = 0,
-  maximum = 100,
-  increment = 1,
-  backColor,
-  foreColor,
-  style,
-  enabled = true,
-  onValueChanged,
+  id, value = 0, minimum = 0, maximum = 100, increment = 1,
+  backColor, foreColor, style, enabled = true, onValueChanged,
 }: NumericUpDownProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const theme = useTheme();
-  const colors = useControlColors('NumericUpDown', { backColor, foreColor });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = parseFloat(e.target.value);
@@ -46,17 +34,19 @@ export function NumericUpDown({
   };
 
   return (
-    <input
-      type="number"
+    <NumericUpDownView
+      value={value}
+      minimum={minimum}
+      maximum={maximum}
+      increment={increment}
+      interactive={enabled}
+      disabled={!enabled}
+      onChange={handleChange}
+      backColor={backColor}
+      foreColor={foreColor}
       className="wf-numericupdown"
       data-control-id={id}
-      style={{ ...textInputBaseStyle(theme, colors), ...style }}
-      disabled={!enabled}
-      value={value}
-      min={minimum}
-      max={maximum}
-      step={increment}
-      onChange={handleChange}
+      style={style}
     />
   );
 }

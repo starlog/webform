@@ -1,4 +1,5 @@
 import { createContext, useContext, type ReactNode } from 'react';
+import { SharedThemeColorModeContext } from '@webform/common/views';
 
 type ThemeColorMode = 'theme' | 'control';
 
@@ -12,7 +13,9 @@ export function ThemeColorModeProvider({
   children: ReactNode;
 }) {
   return (
-    <ThemeColorModeContext.Provider value={mode}>{children}</ThemeColorModeContext.Provider>
+    <SharedThemeColorModeContext.Provider value={mode}>
+      <ThemeColorModeContext.Provider value={mode}>{children}</ThemeColorModeContext.Provider>
+    </SharedThemeColorModeContext.Provider>
   );
 }
 

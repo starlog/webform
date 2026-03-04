@@ -5,6 +5,7 @@ import { useDesignerStore, createDefaultControl } from '../../stores/designerSto
 import { useSelectionStore } from '../../stores/selectionStore';
 import { useHistoryStore, createSnapshot } from '../../stores/historyStore';
 import { ThemeProvider } from '../../theme/ThemeContext';
+import { SharedThemeColorModeContext } from '@webform/common/views';
 import { snapToGrid, snapPositionToGrid } from '../../utils/snapGrid';
 import type { Snapline as SnaplineType } from '../../utils/snapGrid';
 import { CanvasControl, DragItemTypes } from './CanvasControl';
@@ -467,6 +468,7 @@ export function DesignerCanvas() {
 
   return (
     <ThemeProvider themeId={projectShellTheme ?? formProperties.theme}>
+    <SharedThemeColorModeContext.Provider value={formProperties.themeColorMode ?? 'control'}>
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <div
         ref={(node) => {
@@ -565,6 +567,7 @@ export function DesignerCanvas() {
     {contextMenu && (
       <ZOrderContextMenu menu={contextMenu} onClose={() => setContextMenu(null)} />
     )}
+    </SharedThemeColorModeContext.Provider>
     </ThemeProvider>
   );
 }

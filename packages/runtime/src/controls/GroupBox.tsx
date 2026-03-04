@@ -1,7 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { groupBoxFieldsetStyle, groupBoxLegendStyle } from '@webform/common';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
+import { GroupBoxView } from '@webform/common/views';
 
 interface GroupBoxProps {
   id: string;
@@ -16,28 +14,16 @@ interface GroupBoxProps {
 }
 
 export function GroupBox({ id, text, backColor, foreColor, style, children }: GroupBoxProps) {
-  const theme = useTheme();
-  const colors = useControlColors('GroupBox', { backColor, foreColor });
-
   return (
-    <div
+    <GroupBoxView
+      text={text}
+      backColor={backColor}
+      foreColor={foreColor}
       className="wf-groupbox"
       data-control-id={id}
-      style={{
-        padding: 0,
-        margin: 0,
-        boxSizing: 'border-box',
-        ...style,
-      }}
+      style={style}
     >
-      <fieldset style={groupBoxFieldsetStyle(theme)}>
-        {text && (
-          <legend style={groupBoxLegendStyle(colors)}>
-            {text}
-          </legend>
-        )}
-      </fieldset>
       {children}
-    </div>
+    </GroupBoxView>
   );
 }

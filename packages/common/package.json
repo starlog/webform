@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./views": {
+      "types": "./dist/views/index.d.ts",
+      "default": "./dist/views/index.js"
     }
   },
   "scripts": {
@@ -20,6 +24,17 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
-  "devDependencies": {}
+  "peerDependencies": {
+    "react": "^18.3.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "react": "^18.3.0",
+    "@types/react": "^18.3.0"
+  }
 
 }

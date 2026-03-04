@@ -1,4 +1,5 @@
 import { Children, type CSSProperties, type ReactNode } from 'react';
+import { TabHeaderView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -24,42 +25,6 @@ interface TabControlProps {
   [key: string]: unknown;
 }
 
-function useTabStyles() {
-  const theme = useTheme();
-
-  const tabHeaderStyle: CSSProperties = {
-    display: 'flex',
-    borderBottom: theme.controls.tabControl.tabBorder,
-    backgroundColor: theme.controls.tabControl.contentBackground,
-  };
-
-  const tabButtonBase: CSSProperties = {
-    padding: '4px 12px',
-    border: theme.controls.tabControl.tabBorder,
-    borderBottom: 'none',
-    borderRadius: `${theme.controls.tabControl.tabBorderRadius} ${theme.controls.tabControl.tabBorderRadius} 0 0`,
-    backgroundColor: theme.controls.tabControl.tabBackground,
-    color: theme.controls.tabControl.tabForeground,
-    cursor: 'pointer',
-    fontSize: 'inherit',
-    fontFamily: 'inherit',
-    marginRight: '-1px',
-  };
-
-  const tabButtonActive: CSSProperties = {
-    ...tabButtonBase,
-    backgroundColor: theme.controls.tabControl.tabActiveBackground,
-    color: theme.controls.tabControl.tabActiveForeground,
-    borderBottom: `1px solid ${theme.controls.tabControl.tabActiveBackground}`,
-    marginBottom: '-1px',
-    fontWeight: 'bold',
-  };
-
-  const contentBorder = theme.controls.tabControl.contentBorder;
-
-  return { tabHeaderStyle, tabButtonBase, tabButtonActive, contentBorder };
-}
-
 function getTabName(
   index: number,
   tabs: TabInfo[] | undefined,
@@ -72,29 +37,22 @@ function getTabName(
 }
 
 export function TabControl({
-  id,
-  selectedIndex = 0,
-  tabs,
-  tabPages,
-  childTabIds,
-  backColor,
-  foreColor,
-  style,
-  enabled = true,
-  onSelectedIndexChanged,
-  children,
+  id, selectedIndex = 0, tabs, tabPages, childTabIds,
+  backColor, foreColor, style, enabled = true,
+  onSelectedIndexChanged, children,
 }: TabControlProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
+  const theme = useTheme();
   const colors = useControlColors('TabControl', { backColor, foreColor });
-  const { tabHeaderStyle, tabButtonBase, tabButtonActive, contentBorder } = useTabStyles();
 
   const childArray = Children.toArray(children);
-
-  // Use tabs property as authoritative tab list
   const tabList = tabs ?? tabPages?.map((t) => ({ title: t })) ?? [];
   const tabCount = tabList.length || childArray.length;
 
-  // Group children by tabId when childTabIds mapping is available
+  const tabNames = Array.from({ length: tabCount }, (_, i) =>
+    getTabName(i, tabs, tabPages, childArray[i]),
+  );
+
   const selectedTabId = tabs?.[selectedIndex]?.id;
   const visibleChildren =
     childTabIds && selectedTabId
@@ -120,24 +78,17 @@ export function TabControl({
         ...style,
       }}
     >
-      {/* Tab header */}
-      <div style={{ ...tabHeaderStyle, flexShrink: 0, zIndex: 1 }}>
-        {Array.from({ length: tabCount }, (_, i) => (
-          <button
-            key={tabs?.[i]?.id ?? i}
-            style={i === selectedIndex ? tabButtonActive : tabButtonBase}
-            onClick={() => handleTabClick(i)}
-            disabled={!enabled}
-          >
-            {getTabName(i, tabs, tabPages, childArray[i])}
-          </button>
-        ))}
-      </div>
-      {/* Content area — children positioned relative to this container */}
+      <TabHeaderView
+        tabNames={tabNames}
+        selectedIndex={selectedIndex}
+        interactive={enabled}
+        onTabClick={handleTabClick}
+        style={{ zIndex: 1 }}
+      />
       <div style={{
         flex: 1,
         position: 'relative',
-        border: contentBorder,
+        border: theme.controls.tabControl.contentBorder,
         borderTop: 'none',
         overflow: 'hidden',
       }}>

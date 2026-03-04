@@ -1,6 +1,5 @@
-import { useRef, useEffect, useState } from 'react';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
+import { useRef, useEffect } from 'react';
+import { CardView } from '@webform/common/views';
 import { useDesignerStore } from '../stores/designerStore';
 import { useSelectionStore } from '../stores/selectionStore';
 import { useHistoryStore, createSnapshot } from '../stores/historyStore';
@@ -10,7 +9,6 @@ import type { DesignerControlProps } from './registry';
 import { ResizeHandle, RESIZE_DIRECTIONS } from '../components/Canvas/ResizeHandle';
 
 export function CardControl({ id, properties, size, position = { x: 0, y: 0 } }: DesignerControlProps) {
-  const theme = useTheme();
   const controls = useDesignerStore((s) => s.controls);
 
   const title = (properties.title as string) ?? 'Card Title';
@@ -21,73 +19,31 @@ export function CardControl({ id, properties, size, position = { x: 0, y: 0 } }:
   const cardSize = (properties.size as string) ?? 'Default';
   const borderRadius = (properties.borderRadius as number) ?? 8;
 
-  const colors = useControlColors('Card', {
-    backColor: properties.backColor as string | undefined,
-    foreColor: properties.foreColor as string | undefined,
-  });
-
-  const [isHovered, setIsHovered] = useState(false);
-  const isSmall = cardSize === 'Small';
-  const headerPadding = isSmall ? '8px 12px' : '12px 16px';
-  const bodyPadding = isSmall ? 12 : 16;
-
-  // Card의 직접 자식 컨트롤 조회
   const children = id
     ? controls.filter((c) => (c.properties._parentId as string) === id)
     : [];
 
   return (
-    <div
-      style={{
-        width: size.width,
-        height: size.height,
-        borderRadius,
-        border: showBorder ? theme.controls.panel.border : 'none',
-        background: colors.background,
-        color: colors.color,
-        display: 'flex',
-        flexDirection: 'column',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
-        cursor: hoverable ? 'pointer' : undefined,
-        position: 'relative',
-        boxShadow: hoverable && isHovered ? '0 4px 12px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.06)',
-        transition: 'box-shadow 0.3s ease',
-      }}
-      onMouseEnter={() => hoverable && setIsHovered(true)}
-      onMouseLeave={() => hoverable && setIsHovered(false)}
+    <CardView
+      title={title}
+      subtitle={subtitle}
+      showHeader={showHeader}
+      showBorder={showBorder}
+      hoverable={hoverable}
+      size={cardSize}
+      borderRadius={borderRadius}
+      backColor={properties.backColor as string | undefined}
+      foreColor={properties.foreColor as string | undefined}
+      style={{ width: size.width, height: size.height }}
     >
-      {showHeader && (
-        <div
-          style={{
-            padding: headerPadding,
-            borderBottom: theme.controls.panel.border,
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ fontWeight: 600, fontSize: isSmall ? '14px' : '16px' }}>{title}</div>
-          {subtitle && (
-            <div style={{ fontSize: '13px', opacity: 0.6, marginTop: 2 }}>{subtitle}</div>
-          )}
-        </div>
-      )}
-      <div
-        style={{
-          flex: 1,
-          padding: bodyPadding,
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {children.map((child) => (
-          <CardChildPreview
-            key={child.id}
-            control={child}
-            cardPosition={position}
-          />
-        ))}
-      </div>
-    </div>
+      {children.map((child) => (
+        <CardChildPreview
+          key={child.id}
+          control={child}
+          cardPosition={position}
+        />
+      ))}
+    </CardView>
   );
 }
 

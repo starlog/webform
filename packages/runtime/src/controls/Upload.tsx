@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { UploadView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useControlColors } from '../theme/useControlColors';
 
 interface UploadProps {
   id: string;
@@ -25,27 +25,15 @@ interface UploadProps {
 }
 
 export function Upload({
-  id,
-  uploadMode = 'DropZone',
-  text = 'Click or drag file to upload',
-  accept = '',
-  multiple = false,
-  maxFileSize = 10,
-  maxCount = 1,
-  borderStyle = 'Dashed',
-  backColor,
-  foreColor,
-  style,
-  enabled = true,
-  onFileSelected,
+  id, uploadMode = 'DropZone', text = 'Click or drag file to upload',
+  accept = '', multiple = false, maxFileSize = 10, maxCount = 1,
+  borderStyle = 'Dashed', backColor, foreColor, style,
+  enabled = true, onFileSelected,
 }: UploadProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const colors = useControlColors('Upload', { backColor, foreColor });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<{ name: string; size: number; type: string }[]>(
-    [],
-  );
+  const [selectedFiles, setSelectedFiles] = useState<{ name: string; size: number; type: string }[]>([]);
 
   const maxFileSizeBytes = maxFileSize * 1024 * 1024;
 
@@ -57,7 +45,6 @@ export function Upload({
     const fileMeta = files.map((f) => ({ name: f.name, size: f.size, type: f.type }));
     setSelectedFiles(fileMeta);
 
-    // Read image files as dataUrl for preview support
     const imageFiles = files.filter((f) => f.type.startsWith('image/'));
     if (imageFiles.length > 0) {
       let completed = 0;
@@ -94,23 +81,13 @@ export function Upload({
     if (enabled) setIsDragOver(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
+  const handleDragLeave = () => setIsDragOver(false);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
   };
-
-  const borderMap: Record<string, string> = {
-    None: 'none',
-    Solid: 'solid',
-    Dashed: 'dashed',
-  };
-
-  const borderCss = borderStyle === 'None' ? 'none' : `1px ${borderMap[borderStyle]} ${isDragOver ? '#1677ff' : '#d9d9d9'}`;
 
   const hiddenInput = (
     <input
@@ -123,80 +100,24 @@ export function Upload({
     />
   );
 
-  if (uploadMode === 'Button') {
-    return (
-      <div
-        className="wf-upload"
-        data-control-id={id}
-        style={{ boxSizing: 'border-box', ...style }}
-      >
-        {hiddenInput}
-        <button
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '4px 12px',
-            border: '1px solid #d9d9d9',
-            borderRadius: '4px',
-            background: colors.background,
-            color: colors.color,
-            cursor: enabled ? 'pointer' : 'not-allowed',
-            fontSize: 'inherit',
-            fontFamily: 'inherit',
-          }}
-          disabled={!enabled}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          ⬆ {text}
-        </button>
-        {selectedFiles.length > 0 && (
-          <div style={{ marginTop: '4px', fontSize: '0.85em', color: colors.color }}>
-            {selectedFiles.map((f, i) => (
-              <div key={i}>{f.name}</div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="wf-upload"
-      data-control-id={id}
-      style={{
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-        padding: '16px',
-        border: borderCss,
-        borderRadius: '6px',
-        background: isDragOver ? '#e6f4ff' : colors.background,
-        color: colors.color,
-        cursor: enabled ? 'pointer' : 'not-allowed',
-        transition: 'background-color 0.2s, border-color 0.2s',
-        pointerEvents: enabled ? 'auto' : 'none',
-        ...style,
-      }}
-      onClick={() => enabled && fileInputRef.current?.click()}
+    <UploadView
+      uploadMode={uploadMode}
+      text={text}
+      borderStyle={borderStyle}
+      interactive={enabled}
+      isDragOver={isDragOver}
+      selectedFiles={selectedFiles}
+      onClick={() => fileInputRef.current?.click()}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-    >
-      {hiddenInput}
-      <span style={{ fontSize: '1.5em' }}>⬆</span>
-      <span style={{ fontSize: '0.9em', textAlign: 'center' }}>{text}</span>
-      {selectedFiles.length > 0 && (
-        <div style={{ fontSize: '0.8em', textAlign: 'center' }}>
-          {selectedFiles.map((f, i) => (
-            <div key={i}>{f.name}</div>
-          ))}
-        </div>
-      )}
-    </div>
+      hiddenInput={hiddenInput}
+      backColor={backColor}
+      foreColor={foreColor}
+      className="wf-upload"
+      data-control-id={id}
+      style={style}
+    />
   );
 }

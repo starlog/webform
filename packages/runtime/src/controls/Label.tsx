@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { labelBaseStyle } from '@webform/common';
-import { useControlColors } from '../theme/useControlColors';
+import { LabelView } from '@webform/common/views';
 
 interface LabelProps {
   id: string;
@@ -16,18 +15,15 @@ interface LabelProps {
 }
 
 export function Label({ id, text, backColor, foreColor, textAlign, style }: LabelProps) {
-  const colors = useControlColors('Label', { backColor, foreColor });
-
   return (
-    <span
+    <LabelView
+      text={text}
+      textAlign={textAlign}
+      backColor={backColor}
+      foreColor={foreColor}
       className="wf-label"
       data-control-id={id}
-      style={{
-        ...labelBaseStyle(colors, textAlign),
-        ...style,
-      }}
-    >
-      {text}
-    </span>
+      style={style}
+    />
   );
 }

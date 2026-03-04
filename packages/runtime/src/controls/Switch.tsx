@@ -1,12 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
-import {
-  switchTrackStyle,
-  switchThumbStyle,
-  switchTrackTextStyle,
-  switchContainerStyle,
-} from '@webform/common';
+import { SwitchView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useControlColors } from '../theme/useControlColors';
 
 interface SwitchProps {
   id: string;
@@ -27,21 +21,10 @@ interface SwitchProps {
 }
 
 export function Switch({
-  id,
-  checked = false,
-  text,
-  onText,
-  offText,
-  onColor,
-  offColor,
-  backColor,
-  foreColor,
-  style,
-  enabled = true,
-  onCheckedChanged,
+  id, checked = false, text, onText, offText, onColor, offColor,
+  backColor, foreColor, style, enabled = true, onCheckedChanged,
 }: SwitchProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const colors = useControlColors('Switch', { backColor, foreColor });
 
   const handleToggle = () => {
     if (!enabled) return;
@@ -49,30 +32,22 @@ export function Switch({
     onCheckedChanged?.();
   };
 
-  const trackStyle: CSSProperties = {
-    ...switchTrackStyle({ checked, onColor, offColor }),
-    cursor: enabled ? 'pointer' : 'not-allowed',
-  };
-
-  const displayText = checked ? onText : offText;
-
   return (
-    <div
+    <SwitchView
+      checked={checked}
+      text={text}
+      onText={onText}
+      offText={offText}
+      onColor={onColor}
+      offColor={offColor}
+      interactive={enabled}
+      disabled={!enabled}
+      onToggle={handleToggle}
+      backColor={backColor}
+      foreColor={foreColor}
       className="wf-switch"
       data-control-id={id}
-      style={{
-        ...switchContainerStyle(colors),
-        opacity: enabled ? 1 : 0.5,
-        ...style,
-      }}
-    >
-      {text && (
-        <span style={{ userSelect: 'none', whiteSpace: 'nowrap' }}>{text}</span>
-      )}
-      <div style={trackStyle} onClick={handleToggle}>
-        {displayText && <span style={switchTrackTextStyle(checked)}>{displayText}</span>}
-        <div style={switchThumbStyle(checked)} />
-      </div>
-    </div>
+      style={style}
+    />
   );
 }

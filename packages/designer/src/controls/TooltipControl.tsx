@@ -1,3 +1,4 @@
+import { TooltipView } from '@webform/common/views';
 import type { DesignerControlProps } from './registry';
 
 export function TooltipControl({ properties, size, children }: DesignerControlProps) {
@@ -8,24 +9,10 @@ export function TooltipControl({ properties, size, children }: DesignerControlPr
 
   if (!hasChildren) {
     return (
-      <div
-        style={{
-          width: size.width,
-          height: size.height,
-          border: '1px dashed gray',
-          minHeight: 30,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 12,
-          color: 'gray',
-          boxSizing: 'border-box',
-          userSelect: 'none',
-          position: 'relative',
-        }}
-      >
-        [Tooltip] {title}
-      </div>
+      <TooltipView
+        title={title}
+        style={{ width: size.width, height: size.height }}
+      />
     );
   }
 

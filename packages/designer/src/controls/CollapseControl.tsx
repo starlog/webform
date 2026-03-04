@@ -1,3 +1,4 @@
+import { CollapseHeaderView } from '@webform/common/views';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 import { useDesignerStore } from '../stores/designerStore';
@@ -32,7 +33,6 @@ export function CollapseControl({ id, properties, size }: DesignerControlProps) 
     activeKeysStr.split(',').map((k) => k.trim()).filter(Boolean),
   );
 
-  // 디자이너에서는 한 번에 하나의 패널만 활성화 (자식 컨트롤 겹침 방지)
   const handlePanelClick = (key: string) => {
     if (!id) return;
     const newActiveKeys = activeKeys.has(key) ? '' : key;
@@ -41,19 +41,6 @@ export function CollapseControl({ id, properties, size }: DesignerControlProps) 
     });
   };
 
-  const icon = (isActive: boolean) => (
-    <span
-      style={{
-        fontSize: '0.7em',
-        display: 'inline-block',
-        transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)',
-      }}
-    >
-      ▶
-    </span>
-  );
-
-  // 헤더 높이 계산: 각 패널 헤더 = 약 33px (padding 8+8 + content)
   const HEADER_HEIGHT = 33;
 
   return (
@@ -86,29 +73,13 @@ export function CollapseControl({ id, properties, size }: DesignerControlProps) 
               ...(isActive && !panelHeight ? { flex: 1, display: 'flex', flexDirection: 'column' as const } : {}),
             }}
           >
-            {/* 헤더 — 클릭으로 패널 전환 */}
-            <div
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePanelClick(panel.key);
-              }}
-              style={{
-                padding: '8px 12px',
-                backgroundColor: 'rgba(0,0,0,0.02)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                userSelect: 'none',
-                flexShrink: 0,
-              }}
-            >
-              {expandIconPosition === 'Start' && icon(isActive)}
-              <span style={{ flex: 1 }}>{panel.title}</span>
-              {expandIconPosition === 'End' && icon(isActive)}
-            </div>
-            {/* 활성 패널의 콘텐츠 영역 — 자식 컨트롤은 캔버스에서 직접 렌더링됨 */}
+            <CollapseHeaderView
+              title={panel.title}
+              isActive={isActive}
+              expandIconPosition={expandIconPosition}
+              interactive
+              onClick={() => handlePanelClick(panel.key)}
+            />
             {isActive && (
               <div
                 style={{

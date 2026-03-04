@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from 'react';
 import type { ThemeId, ThemeTokens } from '@webform/common';
 import { getDefaultTheme, mergeThemeWithDefaults } from '@webform/common';
+import { SharedThemeContext } from '@webform/common/views';
 import { apiService } from '../services/apiService';
 
 const ThemeContext = createContext<ThemeTokens>(getDefaultTheme());
@@ -39,7 +40,11 @@ export function ThemeProvider({
     return mergeThemeWithDefaults(loadedTheme as unknown as Record<string, unknown>, getDefaultTheme());
   }, [loadedTheme]);
 
-  return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
+  return (
+    <SharedThemeContext.Provider value={theme}>
+      <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
+    </SharedThemeContext.Provider>
+  );
 }
 
 export function useTheme(): ThemeTokens {

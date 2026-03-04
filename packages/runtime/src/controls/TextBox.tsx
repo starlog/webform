@@ -1,8 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { textInputBaseStyle } from '@webform/common';
+import { TextBoxView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
 
 interface TextBoxProps {
   id: string;
@@ -21,58 +19,30 @@ interface TextBoxProps {
 }
 
 export function TextBox({
-  id,
-  text = '',
-  multiline = false,
-  readOnly = false,
-  passwordChar,
-  backColor,
-  foreColor,
-  style,
-  enabled = true,
-  onTextChanged,
+  id, text = '', multiline = false, readOnly = false, passwordChar,
+  backColor, foreColor, style, enabled = true, onTextChanged,
 }: TextBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const theme = useTheme();
-  const colors = useControlColors('TextBox', { backColor, foreColor });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     updateControlState(id, 'text', e.target.value);
     onTextChanged?.();
   };
 
-  const mergedStyle: CSSProperties = {
-    ...textInputBaseStyle(theme, colors),
-    ...style,
-    resize: multiline ? 'none' : undefined,
-  };
-
-  if (multiline) {
-    return (
-      <textarea
-        className="wf-textbox"
-        data-control-id={id}
-        style={mergedStyle}
-        value={text}
-        readOnly={readOnly}
-        disabled={!enabled}
-        onChange={handleChange}
-      />
-    );
-  }
-
-  const inputType = passwordChar ? 'password' : 'text';
-
   return (
-    <input
-      type={inputType}
-      className="wf-textbox"
-      data-control-id={id}
-      style={mergedStyle}
-      value={text}
+    <TextBoxView
+      text={text}
+      multiline={multiline}
       readOnly={readOnly}
+      passwordChar={passwordChar}
+      interactive={enabled}
       disabled={!enabled}
       onChange={handleChange}
+      backColor={backColor}
+      foreColor={foreColor}
+      className="wf-textbox"
+      data-control-id={id}
+      style={style}
     />
   );
 }

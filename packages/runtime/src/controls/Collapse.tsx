@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
+import { CollapseHeaderView } from '@webform/common/views';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 import { useRuntimeStore } from '../stores/runtimeStore';
@@ -27,21 +28,13 @@ interface CollapseProps {
 }
 
 export function Collapse({
-  id,
-  panels = [
+  id, panels = [
     { title: 'Panel 1', key: '1' },
     { title: 'Panel 2', key: '2' },
   ],
-  activeKeys = '1',
-  accordion: _accordion = false,
-  bordered = true,
-  expandIconPosition = 'Start',
-  backColor,
-  foreColor,
-  style,
-  enabled = true,
-  onActiveKeyChanged,
-  children,
+  activeKeys = '1', accordion: _accordion = false, bordered = true,
+  expandIconPosition = 'Start', backColor, foreColor, style,
+  enabled = true, onActiveKeyChanged, children,
 }: CollapseProps) {
   const theme = useTheme();
   const colors = useControlColors('Collapse', { backColor, foreColor });
@@ -58,7 +51,6 @@ export function Collapse({
 
   const handleToggle = (key: string) => {
     if (!enabled) return;
-    // 항상 단일 섹션만 활성화 (디자이너와 동일)
     const newKeys: string[] = activeKeySet.has(key) ? [] : [key];
     setActiveKeyArray(newKeys);
     updateControlState(id, 'activeKeys', newKeys.join(','));
@@ -76,19 +68,6 @@ export function Collapse({
     flexDirection: 'column',
     ...style,
   };
-
-  const icon = (isActive: boolean) => (
-    <span
-      style={{
-        fontSize: '0.7em',
-        transition: 'transform 0.3s',
-        display: 'inline-block',
-        transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)',
-      }}
-    >
-      ▶
-    </span>
-  );
 
   return (
     <div className="wf-collapse" data-control-id={id} style={containerStyle}>
@@ -117,23 +96,13 @@ export function Collapse({
               ...(isActive && !hasPanelHeight ? { flex: 1, display: 'flex', flexDirection: 'column' as const, minHeight: 0 } : {}),
             }}
           >
-            <div
-              style={{
-                padding: '8px 12px',
-                backgroundColor: 'rgba(0,0,0,0.02)',
-                cursor: enabled ? 'pointer' : 'default',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                userSelect: 'none',
-                flexShrink: 0,
-              }}
+            <CollapseHeaderView
+              title={panel.title}
+              isActive={isActive}
+              expandIconPosition={expandIconPosition}
+              interactive={enabled}
               onClick={() => handleToggle(panel.key)}
-            >
-              {expandIconPosition === 'Start' && icon(isActive)}
-              <span style={{ flex: 1 }}>{panel.title}</span>
-              {expandIconPosition === 'End' && icon(isActive)}
-            </div>
+            />
             {isActive && (
               <div
                 style={{
