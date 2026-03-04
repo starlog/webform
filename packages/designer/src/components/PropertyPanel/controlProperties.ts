@@ -447,7 +447,7 @@ const tooltipProps: PropertyMeta[] = withCommon(
 );
 
 const collapseProps: PropertyMeta[] = withCommon(
-  { name: 'properties.panels',             label: 'Panels',        category: 'Data',       editorType: 'collection', defaultValue: [{ title: 'Panel 1', key: '1' }, { title: 'Panel 2', key: '2' }] },
+  { name: 'properties.panels',             label: 'Panels',        category: 'Data',       editorType: 'collection', defaultValue: [{ title: 'Panel 1', key: '1', panelHeight: 0 }, { title: 'Panel 2', key: '2', panelHeight: 0 }] },
   { name: 'properties.activeKeys',         label: 'ActiveKeys',    category: 'Behavior',   editorType: 'text',       defaultValue: '1' },
   { name: 'properties.accordion',          label: 'Accordion',     category: 'Behavior',   editorType: 'boolean',    defaultValue: false },
   { name: 'properties.bordered',           label: 'Bordered',      category: 'Appearance', editorType: 'boolean',    defaultValue: true },

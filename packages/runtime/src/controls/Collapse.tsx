@@ -6,6 +6,7 @@ import { useRuntimeStore } from '../stores/runtimeStore';
 interface CollapsePanel {
   title: string;
   key: string;
+  panelHeight?: number;
 }
 
 interface CollapseProps {
@@ -32,7 +33,7 @@ export function Collapse({
     { title: 'Panel 2', key: '2' },
   ],
   activeKeys = '1',
-  accordion = false,
+  accordion: _accordion = false,
   bordered = true,
   expandIconPosition = 'Start',
   backColor,
@@ -57,14 +58,8 @@ export function Collapse({
 
   const handleToggle = (key: string) => {
     if (!enabled) return;
-    let newKeys: string[];
-    if (accordion) {
-      newKeys = activeKeySet.has(key) ? [] : [key];
-    } else {
-      newKeys = activeKeySet.has(key)
-        ? activeKeyArray.filter((k) => k !== key)
-        : [...activeKeyArray, key];
-    }
+    // 항상 단일 섹션만 활성화 (디자이너와 동일)
+    const newKeys: string[] = activeKeySet.has(key) ? [] : [key];
     setActiveKeyArray(newKeys);
     updateControlState(id, 'activeKeys', newKeys.join(','));
     onActiveKeyChanged?.();
@@ -76,7 +71,9 @@ export function Collapse({
     color: colors.color,
     border: bordered ? theme.controls.panel.border : 'none',
     borderRadius: 8,
-    overflow: 'auto',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
     ...style,
   };
 
@@ -110,12 +107,14 @@ export function Collapse({
       }`}</style>
       {panels.map((panel, index) => {
         const isActive = activeKeySet.has(panel.key);
+        const hasPanelHeight = panel.panelHeight && panel.panelHeight > 0;
         return (
           <div
             key={panel.key}
             style={{
               borderBottom:
                 bordered && index < panels.length - 1 ? theme.controls.panel.border : 'none',
+              ...(isActive && !hasPanelHeight ? { flex: 1, display: 'flex', flexDirection: 'column' as const, minHeight: 0 } : {}),
             }}
           >
             <div
@@ -127,6 +126,7 @@ export function Collapse({
                 alignItems: 'center',
                 gap: 8,
                 userSelect: 'none',
+                flexShrink: 0,
               }}
               onClick={() => handleToggle(panel.key)}
             >
@@ -134,17 +134,27 @@ export function Collapse({
               <span style={{ flex: 1 }}>{panel.title}</span>
               {expandIconPosition === 'End' && icon(isActive)}
             </div>
-            <div
-              style={{
-                overflow: 'hidden',
-                maxHeight: isActive ? '9999px' : '0px',
-                transition: 'max-height 0.3s ease',
-              }}
-            >
-              <div className="wf-collapse-panel-content" style={{ padding: '8px 12px', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-                {childArray[index]}
+            {isActive && (
+              <div
+                style={{
+                  overflow: 'auto',
+                  ...(hasPanelHeight
+                    ? { height: panel.panelHeight }
+                    : { flex: 1, minHeight: 0 }),
+                }}
+              >
+                <div
+                  className="wf-collapse-panel-content"
+                  style={{
+                    padding: '8px 12px',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                  }}
+                >
+                  {childArray[index]}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         );
       })}

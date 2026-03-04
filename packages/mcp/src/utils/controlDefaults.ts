@@ -440,8 +440,8 @@ export const CONTROL_DEFAULTS: Record<ControlType, ControlDefault> = {
     size: { width: 300, height: 200 },
     properties: {
       panels: [
-        { title: 'Panel 1', key: '1' },
-        { title: 'Panel 2', key: '2' },
+        { title: 'Panel 1', key: '1', panelHeight: 0 },
+        { title: 'Panel 2', key: '2', panelHeight: 0 },
       ],
       activeKeys: '1',
       accordion: false,

@@ -275,7 +275,7 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
     case 'Tooltip':
       return { title: 'Tooltip text', placement: 'Top', trigger: 'Hover' };
     case 'Collapse':
-      return { panels: [{ title: 'Panel 1', key: '1' }, { title: 'Panel 2', key: '2' }], activeKeys: '1', accordion: false, bordered: true, expandIconPosition: 'Start' };
+      return { panels: [{ title: 'Panel 1', key: '1', panelHeight: 0 }, { title: 'Panel 2', key: '2', panelHeight: 0 }], activeKeys: '1', accordion: false, bordered: true, expandIconPosition: 'Start' };
     case 'Statistic':
       return { title: 'Statistic', value: '0', prefix: '', suffix: '', precision: 0, showGroupSeparator: true, valueColor: '' };
     case 'DataSourceConnector':
@@ -499,6 +499,32 @@ export const useDesignerStore = create<DesignerState>()(
       // formEventHandlers/formEventCode를 리셋하지 않고 기존 값 보존
       // 컨트롤 레벨 이벤트는 스냅샷의 properties._eventHandlers에 이미 포함됨
 
+      // Collapse 마이그레이션: Panel 자식이 없는 Collapse에 Panel 자동 생성
+      const collapseControls = state.controls.filter((c) => c.type === 'Collapse');
+      for (const cc of collapseControls) {
+        const hasChildPanels = state.controls.some(
+          (c) => c.type === 'Panel' && (c.properties._parentId as string) === cc.id && c.properties.collapseKey,
+        );
+        if (!hasChildPanels) {
+          const panels = (cc.properties.panels as Array<{ title: string; key: string }>) ?? [];
+          for (const panel of panels) {
+            state.controls.push({
+              id: crypto.randomUUID(),
+              type: 'Panel',
+              name: `collapsePanel_${panel.key}`,
+              properties: { _parentId: cc.id, collapseKey: panel.key, borderStyle: 'None' },
+              position: { x: cc.position.x, y: cc.position.y },
+              size: { width: cc.size.width, height: cc.size.height },
+              anchor: { top: true, bottom: false, left: true, right: false },
+              dock: 'None',
+              tabIndex: 0,
+              visible: true,
+              enabled: true,
+            } as ControlDefinition);
+          }
+        }
+      }
+
       state.isDirty = false;
     }),
 
@@ -607,3 +633,4 @@ export const useDesignerStore = create<DesignerState>()(
     },
   })),
 );
+

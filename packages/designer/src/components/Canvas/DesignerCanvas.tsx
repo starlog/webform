@@ -78,13 +78,33 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
     }
   }
 
-  // --- Collapse ---
+  // --- Collapse (TabControl과 동일 패턴) ---
   for (const cc of controls) {
     if (cc.type !== 'Collapse') continue;
-    const children = childrenMap.get(cc.id) ?? [];
-    for (const child of children) {
-      hidden.add(child.id);
-      collectDescendants(childrenMap, child.id, hidden);
+    const rawActiveKeys = cc.properties.activeKeys;
+    const activeKeysStr = Array.isArray(rawActiveKeys)
+      ? rawActiveKeys.join(',')
+      : (rawActiveKeys as string) ?? '';
+    const activeKeySet = new Set(
+      activeKeysStr.split(',').map((k) => k.trim()).filter(Boolean),
+    );
+
+    // Collapse의 직접 자식 Panel들
+    const collapsePanels = childrenMap.get(cc.id) ?? [];
+
+    // Panel 자체는 항상 숨김 (캔버스에 직접 표시하지 않음)
+    for (const panel of collapsePanels) {
+      hidden.add(panel.id);
+    }
+
+    // 비활성 패널의 Panel 자식들만 숨김
+    for (const panel of collapsePanels) {
+      const collapseKey = panel.properties.collapseKey as string | undefined;
+      const isActive = collapseKey ? activeKeySet.has(collapseKey) : false;
+
+      if (!isActive) {
+        collectDescendants(childrenMap, panel.id, hidden);
+      }
     }
   }
 
@@ -99,6 +119,65 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
   }
 
   return hidden;
+}
+
+/**
+ * 드롭 위치가 컨테이너(TabControl/Collapse) 안에 있으면 활성 패널의 Panel ID를 반환한다.
+ * 컨테이너 자체(TabControl/Collapse)를 드롭하는 경우는 제외.
+ */
+function findActiveContainerPanel(
+  controls: ControlDefinition[],
+  dropPos: { x: number; y: number },
+  dropType: ControlType,
+): string | null {
+  // 컨테이너를 컨테이너 안에 드롭하는 것은 방지
+  if (dropType === 'TabControl' || dropType === 'Collapse') return null;
+
+  for (const ctrl of controls) {
+    // 드롭 위치가 컨트롤 영역 안에 있는지 확인
+    const inside =
+      dropPos.x >= ctrl.position.x &&
+      dropPos.x <= ctrl.position.x + ctrl.size.width &&
+      dropPos.y >= ctrl.position.y &&
+      dropPos.y <= ctrl.position.y + ctrl.size.height;
+    if (!inside) continue;
+
+    if (ctrl.type === 'TabControl') {
+      const selectedIndex = (ctrl.properties.selectedIndex as number) ?? 0;
+      const tabs = ctrl.properties.tabs as Array<{ title: string; id: string }> | undefined;
+      const selectedTabId = tabs?.[selectedIndex]?.id;
+      // 해당 TabControl의 활성 탭 Panel 찾기
+      const panel = controls.find(
+        (c) =>
+          c.type === 'Panel' &&
+          (c.properties._parentId as string) === ctrl.id &&
+          (selectedTabId
+            ? (c.properties.tabId as string) === selectedTabId
+            : false),
+      );
+      if (panel) return panel.id;
+    }
+
+    if (ctrl.type === 'Collapse') {
+      const rawActiveKeys = ctrl.properties.activeKeys;
+      const activeKeysStr = Array.isArray(rawActiveKeys)
+        ? rawActiveKeys.join(',')
+        : (rawActiveKeys as string) ?? '';
+      const activeKeySet = new Set(
+        activeKeysStr.split(',').map((k) => k.trim()).filter(Boolean),
+      );
+      // 활성 패널의 Panel 찾기
+      const panel = controls.find(
+        (c) =>
+          c.type === 'Panel' &&
+          (c.properties._parentId as string) === ctrl.id &&
+          c.properties.collapseKey &&
+          activeKeySet.has(c.properties.collapseKey as string),
+      );
+      if (panel) return panel.id;
+    }
+  }
+  return null;
 }
 
 function collectDescendants(
@@ -185,6 +264,14 @@ export function DesignerCanvas() {
       useHistoryStore.getState().pushSnapshot(createSnapshot());
 
       const control = createDefaultControl(item.type, position);
+
+      // 컨테이너(TabControl/Collapse) 안에 드롭 시 활성 패널의 자식으로 설정
+      const currentControls = useDesignerStore.getState().controls;
+      const containerParent = findActiveContainerPanel(currentControls, position, item.type);
+      if (containerParent) {
+        control.properties._parentId = containerParent;
+      }
+
       addControl(control);
 
       // TabControl 드롭 시 탭 페이지 Panel을 자동 생성
@@ -196,6 +283,26 @@ export function DesignerCanvas() {
             type: 'Panel',
             name: `tabPage_${tab.title.replace(/\s+/g, '')}`,
             properties: { _parentId: control.id, tabId: tab.id, borderStyle: 'None' },
+            position: { x: position.x, y: position.y },
+            size: { width: control.size.width, height: control.size.height },
+            anchor: { top: true, bottom: false, left: true, right: false },
+            dock: 'None',
+            tabIndex: 0,
+            visible: true,
+            enabled: true,
+          });
+        }
+      }
+
+      // Collapse 드롭 시 각 패널마다 Panel 컨트롤 자동 생성
+      if (item.type === 'Collapse') {
+        const panels = (control.properties.panels as Array<{ title: string; key: string }>) ?? [];
+        for (const panel of panels) {
+          addControl({
+            id: crypto.randomUUID(),
+            type: 'Panel',
+            name: `collapsePanel_${panel.key}`,
+            properties: { _parentId: control.id, collapseKey: panel.key, borderStyle: 'None' },
             position: { x: position.x, y: position.y },
             size: { width: control.size.width, height: control.size.height },
             anchor: { top: true, bottom: false, left: true, right: false },
