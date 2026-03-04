@@ -51,7 +51,32 @@ export function ControlRenderer({ definition, events, parentSize, fillParent }: 
   // TabControl tab-page Panels should fill the content area (like WinForms TabPages)
   const isTabControl = definition.type === 'TabControl';
 
-  const childElements = definition.children?.map((child) => (
+  // Collapse: flatten Panel intermediaries — render their children directly
+  // so the flow-layout CSS (.wf-collapse-panel-content > *) applies to actual controls
+  let flatChildren: ControlDefinition[] | undefined;
+  let childCollapseKeys: string[] | undefined;
+  if (definition.type === 'Collapse' && definition.children) {
+    const flat: ControlDefinition[] = [];
+    const keys: string[] = [];
+    for (const child of definition.children) {
+      if (child.type === 'Panel' && child.properties.collapseKey) {
+        const key = child.properties.collapseKey as string;
+        for (const grandchild of child.children || []) {
+          flat.push(grandchild);
+          keys.push(key);
+        }
+      } else {
+        flat.push(child);
+        keys.push('');
+      }
+    }
+    flatChildren = flat;
+    childCollapseKeys = keys;
+  }
+
+  const effectiveChildren = flatChildren ?? definition.children;
+
+  const childElements = effectiveChildren?.map((child) => (
     <ControlRenderer
       key={child.id}
       definition={child}
@@ -92,6 +117,7 @@ export function ControlRenderer({ definition, events, parentSize, fillParent }: 
       style={layoutStyle}
       enabled={controlState.enabled ?? definition.enabled}
       {...(childTabIds ? { childTabIds } : {})}
+      {...(childCollapseKeys ? { childCollapseKeys } : {})}
     >
       {wrappedChildren}
     </Component>

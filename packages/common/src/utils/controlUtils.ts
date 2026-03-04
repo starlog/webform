@@ -51,6 +51,7 @@ export function nestControls(controls: ControlDefinition[]): ControlDefinition[]
   function buildTree(ctrl: ControlDefinition): ControlDefinition {
     const props = { ...ctrl.properties };
     delete props._parentId;
+    delete props._designerSelectedKey;
     const result: ControlDefinition = { ...ctrl, properties: props };
 
     const children = childrenMap.get(ctrl.id);

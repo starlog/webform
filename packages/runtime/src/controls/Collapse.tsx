@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { Children, useState, type CSSProperties, type ReactNode } from 'react';
 import { CollapseHeaderView } from '@webform/common/views';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -23,6 +23,7 @@ interface CollapseProps {
   style?: CSSProperties;
   enabled?: boolean;
   onActiveKeyChanged?: () => void;
+  childCollapseKeys?: string[];
   children?: ReactNode;
   [key: string]: unknown;
 }
@@ -34,20 +35,22 @@ export function Collapse({
   ],
   activeKeys = '1', accordion: _accordion = false, bordered = true,
   expandIconPosition = 'Start', backColor, foreColor, style,
-  enabled = true, onActiveKeyChanged, children,
+  enabled = true, onActiveKeyChanged, childCollapseKeys, children,
 }: CollapseProps) {
   const theme = useTheme();
   const colors = useControlColors('Collapse', { backColor, foreColor });
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
 
+  // Accordion: only open the first key from activeKeys
   const [activeKeyArray, setActiveKeyArray] = useState<string[]>(() => {
     if (!activeKeys) return [];
     const str = Array.isArray(activeKeys) ? activeKeys.join(',') : activeKeys;
-    return str.split(',').map((s) => s.trim()).filter(Boolean);
+    const keys = str.split(',').map((s) => s.trim()).filter(Boolean);
+    return keys.length > 0 ? [keys[0]] : [];
   });
 
   const activeKeySet = new Set(activeKeyArray);
-  const childArray = Array.isArray(children) ? children : children ? [children] : [];
+  const childArray = Children.toArray(children);
 
   const handleToggle = (key: string) => {
     if (!enabled) return;
@@ -71,29 +74,15 @@ export function Collapse({
 
   return (
     <div className="wf-collapse" data-control-id={id} style={containerStyle}>
-      <style>{`.wf-collapse-panel-content > * {
-        position: static !important;
-        left: auto !important;
-        top: auto !important;
-        right: auto !important;
-        bottom: auto !important;
-        width: 100% !important;
-        height: auto !important;
-        min-height: 0 !important;
-        white-space: normal !important;
-        overflow-wrap: break-word !important;
-        text-overflow: clip !important;
-      }`}</style>
       {panels.map((panel, index) => {
         const isActive = activeKeySet.has(panel.key);
-        const hasPanelHeight = panel.panelHeight && panel.panelHeight > 0;
         return (
           <div
             key={panel.key}
             style={{
               borderBottom:
                 bordered && index < panels.length - 1 ? theme.controls.panel.border : 'none',
-              ...(isActive && !hasPanelHeight ? { flex: 1, display: 'flex', flexDirection: 'column' as const, minHeight: 0 } : {}),
+              ...(isActive ? { flex: 1, display: 'flex', flexDirection: 'column' as const, minHeight: 0 } : {}),
             }}
           >
             <CollapseHeaderView
@@ -106,22 +95,15 @@ export function Collapse({
             {isActive && (
               <div
                 style={{
-                  overflow: 'auto',
-                  ...(hasPanelHeight
-                    ? { height: panel.panelHeight }
-                    : { flex: 1, minHeight: 0 }),
+                  position: 'relative',
+                  overflow: 'hidden',
+                  flex: 1,
+                  minHeight: 0,
                 }}
               >
-                <div
-                  className="wf-collapse-panel-content"
-                  style={{
-                    padding: '8px 12px',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
-                  }}
-                >
-                  {index === 0 ? childArray : null}
-                </div>
+                {childCollapseKeys
+                  ? childArray.filter((_, i) => childCollapseKeys[i] === panel.key)
+                  : index === 0 ? childArray : null}
               </div>
             )}
           </div>

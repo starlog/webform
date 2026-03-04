@@ -79,9 +79,10 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
     }
   }
 
-  // --- Collapse (TabControl과 동일 패턴) ---
+  // --- Collapse (TabControl과 동일 패턴: 한 번에 하나의 패널 자식만 표시) ---
   for (const cc of controls) {
     if (cc.type !== 'Collapse') continue;
+    const designerKey = cc.properties._designerSelectedKey as string | undefined;
     const rawActiveKeys = cc.properties.activeKeys;
     const activeKeysStr = Array.isArray(rawActiveKeys)
       ? rawActiveKeys.join(',')
@@ -89,6 +90,11 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
     const activeKeySet = new Set(
       activeKeysStr.split(',').map((k) => k.trim()).filter(Boolean),
     );
+
+    // 디자이너에서 표시할 패널 키 결정: _designerSelectedKey가 activeKeySet에 있으면 사용, 없으면 첫 active key
+    const visibleKey = designerKey && activeKeySet.has(designerKey)
+      ? designerKey
+      : (activeKeySet.size > 0 ? activeKeySet.values().next().value : undefined);
 
     // Collapse의 직접 자식 Panel들
     const collapsePanels = childrenMap.get(cc.id) ?? [];
@@ -98,12 +104,10 @@ function getHiddenControlIds(controls: ControlDefinition[]): Set<string> {
       hidden.add(panel.id);
     }
 
-    // 비활성 패널의 Panel 자식들만 숨김
+    // visibleKey에 해당하지 않는 패널의 자식들만 숨김
     for (const panel of collapsePanels) {
       const collapseKey = panel.properties.collapseKey as string | undefined;
-      const isActive = collapseKey ? activeKeySet.has(collapseKey) : false;
-
-      if (!isActive) {
+      if (collapseKey !== visibleKey) {
         collectDescendants(childrenMap, panel.id, hidden);
       }
     }
@@ -160,6 +164,7 @@ function findActiveContainerPanel(
     }
 
     if (ctrl.type === 'Collapse') {
+      const designerKey = ctrl.properties._designerSelectedKey as string | undefined;
       const rawActiveKeys = ctrl.properties.activeKeys;
       const activeKeysStr = Array.isArray(rawActiveKeys)
         ? rawActiveKeys.join(',')
@@ -167,15 +172,19 @@ function findActiveContainerPanel(
       const activeKeySet = new Set(
         activeKeysStr.split(',').map((k) => k.trim()).filter(Boolean),
       );
-      // 활성 패널의 Panel 찾기
-      const panel = controls.find(
-        (c) =>
-          c.type === 'Panel' &&
-          (c.properties._parentId as string) === ctrl.id &&
-          c.properties.collapseKey &&
-          activeKeySet.has(c.properties.collapseKey as string),
-      );
-      if (panel) return panel.id;
+      // _designerSelectedKey가 activeKeySet에 있으면 사용, 없으면 첫 active key
+      const targetKey = designerKey && activeKeySet.has(designerKey)
+        ? designerKey
+        : (activeKeySet.size > 0 ? activeKeySet.values().next().value : undefined);
+      if (targetKey) {
+        const panel = controls.find(
+          (c) =>
+            c.type === 'Panel' &&
+            (c.properties._parentId as string) === ctrl.id &&
+            (c.properties.collapseKey as string) === targetKey,
+        );
+        if (panel) return panel.id;
+      }
     }
   }
   return null;

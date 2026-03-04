@@ -275,7 +275,7 @@ function getDefaultProperties(type: ControlType): Record<string, unknown> {
     case 'Tooltip':
       return { title: 'Tooltip text', placement: 'Top', trigger: 'Hover' };
     case 'Collapse':
-      return { panels: [{ title: 'Panel 1', key: '1', panelHeight: 0 }, { title: 'Panel 2', key: '2', panelHeight: 0 }], activeKeys: '1', accordion: false, bordered: true, expandIconPosition: 'Start' };
+      return { panels: [{ title: 'Panel 1', key: '1', panelHeight: 0 }, { title: 'Panel 2', key: '2', panelHeight: 0 }], activeKeys: '1', accordion: false, bordered: true, expandIconPosition: 'Start', _designerSelectedKey: '1' };
     case 'Statistic':
       return { title: 'Statistic', value: '0', prefix: '', suffix: '', precision: 0, showGroupSeparator: true, valueColor: '' };
     case 'DataSourceConnector':
