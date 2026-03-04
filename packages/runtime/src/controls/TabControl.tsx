@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { Children, type CSSProperties, type ReactNode } from 'react';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
@@ -14,6 +14,7 @@ interface TabControlProps {
   selectedIndex?: number;
   tabs?: TabInfo[];
   tabPages?: string[];
+  childTabIds?: string[];
   backColor?: string;
   foreColor?: string;
   style?: CSSProperties;
@@ -75,6 +76,7 @@ export function TabControl({
   selectedIndex = 0,
   tabs,
   tabPages,
+  childTabIds,
   backColor,
   foreColor,
   style,
@@ -86,11 +88,18 @@ export function TabControl({
   const colors = useControlColors('TabControl', { backColor, foreColor });
   const { tabHeaderStyle, tabButtonBase, tabButtonActive, contentBorder } = useTabStyles();
 
-  // children are tab pages rendered by ControlRenderer
-  const childArray = Array.isArray(children) ? children : children ? [children] : [];
+  const childArray = Children.toArray(children);
 
-  // Determine tab count from tabs/tabPages properties or children count
-  const tabCount = Math.max(tabs?.length ?? 0, tabPages?.length ?? 0, childArray.length);
+  // Use tabs property as authoritative tab list
+  const tabList = tabs ?? tabPages?.map((t) => ({ title: t })) ?? [];
+  const tabCount = tabList.length || childArray.length;
+
+  // Group children by tabId when childTabIds mapping is available
+  const selectedTabId = tabs?.[selectedIndex]?.id;
+  const visibleChildren =
+    childTabIds && selectedTabId
+      ? childArray.filter((_, i) => childTabIds[i] === selectedTabId)
+      : [childArray[selectedIndex]];
 
   const handleTabClick = (index: number) => {
     if (!enabled) return;
@@ -106,42 +115,34 @@ export function TabControl({
         boxSizing: 'border-box',
         background: colors.background,
         color: colors.color,
+        display: 'flex',
+        flexDirection: 'column',
         ...style,
       }}
     >
-      {/* Tab header + content border overlay (on top of children) */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        pointerEvents: 'none',
-        zIndex: 1,
-      }}>
-        <div style={{ ...tabHeaderStyle, pointerEvents: 'auto', flexShrink: 0 }}>
-          {Array.from({ length: tabCount }, (_, i) => (
-            <button
-              key={i}
-              style={i === selectedIndex ? tabButtonActive : tabButtonBase}
-              onClick={() => handleTabClick(i)}
-              disabled={!enabled}
-            >
-              {getTabName(i, tabs, tabPages, childArray[i])}
-            </button>
-          ))}
-        </div>
-        <div style={{
-          flex: 1,
-          border: contentBorder,
-          borderTop: 'none',
-          overflow: 'hidden',
-        }} />
+      {/* Tab header */}
+      <div style={{ ...tabHeaderStyle, flexShrink: 0, zIndex: 1 }}>
+        {Array.from({ length: tabCount }, (_, i) => (
+          <button
+            key={tabs?.[i]?.id ?? i}
+            style={i === selectedIndex ? tabButtonActive : tabButtonBase}
+            onClick={() => handleTabClick(i)}
+            disabled={!enabled}
+          >
+            {getTabName(i, tabs, tabPages, childArray[i])}
+          </button>
+        ))}
       </div>
-      {/* Children positioned relative to TabControl top-left (matching Designer) */}
-      {childArray[selectedIndex] ?? null}
+      {/* Content area — children positioned relative to this container */}
+      <div style={{
+        flex: 1,
+        position: 'relative',
+        border: contentBorder,
+        borderTop: 'none',
+        overflow: 'hidden',
+      }}>
+        {visibleChildren}
+      </div>
     </div>
   );
 }

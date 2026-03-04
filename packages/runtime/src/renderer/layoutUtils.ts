@@ -135,9 +135,19 @@ export function computeLayoutStyle(
  * Card 등 컨테이너 컨트롤의 CSS containing block 크기를 계산한다.
  * 헤더/보더 등으로 인해 CSS containing block이 컨트롤 디자인 크기보다 작아지는 경우를 보정한다.
  */
+// Tab header: padding(4+4) + font(~14px at 9pt) + border(1+1) ≈ 24px
+export const TAB_HEADER_HEIGHT = 26;
+
 export function getContainerClientSize(
   definition: ControlDefinition,
 ): { width: number; height: number } {
+  if (definition.type === 'TabControl') {
+    return {
+      width: definition.size.width,
+      height: definition.size.height - TAB_HEADER_HEIGHT,
+    };
+  }
+
   if (definition.type === 'Card') {
     const showHeader = definition.properties?.showHeader !== false;
     const showBorder = definition.properties?.showBorder !== false;

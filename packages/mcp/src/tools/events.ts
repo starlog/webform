@@ -160,6 +160,36 @@ function handleEventToolError(error: unknown, formId: string) {
   throw error;
 }
 
+// --- 컨트롤 재귀 탐색 헬퍼 ---
+
+interface ControlNode {
+  id: string;
+  name: string;
+  type: string;
+  children?: ControlNode[];
+  [key: string]: unknown;
+}
+
+function findControlInTree(controls: ControlNode[], id: string): ControlNode | undefined {
+  for (const ctrl of controls) {
+    if (ctrl.id === id) return ctrl;
+    if (ctrl.children) {
+      const found = findControlInTree(ctrl.children, id);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+function collectControlNames(controls: ControlNode[], map: Map<string, string>): void {
+  for (const ctrl of controls) {
+    map.set(ctrl.id, ctrl.name);
+    if (ctrl.children) {
+      collectControlNames(ctrl.children, map);
+    }
+  }
+}
+
 // --- Tool 등록 ---
 
 export function registerEventTools(server: McpServer): void {
@@ -285,7 +315,7 @@ controlId에 "_form"을 지정하면 폼 레벨 이벤트(Load, Shown 등)를 �
           }
 
           if (controlId !== '_form') {
-            const controlExists = f.controls.some((c) => c.id === controlId);
+            const controlExists = findControlInTree(f.controls as ControlNode[], controlId);
             if (!controlExists) {
               throw new ControlNotFoundError(controlId);
             }
@@ -408,9 +438,7 @@ ctx 객체 사용법은 add_event_handler 설명을 참고하세요.
         const form = res.data;
 
         const controlNameMap = new Map<string, string>();
-        for (const c of form.controls) {
-          controlNameMap.set(c.id, c.name);
-        }
+        collectControlNames(form.controls as ControlNode[], controlNameMap);
 
         const handlers = form.eventHandlers.map((h) => ({
           controlId: h.controlId,
