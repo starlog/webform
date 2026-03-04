@@ -159,6 +159,75 @@ async function withFormUpdate<T>(
 
 // --- 컨트롤 조작 함수 ---
 
+/**
+ * TabControl의 tabs 배열에 id가 없으면 UUID를 부여하고,
+ * 각 탭에 대응하는 Panel 자식을 자동 생성한다.
+ * (디자이너의 DesignerCanvas 드롭 로직과 동일한 구조)
+ */
+function ensureTabControlChildren(
+  ctrl: ControlDefinition,
+): void {
+  const tabs = ctrl.properties.tabs as Array<{ title: string; id?: string }> | undefined;
+  if (!tabs || !Array.isArray(tabs)) return;
+
+  // 1. 각 탭에 id 부여
+  for (const tab of tabs) {
+    if (!tab.id) {
+      tab.id = crypto.randomUUID();
+    }
+  }
+
+  // 2. 이미 Panel 자식이 있으면 (tabId 기반) 건너뜀
+  ctrl.children = ctrl.children || [];
+  const existingTabIds = new Set(
+    ctrl.children
+      .filter((c) => c.type === 'Panel' && c.properties.tabId)
+      .map((c) => c.properties.tabId as string),
+  );
+
+  for (const tab of tabs) {
+    if (existingTabIds.has(tab.id!)) continue;
+    const panel: ControlDefinition = {
+      id: crypto.randomUUID(),
+      type: 'Panel',
+      name: `tabPage_${tab.title.replace(/\s+/g, '')}`,
+      properties: { tabId: tab.id!, borderStyle: 'None' },
+      position: { x: 0, y: 0 },
+      size: { width: ctrl.size.width, height: ctrl.size.height },
+      anchor: { top: true, bottom: false, left: true, right: false },
+      dock: 'None' as const,
+      tabIndex: 0,
+      visible: true,
+      enabled: true,
+    };
+    ctrl.children.push(panel);
+  }
+}
+
+/**
+ * TabControl에 직접 자식을 추가하려 할 때, 활성 탭의 Panel로 리다이렉트한다.
+ * tabIndex가 주어지면 해당 탭의 Panel을 사용하고, 없으면 selectedIndex(기본 0)를 사용.
+ */
+function resolveTabControlParent(
+  parent: ControlDefinition,
+  tabIndex?: number,
+): ControlDefinition {
+  if (parent.type !== 'TabControl') return parent;
+
+  const tabs = parent.properties.tabs as Array<{ title: string; id: string }> | undefined;
+  if (!tabs || !Array.isArray(tabs)) return parent;
+
+  const idx = tabIndex ?? (parent.properties.selectedIndex as number) ?? 0;
+  const targetTabId = tabs[idx]?.id;
+  if (!targetTabId) return parent;
+
+  // TabControl의 children 중 해당 tabId를 가진 Panel 찾기
+  const panel = parent.children?.find(
+    (c) => c.type === 'Panel' && (c.properties.tabId as string) === targetTabId,
+  );
+  return panel ?? parent;
+}
+
 function addControlToForm(
   form: FormData,
   control: {
@@ -168,6 +237,7 @@ function addControlToForm(
     position?: { x: number; y: number };
     size?: { width: number; height: number };
     parentId?: string;
+    tabIndex?: number;
   },
 ): { controlId: string; position: { x: number; y: number }; size: { width: number; height: number } } {
   const existing = findControlByName(form.controls, control.name);
@@ -195,14 +265,21 @@ function addControlToForm(
     enabled: true,
   };
 
+  // TabControl 생성 시 탭 Panel 자식 자동 생성
+  if (control.type === 'TabControl') {
+    ensureTabControlChildren(newControl);
+  }
+
   if (control.parentId) {
-    const parent = findControlById(form.controls, control.parentId);
+    let parent = findControlById(form.controls, control.parentId);
     if (!parent)
       throw new Error(`부모 컨트롤 '${control.parentId}'을 찾을 수 없습니다.`);
     if (!isContainerType(parent.type))
       throw new Error(
         `'${parent.type}'은 컨테이너 타입이 아닙니다. Panel, GroupBox, TabControl, SplitContainer, Card, Collapse만 가능합니다.`,
       );
+    // TabControl에 직접 추가하면 활성 탭 Panel로 리다이렉트
+    parent = resolveTabControlParent(parent, control.tabIndex);
     parent.children = parent.children || [];
     parent.children.push(newControl);
   } else {
@@ -356,6 +433,7 @@ export function registerControlTools(server: McpServer): void {
 
 position 미지정 시 기존 컨트롤과 겹치지 않도록 자동 배치(16px 그리드 스냅). size 미지정 시 타입별 기본 크기 적용.
 parentId를 지정하면 Panel, GroupBox 등 컨테이너 내부에 배치됩니다.
+TabControl에 자식을 추가할 때는 parentId에 TabControl ID를 지정하면 자동으로 활성 탭의 Panel에 추가됩니다. tabIndex로 특정 탭을 지정할 수 있습니다.
 
 주의 — DataGridView columns 속성:
   columns에는 반드시 field와 headerText를 사용하세요. name/header는 데이터 매핑에 사용되지 않습니다.
@@ -387,9 +465,15 @@ parentId를 지정하면 Panel, GroupBox 등 컨테이너 내부에 배치됩니
       parentId: z
         .string()
         .optional()
-        .describe('부모 컨테이너 컨트롤 ID (Panel, GroupBox 등 내부 배치 시)'),
+        .describe('부모 컨테이너 컨트롤 ID (Panel, GroupBox, TabControl 등 내부 배치 시)'),
+      tabIndex: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .describe('TabControl 자식 추가 시 대상 탭 인덱스 (0부터 시작, 미지정 시 selectedIndex 사용)'),
     },
-    async ({ formId, type, name, properties, position, size, parentId }) => {
+    async ({ formId, type, name, properties, position, size, parentId, tabIndex }) => {
       try {
         validateObjectId(formId, 'formId');
         if (!isValidControlType(type)) {
@@ -411,6 +495,7 @@ parentId를 지정하면 Panel, GroupBox 등 컨테이너 내부에 배치됩니
             position,
             size,
             parentId,
+            tabIndex,
           }),
         );
 
@@ -729,6 +814,12 @@ position 미지정 시 이전 컨트롤 위치를 고려하여 순차 자동 배
               .optional()
               .describe('크기 (미지정 시 기본)'),
             parentId: z.string().optional().describe('부모 컨테이너 ID'),
+            tabIndex: z
+              .number()
+              .int()
+              .min(0)
+              .optional()
+              .describe('TabControl 자식 추가 시 대상 탭 인덱스 (0부터)'),
           }),
         )
         .min(1)
@@ -784,6 +875,7 @@ position 미지정 시 이전 컨트롤 위치를 고려하여 순차 자동 배
               position: ctrl.position,
               size: ctrl.size,
               parentId: ctrl.parentId,
+              tabIndex: ctrl.tabIndex,
             });
             added.push({
               controlId: result.controlId,
