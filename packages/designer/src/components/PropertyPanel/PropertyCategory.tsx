@@ -19,6 +19,7 @@ import { SwaggerApisEditor } from './editors/SwaggerApisEditor';
 import { MenuItemEditor } from '../Editors/MenuItemEditor';
 import { ToolStripItemEditor } from '../Editors/ToolStripItemEditor';
 import { StatusStripItemEditor } from '../Editors/StatusStripItemEditor';
+import { AuthUsersEditor } from './editors/AuthUsersEditor';
 
 interface PropertyCategoryProps {
   category: string;
@@ -169,6 +170,8 @@ function PropertyEditor({ meta, value, onChange, sampleData }: PropertyRowProps)
       return <SwaggerSpecEditor value={value as string ?? ''} onChange={onChange} />;
     case 'swaggerApis':
       return <SwaggerApisEditor value={value as string ?? ''} />;
+    case 'authUsers':
+      return <AuthUsersEditor value={value as { username: string; password: string }[] ?? []} onChange={onChange} />;
     default:
       return <TextEditor value={String(value ?? '')} onChange={onChange} />;
   }

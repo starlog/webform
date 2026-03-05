@@ -189,6 +189,7 @@ googleAuthRouter.get('/google/callback', async (req, res, next) => {
         sub: email,
         role: 'runtime-user',
         projectId,
+        provider: 'google',
         email,
         name: googlePayload.name || '',
         picture: googlePayload.picture || '',

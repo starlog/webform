@@ -548,13 +548,16 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
     if (auth?.enabled) {
       const runtimeBaseUrl = auth.runtimeBaseUrl || 'http://localhost:3001';
       const formIdParam = req.query.formId ? `&formId=${req.query.formId}` : '';
-      const loginUrl = `${runtimeBaseUrl}/auth/google/login?projectId=${req.params.projectId}${formIdParam}`;
+      const provider = auth.provider || 'google';
+      const loginUrl = provider === 'google'
+        ? `${runtimeBaseUrl}/auth/google/login?projectId=${req.params.projectId}${formIdParam}`
+        : '';
 
       const header = req.headers.authorization;
       const cookieToken = req.cookies?.runtime_auth_token;
       const token = header?.startsWith('Bearer ') ? header.slice(7) : cookieToken;
       if (!token) {
-        res.status(401).json({ authRequired: true, loginUrl });
+        res.status(401).json({ authRequired: true, loginUrl, provider });
         return;
       }
 
@@ -567,7 +570,15 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
           picture: string;
         };
         if (payload.role !== 'runtime-user' || payload.projectId !== req.params.projectId) {
-          res.status(401).json({ authRequired: true, loginUrl });
+          res.status(401).json({ authRequired: true, loginUrl, provider });
+          return;
+        }
+        // provider가 변경된 경우 기존 토큰 무효화
+        // provider 필드가 없는 레거시 토큰은 'google'로 간주
+        const tokenProvider = (payload as Record<string, unknown>).provider as string ?? 'google';
+        if (tokenProvider !== provider) {
+          res.clearCookie('runtime_auth_token');
+          res.status(401).json({ authRequired: true, loginUrl, provider });
           return;
         }
         // 인증 성공 — authUser 정보를 응답에 포함
@@ -577,7 +588,7 @@ runtimeRouter.get('/app/:projectId', async (req, res, next) => {
           picture: payload.picture,
         };
       } catch {
-        res.status(401).json({ authRequired: true, loginUrl });
+        res.status(401).json({ authRequired: true, loginUrl, provider });
         return;
       }
     }

@@ -24,6 +24,7 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
   const [authRequired, setAuthRequired] = useState(false);
   const [loginUrl, setLoginUrl] = useState('');
   const [authError, setAuthError] = useState<string | undefined>();
+  const [authProvider, setAuthProvider] = useState<'google' | 'password'>('google');
   const currentFormIdRef = useRef<string | null>(null);
   const formDefRef = useRef<FormDefinition | null>(null);
 
@@ -98,6 +99,7 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
       setLoading(true);
       setError(null);
       setAuthRequired(false);
+      setAuthProvider('google');
 
       // URL fragment에서 auth_token 추출 (OAuth 콜백 리다이렉트)
       extractAuthTokenFromUrl();
@@ -148,10 +150,11 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
         unsubPatch = setupPatchListener({ applyPatches, applyShellPatches }, wsClient);
       } catch (err) {
         if (!cancelled) {
-          const authErr = err as Error & { authRequired?: boolean; loginUrl?: string };
-          if (authErr.authRequired && authErr.loginUrl) {
+          const authErr = err as Error & { authRequired?: boolean; loginUrl?: string; provider?: string };
+          if (authErr.authRequired) {
             setAuthRequired(true);
-            setLoginUrl(authErr.loginUrl);
+            setLoginUrl(authErr.loginUrl ?? '');
+            setAuthProvider((authErr.provider as 'google' | 'password') ?? 'google');
           } else {
             setError(err instanceof Error ? err.message : String(err));
           }
@@ -238,8 +241,49 @@ export function AppContainer({ projectId, initialFormId }: AppContainerProps) {
     };
   }, [shellDef, formDefinition]);
 
+  const handlePasswordLogin = useCallback(async () => {
+    // LoginRequiredPage will call this and reload the app
+    setAuthRequired(false);
+    setLoading(true);
+    setError(null);
+    // Re-trigger the app load
+    try {
+      await ensureAuthToken();
+      const response = await apiClient.fetchApp(projectId, initialFormId);
+      if (response.shell) {
+        setShellDefLocal(response.shell);
+        setShellDef(response.shell);
+      }
+      setFormDefinition(response.startForm);
+      setFormDef(response.startForm);
+      formDefRef.current = response.startForm;
+      currentFormIdRef.current = response.startForm.id;
+      wsClient.connectApp(projectId);
+      setupPatchListener({ applyPatches, applyShellPatches }, wsClient);
+    } catch (err) {
+      const authErr = err as Error & { authRequired?: boolean; loginUrl?: string; provider?: string };
+      if (authErr.authRequired) {
+        setAuthRequired(true);
+        setLoginUrl(authErr.loginUrl ?? '');
+        setAuthProvider((authErr.provider as 'google' | 'password') ?? 'google');
+      } else {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId, initialFormId, applyPatches, applyShellPatches, setFormDef, setShellDef]);
+
   if (authRequired) {
-    return <LoginRequiredPage loginUrl={loginUrl} errorMessage={authError} />;
+    return (
+      <LoginRequiredPage
+        loginUrl={loginUrl}
+        errorMessage={authError}
+        provider={authProvider}
+        projectId={projectId}
+        onPasswordLoginSuccess={handlePasswordLogin}
+      />
+    );
   }
 
   if (loading) {

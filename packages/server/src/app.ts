@@ -12,6 +12,7 @@ import { requestId } from './middleware/requestId.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { apiRouter } from './routes/index.js';
 import { googleAuthRouter } from './routes/googleAuth.js';
+import { passwordAuthRouter } from './routes/passwordAuth.js';
 import { getRedis } from './db/redis.js';
 import { env } from './config/index.js';
 import { swaggerDocument } from './swagger.js';
@@ -71,6 +72,9 @@ export function createApp() {
 
   // --- Google OAuth2 라우트 (인증 불필요) ---
   app.use('/auth', googleAuthRouter);
+
+  // --- Password 인증 라우트 (인증 불필요) ---
+  app.use('/auth', passwordAuthRouter);
 
   // --- API 라우트 ---
   app.use('/api', apiRouter);

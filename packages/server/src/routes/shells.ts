@@ -78,11 +78,15 @@ const shellPropertiesSchema = z.object({
   auth: z
     .object({
       enabled: z.boolean().default(false),
-      provider: z.literal('google').default('google'),
+      provider: z.enum(['google', 'password']).default('google'),
       googleClientId: z.string().default(''),
       googleClientSecret: z.string().default(''),
       runtimeBaseUrl: z.string().default('http://localhost:3001'),
       allowedDomains: z.array(z.string()).default([]),
+      users: z.array(z.object({
+        username: z.string(),
+        password: z.string(),
+      })).optional(),
     })
     .optional(),
 });

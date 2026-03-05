@@ -6,7 +6,7 @@ import type {
   ShellEventRequest,
   AppLoadResponse,
 } from '@webform/common';
-import { getRuntimeAuthToken } from './runtimeAuth';
+import { getRuntimeAuthToken, clearRuntimeAuthToken } from './runtimeAuth';
 
 class ApiClient {
   private baseUrl: string;
@@ -117,14 +117,18 @@ class ApiClient {
     }
     const res = await fetch(`${this.baseUrl}/runtime/app/${projectId}${params}`, { headers, credentials: 'include' });
     if (res.status === 401) {
+      // Clear stale localStorage token (e.g. leftover from previous Google OAuth)
+      clearRuntimeAuthToken();
       const body = await res.json();
       const err = new Error('Authentication required') as Error & {
         authRequired: boolean;
         loginUrl: string;
         authError?: string;
+        provider?: string;
       };
       err.authRequired = body.authRequired ?? true;
       err.loginUrl = body.loginUrl ?? '';
+      err.provider = body.provider;
       throw err;
     }
     if (!res.ok) throw new Error(`Failed to fetch app: ${res.status}`);
@@ -135,6 +139,26 @@ class ApiClient {
     const res = await fetch(`${this.baseUrl}/runtime/shells/${projectId}`);
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`Failed to fetch shell: ${res.status}`);
+    return res.json();
+  }
+
+  async loginWithPassword(
+    projectId: string,
+    username: string,
+    password: string,
+  ): Promise<{ token: string }> {
+    // Clear any stale token from previous auth provider (e.g. Google OAuth)
+    clearRuntimeAuthToken();
+    const res = await fetch('/auth/password/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectId, username, password }),
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || 'Login failed');
+    }
     return res.json();
   }
 

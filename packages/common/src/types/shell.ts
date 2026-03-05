@@ -4,15 +4,25 @@ import type { ThemeId } from './theme.js';
 
 /**
  * Shell 인증 설정.
- * enabled=true이면 Runtime 사용자는 Google 계정으로 로그인해야 폼에 접근 가능.
+ * enabled=true이면 Runtime 사용자는 로그인해야 폼에 접근 가능.
+ * provider='google': Google OAuth2 로그인
+ * provider='password': ID/Password 로그인
  */
 export interface AuthSettings {
   enabled: boolean;
-  provider: 'google';
+  provider: 'google' | 'password';
   googleClientId: string;
   googleClientSecret: string;
   runtimeBaseUrl: string;
   allowedDomains: string[]; // 빈 배열 = 모든 도메인 허용
+  /** password 모드: 사용자 계정 목록 (id/password 쌍) */
+  users?: AuthUser[];
+}
+
+export interface AuthUser {
+  username: string;
+  /** bcrypt 해시 또는 평문 (서버에서 해시 비교) */
+  password: string;
 }
 
 /**

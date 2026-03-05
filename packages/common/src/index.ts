@@ -41,6 +41,7 @@ export type {
   ShellProperties,
   ShellEventRequest,
   ShellEventType,
+  AuthUser,
 } from './types/shell.js';
 export { SHELL_EVENTS } from './types/shell.js';
 

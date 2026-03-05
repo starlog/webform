@@ -356,12 +356,21 @@ export function PropertyPanel({ onOpenEventEditor }: PropertyPanelProps) {
     [setShellProperties, shellProperties],
   );
 
-  // Shell 속성: theme 옵션을 동적으로 교체 (커스텀 테마 포함)
+  // Shell 속성: theme 옵션을 동적으로 교체 + condition 필터링
   const shellPropertyMetas = useMemo(() => {
     return SHELL_PROPERTIES.map((meta) =>
       meta.name === 'theme' ? { ...meta, options: themeOptions } : meta,
-    );
-  }, [themeOptions]);
+    ).filter((meta) => {
+      if (!meta.condition) return true;
+      const parts = meta.condition.property.split('.');
+      let current: unknown = shellProperties;
+      for (const part of parts) {
+        if (current == null || typeof current !== 'object') return false;
+        current = (current as Record<string, unknown>)[part];
+      }
+      return meta.condition.values.includes(String(current ?? ''));
+    });
+  }, [themeOptions, shellProperties]);
 
   // Shell 속성 그룹화
   const shellGroupedProperties = useMemo(

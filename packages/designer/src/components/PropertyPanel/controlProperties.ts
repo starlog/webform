@@ -20,7 +20,8 @@ export type EditorType =
   | 'toolStripEditor'
   | 'statusStripEditor'
   | 'swaggerSpec'
-  | 'swaggerApis';
+  | 'swaggerApis'
+  | 'authUsers';
 
 export type PropertyCategory = 'Appearance' | 'Behavior' | 'Layout' | 'Design' | 'Data' | 'APIs' | 'Sample' | 'Authentication';
 
@@ -560,8 +561,10 @@ export const SHELL_PROPERTIES: PropertyMeta[] = [
   { name: 'minimizeBox', label: 'MinimizeBox', category: 'Behavior', editorType: 'boolean' },
   { name: 'windowState', label: 'WindowState', category: 'Layout', editorType: 'dropdown', options: ['Normal', 'Maximized'] },
   { name: 'auth.enabled', label: 'Auth Enabled', category: 'Authentication', editorType: 'boolean' },
-  { name: 'auth.googleClientId', label: 'Google Client ID', category: 'Authentication', editorType: 'text' },
-  { name: 'auth.googleClientSecret', label: 'Google Client Secret', category: 'Authentication', editorType: 'password' },
+  { name: 'auth.provider', label: 'Provider', category: 'Authentication', editorType: 'dropdown', options: ['google', 'password'] },
+  { name: 'auth.googleClientId', label: 'Google Client ID', category: 'Authentication', editorType: 'text', condition: { property: 'auth.provider', values: ['google'] } },
+  { name: 'auth.googleClientSecret', label: 'Google Client Secret', category: 'Authentication', editorType: 'password', condition: { property: 'auth.provider', values: ['google'] } },
   { name: 'auth.runtimeBaseUrl', label: 'Runtime Base URL', category: 'Authentication', editorType: 'text' },
-  { name: 'auth.allowedDomains', label: 'Allowed Domains', category: 'Authentication', editorType: 'text' },
+  { name: 'auth.allowedDomains', label: 'Allowed Domains', category: 'Authentication', editorType: 'text', condition: { property: 'auth.provider', values: ['google'] } },
+  { name: 'auth.users', label: 'Users', category: 'Authentication', editorType: 'authUsers', condition: { property: 'auth.provider', values: ['password'] } },
 ];
