@@ -15,6 +15,10 @@ if [ ! -d "node_modules" ] || [ "pnpm-lock.yaml" -nt "node_modules/.pnpm/lock.ya
   pnpm install
 fi
 
+# common 패키지 빌드 (designer/runtime에서 @webform/common/views 등 서브패스 export 사용)
+echo "common 패키지를 빌드합니다..."
+pnpm --filter @webform/common build
+
 # Redis Docker 컨테이너 실행
 if ! docker ps --format '{{.Names}}' | grep -q '^webform-redis$'; then
   if docker ps -a --format '{{.Names}}' | grep -q '^webform-redis$'; then
