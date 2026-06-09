@@ -64,6 +64,11 @@ export {
   type ToolStripViewProps,
   type ToolStripItem,
 } from './controls/ToolStripView.js';
+export {
+  MenuStripView,
+  type MenuStripViewProps,
+  type MenuItem,
+} from './controls/MenuStripView.js';
 
 // Views — Data
 export {
