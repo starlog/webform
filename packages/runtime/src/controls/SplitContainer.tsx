@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { SplitContainerView } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
 
 interface SplitContainerProps {
   id: string;
@@ -33,8 +32,6 @@ export function SplitContainer({
 }: SplitContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const theme = useTheme();
-  const colors = useControlColors('SplitContainer', { backColor });
 
   const [distance, setDistance] = useState<number | null>(null);
   const isVertical = orientation === 'Vertical';
@@ -76,53 +73,20 @@ export function SplitContainer({
     [id, isVertical, effectiveDistance, isSplitterFixed, splitterWidth, getContainerSize, updateControlState, onSplitterMoved, distance],
   );
 
-  const containerStyle: CSSProperties = {
-    display: 'flex',
-    flexDirection: isVertical ? 'row' : 'column',
-    background: colors.background,
-    border: `1px solid ${theme.controls.panel.border}`,
-    boxSizing: 'border-box',
-    overflow: 'hidden',
-    ...style,
-  };
-
   return (
-    <div ref={containerRef} data-control-id={id} style={containerStyle}>
-      {/* Panel1 */}
-      <div
-        style={{
-          ...(isVertical ? { width: effectiveDistance } : { height: effectiveDistance }),
-          flexShrink: 0,
-          overflow: 'auto',
-          position: 'relative',
-        }}
-      >
-        {childArr[0] ?? null}
-      </div>
-
-      {/* Splitter */}
-      <div
-        onMouseDown={handleMouseDown}
-        style={{
-          ...(isVertical
-            ? { width: splitterWidth, cursor: isSplitterFixed ? 'default' : 'col-resize' }
-            : { height: splitterWidth, cursor: isSplitterFixed ? 'default' : 'row-resize' }),
-          backgroundColor: theme.controls.toolStrip.separator,
-          flexShrink: 0,
-          userSelect: 'none',
-        }}
-      />
-
-      {/* Panel2 */}
-      <div
-        style={{
-          flex: 1,
-          overflow: 'auto',
-          position: 'relative',
-        }}
-      >
-        {childArr[1] ?? null}
-      </div>
-    </div>
+    <SplitContainerView
+      orientation={orientation}
+      splitterDistance={effectiveDistance}
+      splitterWidth={splitterWidth}
+      isSplitterFixed={isSplitterFixed}
+      backColor={backColor}
+      panel1={childArr[0] ?? null}
+      panel2={childArr[1] ?? null}
+      interactive
+      onSplitterMouseDown={handleMouseDown}
+      containerRef={containerRef}
+      data-control-id={id}
+      style={style}
+    />
   );
 }

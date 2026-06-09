@@ -43,6 +43,10 @@ export { PanelView, type PanelViewProps } from './controls/PanelView.js';
 export { GroupBoxView, type GroupBoxViewProps } from './controls/GroupBoxView.js';
 export { CardView, type CardViewProps } from './controls/CardView.js';
 export { TooltipView, type TooltipViewProps } from './controls/TooltipView.js';
+export {
+  SplitContainerView,
+  type SplitContainerViewProps,
+} from './controls/SplitContainerView.js';
 
 // Views — Strip/Bar
 export {
