@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import DOMPurify from 'dompurify';
+import {
+  RichTextBoxView,
+  richTextContentBaseStyle,
+  type RichTextCommand,
+} from '@webform/common/views';
 import { computeFontStyle } from '../renderer/layoutUtils';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
 
 type ScrollBars = 'None' | 'Horizontal' | 'Vertical' | 'Both';
 
@@ -53,8 +56,6 @@ export function RichTextBox({
   onSelectionChanged,
 }: RichTextBoxProps) {
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
-  const theme = useTheme();
-  const colors = useControlColors('RichTextBox', { backColor, foreColor });
   const contentRef = useRef<HTMLDivElement>(null);
   const isComposing = useRef(false);
   const [boldActive, setBoldActive] = useState(false);
@@ -94,7 +95,7 @@ export function RichTextBox({
     return () => document.removeEventListener('selectionchange', handleSelectionChange);
   }, [handleSelectionChange]);
 
-  const execCommand = useCallback((command: string) => {
+  const execCommand = useCallback((command: RichTextCommand) => {
     document.execCommand(command, false);
     contentRef.current?.focus();
   }, []);
@@ -102,83 +103,21 @@ export function RichTextBox({
   const overflow = getOverflow(scrollBars);
   const fontStyles = useMemo(() => computeFontStyle(font), [font]);
 
-  const mergedStyle: CSSProperties = {
-    background: colors.background,
-    color: colors.color,
-    border: theme.controls.textInput.border,
-    borderRadius: theme.controls.textInput.borderRadius,
-    display: 'flex',
-    flexDirection: 'column',
-    ...fontStyles,
-    boxSizing: 'border-box',
-    opacity: enabled ? 1 : 0.6,
-    ...style,
-  };
-
   return (
-    <div className="wf-richtextbox" data-control-id={id} style={mergedStyle}>
-      {/* 서식 도구바 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          padding: '2px 4px',
-          borderBottom: theme.controls.textInput.border,
-          backgroundColor: theme.controls.panel.background,
-          flexShrink: 0,
-        }}
-      >
-        <button
-          onClick={() => execCommand('bold')}
-          disabled={readOnly || !enabled}
-          style={{
-            border: theme.controls.textInput.border,
-            backgroundColor: boldActive ? theme.accent.primary : theme.controls.panel.background,
-            color: boldActive ? theme.accent.primaryForeground : theme.form.foreground,
-            fontWeight: 'bold',
-            width: 22,
-            height: 20,
-            fontSize: '11px',
-            cursor: readOnly || !enabled ? 'default' : 'pointer',
-          }}
-        >
-          B
-        </button>
-        <button
-          onClick={() => execCommand('italic')}
-          disabled={readOnly || !enabled}
-          style={{
-            border: theme.controls.textInput.border,
-            backgroundColor: italicActive ? theme.accent.primary : theme.controls.panel.background,
-            color: italicActive ? theme.accent.primaryForeground : theme.form.foreground,
-            fontStyle: 'italic',
-            width: 22,
-            height: 20,
-            fontSize: '11px',
-            cursor: readOnly || !enabled ? 'default' : 'pointer',
-          }}
-        >
-          I
-        </button>
-        <button
-          onClick={() => execCommand('underline')}
-          disabled={readOnly || !enabled}
-          style={{
-            border: theme.controls.textInput.border,
-            backgroundColor: underlineActive ? theme.accent.primary : theme.controls.panel.background,
-            color: underlineActive ? theme.accent.primaryForeground : theme.form.foreground,
-            textDecoration: 'underline',
-            width: 22,
-            height: 20,
-            fontSize: '11px',
-            cursor: readOnly || !enabled ? 'default' : 'pointer',
-          }}
-        >
-          U
-        </button>
-      </div>
-
+    <RichTextBoxView
+      boldActive={boldActive}
+      italicActive={italicActive}
+      underlineActive={underlineActive}
+      backColor={backColor}
+      foreColor={foreColor}
+      interactive
+      disabled={!enabled}
+      readOnly={readOnly}
+      onCommand={execCommand}
+      className="wf-richtextbox"
+      data-control-id={id}
+      style={{ ...fontStyles, ...style }}
+    >
       {/* 편집 가능한 콘텐츠 영역 */}
       <div
         ref={contentRef}
@@ -193,16 +132,12 @@ export function RichTextBox({
           handleInput();
         }}
         style={{
-          flex: 1,
-          padding: 4,
+          ...richTextContentBaseStyle,
           overflowX: overflow.overflowX as CSSProperties['overflowX'],
           overflowY: overflow.overflowY as CSSProperties['overflowY'],
           outline: 'none',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          minHeight: 0,
         }}
       />
-    </div>
+    </RichTextBoxView>
   );
 }

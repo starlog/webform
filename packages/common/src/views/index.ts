@@ -30,6 +30,12 @@ export { SliderView, type SliderViewProps } from './controls/SliderView.js';
 export { ComboBoxView, type ComboBoxViewProps } from './controls/ComboBoxView.js';
 export { ListBoxView, type ListBoxViewProps } from './controls/ListBoxView.js';
 export { TextBoxView, type TextBoxViewProps } from './controls/TextBoxView.js';
+export {
+  RichTextBoxView,
+  richTextContentBaseStyle,
+  type RichTextBoxViewProps,
+  type RichTextCommand,
+} from './controls/RichTextBoxView.js';
 export { NumericUpDownView, type NumericUpDownViewProps } from './controls/NumericUpDownView.js';
 export { DateTimePickerView, type DateTimePickerViewProps } from './controls/DateTimePickerView.js';
 
