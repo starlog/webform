@@ -44,6 +44,13 @@ export { GroupBoxView, type GroupBoxViewProps } from './controls/GroupBoxView.js
 export { CardView, type CardViewProps } from './controls/CardView.js';
 export { TooltipView, type TooltipViewProps } from './controls/TooltipView.js';
 
+// Views — Strip/Bar
+export {
+  StatusStripView,
+  type StatusStripViewProps,
+  type StatusStripItem,
+} from './controls/StatusStripView.js';
+
 // Views — Sub-components
 export { TabHeaderView, type TabHeaderViewProps } from './controls/TabHeaderView.js';
 export { CollapseHeaderView, type CollapseHeaderViewProps } from './controls/CollapseHeaderView.js';
