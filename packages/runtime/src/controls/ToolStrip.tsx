@@ -1,20 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { ToolStripView, type ToolStripItem } from '@webform/common/views';
 import { useRuntimeStore } from '../stores/runtimeStore';
-import { useTheme } from '../theme/ThemeContext';
-import { useControlColors } from '../theme/useControlColors';
 import { apiClient } from '../communication/apiClient';
-
-interface ToolStripItem {
-  type: 'button' | 'separator' | 'label' | 'dropdown';
-  text?: string;
-  tooltip?: string;
-  icon?: string;
-  enabled?: boolean;
-  checked?: boolean;
-  hasScript?: boolean;
-  items?: ToolStripItem[];
-}
 
 interface ToolStripProps {
   id: string;
@@ -42,8 +30,6 @@ export function ToolStrip({
   onItemClicked,
   onItemScript,
 }: ToolStripProps) {
-  const theme = useTheme();
-  const colors = useControlColors('ToolStrip', { backColor, foreColor });
   const updateControlState = useRuntimeStore((s) => s.updateControlState);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -135,136 +121,21 @@ export function ToolStrip({
     [id, enabled, updateControlState, onItemClicked, sendItemScript],
   );
 
-  const mergedStyle: CSSProperties = {
-    background: colors.background,
-    color: colors.color,
-    borderBottom: theme.controls.toolStrip.border,
-    display: 'flex',
-    alignItems: 'center',
-    fontFamily: font?.family ?? 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-    fontSize: font?.size ? `${font.size}pt` : '12px',
-    boxSizing: 'border-box',
-    overflow: 'hidden',
-    paddingLeft: 2,
-    paddingRight: 2,
-    position: 'relative',
-    opacity: enabled ? 1 : 0.6,
-    ...style,
-  };
-
   return (
-    <div className="wf-toolstrip" data-control-id={id} style={mergedStyle} ref={dropdownRef}>
-      {items.map((item, i) => {
-        if (item.type === 'separator') {
-          return (
-            <div
-              key={i}
-              style={{
-                width: 1,
-                height: 16,
-                backgroundColor: theme.controls.toolStrip.separator,
-                margin: '0 3px',
-              }}
-            />
-          );
-        }
-
-        const isDisabled = item.enabled === false || !enabled;
-        const isDropdown = item.type === 'dropdown';
-        const isOpen = openDropdown === i;
-
-        return (
-          <div key={i} style={{ position: 'relative' }}>
-            <div
-              onClick={() => handleItemClick(item, i)}
-              title={item.tooltip}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                padding: '1px 4px',
-                borderRadius: 2,
-                cursor: isDisabled ? 'default' : 'pointer',
-                opacity: isDisabled ? 0.5 : 1,
-                whiteSpace: 'nowrap',
-                ...(item.checked
-                  ? { backgroundColor: theme.accent.primary, border: `1px solid ${theme.accent.primaryHover}` }
-                  : {}),
-              }}
-              onMouseEnter={(e) => {
-                if (!isDisabled && !item.checked) {
-                  (e.currentTarget as HTMLDivElement).style.backgroundColor = theme.controls.toolStrip.buttonHoverBackground;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isDisabled && !item.checked) {
-                  (e.currentTarget as HTMLDivElement).style.backgroundColor = '';
-                }
-              }}
-            >
-              {item.icon && <span style={{ fontSize: '12px' }}>{item.icon}</span>}
-              {item.text && <span>{item.text}</span>}
-              {isDropdown && <span style={{ fontSize: '8px', marginLeft: 1 }}>&#9660;</span>}
-            </div>
-
-            {isDropdown && isOpen && item.items && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  backgroundColor: theme.controls.toolStrip.background,
-                  color: theme.controls.toolStrip.foreground,
-                  border: theme.popup.border,
-                  boxShadow: theme.popup.shadow,
-                  borderRadius: theme.popup.borderRadius,
-                  zIndex: 1000,
-                  minWidth: 120,
-                }}
-              >
-                {item.items.map((sub, si) => {
-                  if (sub.type === 'separator') {
-                    return (
-                      <div
-                        key={si}
-                        style={{ height: 1, backgroundColor: theme.controls.toolStrip.separator, margin: '2px 0' }}
-                      />
-                    );
-                  }
-                  const subDisabled = sub.enabled === false;
-                  return (
-                    <div
-                      key={si}
-                      onClick={() => handleSubItemClick(sub, i, si)}
-                      style={{
-                        padding: '4px 12px',
-                        cursor: subDisabled ? 'default' : 'pointer',
-                        opacity: subDisabled ? 0.5 : 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        whiteSpace: 'nowrap',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!subDisabled)
-                          (e.currentTarget as HTMLDivElement).style.backgroundColor = theme.controls.toolStrip.buttonHoverBackground;
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!subDisabled)
-                          (e.currentTarget as HTMLDivElement).style.backgroundColor = '';
-                      }}
-                    >
-                      {sub.checked && <span>&#10003;</span>}
-                      {sub.icon && <span>{sub.icon}</span>}
-                      <span>{sub.text ?? ''}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+    <ToolStripView
+      items={items}
+      openDropdownIndex={openDropdown}
+      backColor={backColor}
+      foreColor={foreColor}
+      font={font}
+      interactive={enabled}
+      disabled={!enabled}
+      onItemClick={handleItemClick}
+      onSubItemClick={handleSubItemClick}
+      rootRef={dropdownRef}
+      className="wf-toolstrip"
+      data-control-id={id}
+      style={style}
+    />
   );
 }

@@ -59,6 +59,11 @@ export {
   BindingNavigatorView,
   type BindingNavigatorViewProps,
 } from './controls/BindingNavigatorView.js';
+export {
+  ToolStripView,
+  type ToolStripViewProps,
+  type ToolStripItem,
+} from './controls/ToolStripView.js';
 
 // Views — Sub-components
 export { TabHeaderView, type TabHeaderViewProps } from './controls/TabHeaderView.js';
