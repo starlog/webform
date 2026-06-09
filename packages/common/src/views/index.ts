@@ -50,6 +50,10 @@ export {
   type StatusStripViewProps,
   type StatusStripItem,
 } from './controls/StatusStripView.js';
+export {
+  BindingNavigatorView,
+  type BindingNavigatorViewProps,
+} from './controls/BindingNavigatorView.js';
 
 // Views — Sub-components
 export { TabHeaderView, type TabHeaderViewProps } from './controls/TabHeaderView.js';
