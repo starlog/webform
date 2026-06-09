@@ -19,9 +19,15 @@ interface WebBrowserProps {
 }
 
 function isSafeUrl(url: string): boolean {
-  const trimmed = url.trim().toLowerCase();
-  if (trimmed.startsWith('javascript:')) return false;
-  return true;
+  const trimmed = url.trim();
+  if (trimmed === '' || trimmed === 'about:blank') return true;
+  // http/https만 허용 (javascript:, data:, vbscript: 등 스크립트 실행 가능 스킴 차단)
+  try {
+    const parsed = new URL(trimmed, window.location.origin);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 export function WebBrowser({

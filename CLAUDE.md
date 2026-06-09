@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-WebForm은 Microsoft WinForm 디자이너를 웹으로 구현한 Server-Driven UI(SDUI) 기반 로우코드 플랫폼이다. pnpm 모노레포로 4개 패키지를 관리한다.
+WebForm은 Microsoft WinForm 디자이너를 웹으로 구현한 Server-Driven UI(SDUI) 기반 로우코드 플랫폼이다. pnpm 모노레포로 5개 패키지(common, server, designer, runtime, mcp)를 관리한다.
 
 ## Commands
 
@@ -39,6 +39,7 @@ pnpm typecheck              # TypeScript 타입 체크
 - **`packages/server`** — Express + WebSocket 백엔드. MongoDB(Mongoose), Redis(ioredis), isolated-vm 샌드박스.
 - **`packages/designer`** — React 폼 디자이너. react-dnd 드래그앤드롭, Monaco Editor 이벤트 코드 편집, Zustand 상태관리.
 - **`packages/runtime`** — React 폼 실행기. SDUI 렌더링, 이벤트 처리, 데이터 바인딩, WebSocket 패치 수신.
+- **`packages/mcp`** — MCP(Model Context Protocol) 서버. 프로젝트/폼/컨트롤/이벤트/테마/Shell 관리 도구 제공. stdio(`pnpm dev:mcp`) 및 HTTP 원격(`pnpm dev:mcp-remote`, port 4100, Bearer 토큰 인증) 모드 지원.
 
 ### SDUI 런타임 흐름
 
@@ -74,6 +75,13 @@ pnpm typecheck              # TypeScript 타입 체크
 | Designer | 3000 | `/api` → localhost:4000 프록시 |
 | Runtime | 3001 | `/api` → localhost:4000 프록시 |
 | Server | 4000 | REST API + WebSocket (`/ws/designer/:formId`, `/ws/runtime/:formId`) |
+| MCP Remote | 4100 | MCP HTTP 서버 (`/mcp`, `MCP_API_KEYS` Bearer 토큰 필요) |
+
+### 인증
+
+- **디자이너 API** (`/api/forms`, `/api/projects`, `/api/projects/:id/shell`, `/api/themes`, `/api/swagger`): JWT 인증 + `admin`/`internal` 역할 필요. 디자이너는 `/auth/dev-token`(development 또는 `ENABLE_SERVICE_TOKEN=true`)으로 admin 토큰 발급.
+- **런타임 API** (`/api/runtime/*`): 공개(published 리소스만). 이벤트 실행 엔드포인트는 rate limit 적용.
+- **Shell 런타임 인증**: Shell 속성 `auth`로 설정. `provider: 'google'`(OAuth2, clientSecret은 AES 암호화 저장) 또는 `provider: 'password'`(`auth.users`, 비밀번호는 저장 시 bcrypt 해싱). 로그인 성공 시 `runtime-user` 역할 JWT 발급 — 이 토큰으로는 디자이너 API 접근 불가.
 
 ## Code Style
 

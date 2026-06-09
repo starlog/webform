@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/index.js';
@@ -8,12 +9,21 @@ import { AppError } from '../middleware/errorHandler.js';
 export const passwordAuthRouter = Router();
 const shellService = new ShellService();
 
+// 브루트포스 방지: IP당 5분에 20회까지 로그인 시도 허용
+const loginRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts, please try again later' },
+});
+
 /**
  * POST /auth/password/login
  * Body: { projectId, username, password }
  * Shell의 auth.users 목록과 대조하여 JWT 발급.
  */
-passwordAuthRouter.post('/password/login', async (req, res, next) => {
+passwordAuthRouter.post('/password/login', loginRateLimiter, async (req, res, next) => {
   try {
     const { projectId, username, password } = req.body;
 
@@ -38,13 +48,9 @@ passwordAuthRouter.post('/password/login', async (req, res, next) => {
       return;
     }
 
-    // bcrypt 해시이면 비교, 아니면 평문 비교
-    let passwordMatch = false;
-    if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
-      passwordMatch = await bcrypt.compare(password, user.password);
-    } else {
-      passwordMatch = user.password === password;
-    }
+    // bcrypt 해시만 허용 (평문 저장된 기존 비밀번호는 Shell 재저장으로 해싱됨)
+    const isBcryptHash = user.password.startsWith('$2a$') || user.password.startsWith('$2b$');
+    const passwordMatch = isBcryptHash && (await bcrypt.compare(password, user.password));
 
     if (!passwordMatch) {
       res.status(401).json({ error: 'Invalid username or password' });

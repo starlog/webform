@@ -38,6 +38,7 @@ export interface RuntimeState {
   getControlState: (controlId: string) => Record<string, unknown>;
   applyPatch: (patch: UIPatch) => void;
   applyPatches: (patches: UIPatch[]) => void;
+  enqueueDialog: (message: DialogMessage) => void;
   dismissDialog: () => void;
   requestNavigate: (formId: string, params?: Record<string, unknown>) => void;
   clearNavigateRequest: () => void;
@@ -237,6 +238,11 @@ export const useRuntimeStore = create<RuntimeState>()(
         if (groups.length > 1) {
           state.pendingPatchGroups.push(...groups.slice(1));
         }
+      }),
+
+    enqueueDialog: (message) =>
+      set((state) => {
+        state.dialogQueue.push(message);
       }),
 
     dismissDialog: () =>

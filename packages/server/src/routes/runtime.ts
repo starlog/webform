@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import type { Request, RequestHandler } from 'express';
+import rateLimit from 'express-rate-limit';
 import type { EventRequest, ShellEventRequest } from '@webform/common';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
@@ -38,6 +40,15 @@ export const runtimeRouter = Router();
 const eventEngine = new EventEngine();
 const shellService = new ShellService();
 const themeService = new ThemeService();
+
+// 이벤트 실행(샌드박스 구동)은 비용이 크므로 IP당 분당 호출 수를 제한한다.
+const eventRateLimiter: RequestHandler = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: { message: 'Too many event requests, please try again later' } },
+});
 
 /** Shell properties에서 googleClientSecret 제거 (Runtime에 노출 금지) */
 function stripSecrets(properties: Record<string, unknown>): Record<string, unknown> {
@@ -159,7 +170,7 @@ runtimeRouter.get('/forms/:id', async (req, res, next) => {
  * POST /api/runtime/forms/:id/events
  * 이벤트를 실행하고 UIPatch 배열을 반환한다.
  */
-runtimeRouter.post('/forms/:id/events', async (req, res, next) => {
+runtimeRouter.post('/forms/:id/events', eventRateLimiter, async (req: Request<{ id: string }>, res, next) => {
   try {
     const form = await Form.findById(req.params.id);
 
@@ -492,7 +503,7 @@ runtimeRouter.get('/shells/:projectId', async (req, res, next) => {
  * Shell 이벤트를 실행하고 UIPatch 배열을 반환한다.
  * (스텁: server-shell-events 태스크에서 완성)
  */
-runtimeRouter.post('/shells/:projectId/events', async (req, res, next) => {
+runtimeRouter.post('/shells/:projectId/events', eventRateLimiter, async (req: Request<{ projectId: string }>, res, next) => {
   try {
     const shell = await shellService.getPublishedShell(req.params.projectId);
 

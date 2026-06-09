@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useMemo } from 'react';
 import Editor from '@monaco-editor/react';
 import { useSelectionStore } from '../../../stores/selectionStore';
 import { useDesignerStore } from '../../../stores/designerStore';
+import { ensureAuth, getAuthToken } from '../../../services/apiService';
 
 interface SwaggerSpecEditorProps {
   value: string;
@@ -86,9 +87,13 @@ export function SwaggerSpecEditor({ value, onChange }: SwaggerSpecEditorProps) {
     setFetchLoading(true);
     setFetchError(null);
     try {
+      await ensureAuth();
       const res = await fetch('/api/swagger/fetch-spec', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
         body: JSON.stringify({ url: specUrl }),
       });
       const result = await res.json();

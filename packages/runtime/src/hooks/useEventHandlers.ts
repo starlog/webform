@@ -105,9 +105,19 @@ export function useEventHandlers(
                 `[EventHandler] 서버 핸들러 실행 실패 [${controlId}.${evt.eventName}]:`,
                 response.error,
               );
+              useRuntimeStore.getState().enqueueDialog({
+                title: '오류',
+                text: response.error || '요청을 처리하지 못했습니다.',
+                dialogType: 'error',
+              });
             }
           } catch (err) {
             console.error(`Server event handler error [${controlId}.${evt.eventName}]:`, err);
+            useRuntimeStore.getState().enqueueDialog({
+              title: '오류',
+              text: '서버와 통신하지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.',
+              dialogType: 'error',
+            });
           }
         };
       }

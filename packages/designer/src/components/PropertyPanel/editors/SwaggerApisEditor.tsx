@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useSelectionStore } from '../../../stores/selectionStore';
 import { useDesignerStore } from '../../../stores/designerStore';
 import { parseSwaggerSpec, type SwaggerOperation } from '../../../utils/swaggerParser';
+import { ensureAuth, getAuthToken } from '../../../services/apiService';
 import { METHOD_COLORS } from './SwaggerSpecEditor';
 
 interface SwaggerApisEditorProps {
@@ -210,9 +211,13 @@ function ApiTestPanel({
         }
       }
 
+      await ensureAuth();
       const res = await fetch('/api/swagger/test', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
         body: JSON.stringify({
           url: targetUrl,
           method: operation.method,

@@ -521,12 +521,14 @@ export function useAutoSave() {
       }
 
       if (!currentFormId) return;
+      // 클로저의 controls/formProperties는 저장 진행 중 변경되면 stale해지므로
+      // 항상 store에서 최신 상태를 읽는다 (forceSave와 동일한 패턴)
       const state = useDesignerStore.getState();
-      const nestedControls = sanitizeControls(nestControls(controls));
+      const nestedControls = sanitizeControls(nestControls(state.controls));
       const payload = {
         controls: nestedControls,
-        properties: formProperties,
-        eventHandlers: extractEventHandlers(controls),
+        properties: state.formProperties,
+        eventHandlers: extractEventHandlers(state.controls),
         version: state.formVersion ?? undefined,
       };
       try {
@@ -551,6 +553,9 @@ export function useAutoSave() {
     } finally {
       savingRef.current = false;
     }
+    // controls/formProperties는 본문에서 쓰지 않지만(저장은 항상 getState 최신값 사용),
+    // 편집할 때마다 save 함수를 재생성해 auto-save 타이머를 리셋(디바운스)하기 위해 유지한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentFormId, isDirty, controls, formProperties, markClean, editMode]);
 
   // store에서 직접 읽어 클로저 문제 없이 즉시 저장 (EventEditor 등에서 사용)

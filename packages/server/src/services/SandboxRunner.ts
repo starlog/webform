@@ -872,66 +872,79 @@ export class SandboxRunner {
 
   /**
    * MongoDB 커넥터별 메서드 바인딩 코드를 생성한다.
+   * 컨트롤 이름 등 외부 입력은 JSON.stringify로 이스케이프하여 코드 주입을 방지한다.
    */
   private buildMongoBindings(mongoConnectors: MongoConnectorInfo[]): string {
-    return mongoConnectors.map((mc) => `
-        ctx.controls['${mc.controlName}'] = ctx.controls['${mc.controlName}'] || {};
-        ctx.controls['${mc.controlName}'].find = function(collection, filter) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'find', String(collection || ''), JSON.stringify(filter || {})]);
+    return mongoConnectors.map((mc) => {
+      const name = JSON.stringify(mc.controlName);
+      return `
+        ctx.controls[${name}] = ctx.controls[${name}] || {};
+        ctx.controls[${name}].find = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, [${name}, 'find', String(collection || ''), JSON.stringify(filter || {})]);
         };
-        ctx.controls['${mc.controlName}'].findOne = function(collection, filter) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'findOne', String(collection || ''), JSON.stringify(filter || {})]);
+        ctx.controls[${name}].findOne = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, [${name}, 'findOne', String(collection || ''), JSON.stringify(filter || {})]);
         };
-        ctx.controls['${mc.controlName}'].insertOne = function(collection, doc) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'insertOne', String(collection || ''), JSON.stringify(doc || {})]);
+        ctx.controls[${name}].insertOne = function(collection, doc) {
+          return __mongoHandler.applySyncPromise(undefined, [${name}, 'insertOne', String(collection || ''), JSON.stringify(doc || {})]);
         };
-        ctx.controls['${mc.controlName}'].updateOne = function(collection, filter, update) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'updateOne', String(collection || ''), JSON.stringify(filter || {}), JSON.stringify(update || {})]);
+        ctx.controls[${name}].updateOne = function(collection, filter, update) {
+          return __mongoHandler.applySyncPromise(undefined, [${name}, 'updateOne', String(collection || ''), JSON.stringify(filter || {}), JSON.stringify(update || {})]);
         };
-        ctx.controls['${mc.controlName}'].deleteOne = function(collection, filter) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'deleteOne', String(collection || ''), JSON.stringify(filter || {})]);
+        ctx.controls[${name}].deleteOne = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, [${name}, 'deleteOne', String(collection || ''), JSON.stringify(filter || {})]);
         };
-        ctx.controls['${mc.controlName}'].count = function(collection, filter) {
-          return __mongoHandler.applySyncPromise(undefined, ['${mc.controlName}', 'count', String(collection || ''), JSON.stringify(filter || {})]);
+        ctx.controls[${name}].count = function(collection, filter) {
+          return __mongoHandler.applySyncPromise(undefined, [${name}, 'count', String(collection || ''), JSON.stringify(filter || {})]);
         };
-`).join('');
+`;
+    }).join('');
   }
 
   /**
    * Swagger 커넥터별 operation 메서드 바인딩 코드를 생성한다.
    */
   private buildSwaggerBindings(swaggerConnectors: SwaggerConnectorInfo[]): string {
-    return (swaggerConnectors || []).map((sc) => `
-        ctx.controls['${sc.controlName}'] = ctx.controls['${sc.controlName}'] || {};
-${sc.operations.map((op) => `        ctx.controls['${sc.controlName}']['${op.operationId}'] = function(opts) {
+    return (swaggerConnectors || []).map((sc) => {
+      const name = JSON.stringify(sc.controlName);
+      return `
+        ctx.controls[${name}] = ctx.controls[${name}] || {};
+${sc.operations.map((op) => {
+        const opId = JSON.stringify(op.operationId);
+        return `        ctx.controls[${name}][${opId}] = function(opts) {
           return __swaggerHandler.applySyncPromise(undefined, [
-            '${sc.controlName}',
-            '${op.operationId}',
+            ${name},
+            ${opId},
             JSON.stringify(opts || {})
           ]);
-        };`).join('\n')}
-`).join('');
+        };`;
+      }).join('\n')}
+`;
+    }).join('');
   }
 
   private buildDataSourceBindings(dataSourceConnectors: DataSourceConnectorInfo[]): string {
-    return (dataSourceConnectors || []).map((dc) => `
-        ctx.controls['${dc.controlName}'] = ctx.controls['${dc.controlName}'] || {};
-        ctx.controls['${dc.controlName}'].query = function(params) {
-          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'query', JSON.stringify(params || {})]);
+    return (dataSourceConnectors || []).map((dc) => {
+      const name = JSON.stringify(dc.controlName);
+      return `
+        ctx.controls[${name}] = ctx.controls[${name}] || {};
+        ctx.controls[${name}].query = function(params) {
+          return __dataSourceHandler.applySyncPromise(undefined, [${name}, 'query', JSON.stringify(params || {})]);
         };
-        ctx.controls['${dc.controlName}'].rawQuery = function(sql, params) {
-          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'rawQuery', JSON.stringify(sql || ''), JSON.stringify(params || [])]);
+        ctx.controls[${name}].rawQuery = function(sql, params) {
+          return __dataSourceHandler.applySyncPromise(undefined, [${name}, 'rawQuery', JSON.stringify(sql || ''), JSON.stringify(params || [])]);
         };
-        ctx.controls['${dc.controlName}'].execute = function(sql, params) {
-          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'execute', JSON.stringify(sql || ''), JSON.stringify(params || [])]);
+        ctx.controls[${name}].execute = function(sql, params) {
+          return __dataSourceHandler.applySyncPromise(undefined, [${name}, 'execute', JSON.stringify(sql || ''), JSON.stringify(params || [])]);
         };
-        ctx.controls['${dc.controlName}'].tables = function() {
-          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'tables']);
+        ctx.controls[${name}].tables = function() {
+          return __dataSourceHandler.applySyncPromise(undefined, [${name}, 'tables']);
         };
-        ctx.controls['${dc.controlName}'].testConnection = function() {
-          return __dataSourceHandler.applySyncPromise(undefined, ['${dc.controlName}', 'testConnection']);
+        ctx.controls[${name}].testConnection = function() {
+          return __dataSourceHandler.applySyncPromise(undefined, [${name}, 'testConnection']);
         };
-`).join('');
+`;
+    }).join('');
   }
 
   private wrapHandlerCode(

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { Request } from 'express';
+import bcrypt from 'bcryptjs';
 import { ShellService } from '../services/ShellService.js';
 import { EncryptionService } from '../services/EncryptionService.js';
 import { z } from 'zod';
@@ -25,6 +26,27 @@ function encryptAuthSecret<T extends { properties?: unknown }>(data: T): T {
     };
   }
   return data;
+}
+
+/** auth.users의 평문 비밀번호를 bcrypt 해시로 변환 (이미 해시면 그대로) */
+function hashAuthUserPasswords<T extends { properties?: unknown }>(data: T): T {
+  const props = data.properties as Record<string, unknown> | undefined;
+  const auth = props?.auth as Record<string, unknown> | undefined;
+  const users = auth?.users as Array<{ username: string; password: string }> | undefined;
+  if (!users || users.length === 0) return data;
+
+  const hashedUsers = users.map((u) => {
+    if (u.password.startsWith('$2a$') || u.password.startsWith('$2b$')) return u;
+    return { ...u, password: bcrypt.hashSync(u.password, 10) };
+  });
+
+  return {
+    ...data,
+    properties: {
+      ...props,
+      auth: { ...auth, users: hashedUsers },
+    },
+  };
 }
 
 /** Shell 응답에서 auth.googleClientSecret를 복호화 */
@@ -126,7 +148,7 @@ shellsRouter.get('/', async (req: Request<ShellParams>, res, next) => {
 shellsRouter.post('/', async (req: Request<ShellParams>, res, next) => {
   try {
     const input = createShellSchema.parse(req.body);
-    const encrypted = encryptAuthSecret(input);
+    const encrypted = hashAuthUserPasswords(encryptAuthSecret(input));
     const shell = await shellService.createShell(req.params.projectId, encrypted, req.user!.sub);
     res.status(201).json({ data: shell });
   } catch (err) {
@@ -138,7 +160,7 @@ shellsRouter.post('/', async (req: Request<ShellParams>, res, next) => {
 shellsRouter.put('/', async (req: Request<ShellParams>, res, next) => {
   try {
     const input = updateShellSchema.parse(req.body);
-    const encrypted = encryptAuthSecret(input);
+    const encrypted = hashAuthUserPasswords(encryptAuthSecret(input));
     const shell = await shellService.updateShell(req.params.projectId, encrypted, req.user!.sub);
     res.json({ data: shell });
   } catch (err) {

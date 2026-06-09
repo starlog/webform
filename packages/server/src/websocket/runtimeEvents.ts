@@ -49,10 +49,13 @@ export function handleRuntimeConnection(ws: WebSocket, req: IncomingMessage): vo
           payload: result.patches,
         }));
       }
-    } catch {
+    } catch (err) {
+      const isParseError = err instanceof SyntaxError;
       ws.send(JSON.stringify({
         type: 'error',
-        payload: { code: 'INVALID_MESSAGE', message: 'Invalid JSON' },
+        payload: isParseError
+          ? { code: 'INVALID_MESSAGE', message: 'Invalid JSON' }
+          : { code: 'EVENT_ERROR', message: (err as Error).message || 'Event execution failed' },
       }));
     }
   });

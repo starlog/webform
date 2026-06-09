@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import yaml from 'js-yaml';
+import { validateSandboxUrl } from '../services/validateSandboxUrl.js';
 
 export const swaggerRouter = Router();
 
@@ -21,6 +22,14 @@ swaggerRouter.post('/test', async (req, res, _next) => {
 
     if (!url || !method) {
       res.status(400).json({ error: 'url and method are required' });
+      return;
+    }
+
+    // SSRF 방어: 내부 네트워크/메타데이터 서비스 차단
+    try {
+      await validateSandboxUrl(url);
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
       return;
     }
 
@@ -109,6 +118,14 @@ swaggerRouter.post('/fetch-spec', async (req, res, _next) => {
       return;
     }
 
+    // SSRF 방어: 내부 네트워크/메타데이터 서비스 차단
+    try {
+      await validateSandboxUrl(url);
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+      return;
+    }
+
     const response = await fetch(url, {
       signal: AbortSignal.timeout(10000),
     });
@@ -135,6 +152,8 @@ swaggerRouter.post('/fetch-spec', async (req, res, _next) => {
     if (!specJson && (contentType.includes('text/html') || text.trimStart().startsWith('<'))) {
       const extracted = extractSwaggerDocFromHtml(text, url);
       if (extracted) {
+        // HTML에서 추출한 URL도 SSRF 검증
+        await validateSandboxUrl(extracted.initJsUrl);
         const initRes = await fetch(extracted.initJsUrl, {
           signal: AbortSignal.timeout(10000),
         });

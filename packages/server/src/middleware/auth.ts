@@ -17,6 +17,19 @@ function isLoopback(ip: string): boolean {
   );
 }
 
+/**
+ * 지정한 역할만 통과시키는 가드. authenticate 이후에 사용해야 한다.
+ * 런타임 사용자 토큰(role: 'runtime-user')이 디자이너 API를 호출하는 것을 차단한다.
+ */
+export function requireRole(...roles: string[]): RequestHandler {
+  return (req, _res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      throw new AppError(403, 'Insufficient permissions');
+    }
+    next();
+  };
+}
+
 export const authenticate: RequestHandler = (req, _res, next) => {
   // 샌드박스 내부 API 호출 허용 (SandboxRunner에서만 설정)
   if (req.headers['x-sandbox-internal'] === 'true' && req.ip && isLoopback(req.ip)) {

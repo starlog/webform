@@ -508,6 +508,14 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
     }
   }, [controlId, control, isFormEvent, eventName, handlerName, existingCode, existingHandlers, updateControl, setFormEventHandler, setFormEventCode, onSaveToServer]);
 
+  // 저장하지 않은 변경이 있으면 확인 후 닫기 (Escape/Close 버튼 공용)
+  const requestClose = useCallback(() => {
+    if (isDirty && !confirm('저장하지 않은 변경 사항이 있습니다. 닫으시겠습니까?')) {
+      return;
+    }
+    onClose();
+  }, [isDirty, onClose]);
+
   const runCode = useCallback(async () => {
     if (!editorRef.current || isRunning) return;
     setIsRunning(true);
@@ -750,11 +758,11 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
   // Escape 키로 닫기
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') requestClose();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [requestClose]);
 
   // 헤더 드래그로 창 이동
   const handleDragStart = useCallback((e: React.MouseEvent) => {
@@ -1038,7 +1046,7 @@ export function EventEditor({ controlId, eventName, handlerName, onClose, onSave
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               style={headerBtnStyle}
             >
               Close

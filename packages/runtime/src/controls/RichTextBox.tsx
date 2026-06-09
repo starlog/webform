@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import DOMPurify from 'dompurify';
 import { computeFontStyle } from '../renderer/layoutUtils';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
@@ -60,10 +61,12 @@ export function RichTextBox({
   const [italicActive, setItalicActive] = useState(false);
   const [underlineActive, setUnderlineActive] = useState(false);
 
-  // 외부 text prop 변경 시만 innerHTML 동기화
+  // 외부 text prop 변경 시만 innerHTML 동기화 (XSS 방지를 위해 새니타이즈)
   useEffect(() => {
-    if (contentRef.current && contentRef.current.innerHTML !== text) {
-      contentRef.current.innerHTML = text;
+    if (!contentRef.current) return;
+    const sanitized = DOMPurify.sanitize(text);
+    if (contentRef.current.innerHTML !== sanitized) {
+      contentRef.current.innerHTML = sanitized;
     }
   }, [text]);
 
