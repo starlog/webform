@@ -65,6 +65,13 @@ export {
   type ToolStripItem,
 } from './controls/ToolStripView.js';
 
+// Views — Data
+export {
+  TreeViewView,
+  type TreeViewViewProps,
+  type TreeNode,
+} from './controls/TreeViewView.js';
+
 // Views — Sub-components
 export { TabHeaderView, type TabHeaderViewProps } from './controls/TabHeaderView.js';
 export { CollapseHeaderView, type CollapseHeaderViewProps } from './controls/CollapseHeaderView.js';

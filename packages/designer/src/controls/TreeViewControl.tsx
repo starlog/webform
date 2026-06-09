@@ -1,11 +1,5 @@
-import { useTheme } from '../theme/ThemeContext';
+import { TreeViewView, type TreeNode } from '@webform/common/views';
 import type { DesignerControlProps } from './registry';
-
-interface TreeNode {
-  text: string;
-  children?: TreeNode[];
-  expanded?: boolean;
-}
 
 const SAMPLE_NODES: TreeNode[] = [
   {
@@ -20,64 +14,19 @@ const SAMPLE_NODES: TreeNode[] = [
   { text: 'Node 3' },
 ];
 
-function RenderNode({ node, depth }: { node: TreeNode; depth: number }) {
-  const hasChildren = node.children && node.children.length > 0;
-  const isExpanded = node.expanded !== false && hasChildren;
-
-  return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          paddingLeft: depth * 18,
-          height: 20,
-          whiteSpace: 'nowrap',
-          userSelect: 'none',
-        }}
-      >
-        <span style={{ width: 16, textAlign: 'center', flexShrink: 0, fontSize: '10px' }}>
-          {hasChildren ? (isExpanded ? '\u25BC' : '\u25B6') : ''}
-        </span>
-        <span style={{ marginLeft: 2 }}>{node.text}</span>
-      </div>
-      {hasChildren && isExpanded && (
-        <div>
-          {node.children!.map((child, i) => (
-            <RenderNode key={i} node={child} depth={depth + 1} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function TreeViewControl({ properties, size }: DesignerControlProps) {
-  const theme = useTheme();
   const nodes = (properties.nodes as TreeNode[]) ?? [];
   const displayNodes = nodes.length > 0 ? nodes : SAMPLE_NODES;
-  const backColor = (properties.backColor as string) ?? theme.controls.select.background;
-  const foreColor = (properties.foreColor as string) ?? theme.controls.select.foreground;
 
   return (
-    <div
-      style={{
-        width: size.width,
-        height: size.height,
-        backgroundColor: backColor,
-        color: foreColor,
-        border: theme.controls.select.border,
-        borderRadius: theme.controls.select.borderRadius,
-        overflow: 'auto',
-        fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-        fontSize: '12px',
-        boxSizing: 'border-box',
-        padding: '2px',
-      }}
-    >
-      {displayNodes.map((node, i) => (
-        <RenderNode key={i} node={node} depth={0} />
-      ))}
-    </div>
+    <TreeViewView
+      nodes={displayNodes}
+      showPlusMinus={(properties.showPlusMinus as boolean) ?? true}
+      showLines={(properties.showLines as boolean) ?? false}
+      checkBoxes={(properties.checkBoxes as boolean) ?? false}
+      backColor={properties.backColor as string | undefined}
+      foreColor={properties.foreColor as string | undefined}
+      style={{ width: size.width, height: size.height }}
+    />
   );
 }
