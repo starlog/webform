@@ -35,6 +35,7 @@ export { DateTimePickerView, type DateTimePickerViewProps } from './controls/Dat
 
 // Views — Misc
 export { AlertView, type AlertViewProps } from './controls/AlertView.js';
+export { WebBrowserView, type WebBrowserViewProps } from './controls/WebBrowserView.js';
 export { PictureBoxView, type PictureBoxViewProps } from './controls/PictureBoxView.js';
 export { UploadView, type UploadViewProps } from './controls/UploadView.js';
 
