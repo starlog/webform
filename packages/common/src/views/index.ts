@@ -82,6 +82,13 @@ export {
   type TreeViewViewProps,
   type TreeNode,
 } from './controls/TreeViewView.js';
+export {
+  ListViewView,
+  type ListViewViewProps,
+  type ListViewItem,
+  type ListViewColumn,
+  type ListViewMode,
+} from './controls/ListViewView.js';
 
 // Views — Sub-components
 export { TabHeaderView, type TabHeaderViewProps } from './controls/TabHeaderView.js';
