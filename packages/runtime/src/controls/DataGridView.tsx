@@ -1,21 +1,21 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { List } from 'react-window';
+import {
+  type GridColumnDefinition,
+  type ResolvedGridColumn,
+  resolveGridColumns,
+  dataGridContainerStyle,
+  dataGridHeaderCellStyle,
+  dataGridCellStyle,
+  dataGridEmptyMessageStyle,
+} from '@webform/common';
 import { computeFontStyle } from '../renderer/layoutUtils';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useTheme } from '../theme/ThemeContext';
 import { useControlColors } from '../theme/useControlColors';
 
-export interface ColumnDefinition {
-  field?: string;
-  key?: string;
-  headerText?: string;
-  /** @deprecated use headerText instead */
-  name?: string;
-  width?: number;
-  sortable?: boolean;
-  editable?: boolean;
-}
+export type ColumnDefinition = GridColumnDefinition;
 
 interface FontDef {
   family?: string;
@@ -45,10 +45,7 @@ interface DataGridViewProps {
   [key: string]: unknown;
 }
 
-interface ResolvedColumn extends ColumnDefinition {
-  field: string;
-  headerText: string;
-}
+type ResolvedColumn = ResolvedGridColumn;
 
 interface SortConfig {
   field: string;
@@ -68,13 +65,8 @@ function useDataGridStyles() {
   const theme = useTheme();
   return useMemo(() => ({
     container: {
-      boxSizing: 'border-box',
-      border: theme.controls.dataGrid.border,
-      borderRadius: theme.controls.dataGrid.borderRadius,
+      ...(dataGridContainerStyle(theme) as CSSProperties),
       overflow: 'hidden',
-      backgroundColor: theme.controls.dataGrid.rowBackground,
-      fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-      fontSize: '12px',
     } as CSSProperties,
     headerRow: {
       display: 'flex',
@@ -84,29 +76,19 @@ function useDataGridStyles() {
       height: `${HEADER_HEIGHT}px`,
       borderBottom: theme.controls.dataGrid.headerBorder,
     } as CSSProperties,
+    // 가상화 행은 flex 레이아웃이므로 공유 스타일에 display/cursor만 덧붙인다
     headerCell: {
-      borderRight: theme.controls.dataGrid.headerBorder,
-      padding: '3px 6px',
-      textAlign: 'left' as const,
-      height: `${HEADER_HEIGHT}px`,
+      ...(dataGridHeaderCellStyle(theme) as CSSProperties),
+      backgroundColor: undefined,
+      borderBottom: undefined,
       cursor: 'pointer',
       userSelect: 'none' as const,
-      whiteSpace: 'nowrap' as const,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      boxSizing: 'border-box' as const,
       display: 'flex',
       alignItems: 'center',
     } as CSSProperties,
     cell: {
-      borderRight: theme.controls.dataGrid.headerBorder,
-      borderBottom: theme.controls.dataGrid.headerBorder,
-      padding: '2px 6px',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap' as const,
-      color: theme.controls.dataGrid.rowForeground,
-      boxSizing: 'border-box' as const,
+      ...(dataGridCellStyle(theme) as CSSProperties),
+      height: undefined,
       display: 'flex',
       alignItems: 'center',
     } as CSSProperties,
@@ -114,11 +96,7 @@ function useDataGridStyles() {
       backgroundColor: theme.controls.dataGrid.selectedRowBackground,
       color: theme.controls.dataGrid.selectedRowForeground,
     } as CSSProperties,
-    emptyMessage: {
-      padding: '20px',
-      textAlign: 'center' as const,
-      color: '#888',
-    } as CSSProperties,
+    emptyMessage: dataGridEmptyMessageStyle as CSSProperties,
     editInput: {
       width: '100%',
       height: '100%',
@@ -253,12 +231,7 @@ export function DataGridView({
   // 컬럼 자동 생성: columns prop이 없으면 데이터의 키에서 추출
   const resolvedColumns = useMemo<ResolvedColumn[]>(() => {
     if (columns && columns.length > 0) {
-      // field/key 및 headerText/name 폴백 처리
-      return columns.map((col, i) => ({
-        ...col,
-        field: col.field || col.key || `col${i}`,
-        headerText: col.headerText || col.name || col.field || col.key || `Column${i + 1}`,
-      }));
+      return resolveGridColumns(columns);
     }
     if (rows.length === 0) return [];
     const keys = Object.keys(rows[0]).filter((k) => !INTERNAL_FIELDS.includes(k));

@@ -386,6 +386,81 @@ export function alertIconStyle(alertType: string): CSSStyle {
   };
 }
 
+// ─── DataGridView ───
+
+export interface GridColumnDefinition {
+  field?: string;
+  key?: string;
+  headerText?: string;
+  /** @deprecated use headerText instead */
+  name?: string;
+  width?: number;
+  sortable?: boolean;
+  editable?: boolean;
+}
+
+export interface ResolvedGridColumn extends GridColumnDefinition {
+  field: string;
+  headerText: string;
+}
+
+/** field/key 및 headerText/name 폴백을 적용해 컬럼 정의를 정규화한다 */
+export function resolveGridColumns(columns: GridColumnDefinition[]): ResolvedGridColumn[] {
+  return columns.map((col, i) => ({
+    ...col,
+    field: col.field || col.key || `col${i}`,
+    headerText: col.headerText || col.name || col.field || col.key || `Column${i + 1}`,
+  }));
+}
+
+export function dataGridContainerStyle(theme: ThemeTokens): CSSStyle {
+  return {
+    boxSizing: 'border-box',
+    border: theme.controls.dataGrid.border,
+    borderRadius: theme.controls.dataGrid.borderRadius,
+    backgroundColor: theme.controls.dataGrid.rowBackground,
+    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+    fontSize: '12px',
+  };
+}
+
+export function dataGridHeaderCellStyle(theme: ThemeTokens): CSSStyle {
+  return {
+    backgroundColor: theme.controls.dataGrid.headerBackground,
+    color: theme.controls.dataGrid.headerForeground,
+    borderRight: theme.controls.dataGrid.headerBorder,
+    borderBottom: theme.controls.dataGrid.headerBorder,
+    padding: '3px 6px',
+    textAlign: 'left',
+    fontWeight: 600,
+    height: '22px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    boxSizing: 'border-box',
+  };
+}
+
+export function dataGridCellStyle(theme: ThemeTokens): CSSStyle {
+  return {
+    borderRight: theme.controls.dataGrid.headerBorder,
+    borderBottom: theme.controls.dataGrid.headerBorder,
+    padding: '2px 6px',
+    height: '22px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: theme.controls.dataGrid.rowForeground,
+    boxSizing: 'border-box',
+  };
+}
+
+export const dataGridEmptyMessageStyle: CSSStyle = {
+  padding: '20px',
+  textAlign: 'center',
+  color: '#888',
+};
+
 // ─── Badge ───
 
 export const BADGE_STATUS_COLORS: Record<string, string> = {

@@ -136,4 +136,11 @@ export {
   BADGE_STATUS_COLORS,
   PICTURE_SIZE_MODE_MAP,
   DIVIDER_FLEX_MAP,
+  type GridColumnDefinition,
+  type ResolvedGridColumn,
+  resolveGridColumns,
+  dataGridContainerStyle,
+  dataGridHeaderCellStyle,
+  dataGridCellStyle,
+  dataGridEmptyMessageStyle,
 } from './styles/controlStyles.js';
