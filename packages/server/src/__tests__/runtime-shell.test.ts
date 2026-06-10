@@ -143,12 +143,19 @@ describe('Runtime Shell API', () => {
       const res = await request(app).get(`/api/runtime/shells/${projectId}`);
 
       expect(res.status).toBe(200);
-      // client 핸들러는 필터링됨
-      expect(res.body.eventHandlers).toHaveLength(1);
-      expect(res.body.eventHandlers[0].handlerType).toBe('server');
-      expect(res.body.eventHandlers[0].controlId).toBe('menuStrip1');
-      // handlerCode는 노출하지 않음
-      expect(res.body.eventHandlers[0].handlerCode).toBeUndefined();
+      // server + client 핸들러 모두 노출
+      expect(res.body.eventHandlers).toHaveLength(2);
+      const serverHandler = res.body.eventHandlers.find(
+        (h: { handlerType: string }) => h.handlerType === 'server',
+      );
+      const clientHandler = res.body.eventHandlers.find(
+        (h: { handlerType: string }) => h.handlerType === 'client',
+      );
+      expect(serverHandler.controlId).toBe('menuStrip1');
+      // server 핸들러 코드는 노출하지 않음
+      expect(serverHandler.handlerCode).toBeUndefined();
+      // client 핸들러는 브라우저 실행을 위해 코드 포함
+      expect(clientHandler.handlerCode).toBe("console.log('loaded');");
     });
 
     it('퍼블리시되지 않은 Shell은 404를 반환해야 한다', async () => {
@@ -305,10 +312,16 @@ describe('Runtime Shell API', () => {
       const res = await request(app).get(`/api/runtime/app/${projectId}`);
 
       expect(res.status).toBe(200);
-      // publishedFormData에 server + client 핸들러가 있지만 server만 노출
-      expect(res.body.startForm.eventHandlers).toHaveLength(1);
-      expect(res.body.startForm.eventHandlers[0].handlerType).toBe('server');
-      expect(res.body.startForm.eventHandlers[0].handlerCode).toBeUndefined();
+      // server + client 핸들러 모두 노출 (server는 코드 제외, client는 코드 포함)
+      expect(res.body.startForm.eventHandlers).toHaveLength(2);
+      const sfServer = res.body.startForm.eventHandlers.find(
+        (h: { handlerType: string }) => h.handlerType === 'server',
+      );
+      const sfClient = res.body.startForm.eventHandlers.find(
+        (h: { handlerType: string }) => h.handlerType === 'client',
+      );
+      expect(sfServer.handlerCode).toBeUndefined();
+      expect(sfClient.handlerCode).toBe("console.log('client handler');");
     });
 
     it('Shell 없이 formId 파라미터만으로 폼을 로드할 수 있어야 한다', async () => {

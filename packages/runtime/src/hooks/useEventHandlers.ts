@@ -1,10 +1,35 @@
 import { useCallback, useMemo } from 'react';
-import type { EventHandlerDefinition, EventArgs, ControlProxy, FormContext } from '@webform/common';
+import type {
+  ControlDefinition,
+  EventHandlerDefinition,
+  EventArgs,
+  ControlProxy,
+  FormContext,
+} from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { apiClient } from '../communication/apiClient';
 
 function eventNameToProp(eventName: string): string {
   return `on${eventName}`;
+}
+
+/** 컨트롤 이름으로 ID를 찾는다 (재귀). controlStates는 ID 키이므로 이름 → ID 변환이 필요 */
+function findControlIdByName(controls: ControlDefinition[], name: string): string | null {
+  for (const c of controls) {
+    if (c.name === name) return c.id;
+    if (c.children && c.children.length > 0) {
+      const found = findControlIdByName(c.children, name);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+/** ctx.controls.<이름> 접근 시 이름을 컨트롤 ID로 해석 (ID를 직접 쓴 경우는 그대로 통과) */
+function resolveControlId(nameOrId: string): string {
+  const def = useRuntimeStore.getState().currentFormDef;
+  if (!def) return nameOrId;
+  return findControlIdByName(def.controls, nameOrId) ?? nameOrId;
 }
 
 function createControlProxy(controlId: string, getState: () => Record<string, Record<string, unknown>>, updateState: (id: string, prop: string, val: unknown) => void): ControlProxy {
@@ -27,7 +52,7 @@ function createFormContext(
 ): FormContext {
   const controlsProxy = new Proxy({} as Record<string, ControlProxy>, {
     get(_target, prop: string) {
-      return createControlProxy(prop, getStates, updateState);
+      return createControlProxy(resolveControlId(prop), getStates, updateState);
     },
   });
 

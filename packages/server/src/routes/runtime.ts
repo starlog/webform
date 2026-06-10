@@ -58,7 +58,31 @@ function stripSecrets(properties: Record<string, unknown>): Record<string, unkno
   return { ...properties, auth: safeAuth };
 }
 
-/** ShellDocument → 런타임용 Shell 정의 변환 (서버 핸들러만 노출) */
+/**
+ * 이벤트 핸들러를 런타임 노출용으로 변환.
+ * - server 핸들러: 코드 비공개 (서버에서만 실행, 메타데이터만 전달)
+ * - client 핸들러: 브라우저에서 실행해야 하므로 handlerCode 포함
+ */
+function toRuntimeEventHandlers(
+  handlers: Array<{ controlId: string; eventName: string; handlerType: string; handlerCode?: string }>,
+) {
+  return handlers.map((h) =>
+    h.handlerType === 'client'
+      ? {
+          controlId: h.controlId,
+          eventName: h.eventName,
+          handlerType: h.handlerType,
+          handlerCode: h.handlerCode,
+        }
+      : {
+          controlId: h.controlId,
+          eventName: h.eventName,
+          handlerType: h.handlerType,
+        },
+  );
+}
+
+/** ShellDocument → 런타임용 Shell 정의 변환 (서버 핸들러 코드는 비공개) */
 function toShellDefinition(shell: ShellDocument) {
   return {
     id: shell._id.toString(),
@@ -67,13 +91,7 @@ function toShellDefinition(shell: ShellDocument) {
     version: shell.version,
     properties: stripSecrets(shell.properties as unknown as Record<string, unknown>),
     controls: stripItemScripts(shell.controls),
-    eventHandlers: shell.eventHandlers
-      .filter((h) => h.handlerType === 'server')
-      .map((h) => ({
-        controlId: h.controlId,
-        eventName: h.eventName,
-        handlerType: h.handlerType,
-      })),
+    eventHandlers: toRuntimeEventHandlers(shell.eventHandlers),
     startFormId: shell.startFormId,
   };
 }
@@ -126,7 +144,7 @@ function toRuntimeFormDef(form: {
   version: number;
   properties: unknown;
   controls: unknown[];
-  eventHandlers: Array<{ controlId: string; eventName: string; handlerType: string }>;
+  eventHandlers: Array<{ controlId: string; eventName: string; handlerType: string; handlerCode?: string }>;
 }) {
   return {
     id: form._id.toString(),
@@ -134,13 +152,7 @@ function toRuntimeFormDef(form: {
     version: form.version,
     properties: form.properties,
     controls: stripItemScripts(form.controls),
-    eventHandlers: form.eventHandlers
-      .filter((h) => h.handlerType === 'server')
-      .map((h) => ({
-        controlId: h.controlId,
-        eventName: h.eventName,
-        handlerType: h.handlerType,
-      })),
+    eventHandlers: toRuntimeEventHandlers(form.eventHandlers),
   };
 }
 
