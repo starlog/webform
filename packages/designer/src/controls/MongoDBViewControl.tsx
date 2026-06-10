@@ -1,6 +1,9 @@
 import type { CSSProperties } from 'react';
+import { mongoViewBaseStyles } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
+
+const BASE = mongoViewBaseStyles as Record<string, CSSProperties>;
 
 const DEFAULT_previewCols = ['_id', 'name', 'value', 'status'];
 const PREVIEW_ROWS = 4;
@@ -122,53 +125,11 @@ const styles: Record<string, CSSProperties> = {
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '2px 4px',
-    backgroundColor: '#f3f3f3',
-    borderBottom: '1px solid #d0d0d0',
-    height: 26,
-    flexShrink: 0,
-  },
-  toolBtn: {
-    padding: '2px 8px',
-    border: '1px solid #c0c0c0',
-    backgroundColor: '#fff',
-    borderRadius: 2,
-    fontSize: 11,
-    color: '#333',
-    cursor: 'default',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    tableLayout: 'fixed',
-  },
-  headerCell: {
-    backgroundColor: '#e0e0e0',
-    borderRight: '1px solid #d0d0d0',
-    borderBottom: '2px solid #a0a0a0',
-    padding: '3px 6px',
-    textAlign: 'left',
-    fontWeight: 600,
-    height: 22,
-    userSelect: 'none',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    fontSize: 11,
-  },
-  cell: {
-    borderRight: '1px solid #d0d0d0',
-    borderBottom: '1px solid #d0d0d0',
-    padding: '2px 6px',
-    height: 22,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
+  toolbar: BASE.toolbar,
+  toolBtn: { ...BASE.toolBtn, cursor: 'default' },
+  table: BASE.table,
+  headerCell: BASE.headerCell,
+  cell: BASE.cell,
   statusBar: {
     display: 'flex',
     alignItems: 'center',

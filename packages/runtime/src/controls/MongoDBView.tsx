@@ -1,9 +1,12 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties } from 'react';
 import type { FontDefinition } from '@webform/common';
+import { mongoViewBaseStyles } from '@webform/common';
 import { apiClient } from '../communication/apiClient';
 import { computeFontStyle } from '../renderer/layoutUtils';
 import { useControlColors } from '../theme/useControlColors';
+
+const mongoBase = mongoViewBaseStyles as Record<string, CSSProperties>;
 
 interface MongoDBViewProps {
   id: string;
@@ -690,25 +693,8 @@ const sty: Record<string, CSSProperties> = {
     fontSize: 12,
     fontWeight: 600,
   },
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '2px 4px',
-    backgroundColor: '#f3f3f3',
-    borderBottom: '1px solid #d0d0d0',
-    height: 26,
-    flexShrink: 0,
-  },
-  toolBtn: {
-    padding: '2px 8px',
-    border: '1px solid #c0c0c0',
-    backgroundColor: '#fff',
-    borderRadius: 2,
-    fontSize: 11,
-    color: '#333',
-    cursor: 'pointer',
-  },
+  toolbar: mongoBase.toolbar,
+  toolBtn: { ...mongoBase.toolBtn, cursor: 'pointer' },
   errorBar: {
     padding: '4px 8px',
     backgroundColor: '#fdd',
@@ -725,35 +711,9 @@ const sty: Record<string, CSSProperties> = {
     fontSize: 11,
     flexShrink: 0,
   },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse' as const,
-    tableLayout: 'fixed' as const,
-  },
-  headerCell: {
-    backgroundColor: '#e0e0e0',
-    borderRight: '1px solid #d0d0d0',
-    borderBottom: '2px solid #a0a0a0',
-    padding: '3px 6px',
-    textAlign: 'left' as const,
-    fontWeight: 600,
-    height: 22,
-    cursor: 'pointer',
-    userSelect: 'none' as const,
-    whiteSpace: 'nowrap' as const,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    fontSize: 11,
-  },
-  cell: {
-    borderRight: '1px solid #d0d0d0',
-    borderBottom: '1px solid #d0d0d0',
-    padding: '2px 6px',
-    height: 22,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  },
+  table: mongoBase.table,
+  headerCell: { ...mongoBase.headerCell, cursor: 'pointer' },
+  cell: mongoBase.cell,
   selectedRow: {
     backgroundColor: '#0078d7',
     color: '#ffffff',

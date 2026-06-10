@@ -563,6 +563,61 @@ export const spreadsheetBaseStyles: Record<string, CSSStyle> = {
   },
 };
 
+// ─── MongoDBView ───
+
+/**
+ * MongoDBView 공통 베이스 스타일 (designer 프리뷰·runtime 공용).
+ * cursor 등 컨텍스트별 차이는 호출 측에서 spread로 덧붙인다.
+ */
+export const mongoViewBaseStyles: Record<string, CSSStyle> = {
+  toolbar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '2px 4px',
+    backgroundColor: '#f3f3f3',
+    borderBottom: '1px solid #d0d0d0',
+    height: 26,
+    flexShrink: 0,
+  },
+  toolBtn: {
+    padding: '2px 8px',
+    border: '1px solid #c0c0c0',
+    backgroundColor: '#fff',
+    borderRadius: 2,
+    fontSize: 11,
+    color: '#333',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    tableLayout: 'fixed',
+  },
+  headerCell: {
+    backgroundColor: '#e0e0e0',
+    borderRight: '1px solid #d0d0d0',
+    borderBottom: '2px solid #a0a0a0',
+    padding: '3px 6px',
+    textAlign: 'left',
+    fontWeight: 600,
+    height: 22,
+    userSelect: 'none',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    fontSize: 11,
+  },
+  cell: {
+    borderRight: '1px solid #d0d0d0',
+    borderBottom: '1px solid #d0d0d0',
+    padding: '2px 6px',
+    height: 22,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+};
+
 // ─── JsonEditor ───
 
 /** JSON 트리 구문 강조 공통 스타일 (designer 프리뷰·runtime 에디터 공용) */

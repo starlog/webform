@@ -148,4 +148,5 @@ export {
   jsonBracketStyle,
   jsonValueStyle,
   spreadsheetBaseStyles,
+  mongoViewBaseStyles,
 } from './styles/controlStyles.js';
