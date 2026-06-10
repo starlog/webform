@@ -147,4 +147,5 @@ export {
   jsonColonStyle,
   jsonBracketStyle,
   jsonValueStyle,
+  spreadsheetBaseStyles,
 } from './styles/controlStyles.js';

@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { spreadsheetBaseStyles } from '@webform/common';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useControlColors } from '../theme/useControlColors';
 import { useTheme } from '../theme/ThemeContext';
@@ -520,6 +521,8 @@ export function SpreadsheetView({
   );
 }
 
+const BASE = spreadsheetBaseStyles as Record<string, CSSProperties>;
+
 const SS: Record<string, CSSProperties> = {
   container: {
     boxSizing: 'border-box' as const,
@@ -531,59 +534,12 @@ const SS: Record<string, CSSProperties> = {
     fontSize: 12,
     outline: 'none',
   },
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '3px 6px',
-    backgroundColor: '#f3f3f3',
-    borderBottom: '1px solid #d0d0d0',
-    flexShrink: 0,
-  },
-  toolBtn: {
-    padding: '2px 8px',
-    border: '1px solid #c0c0c0',
-    backgroundColor: '#fff',
-    borderRadius: 2,
-    fontSize: 11,
-    cursor: 'pointer',
-  },
-  formulaBar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '2px 6px',
-    backgroundColor: '#fff',
-    borderBottom: '1px solid #d0d0d0',
-    flexShrink: 0,
-    height: 22,
-  },
-  cellAddress: {
-    padding: '1px 6px',
-    backgroundColor: '#f5f5f5',
-    border: '1px solid #d0d0d0',
-    fontSize: 11,
-    minWidth: 44,
-    textAlign: 'center',
-    fontWeight: 600,
-  },
-  fxLabel: {
-    fontSize: 11,
-    fontStyle: 'italic',
-    color: '#888',
-    flexShrink: 0,
-  },
-  formulaValue: {
-    flex: 1,
-    padding: '1px 4px',
-    border: '1px solid #d0d0d0',
-    backgroundColor: '#fff',
-    fontSize: 11,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    minHeight: 16,
-  },
+  toolbar: BASE.toolbar,
+  toolBtn: { ...BASE.toolBtn, cursor: 'pointer' },
+  formulaBar: BASE.formulaBar,
+  cellAddress: BASE.cellAddress,
+  fxLabel: BASE.fxLabel,
+  formulaValue: { ...BASE.formulaValue, minHeight: 16 },
   gridArea: {
     flex: 1,
     overflow: 'auto',
@@ -593,49 +549,10 @@ const SS: Record<string, CSSProperties> = {
     borderCollapse: 'collapse',
     tableLayout: 'fixed',
   },
-  cornerCell: {
-    backgroundColor: '#e8e8e8',
-    borderRight: '1px solid #a0a0a0',
-    borderBottom: '2px solid #a0a0a0',
-    padding: '2px 4px',
-    textAlign: 'center',
-    fontWeight: 600,
-    height: 22,
-  },
-  headerCell: {
-    backgroundColor: '#e8e8e8',
-    borderRight: '1px solid #d0d0d0',
-    borderBottom: '2px solid #a0a0a0',
-    padding: '2px 6px',
-    textAlign: 'center',
-    fontWeight: 600,
-    height: 22,
-    userSelect: 'none',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  rowNumber: {
-    backgroundColor: '#e8e8e8',
-    borderRight: '1px solid #a0a0a0',
-    borderBottom: '1px solid #d0d0d0',
-    padding: '2px 4px',
-    textAlign: 'center',
-    color: '#555',
-    fontSize: 11,
-    width: 40,
-    userSelect: 'none',
-  },
-  cell: {
-    borderRight: '1px solid #e0e0e0',
-    borderBottom: '1px solid #e0e0e0',
-    padding: '2px 6px',
-    height: 22,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    cursor: 'cell',
-  },
+  cornerCell: BASE.cornerCell,
+  headerCell: BASE.headerCell,
+  rowNumber: BASE.rowNumber,
+  cell: { ...BASE.cell, cursor: 'cell' },
   selectedCell: {
     outline: '2px solid #0078d7',
     outlineOffset: -2,

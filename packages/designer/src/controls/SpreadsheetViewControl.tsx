@@ -1,6 +1,9 @@
 import type { CSSProperties } from 'react';
+import { spreadsheetBaseStyles } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
+
+const BASE = spreadsheetBaseStyles as Record<string, CSSProperties>;
 
 const DEFAULT_COLS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const PREVIEW_ROWS = 5;
@@ -84,92 +87,18 @@ export function SpreadsheetViewControl({ properties, size }: DesignerControlProp
 }
 
 const styles: Record<string, CSSProperties> = {
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '3px 6px',
-    backgroundColor: '#f3f3f3',
-    borderBottom: '1px solid #d0d0d0',
-    flexShrink: 0,
-  },
-  toolBtn: {
-    padding: '2px 8px',
-    border: '1px solid #c0c0c0',
-    backgroundColor: '#fff',
-    borderRadius: 2,
-    fontSize: 11,
-    color: '#333',
-    cursor: 'default',
-  },
-  formulaBar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '2px 6px',
-    backgroundColor: '#fff',
-    borderBottom: '1px solid #d0d0d0',
-    height: 22,
-    flexShrink: 0,
-  },
-  cellAddress: {
-    padding: '1px 6px',
-    backgroundColor: '#f5f5f5',
-    border: '1px solid #d0d0d0',
-    fontSize: 11,
-    minWidth: 44,
-    textAlign: 'center',
-    fontWeight: 600,
-  },
-  fxLabel: {
-    fontSize: 11,
-    fontStyle: 'italic',
-    color: '#888',
-    flexShrink: 0,
-  },
-  formulaInput: {
-    flex: 1,
-    minHeight: 16,
-    border: '1px solid #d0d0d0',
-    backgroundColor: '#fff',
-    fontSize: 11,
-  },
+  toolbar: BASE.toolbar,
+  toolBtn: { ...BASE.toolBtn, color: '#333', cursor: 'default' },
+  formulaBar: BASE.formulaBar,
+  cellAddress: BASE.cellAddress,
+  fxLabel: BASE.fxLabel,
+  formulaInput: { ...BASE.formulaValue, minHeight: 16 },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     tableLayout: 'fixed',
   },
-  headerCell: {
-    backgroundColor: '#e8e8e8',
-    borderRight: '1px solid #d0d0d0',
-    borderBottom: '2px solid #a0a0a0',
-    padding: '2px 6px',
-    textAlign: 'center',
-    fontWeight: 600,
-    height: 22,
-    userSelect: 'none',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  rowNumber: {
-    backgroundColor: '#e8e8e8',
-    borderRight: '1px solid #a0a0a0',
-    borderBottom: '1px solid #d0d0d0',
-    padding: '2px 4px',
-    textAlign: 'center',
-    color: '#555',
-    fontSize: 11,
-    width: 40,
-    userSelect: 'none',
-  },
-  cell: {
-    borderRight: '1px solid #e0e0e0',
-    borderBottom: '1px solid #e0e0e0',
-    padding: '2px 6px',
-    height: 22,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
+  headerCell: BASE.headerCell,
+  rowNumber: BASE.rowNumber,
+  cell: BASE.cell,
 };

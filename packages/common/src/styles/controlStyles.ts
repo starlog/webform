@@ -461,6 +461,108 @@ export const dataGridEmptyMessageStyle: CSSStyle = {
   color: '#888',
 };
 
+// ─── SpreadsheetView ───
+
+/**
+ * 스프레드시트 공통 베이스 스타일 (designer 프리뷰·runtime 공용).
+ * 테마 색상 오버라이드(배경/테두리)는 호출 측에서 spread로 덧붙인다.
+ */
+export const spreadsheetBaseStyles: Record<string, CSSStyle> = {
+  toolbar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '3px 6px',
+    backgroundColor: '#f3f3f3',
+    borderBottom: '1px solid #d0d0d0',
+    flexShrink: 0,
+  },
+  toolBtn: {
+    padding: '2px 8px',
+    border: '1px solid #c0c0c0',
+    backgroundColor: '#fff',
+    borderRadius: 2,
+    fontSize: 11,
+  },
+  formulaBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '2px 6px',
+    backgroundColor: '#fff',
+    borderBottom: '1px solid #d0d0d0',
+    flexShrink: 0,
+    height: 22,
+  },
+  cellAddress: {
+    padding: '1px 6px',
+    backgroundColor: '#f5f5f5',
+    border: '1px solid #d0d0d0',
+    fontSize: 11,
+    minWidth: 44,
+    textAlign: 'center',
+    fontWeight: 600,
+  },
+  fxLabel: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    color: '#888',
+    flexShrink: 0,
+  },
+  formulaValue: {
+    flex: 1,
+    padding: '1px 4px',
+    border: '1px solid #d0d0d0',
+    backgroundColor: '#fff',
+    fontSize: 11,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  cornerCell: {
+    backgroundColor: '#e8e8e8',
+    borderRight: '1px solid #a0a0a0',
+    borderBottom: '2px solid #a0a0a0',
+    padding: '2px 4px',
+    textAlign: 'center',
+    fontWeight: 600,
+    height: 22,
+  },
+  headerCell: {
+    backgroundColor: '#e8e8e8',
+    borderRight: '1px solid #d0d0d0',
+    borderBottom: '2px solid #a0a0a0',
+    padding: '2px 6px',
+    textAlign: 'center',
+    fontWeight: 600,
+    height: 22,
+    userSelect: 'none',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  rowNumber: {
+    backgroundColor: '#e8e8e8',
+    borderRight: '1px solid #a0a0a0',
+    borderBottom: '1px solid #d0d0d0',
+    padding: '2px 4px',
+    textAlign: 'center',
+    color: '#555',
+    fontSize: 11,
+    width: 40,
+    userSelect: 'none',
+  },
+  cell: {
+    borderRight: '1px solid #e0e0e0',
+    borderBottom: '1px solid #e0e0e0',
+    padding: '2px 6px',
+    height: 22,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+};
+
 // ─── JsonEditor ───
 
 /** JSON 트리 구문 강조 공통 스타일 (designer 프리뷰·runtime 에디터 공용) */
