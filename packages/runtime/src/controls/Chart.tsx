@@ -110,6 +110,7 @@ function detectSeriesKeys(row: Record<string, unknown>, categoryKey: string | nu
 }
 
 export function Chart({
+  id,
   chartType = 'Column',
   series,
   title,
@@ -340,7 +341,7 @@ export function Chart({
   }, []);
 
   return (
-    <div style={containerStyle}>
+    <div data-control-id={id} style={containerStyle}>
       {title && <div style={titleStyle}>{title}</div>}
       {isEmpty ? (
         renderEmpty()
