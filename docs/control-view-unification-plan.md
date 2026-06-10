@@ -69,26 +69,32 @@
 브랜치: `refactor/shared-views` 1개에서 Wave별로 진행, **컨트롤 1종 = 커밋 1개**.
 Wave 완료 시점마다 main에 머지(또는 PR) — 작게 자주 합쳐 충돌을 피한다.
 
-### Wave 1 — 단순 마크업형 (위험 낮음, 패턴 정착)
+### Wave 1 — 단순 마크업형 (위험 낮음, 패턴 정착) ✅ 완료 (2026-06-10)
 StatusStrip → BindingNavigator → SplitContainer → WebBrowser → ToolStrip
 
-- 예상 규모: View 5개 신규, 양쪽 컨트롤 10파일 축소
-- 이 Wave에서 View props 컨벤션을 확정하고 이후 Wave에 동일 적용
+- View 5개 신규, 양쪽 컨트롤 10파일 축소. SplitContainer 런타임 border 버그 발견·수정.
+- 확정된 컨벤션: common은 DOM lib 미포함(`lib: ["ES2022"]`) — DOM 멤버 접근 로직은 View에 두지 않고 이벤트를 콜백으로 전달, ref는 `Ref<HTMLDivElement>` prop으로 수령.
 
-### Wave 2 — 상호작용 중간형
+### Wave 2 — 상호작용 중간형 ✅ 완료 (2026-06-10)
 TreeView → MenuStrip → RichTextBox → ListView
 
 - 런타임 쪽 동작(드롭다운 열림, 노드 확장, 선택 상태)은 컨트롤에 남기고 View는 "현재 상태를 받아 그리는" 역할로 한정
 - RichTextBox는 contentEditable/DOMPurify 로직을 runtime에 유지, 툴바+레이아웃만 View로
+- MenuStrip의 중복 DropdownMenu/SubMenu는 재귀 MenuPanel 하나로 통합
 
-### Wave 3 — 대형 데이터 컨트롤 (선택적·부분 공유)
-DataGridView → Chart → JsonEditor → SpreadsheetView → (MongoDBView)
+### Wave 3 — 대형 데이터 컨트롤 (선택적·부분 공유) ✅ 완료 (2026-06-10)
+DataGridView → Chart → JsonEditor → SpreadsheetView → MongoDBView
 
-- 전체 View화가 아니라 **공유 가능한 하위 조각**(그리드 헤더, 셀, 차트 SVG 빌더, 트리 노드)을 추출하는 방식도 허용
-- MongoDBView(899줄)는 런타임 전용 로직이 대부분 — 비용 대비 효과를 Wave 3 시작 시 재평가하고, 효과가 작으면 제외
+실행 결과 (각 컨트롤별 판단):
+- **DataGridView**: 마크업 구조가 달라(디자이너 정적 table vs 런타임 react-window 가상화) 전체 View화 부적합. `dataGrid*Style` 팩토리 4종 + `GridColumnDefinition`/`resolveGridColumns`(field·headerText 폴백)를 `controlStyles`로 추출.
+- **Chart**: 런타임은 recharts, 디자이너는 의도된 경량 정적 SVG 목업 — 실질 중복 없음. **공통화 제외 확정.**
+- **JsonEditor**: 구조 공유는 가치 없음(디자이너가 4줄 정적 목업). JSON 구문 색상(`jsonKey/Colon/Bracket/ValueStyle`)만 추출.
+- **SpreadsheetView**: 베이스 스타일 10종이 그대로 중복 → `spreadsheetBaseStyles`로 추출.
+- **MongoDBView**: 재평가 결과 전체 View화는 효과 없음(런타임 전용 CRUD 로직이 대부분). `mongoViewBaseStyles`(toolbar/toolBtn/table/headerCell/cell)만 부분 공유.
 
-### 제외
-MongoDBConnector / DataSourceConnector / SwaggerConnector — 중복 없음.
+### 제외 (확정)
+- MongoDBConnector / DataSourceConnector / SwaggerConnector — 런타임이 invisible stub, 중복 없음.
+- Chart — 구현 기반이 달라(recharts vs 정적 SVG) 공유 대상 없음.
 
 ## 4. 검증 체크리스트 (Wave별)
 
