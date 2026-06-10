@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { jsonKeyStyle, jsonColonStyle, jsonBracketStyle } from '@webform/common';
 import { computeFontStyle } from '../renderer/layoutUtils';
 import { useRuntimeStore } from '../stores/runtimeStore';
 import { useControlColors } from '../theme/useControlColors';
@@ -379,17 +380,15 @@ const styles: Record<string, CSSProperties> = {
     userSelect: 'none',
   },
   key: {
-    color: '#0451a5',
-    fontWeight: 600,
+    ...(jsonKeyStyle as CSSProperties),
     flexShrink: 0,
   },
   colon: {
-    color: '#666',
+    ...(jsonColonStyle as CSSProperties),
     flexShrink: 0,
   },
   bracket: {
-    color: '#999',
-    fontStyle: 'italic',
+    ...(jsonBracketStyle as CSSProperties),
     fontSize: 11,
   },
   input: {

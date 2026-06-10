@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { jsonKeyStyle, jsonColonStyle, jsonBracketStyle, jsonValueStyle } from '@webform/common';
 import { useTheme } from '../theme/ThemeContext';
 import type { DesignerControlProps } from './registry';
 
@@ -84,18 +85,8 @@ const styles: Record<string, CSSProperties> = {
     height: 20,
     whiteSpace: 'nowrap',
   },
-  key: {
-    color: '#0451a5',
-    fontWeight: 600,
-  },
-  colon: {
-    color: '#666',
-  },
-  value: {
-    color: '#098658',
-  },
-  bracket: {
-    color: '#999',
-    fontStyle: 'italic',
-  },
+  key: jsonKeyStyle as CSSProperties,
+  colon: jsonColonStyle as CSSProperties,
+  value: jsonValueStyle as CSSProperties,
+  bracket: jsonBracketStyle as CSSProperties,
 };

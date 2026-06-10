@@ -143,4 +143,8 @@ export {
   dataGridHeaderCellStyle,
   dataGridCellStyle,
   dataGridEmptyMessageStyle,
+  jsonKeyStyle,
+  jsonColonStyle,
+  jsonBracketStyle,
+  jsonValueStyle,
 } from './styles/controlStyles.js';

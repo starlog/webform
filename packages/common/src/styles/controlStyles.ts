@@ -461,6 +461,27 @@ export const dataGridEmptyMessageStyle: CSSStyle = {
   color: '#888',
 };
 
+// ─── JsonEditor ───
+
+/** JSON 트리 구문 강조 공통 스타일 (designer 프리뷰·runtime 에디터 공용) */
+export const jsonKeyStyle: CSSStyle = {
+  color: '#0451a5',
+  fontWeight: 600,
+};
+
+export const jsonColonStyle: CSSStyle = {
+  color: '#666',
+};
+
+export const jsonBracketStyle: CSSStyle = {
+  color: '#999',
+  fontStyle: 'italic',
+};
+
+export const jsonValueStyle: CSSStyle = {
+  color: '#098658',
+};
+
 // ─── Badge ───
 
 export const BADGE_STATUS_COLORS: Record<string, string> = {
